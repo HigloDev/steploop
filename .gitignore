@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# binary artifacts (too large for git)
+*.apk
+*.ipa
+*.tmp
+.tmp_ui_now.xml
