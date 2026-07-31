@@ -1,7 +1,7 @@
 // 多轮训练编排 Hook：状态机 + 单轮识别协调 + 检查点持久化 + 目标检测。
 //
 // 职责边界：
-// - 管理 WorkoutPhase 状态流转（setup → round_ready → countdown → ascending
+// - 管理 WorkoutPhase 状态流转（setup → round_ready → ascending
 //   → round_complete → returning → start_confirmation → recovering → 下一轮）
 // - 在 ascending 阶段调用 useClimbRoundSession 创建本轮识别三件套
 // - 轮次结束后固化 WorkoutRound 并写入 workout.rounds
@@ -44,7 +44,6 @@ import {
   ClimbSession,
   ClimbMode,
   ClimbWorkout,
-  CountdownDuration,
   ReturnConfirmationMode,
   RouteTemplate,
   WorkoutGoal,
@@ -82,16 +81,13 @@ export interface UseClimbWorkoutOptions {
   template: RouteTemplate
   goal: WorkoutGoal
   returnConfirmationMode: ReturnConfirmationMode
-  countdownSeconds: CountdownDuration
 }
 
 export interface WorkoutTimerState {
   // 训练总历时
   totalElapsedMs: number
-  // 当前阶段已用时（countdown 剩余、ascending 本轮用时、returning 返回用时、recovering 休息用时）
+  // 当前阶段已用时（ascending 本轮用时、returning 返回用时、recovering 休息用时）
   phaseElapsedMs: number
-  // 倒计时剩余（仅在 countdown 阶段有效）
-  countdownRemaining: number
 }
 
 export interface UseClimbWorkoutResult {
@@ -128,10 +124,8 @@ export interface UseClimbWorkoutResult {
   // === 动作 ===
   // 开始训练：setup → round_ready
   startWorkout: () => void
-  // 开始倒计时：round_ready → countdown → ascending
-  startCountdown: () => void
-  // 跳过倒计时直接开始（countdown=0 时使用）
-  skipCountdown: () => void
+  // 开始本轮爬升：round_ready → ascending
+  beginAscending: () => void
   // 用户主动结束训练（任意非 setup 阶段）
   finishWorkout: (options?: {
     // ascending 阶段是否保存未完成轮
@@ -147,7 +141,7 @@ export interface UseClimbWorkoutResult {
   discardCurrentRoundAndFinish: () => Promise<ClimbWorkout | null>
   // 用户点击"我已回到1F"：returning/start_confirmation → recovering
   confirmReturnedToStart: () => void
-  // 用户点击"开始下一轮"：recovering → round_ready（再经 countdown → ascending）
+  // 用户点击"开始下一轮"：recovering → round_ready（再经 ascending → 下一轮爬升）
   startNextRound: () => void
   // 用户在 returning 阶段手动确认接近起点（触发 start_confirmation）
   manualNearStart: () => void
@@ -187,7 +181,7 @@ function buildRouteSnapshot(template: RouteTemplate): ClimbWorkout['routeSnapsho
 export function useClimbWorkout(
   options: UseClimbWorkoutOptions,
 ): UseClimbWorkoutResult {
-  const { template, goal, returnConfirmationMode, countdownSeconds } = options
+  const { template, goal, returnConfirmationMode } = options
 
   const [machine, setMachine] = useState<WorkoutMachineState>(
     INITIAL_WORKOUT_STATE,
@@ -197,7 +191,6 @@ export function useClimbWorkout(
   const [timer, setTimer] = useState<WorkoutTimerState>({
     totalElapsedMs: 0,
     phaseElapsedMs: 0,
-    countdownRemaining: 0,
   })
   const [goalMessage, setGoalMessage] = useState('')
 
@@ -234,10 +227,6 @@ export function useClimbWorkout(
   const phaseStartedAtRef = useRef<number>(0)
   // 主计时器
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(
-    undefined,
-  )
-  // 倒计时计时器
-  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(
     undefined,
   )
   // workout 引用，避免闭包过期
@@ -291,7 +280,6 @@ export function useClimbWorkout(
         templateId: w.templateId,
         goal: w.goal,
         returnConfirmationMode: w.returnConfirmationMode,
-        countdownSeconds: w.countdownSeconds,
         startedAt: w.startedAt,
       }
       await saveActiveCheckpoint(checkpoint)
@@ -639,10 +627,6 @@ export function useClimbWorkout(
     // workout_complete 阶段：清理
     if (phase === 'workout_complete') {
       roundSessionRef.current.cleanup()
-      if (countdownIntervalRef.current) {
-        clearInterval(countdownIntervalRef.current)
-        countdownIntervalRef.current = undefined
-      }
       // 清理返回阶段 recorder（兜底）
       if (returnRecorderRef.current) {
         returnRecorderRef.current.stop().catch(() => undefined)
@@ -650,34 +634,6 @@ export function useClimbWorkout(
       }
     }
   }, [machine.phase, machine.currentRoundNumber, dispatch, persistCheckpoint])
-
-  // === 倒计时 ===
-  const startCountdownInternal = useCallback(() => {
-    if (countdownSeconds === 0) {
-      // 无倒计时，直接进入 ascending
-      dispatch({ type: 'BEGIN_ASCENDING' })
-      return
-    }
-    dispatch({ type: 'START_COUNTDOWN' })
-    let remaining = countdownSeconds
-    setTimer((prev) => ({ ...prev, countdownRemaining: remaining }))
-
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current)
-    }
-    countdownIntervalRef.current = setInterval(() => {
-      remaining -= 1
-      if (remaining <= 0) {
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current)
-          countdownIntervalRef.current = undefined
-        }
-        dispatch({ type: 'COUNTDOWN_TICK', remaining: 0 })
-      } else {
-        setTimer((prev) => ({ ...prev, countdownRemaining: remaining }))
-      }
-    }, 1000)
-  }, [countdownSeconds, dispatch])
 
   // === 动作实现 ===
   const startWorkout = useCallback(() => {
@@ -687,18 +643,13 @@ export function useClimbWorkout(
       routeSnapshot: buildRouteSnapshot(template),
       goal,
       returnConfirmationMode,
-      countdownSeconds,
     })
     setWorkout(w)
     workoutRef.current = w
     dispatch({ type: 'START_WORKOUT' })
-  }, [template, goal, returnConfirmationMode, countdownSeconds, dispatch])
+  }, [template, goal, returnConfirmationMode, dispatch])
 
-  const startCountdown = useCallback(() => {
-    startCountdownInternal()
-  }, [startCountdownInternal])
-
-  const skipCountdown = useCallback(() => {
+  const beginAscending = useCallback(() => {
     dispatch({ type: 'BEGIN_ASCENDING' })
   }, [dispatch])
 
@@ -904,7 +855,6 @@ export function useClimbWorkout(
           ? checkpoint.goal
           : { type: 'open' },
         returnConfirmationMode: checkpoint.returnConfirmationMode,
-        countdownSeconds: checkpoint.countdownSeconds,
         status: 'active',
         startedAt: checkpoint.startedAt,
         rounds: checkpoint.completedRounds,
@@ -951,7 +901,7 @@ export function useClimbWorkout(
       // 不恢复 ascending 阶段（无法恢复半轮 DTW 缓冲）
       let resumePhase: WorkoutPhase = checkpoint.phase
       if (resumePhase === 'ascending' || resumePhase === 'countdown') {
-        // 半轮被中断，标记为 interrupted，从下一轮开始
+        // 半轮被中断（countdown 为旧检查点遗留阶段），从下一轮开始
         resumePhase = 'round_ready'
       }
       setMachine({
@@ -1002,9 +952,6 @@ export function useClimbWorkout(
     return () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current)
-      }
-      if (countdownIntervalRef.current) {
-        clearInterval(countdownIntervalRef.current)
       }
       // 清理返回阶段低功耗 recorder
       if (returnRecorderRef.current) {
@@ -1058,8 +1005,7 @@ export function useClimbWorkout(
     nearStart,
     returnVisualization,
     startWorkout,
-    startCountdown,
-    skipCountdown,
+    beginAscending,
     finishWorkout,
     completeLearningRound,
     discardCurrentRoundAndFinish,

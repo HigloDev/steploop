@@ -82,7 +82,6 @@ export default function RouteProfileScreen({
         id: template.id,
         goal: { type: 'open' },
         returnConfirmationMode: 'assisted',
-        countdownSeconds: 0,
       })
       return
     }

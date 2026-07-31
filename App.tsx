@@ -87,7 +87,6 @@ async function saveCheckpointAsCompleted(
     },
     goal: knownEnd ? cp.goal : { type: 'open' },
     returnConfirmationMode: cp.returnConfirmationMode,
-    countdownSeconds: cp.countdownSeconds,
     status: 'completed',
     startedAt: cp.startedAt,
     endedAt: Date.now(),
@@ -184,13 +183,12 @@ export default function App() {
               await clearActiveCheckpoint()
               return
             }
-            // ascending/countdown 被中断时无法恢复半轮特征，由 ClimbWorkout
+            // ascending 被中断时无法恢复半轮特征，由 ClimbWorkout
             // 内部根据 phase 决定从下一轮 round_ready 重新开始
             nav.navigate('ClimbWorkout', {
               id: cp.templateId,
               goal: cp.goal,
               returnConfirmationMode: cp.returnConfirmationMode,
-              countdownSeconds: cp.countdownSeconds,
             })
           },
         },

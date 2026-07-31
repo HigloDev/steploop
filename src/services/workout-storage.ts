@@ -90,7 +90,6 @@ export function createWorkout(params: {
   routeSnapshot: ClimbWorkout['routeSnapshot']
   goal: ClimbWorkout['goal']
   returnConfirmationMode: ClimbWorkout['returnConfirmationMode']
-  countdownSeconds: ClimbWorkout['countdownSeconds']
 }): ClimbWorkout {
   const now = Date.now()
   return {
@@ -100,7 +99,6 @@ export function createWorkout(params: {
     routeSnapshot: params.routeSnapshot,
     goal: params.goal,
     returnConfirmationMode: params.returnConfirmationMode,
-    countdownSeconds: params.countdownSeconds,
     status: 'active',
     startedAt: now,
     rounds: [],

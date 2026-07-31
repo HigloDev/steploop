@@ -236,7 +236,6 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
                   id: checkpoint.templateId,
                   goal: checkpoint.goal,
                   returnConfirmationMode: checkpoint.returnConfirmationMode,
-                  countdownSeconds: checkpoint.countdownSeconds,
                 })
               }
             >

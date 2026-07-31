@@ -165,7 +165,6 @@ export function buildWorkoutFromSession(session: ClimbSession): ClimbWorkout {
     },
     goal: { type: 'open' },
     returnConfirmationMode: 'manual',
-    countdownSeconds: 3,
     status: 'completed',
     startedAt: session.startedAt,
     endedAt: session.endedAt,

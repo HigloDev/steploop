@@ -1,5 +1,5 @@
 // 多轮训练主页面：一个容器页面管理整次训练的所有阶段。
-// 阶段：round_ready → countdown → ascending → round_complete
+// 阶段：round_ready → ascending → round_complete → returning → recovering → 下一轮
 //       → returning → start_confirmation → recovering → 下一轮
 // 用户主动结束 → workout_complete → 跳转 WorkoutResult
 
@@ -78,7 +78,7 @@ export default function ClimbWorkoutScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
-  const { id, goal, returnConfirmationMode, countdownSeconds } = route.params
+  const { id, goal, returnConfirmationMode } = route.params
 
   const [routeTpl, setRouteTpl] = useState<RouteTemplate | null>(null)
   const [loadError, setLoadError] = useState('')
@@ -148,7 +148,6 @@ export default function ClimbWorkoutScreen({
     template: routeTpl ?? DUMMY_TEMPLATE,
     goal: effectiveGoal,
     returnConfirmationMode,
-    countdownSeconds,
   })
   const activeRouteTpl = workout.activeTemplate
   const liveActiveDurationMs =
@@ -232,13 +231,13 @@ export default function ClimbWorkoutScreen({
   ])
 
   // === 动作处理 ===
-  // round_ready 是旧版的“本轮准备”页；现在任何轮次都直接进入采集界面。
+  // round_ready 是旧版的"本轮准备"页；现在任何轮次都直接进入采集界面。
   useEffect(() => {
     if (workout.phase !== 'round_ready') return
-    workout.skipCountdown()
+    workout.beginAscending()
   }, [
     workout.phase,
-    workout.skipCountdown,
+    workout.beginAscending,
   ])
 
   const handleFinishWorkout = () => {
@@ -432,13 +431,6 @@ export default function ClimbWorkoutScreen({
         )}
 
         {/* 各阶段内容 */}
-        {workout.phase === 'countdown' && (
-          <CountdownView
-            remaining={workout.timer.countdownRemaining}
-            roundNumber={workout.currentRoundNumber}
-          />
-        )}
-
         {workout.phase === 'ascending' && (
           <AscendingView
             routeTpl={activeRouteTpl}
@@ -625,24 +617,6 @@ function RoundTrack({
 }
 
 // === 各阶段视图组件 ===
-
-function CountdownView({
-  remaining,
-  roundNumber,
-}: {
-  remaining: number
-  roundNumber: number
-}) {
-  const theme = useTheme()
-  const styles = makeStyles(theme)
-  return (
-    <View style={styles.countdownContainer}>
-      <Text style={styles.countdownRound}>第 {roundNumber} 轮</Text>
-      <Text style={styles.countdownNumber}>{remaining}</Text>
-      <Text style={styles.countdownHint}>准备出发</Text>
-    </View>
-  )
-}
 
 function AscendingView({
   routeTpl,
@@ -1338,27 +1312,6 @@ const makeStyles = (theme: Theme) =>
       fontSize: 14,
       fontWeight: '700',
       textAlign: 'center',
-    },
-    // 倒计时
-    countdownContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 60,
-    },
-    countdownRound: {
-      color: theme.muted,
-      fontSize: 16,
-      marginBottom: 20,
-    },
-    countdownNumber: {
-      color: theme.green,
-      fontSize: 80,
-      fontWeight: '900',
-    },
-    countdownHint: {
-      color: theme.muted,
-      fontSize: 14,
-      marginTop: 20,
     },
     // 指标
     metricGrid: {

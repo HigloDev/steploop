@@ -229,9 +229,9 @@ export type WorkoutGoal =
 
 export type ReturnConfirmationMode = 'manual' | 'assisted'
 
-export type CountdownDuration = 0 | 3 | 5 | 10
-
 // 训练阶段。放 types.ts 避免与 ActiveWorkoutCheckpoint 循环依赖。
+// 'countdown' 为遗留阶段：倒计时功能已移除，仅旧检查点中可能出现，
+// 恢复训练时一律视为 round_ready。
 export type WorkoutPhase =
   | 'setup'
   | 'round_ready'
@@ -289,7 +289,8 @@ export interface ClimbWorkout {
   }
   goal: WorkoutGoal
   returnConfirmationMode: ReturnConfirmationMode
-  countdownSeconds: CountdownDuration
+  // @deprecated 倒计时功能已移除，保留字段仅为读取旧训练数据
+  countdownSeconds?: number
   status: WorkoutStatus
   startedAt: number
   endedAt?: number
@@ -341,7 +342,8 @@ export interface ActiveWorkoutCheckpoint {
   templateId: string
   goal: WorkoutGoal
   returnConfirmationMode: ReturnConfirmationMode
-  countdownSeconds: CountdownDuration
+  // @deprecated 倒计时功能已移除，保留字段仅为读取旧检查点
+  countdownSeconds?: number
   startedAt: number
 }
 

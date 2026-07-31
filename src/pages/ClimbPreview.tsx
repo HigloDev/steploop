@@ -67,7 +67,6 @@ function makeMockWorkout(rounds: WorkoutRound[], currentRoundNumber: number): Cl
     routeSnapshot: MOCK_TEMPLATE,
     goal: MOCK_GOAL,
     returnConfirmationMode: 'assisted',
-    countdownSeconds: 3,
     status: 'active',
     startedAt,
     rounds,

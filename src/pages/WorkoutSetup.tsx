@@ -11,7 +11,6 @@ import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
 import { getRoute } from '../services/storage'
 import {
-  CountdownDuration,
   RouteTemplate,
   WorkoutGoal,
   WorkoutGoalType,
@@ -46,8 +45,6 @@ const CUMULATIVE_GOALS: Array<{
   { value: 'ascent', label: '爬升' },
   { value: 'duration', label: '时间' },
 ]
-
-const COUNTDOWN_SECONDS: CountdownDuration = 0
 
 export default function WorkoutSetupScreen({
   navigation,
@@ -129,7 +126,6 @@ export default function WorkoutSetupScreen({
       id,
       goal: routeTpl && hasKnownRouteEnd(routeTpl) ? buildGoal() : { type: 'open' },
       returnConfirmationMode: 'assisted',
-      countdownSeconds: COUNTDOWN_SECONDS,
     })
   }
 

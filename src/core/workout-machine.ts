@@ -3,7 +3,6 @@ import { WorkoutPhase } from './types'
 export interface WorkoutMachineState {
   phase: WorkoutPhase
   currentRoundNumber: number
-  countdownRemaining?: number
   returningSince?: number
   recoveringSince?: number
 }
@@ -11,8 +10,6 @@ export interface WorkoutMachineState {
 export type WorkoutAction =
   | { type: 'START_WORKOUT' }
   | { type: 'BEGIN_ROUND_READY' }
-  | { type: 'START_COUNTDOWN' }
-  | { type: 'COUNTDOWN_TICK'; remaining: number }
   | { type: 'BEGIN_ASCENDING' }
   | { type: 'ROUND_COMPLETE' }
   | { type: 'BEGIN_RETURNING' }
@@ -33,9 +30,12 @@ export const INITIAL_WORKOUT_STATE: WorkoutMachineState = {
  * 副作用（传感器启停、持久化、导航）由 useClimbWorkout hook 处理。
  *
  * 状态流转：
- *   setup → round_ready → countdown → ascending → round_complete
- *         → returning → start_confirmation → recovering → countdown（下一轮）
+ *   setup → round_ready → ascending → round_complete
+ *         → returning → start_confirmation → recovering → round_ready（下一轮）
  *   任意非 setup 状态 → workout_complete（用户主动结束）
+ *
+ * 说明：countdown 阶段已移除（见 types.ts 中 WorkoutPhase 的注释），
+ * round_ready 后直接 BEGIN_ASCENDING。
  */
 export function workoutReducer(
   state: WorkoutMachineState,
@@ -56,24 +56,9 @@ export function workoutReducer(
       }
       return { ...state, phase: 'round_ready' }
 
-    case 'START_COUNTDOWN':
-      if (state.phase !== 'round_ready') return state
-      return { ...state, phase: 'countdown' }
-
-    case 'COUNTDOWN_TICK':
-      if (state.phase !== 'countdown') return state
-      if (action.remaining > 0) {
-        return { ...state, countdownRemaining: action.remaining }
-      }
-      return {
-        ...state,
-        phase: 'ascending',
-        countdownRemaining: 0,
-      }
-
     case 'BEGIN_ASCENDING':
-      // 允许从 round_ready（countdownSeconds=0 跳过倒计时）或 countdown 转换
-      if (state.phase !== 'round_ready' && state.phase !== 'countdown') return state
+      // 从 round_ready 直接进入 ascending（倒计时已移除）
+      if (state.phase !== 'round_ready') return state
       return { ...state, phase: 'ascending' }
 
     case 'ROUND_COMPLETE':
@@ -129,7 +114,6 @@ export function workoutReducer(
         phase: 'workout_complete',
         returningSince: undefined,
         recoveringSince: undefined,
-        countdownRemaining: undefined,
       }
 
     case 'GOAL_REACHED':

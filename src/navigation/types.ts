@@ -1,6 +1,5 @@
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
-  CountdownDuration,
   ReturnConfirmationMode,
   RouteLocation,
   WorkoutGoal,
@@ -22,7 +21,6 @@ export type RouteParam =
         id: string
         goal: WorkoutGoal
         returnConfirmationMode: ReturnConfirmationMode
-        countdownSeconds: CountdownDuration
       }
     }
   | { name: 'WorkoutResult'; params: { id: string } }
@@ -53,7 +51,6 @@ export type RootStackParamList = {
     id: string
     goal: WorkoutGoal
     returnConfirmationMode: ReturnConfirmationMode
-    countdownSeconds: CountdownDuration
   }
   WorkoutResult: { id: string }
   ShareStudio: { id: string }
