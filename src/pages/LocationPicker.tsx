@@ -1,15 +1,16 @@
 // 地图选点页：WebView 嵌入高德 JS API 2.0（原生高德地图）+ 高德逆地理编码。
 // 使用高德官方 JS API key + 安全密钥，地图样式、控件、大头针均为高德原生。
 // 两种模式：
-//   - 新建路线（无 routeId）：确认后跳转 Calibrate。
+//   - 新建路线（无 routeId）：确认后创建 draft 路线，直接跳转 WorkoutSetup（首次开张：边爬边建模板）。
 //   - 补充旧路线地点（有 routeId）：确认后调用 updateRouteLocation 写回路线。
 
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Keyboard,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -22,9 +23,10 @@ import { Header } from '../components/Header'
 import { Button } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
-import { RouteLocation } from '../core/types'
+import { RouteLocation, RouteTemplate } from '../core/types'
+import { uid } from '../core/math'
 import { getCurrentLocation, locationPermissionErrorMessage } from '../services/location'
-import { updateRouteLocation } from '../services/storage'
+import { saveRoute, updateRouteLocation } from '../services/storage'
 
 // 高德 JS API Key + 安全密钥（Web端 JS API 类型）。
 // 注意：此 key 会暴露在前端代码中，高德 JS API 个人开发者免费不限调用次数，只限 QPS。
@@ -34,6 +36,8 @@ const AMAP_SECURITY_CODE = '1fc0d516d6c4a6f0fca7ee7873e9cb9d'
 // 默认坐标：武夷山市（项目所在地，GCJ-02 坐标系，高德默认坐标系）
 const DEFAULT_LAT = 27.7559
 const DEFAULT_LNG = 118.0253
+const DEFAULT_START_FLOOR = 1
+const DEFAULT_CARRY_MODE = 'pocket' as const
 
 // WebView 内嵌的 HTML：高德 JS API 2.0 原生地图 + 中心固定大头针 + 逆地理编码。
 // 包含 WGS-84 → GCJ-02 坐标转换（GPS 定位返回 WGS-84，高德地图是 GCJ-02）。
@@ -56,22 +60,6 @@ function buildMapHtml(initialLat: number, initialLng: number): string {
       pointer-events: none;
     }
     #pin svg { display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
-    /* 定位按钮 */
-    #locate-btn {
-      position: absolute;
-      bottom: 24px; right: 16px;
-      z-index: 1000;
-      width: 44px; height: 44px;
-      background: #fff;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-      font-size: 22px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
   </style>
   <script>
     // 高德 JS API 2.0 安全密钥配置（必须在加载 JS API 脚本前设置）
@@ -89,8 +77,6 @@ function buildMapHtml(initialLat: number, initialLng: number): string {
       <circle cx="16" cy="16" r="6" fill="#fff"/>
     </svg>
   </div>
-  <button id="locate-btn" title="定位到当前位置">◎</button>
-
   <script>
     (function() {
       // WGS-84 → GCJ-02 坐标转换（GPS 返回 WGS-84，高德地图是 GCJ-02）
@@ -167,22 +153,11 @@ function buildMapHtml(initialLat: number, initialLng: number): string {
         } catch(e) {}
         geocoder.getAddress([lng, lat], function(status, result) {
           var addr = '';
-          var name = '';
           if (status === 'complete' && result.info === 'OK' && result.regeocode) {
             addr = result.regeocode.formattedAddress || '';
-            var ac = result.regeocode.addressComponent || {};
-            // 高德 API 部分字段可能返回数组，需取第一项
-            function pickStr(v) {
-              if (Array.isArray(v)) return v.length > 0 ? String(v[0]) : '';
-              return v ? String(v) : '';
-            }
-            name = pickStr(ac.building)
-              || pickStr(ac.township)
-              || pickStr(ac.street)
-              || pickStr(ac.district);
           }
           window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'reverse_done', address: addr, name: name, raw: null
+            type: 'reverse_done', address: addr, raw: null
           }));
         });
       }
@@ -194,21 +169,74 @@ function buildMapHtml(initialLat: number, initialLng: number): string {
       map.on('moveend', sendCenter);
       map.on('zoomend', sendCenter);
 
-      // 定位按钮
-      document.getElementById('locate-btn').addEventListener('click', function() {
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'locate_request' }));
-      });
-
       // RN 调用：移动地图到指定 GCJ-02 坐标
       window._setCenter = function(lat, lng, zoom) {
         map.setZoomAndCenter(zoom || 16, [lng, lat]);
       };
 
+      // RN 调用：把输入的地址解析为地图坐标，并移动到第一个匹配地点。
+      window._searchAddress = function(query) {
+        if (!query || !query.trim()) return;
+        if (!geocoder) {
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'search_error', message: '地图服务尚未准备好，请稍后再试'
+          }));
+          return;
+        }
+        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'search_start'
+        }));
+        var completed = false;
+        var timeout = setTimeout(function() {
+          if (completed) return;
+          completed = true;
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'search_error', message: '地址搜索超时，请检查网络后重试'
+          }));
+        }, 10000);
+        geocoder.getLocation(query.trim(), function(status, result) {
+          if (completed) return;
+          completed = true;
+          clearTimeout(timeout);
+          var matches = result && result.geocodes;
+          if (status !== 'complete' || !matches || !matches.length || !matches[0].location) {
+            window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'search_error', message: '没有找到这个地址，请补充城市、区县或门牌号'
+            }));
+            return;
+          }
+          var match = matches[0];
+          var location = match.location;
+          map.setZoomAndCenter(17, [location.lng, location.lat]);
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'search_done',
+            address: match.formattedAddress || query.trim()
+          }));
+          setTimeout(sendCenter, 250);
+        });
+      };
+
       // RN 调用：接收 WGS-84 GPS 坐标，转换为 GCJ-02 后移动地图
       window._setCenterFromGps = function(wgsLat, wgsLng, zoom) {
-        var g = wgs84ToGcj02(wgsLng, wgsLat);
-        map.setZoomAndCenter(zoom || 17, [g.lng, g.lat]);
+        try {
+          var g = wgs84ToGcj02(wgsLng, wgsLat);
+          map.setZoomAndCenter(zoom || 17, [g.lng, g.lat]);
+          setTimeout(sendCenter, 250);
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'locate_applied'
+          }));
+        } catch (error) {
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'locate_error',
+            message: error && error.message ? error.message : '地图定位失败'
+          }));
+        }
       };
+
+      // 必须等地图对象和接收 GPS 的函数都建好后，再通知 RN。
+      window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'map_ready'
+      }));
 
       // 初始发送一次中心点
       setTimeout(sendCenter, 500);
@@ -226,6 +254,9 @@ export default function LocationPickerScreen({
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const webviewRef = useRef<WebView>(null)
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingGpsRef = useRef<{ latitude: number; longitude: number } | null>(null)
+  const mapReadyRef = useRef(false)
   const routeId = route.params?.routeId
   const isSupplementMode = Boolean(routeId)
 
@@ -235,55 +266,125 @@ export default function LocationPickerScreen({
     longitude: DEFAULT_LNG,
   })
   const [address, setAddress] = useState('')
-  const [shortName, setShortName] = useState('')
-  const [name, setName] = useState('')
+  const [placeText, setPlaceText] = useState('')
+  const [placeMatchesMap, setPlaceMatchesMap] = useState(false)
   const [resolving, setResolving] = useState(false)
+  const [searching, setSearching] = useState(false)
   const [locating, setLocating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [html] = useState(() => buildMapHtml(DEFAULT_LAT, DEFAULT_LNG))
 
+  useEffect(
+    () => () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+    },
+    [],
+  )
+
   // 获取 GPS 定位，移动地图到当前位置。
   // GPS 返回 WGS-84 坐标，通过 _setCenterFromGps 在 WebView 内转换为 GCJ-02。
+  const applyGpsToMap = (latitude: number, longitude: number) => {
+    webviewRef.current?.injectJavaScript(
+      `window._setCenterFromGps(${latitude}, ${longitude}, 17); true;`,
+    )
+  }
+
   const handleLocate = async () => {
+    if (locating) return
     setLocating(true)
     try {
-      const result = await getCurrentLocation({ highAccuracy: true, expireMs: 5000 })
-      webviewRef.current?.injectJavaScript(
-        `window._setCenterFromGps && window._setCenterFromGps(${result.latitude}, ${result.longitude}, 17); true;`,
-      )
+      const result = await getCurrentLocation({ highAccuracy: true, expireMs: 10000 })
+      pendingGpsRef.current = result
+      if (mapReadyRef.current) {
+        applyGpsToMap(result.latitude, result.longitude)
+      }
     } catch (err) {
-      Alert.alert('定位失败', locationPermissionErrorMessage(err))
-    } finally {
+      pendingGpsRef.current = null
       setLocating(false)
+      Alert.alert('定位失败', locationPermissionErrorMessage(err))
     }
   }
 
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(event.nativeEvent.data)
-      if (data.type === 'center') {
+      if (data.type === 'map_ready') {
+        mapReadyRef.current = true
+        setMapReady(true)
+        const pendingGps = pendingGpsRef.current
+        if (pendingGps) applyGpsToMap(pendingGps.latitude, pendingGps.longitude)
+      } else if (data.type === 'center') {
         setCoords({ latitude: data.lat, longitude: data.lng })
       } else if (data.type === 'reverse_start') {
         setResolving(true)
+        setPlaceMatchesMap(false)
       } else if (data.type === 'reverse_done') {
         setResolving(false)
-        setAddress(data.address || '')
-        setShortName(data.name || '')
+        const nextAddress = data.address || ''
+        setAddress(nextAddress)
+        setPlaceText(nextAddress)
+        setPlaceMatchesMap(Boolean(nextAddress))
       } else if (data.type === 'reverse_error') {
         setResolving(false)
         setAddress('')
+        setPlaceMatchesMap(false)
+      } else if (data.type === 'search_start') {
+        setSearching(true)
+      } else if (data.type === 'search_done') {
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+        searchTimeoutRef.current = null
+        setSearching(false)
+        const nextAddress = data.address || ''
+        if (nextAddress) setAddress(nextAddress)
+        if (nextAddress) setPlaceText(nextAddress)
+        setPlaceMatchesMap(Boolean(nextAddress))
+      } else if (data.type === 'search_error') {
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+        searchTimeoutRef.current = null
+        setSearching(false)
+        Alert.alert('没有找到地点', data.message || '请检查地址后重试')
       } else if (data.type === 'locate_request') {
         handleLocate()
+      } else if (data.type === 'locate_applied') {
+        pendingGpsRef.current = null
+        setLocating(false)
+      } else if (data.type === 'locate_error') {
+        pendingGpsRef.current = null
+        setLocating(false)
+        Alert.alert('定位失败', '已经取得手机位置，但地图移动失败，请重试。')
       }
     } catch (err) {
       // 忽略解析错误
     }
   }
 
+  const handleAddressSearch = () => {
+    const query = placeText.trim()
+    if (!query) {
+      Alert.alert('请输入地点名称', '可以输入小区、写字楼、商场或完整门牌地址')
+      return
+    }
+    Keyboard.dismiss()
+    setSearching(true)
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+    searchTimeoutRef.current = setTimeout(() => {
+      searchTimeoutRef.current = null
+      setSearching(false)
+      Alert.alert('地址搜索超时', '请检查网络后重试，或者直接拖动地图选择地点')
+    }, 12000)
+    webviewRef.current?.injectJavaScript(
+      `window._searchAddress && window._searchAddress(${JSON.stringify(query)}); true;`,
+    )
+  }
+
   const handleConfirm = async () => {
     Keyboard.dismiss()
+    if (!placeMatchesMap || resolving || searching) {
+      Alert.alert('请先确认地点', '请先搜索输入的地点，或拖动地图让定位标记对准入口。')
+      return
+    }
     const coordText = `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`
-    const finalName = name.trim() || shortName || address.split(',')[0] || `位置(${coordText})`
+    const finalName = placeText.trim() || address.split(',')[0] || `位置(${coordText})`
     const location: RouteLocation = {
       name: finalName,
       address: address || coordText,
@@ -314,13 +415,42 @@ export default function LocationPickerScreen({
       return
     }
 
-    // 新建路线模式：跳转 Calibrate
-    navigation.replace('Calibrate', {
-      seed: {
-        name: finalName,
-        location,
+    // 选点页只知道地点，不知道这栋楼的真实终点。
+    // 新路线先保存成“终点未知”，首次采集结束时再由用户确认实际楼层。
+    const now = Date.now()
+
+    // 创建 draft 路线（segments 为空，首次训练时边爬边建模板）
+    const route: RouteTemplate = {
+      id: uid('route'),
+      name: finalName,
+      startFloor: DEFAULT_START_FLOOR,
+      endFloor: DEFAULT_START_FLOOR,
+      carryMode: DEFAULT_CARRY_MODE,
+      floorHeightM: 0,
+      totalAscentM: 0,
+      device: {
+        platform: Platform.OS || 'unknown',
+        model: 'unknown',
+        system: Platform.Version?.toString() || 'unknown',
       },
-    })
+      segments: [],
+      markers: [],
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
+      status: 'draft',
+      location,
+    }
+
+    setSaving(true)
+    try {
+      await saveRoute(route)
+      navigation.replace('RouteProfile', { id: route.id })
+    } catch (err) {
+      Alert.alert('保存失败', err instanceof Error ? err.message : '路线保存失败')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -332,7 +462,6 @@ export default function LocationPickerScreen({
           source={{ html }}
           style={styles.webview}
           onMessage={handleMessage}
-          onLoadEnd={() => setMapReady(true)}
           androidLayerType="hardware"
           allowsInlineMediaPlayback
           geolocationEnabled
@@ -344,34 +473,59 @@ export default function LocationPickerScreen({
             <Text style={styles.loadingText}>地图加载中…</Text>
           </View>
         ) : null}
+        {mapReady ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="定位到当前位置"
+            disabled={locating}
+            onPress={handleLocate}
+            style={({ pressed }) => [
+              styles.locateButton,
+              pressed && !locating && styles.locateButtonPressed,
+            ]}
+          >
+            {locating ? (
+              <ActivityIndicator size="small" color="#111" />
+            ) : (
+              <Text style={styles.locateButtonText}>◎</Text>
+            )}
+          </Pressable>
+        ) : null}
       </View>
 
-      {/* 底部信息卡片 */}
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
-        <View style={styles.addressRow}>
-          <Text style={styles.fieldLabel}>起点位置</Text>
-          {resolving ? (
-            <View style={styles.resolvingRow}>
-              <ActivityIndicator size="small" color={theme.muted} />
-              <Text style={styles.resolvingText}>解析地址中…</Text>
-            </View>
-          ) : (
-            <Text style={styles.addressText} numberOfLines={2}>
-              {address || `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}（可手动输入名称）`}
-            </Text>
-          )}
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 10 }]}>
+        <View style={styles.searchRow}>
+          <TextInput
+            accessibilityLabel="输入地点名称或地址"
+            style={[styles.input, styles.searchInput]}
+            value={placeText}
+            onChangeText={(text) => {
+              setPlaceText(text)
+              setPlaceMatchesMap(false)
+            }}
+            placeholder={resolving ? '正在识别地图位置…' : '输入建筑名称或详细地址'}
+            placeholderTextColor={theme.muted}
+            returnKeyType="search"
+            onSubmitEditing={handleAddressSearch}
+            autoCorrect={false}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="搜索地点"
+            style={({ pressed }) => [
+              styles.searchButton,
+              pressed && styles.searchButtonPressed,
+            ]}
+            disabled={searching || resolving}
+            onPress={handleAddressSearch}
+          >
+            {searching ? (
+              <ActivityIndicator size="small" color={theme.paper} />
+            ) : (
+              <Text style={styles.searchButtonText}>搜索</Text>
+            )}
+          </Pressable>
         </View>
-
-        <Text style={styles.fieldLabel}>地点名称（可选）</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder={typeof shortName === 'string' && shortName ? shortName : '如：上海中心大厦'}
-          placeholderTextColor={theme.muted}
-          returnKeyType="done"
-          blurOnSubmit
-        />
 
         <Button
           title={
@@ -381,10 +535,11 @@ export default function LocationPickerScreen({
                 ? '定位中…'
                 : isSupplementMode
                   ? '保存地点'
-                  : '确认起点，开始标定'
+                  : '确认地点，建立路线'
           }
           onPress={handleConfirm}
           loading={saving || locating}
+          disabled={saving || locating || resolving || searching || !placeMatchesMap}
         />
       </View>
     </View>
@@ -407,12 +562,37 @@ const makeStyles = (theme: Theme) =>
       color: theme.muted,
       fontSize: 14,
     },
+    locateButton: {
+      position: 'absolute',
+      right: 16,
+      bottom: 24,
+      width: 44,
+      height: 44,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#fff',
+      elevation: 6,
+      shadowColor: '#000',
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    locateButtonPressed: {
+      opacity: 0.75,
+      transform: [{ scale: 0.96 }],
+    },
+    locateButtonText: {
+      color: '#111',
+      fontSize: 25,
+      lineHeight: 28,
+    },
     sheet: {
       backgroundColor: theme.card,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingTop: 12,
       ...(Platform.OS === 'ios'
         ? {
             shadowColor: '#000',
@@ -422,28 +602,31 @@ const makeStyles = (theme: Theme) =>
           }
         : { elevation: 8 }),
     },
-    addressRow: {
-      marginBottom: 12,
-    },
-    fieldLabel: {
-      color: theme.ink,
-      fontSize: 14,
-      fontWeight: '700',
-      marginBottom: 4,
-    },
-    resolvingRow: {
+    searchRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
+      marginBottom: 12,
     },
-    resolvingText: {
-      color: theme.muted,
-      fontSize: 13,
+    searchInput: {
+      flex: 1,
+      marginBottom: 0,
     },
-    addressText: {
-      color: theme.inkSoft,
-      fontSize: 13,
-      lineHeight: 19,
+    searchButton: {
+      width: 70,
+      minHeight: 43,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.green,
+    },
+    searchButtonPressed: {
+      opacity: 0.8,
+    },
+    searchButtonText: {
+      color: theme.paper,
+      fontSize: 14,
+      fontWeight: '800',
     },
     input: {
       borderWidth: 1,

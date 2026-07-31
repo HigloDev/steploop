@@ -1,0 +1,68 @@
+/* 帕楼原型 · 主题令牌
+   基于 src/theme.ts 的浅色主题映射为 CSS 变量
+   主色: #12372e (深绿), 语义色: amber/red/blue
+*/
+:root {
+  /* 基础色板 */
+  --palou-background: #f3f5f4;
+  --palou-foreground: #101916;
+  --palou-card: #ffffff;
+  --palou-card-foreground: #101916;
+  --palou-popover: #ffffff;
+  --palou-popover-foreground: #101916;
+
+  /* 主品牌色 */
+  --palou-primary: #12372e;
+  --palou-primary-foreground: #f3f5f4;
+
+  /* 辅助文本 */
+  --palou-muted: #65716c;
+  --palou-muted-foreground: #43534d;
+
+  /* 边框/输入 */
+  --palou-border: #dce2df;
+  --palou-input: #dce2df;
+  --palou-ring: #12372e;
+
+  /* 语义状态色 */
+  --palou-state-success: #12372e;
+  --palou-state-warning: #e7b45a;
+  --palou-state-warning-soft: #fff8e8;
+  --palou-state-warning-ink: #9b6a15;
+  --palou-state-error: #e26058;
+  --palou-state-error-soft: #fff1ef;
+  --palou-state-info: #2a6b8a;
+  --palou-state-info-soft: #e3eef4;
+
+  /* 次级表面 */
+  --palou-card-soft: #f7f9f8;
+  --palou-surface-soft: #edf1ef;
+  --palou-line-soft: #e7ebe9;
+
+  /* 品牌色阶 */
+  --palou-primary-ink: #276750;
+  --palou-primary-bright: #35715f;
+  --palou-primary-soft: #e1f1ea;
+  --palou-mint: #71e2b5;
+
+  /* 琥珀色阶 */
+  --palou-amber: #e7b45a;
+  --palou-amber-soft: #fff8e8;
+  --palou-amber-chip: #fff4d9;
+  --palou-amber-ink: #9b6a15;
+
+  /* 橙色 */
+  --palou-orange: #ff914d;
+
+  /* 红色阶 */
+  --palou-red: #e26058;
+  --palou-red-soft: #fff1ef;
+  --palou-red-chip: #f8dfda;
+  --palou-red-ink: #68403d;
+
+  /* 圆角 */
+  --palou-radius-sm: 6px;
+  --palou-radius-md: 10px;
+  --palou-radius-lg: 14px;
+  --palou-radius-xl: 16px;
+}

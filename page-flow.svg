@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2640 1960" font-family="-apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <!-- ===== DEFS ===== -->
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <!-- 主流程箭头 -->
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/>
+    </marker>
+    <marker id="arrOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+    </marker>
+    <marker id="arrPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/>
+    </marker>
+    <marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+    </marker>
+    <marker id="arrIndigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4F46E5"/>
+    </marker>
+    <!-- 区域背景 -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EEF2F7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== 背景 ===== -->
+  <rect width="2640" height="1960" fill="url(#bgGrad)"/>
+
+  <!-- ===== 主标题 ===== -->
+  <text x="1320" y="50" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">帕楼 · 页面逻辑关系图</text>
+  <text x="1320" y="80" text-anchor="middle" font-size="16" fill="#64748B">Page Flow &amp; Navigation Map — 10 个页面 · 26 条跳转路径</text>
+
+  <!-- ===== 功能区域背景色块 ===== -->
+  <rect x="40" y="890" width="1740" height="450" rx="16" fill="#DBEAFE" fill-opacity="0.35" stroke="#93C5FD" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="60" y="918" font-size="15" font-weight="700" fill="#2563EB" letter-spacing="2">标定流程链 CALIBRATION CHAIN</text>
+
+  <rect x="1800" y="890" width="440" height="930" rx="16" fill="#FFEDD5" fill-opacity="0.35" stroke="#FB923C" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="1820" y="918" font-size="15" font-weight="700" fill="#EA580C" letter-spacing="2">爬楼流程链 CLIMB CHAIN</text>
+
+  <rect x="40" y="420" width="440" height="350" rx="16" fill="#EDE9FE" fill-opacity="0.35" stroke="#A78BFA" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="60" y="448" font-size="15" font-weight="700" fill="#7C3AED" letter-spacing="2">辅助 AUX</text>
+
+  <rect x="2160" y="420" width="440" height="350" rx="16" fill="#EDE9FE" fill-opacity="0.35" stroke="#A78BFA" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="2180" y="448" font-size="15" font-weight="700" fill="#7C3AED" letter-spacing="2">辅助 AUX</text>
+
+  <!-- ===== 1. Privacy 隐私协议页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="1140" y="120" width="360" height="210" rx="14" fill="#FFFFFF"/>
+    <rect x="1140" y="120" width="360" height="50" rx="14" fill="#6B7280"/>
+    <rect x="1140" y="150" width="360" height="20" fill="#6B7280"/>
+    <text x="1320" y="152" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">隐私协议页</text>
+    <text x="1320" y="200" text-anchor="middle" font-size="13" fill="#6B7280" font-weight="600">Privacy</text>
+    <text x="1170" y="232" font-size="13" fill="#334155">• 顶栏：隐私协议（条件返回）</text>
+    <text x="1170" y="252" font-size="13" fill="#334155">• 7 个内容卡片（收集/存储/使用</text>
+    <text x="1170" y="270" font-size="13" fill="#334155">  /共享/删除/边界/联系）</text>
+    <text x="1170" y="290" font-size="13" fill="#334155">• 主按钮「同意并开始」</text>
+    <text x="1170" y="310" font-size="13" fill="#334155">• 次按钮「不同意」</text>
+  </g>
+
+  <!-- ===== 2. RouteEdit 路线编辑页（中枢首页）===== -->
+  <g filter="url(#shadow)">
+    <rect x="1140" y="430" width="360" height="370" rx="14" fill="#FFFFFF" stroke="#059669" stroke-width="2.5"/>
+    <rect x="1140" y="430" width="360" height="50" rx="14" fill="#059669"/>
+    <rect x="1140" y="460" width="360" height="20" fill="#059669"/>
+    <text x="1320" y="462" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">路线编辑页 · 首页中枢</text>
+    <text x="1320" y="510" text-anchor="middle" font-size="13" fill="#059669" font-weight="600">RouteEdit</text>
+    <text x="1170" y="542" font-size="13" fill="#334155">• 顶栏「垂直路线」+ 右侧「设置」</text>
+    <text x="1170" y="562" font-size="13" fill="#334155">• Hero：NEARBY ROUTES</text>
+    <text x="1170" y="582" font-size="13" fill="#334155">• 主按钮「新建路线」</text>
+    <text x="1170" y="602" font-size="13" fill="#334155">• 链接「历史成绩」</text>
+    <text x="1170" y="622" font-size="13" fill="#334155">• 筛选：全部/已验证/待验证</text>
+    <text x="1170" y="642" font-size="13" fill="#334155">• 路线卡片（名/状态/距离/楼层）</text>
+    <text x="1170" y="662" font-size="13" fill="#334155">  底部「改名」「管理」「开始/验证」</text>
+    <text x="1170" y="682" font-size="13" fill="#334155">• 管理弹窗：改名/补充地点/删除</text>
+    <line x1="1170" y1="700" x2="1470" y2="700" stroke="#E5E7EB"/>
+    <text x="1170" y="722" font-size="12" fill="#6B7280" font-weight="600">▲ 来源：启动/各页面返回</text>
+    <text x="1170" y="740" font-size="12" fill="#6B7280" font-weight="600">▼ 去向：Settings/LocationPicker</text>
+    <text x="1170" y="758" font-size="12" fill="#6B7280" font-weight="600">  /History/Climb/Validate</text>
+  </g>
+
+  <!-- ===== 3. Settings 设置页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="80" y="470" width="360" height="270" rx="14" fill="#FFFFFF"/>
+    <rect x="80" y="470" width="360" height="50" rx="14" fill="#7C3AED"/>
+    <rect x="80" y="500" width="360" height="20" fill="#7C3AED"/>
+    <text x="260" y="502" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">设置页</text>
+    <text x="260" y="550" text-anchor="middle" font-size="13" fill="#7C3AED" font-weight="600">Settings</text>
+    <text x="110" y="582" font-size="13" fill="#334155">• 顶栏「设置」</text>
+    <text x="110" y="602" font-size="13" fill="#334155">• 反馈组：震动/声音/携带提示</text>
+    <text x="110" y="622" font-size="13" fill="#334155">• 数据组：导出备份/导入备份</text>
+    <text x="110" y="642" font-size="13" fill="#334155">• 关于组：版本 1.0.0</text>
+    <text x="110" y="662" font-size="13" fill="#334155">  隐私协议「查看」</text>
+    <text x="110" y="682" font-size="13" fill="#334155">• 按钮「返回首页」</text>
+    <text x="110" y="712" font-size="12" fill="#6B7280" font-weight="600">← RouteEdit · → Privacy</text>
+  </g>
+
+  <!-- ===== 4. History 历史记录页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="2200" y="470" width="360" height="270" rx="14" fill="#FFFFFF"/>
+    <rect x="2200" y="470" width="360" height="50" rx="14" fill="#7C3AED"/>
+    <rect x="2200" y="500" width="360" height="20" fill="#7C3AED"/>
+    <text x="2380" y="502" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">历史记录页</text>
+    <text x="2380" y="550" text-anchor="middle" font-size="13" fill="#7C3AED" font-weight="600">History</text>
+    <text x="2230" y="582" font-size="13" fill="#334155">• 顶栏「历史记录」+ 右「首页」</text>
+    <text x="2230" y="602" font-size="13" fill="#334155">• 汇总：完成次数 / 累计爬升m</text>
+    <text x="2230" y="622" font-size="13" fill="#334155">• 筛选：全部/完成/中断</text>
+    <text x="2230" y="642" font-size="13" fill="#334155">• Session 卡片</text>
+    <text x="2230" y="662" font-size="13" fill="#334155">  （路线/状态/日期/楼层/置信度）</text>
+    <text x="2230" y="682" font-size="13" fill="#334155">• 按钮「返回首页」</text>
+    <text x="2230" y="712" font-size="12" fill="#6B7280" font-weight="600">← RouteEdit · → Result</text>
+  </g>
+
+  <!-- ===== 5. LocationPicker 地图选点页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="80" y="950" width="360" height="350" rx="14" fill="#FFFFFF"/>
+    <rect x="80" y="950" width="360" height="50" rx="14" fill="#2563EB"/>
+    <rect x="80" y="980" width="360" height="20" fill="#2563EB"/>
+    <text x="260" y="982" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">地图选点页</text>
+    <text x="260" y="1030" text-anchor="middle" font-size="13" fill="#2563EB" font-weight="600">LocationPicker</text>
+    <text x="110" y="1062" font-size="13" fill="#334155">• 顶栏「选择起点/补充起点位置」</text>
+    <text x="110" y="1082" font-size="13" fill="#334155">• 全屏高德 JS API 地图</text>
+    <text x="110" y="1102" font-size="13" fill="#334155">  （中心固定大头针 + 定位按钮◎）</text>
+    <text x="110" y="1122" font-size="13" fill="#334155">• 加载蒙层「地图加载中…」</text>
+    <text x="110" y="1142" font-size="13" fill="#334155">• 底部卡片：起点位置（地址）</text>
+    <text x="110" y="1162" font-size="13" fill="#334155">• 地点名称 TextInput（可选）</text>
+    <text x="110" y="1182" font-size="13" fill="#334155">• 主按钮「确认起点，开始标定」</text>
+    <text x="110" y="1202" font-size="13" fill="#334155">  /「保存地点」（补充模式）</text>
+    <line x1="110" y1="1218" x2="410" y2="1218" stroke="#E5E7EB"/>
+    <text x="110" y="1240" font-size="12" fill="#6B7280" font-weight="600">▲ RouteEdit(新建/补充) / Climb(缺地点)</text>
+    <text x="110" y="1258" font-size="12" fill="#6B7280" font-weight="600">▼ Calibrate(seed) / RouteEdit(补充保存)</text>
+  </g>
+
+  <!-- ===== 6. Calibrate 标定采集页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="520" y="950" width="360" height="370" rx="14" fill="#FFFFFF"/>
+    <rect x="520" y="950" width="360" height="50" rx="14" fill="#1D4ED8"/>
+    <rect x="520" y="980" width="360" height="20" fill="#1D4ED8"/>
+    <text x="700" y="982" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">标定采集页</text>
+    <text x="700" y="1030" text-anchor="middle" font-size="13" fill="#1D4ED8" font-weight="600">Calibrate</text>
+    <text x="550" y="1062" font-size="13" fill="#334155">• 顶栏「标定采集」</text>
+    <text x="550" y="1082" font-size="13" fill="#334155">• Hero：CALIBRATION + 地址</text>
+    <text x="550" y="1102" font-size="13" fill="#334155">• 准备卡片：路线名 / 携带方式</text>
+    <text x="550" y="1122" font-size="13" fill="#334155">• 采集说明（5 步）</text>
+    <text x="550" y="1142" font-size="13" fill="#334155">• 实时：加速度波形 + 运动强度</text>
+    <text x="550" y="1162" font-size="13" fill="#334155">• 指标四联：用时/步数/步频/爬升</text>
+    <text x="550" y="1182" font-size="13" fill="#334155">• 拐弯检测 + 传感器诊断三联</text>
+    <text x="550" y="1202" font-size="13" fill="#334155">• 异常提醒（静止/中断/步频）</text>
+    <text x="550" y="1222" font-size="13" fill="#334155">• 人工标记：标记拐弯 / 到达新楼层</text>
+    <text x="550" y="1242" font-size="13" fill="#334155">• 主按钮「开始采集/停止并分析」</text>
+    <text x="550" y="1262" font-size="13" fill="#334155">• 副按钮「放弃并返回」</text>
+    <text x="550" y="1290" font-size="12" fill="#6B7280" font-weight="600">▲ LocationPicker · ▼ Review/RouteEdit</text>
+  </g>
+
+  <!-- ===== 7. Review 标定复核页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="960" y="950" width="360" height="370" rx="14" fill="#FFFFFF"/>
+    <rect x="960" y="950" width="360" height="50" rx="14" fill="#2563EB"/>
+    <rect x="960" y="980" width="360" height="20" fill="#2563EB"/>
+    <text x="1140" y="982" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">标定复核页</text>
+    <text x="1140" y="1030" text-anchor="middle" font-size="13" fill="#2563EB" font-weight="600">Review</text>
+    <text x="990" y="1062" font-size="13" fill="#334155">• 顶栏「标定复核」</text>
+    <text x="990" y="1082" font-size="13" fill="#334155">• Hero：路线名 · 用时 · 步数</text>
+    <text x="990" y="1102" font-size="13" fill="#334155">• 指标：估算楼层/爬升（置信度%）</text>
+    <text x="990" y="1122" font-size="13" fill="#334155">• 爬楼路线图卡片</text>
+    <text x="990" y="1142" font-size="13" fill="#334155">  （楼层Pill + 拐弯Pill + 文本流）</text>
+    <text x="990" y="1162" font-size="13" fill="#334155">• 警告框（无拐弯/中断/未标记）</text>
+    <text x="990" y="1182" font-size="13" fill="#334155">• 表单：起始楼层 / 层数</text>
+    <text x="990" y="1202" font-size="13" fill="#334155">• 楼层边界调整（±0.5s + 层高）</text>
+    <text x="990" y="1222" font-size="13" fill="#334155">• 事件标记卡片</text>
+    <text x="990" y="1242" font-size="13" fill="#334155">• 主按钮「保存为路线模板」</text>
+    <text x="990" y="1262" font-size="13" fill="#334155">• 副按钮「放弃并返回」</text>
+    <text x="990" y="1290" font-size="12" fill="#6B7280" font-weight="600">▲ Calibrate · ▼ Validate/RouteEdit</text>
+  </g>
+
+  <!-- ===== 8. Validate 验证页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="1400" y="950" width="360" height="320" rx="14" fill="#FFFFFF"/>
+    <rect x="1400" y="950" width="360" height="50" rx="14" fill="#4F46E5"/>
+    <rect x="1400" y="980" width="360" height="20" fill="#4F46E5"/>
+    <text x="1580" y="982" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">验证页</text>
+    <text x="1580" y="1030" text-anchor="middle" font-size="13" fill="#4F46E5" font-weight="600">Validate</text>
+    <text x="1430" y="1062" font-size="13" fill="#334155">• 顶栏「验证路线/验证结果」</text>
+    <text x="1430" y="1082" font-size="13" fill="#334155">• Hero：VALIDATION + 路线名</text>
+    <text x="1430" y="1102" font-size="13" fill="#334155">• 指标：当前楼层/已完成/用时/置信度</text>
+    <text x="1430" y="1122" font-size="13" fill="#334155">• 状态卡片 + 进度百分比</text>
+    <text x="1430" y="1142" font-size="13" fill="#334155">• 结果态：验证通过/未通过 Pill</text>
+    <text x="1430" y="1162" font-size="13" fill="#334155">• 主按钮「开始验证/完成验证」</text>
+    <text x="1430" y="1182" font-size="13" fill="#334155">• 副按钮「再验证一次/返回路线」</text>
+    <line x1="1430" y1="1200" x2="1730" y2="1200" stroke="#E5E7EB"/>
+    <text x="1430" y="1222" font-size="12" fill="#6B7280" font-weight="600">▲ RouteEdit / Review / Climb</text>
+    <text x="1430" y="1240" font-size="12" fill="#6B7280" font-weight="600">▼ RouteEdit（返回路线）</text>
+  </g>
+
+  <!-- ===== 9. Climb 正式爬楼页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="1840" y="950" width="360" height="350" rx="14" fill="#FFFFFF"/>
+    <rect x="1840" y="950" width="360" height="50" rx="14" fill="#EA580C"/>
+    <rect x="1840" y="980" width="360" height="20" fill="#EA580C"/>
+    <text x="2020" y="982" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">正式爬楼页</text>
+    <text x="2020" y="1030" text-anchor="middle" font-size="13" fill="#EA580C" font-weight="600">Climb</text>
+    <text x="1870" y="1062" font-size="13" fill="#334155">• 顶栏「正式爬楼」</text>
+    <text x="1870" y="1082" font-size="13" fill="#334155">• Hero：CLIMB + 路线名</text>
+    <text x="1870" y="1102" font-size="13" fill="#334155">• 指标：当前楼层/已完成/用时/步数</text>
+    <text x="1870" y="1122" font-size="13" fill="#334155">• 状态卡片（匹配/暂停/到达）</text>
+    <text x="1870" y="1142" font-size="13" fill="#334155">  + 进度% + 置信度 + 爬升</text>
+    <text x="1870" y="1162" font-size="13" fill="#334155">• 楼层进度网格（chip 状态）</text>
+    <text x="1870" y="1182" font-size="13" fill="#334155">• 主按钮「开始爬楼/结束并保存」</text>
+    <text x="1870" y="1202" font-size="13" fill="#334155">  /「查看成绩」</text>
+    <text x="1870" y="1222" font-size="13" fill="#334155">• 副按钮「返回路线」</text>
+    <text x="1870" y="1242" font-size="13" fill="#334155">• Alert「确认携带方式」</text>
+    <text x="1870" y="1270" font-size="12" fill="#6B7280" font-weight="600">▲ RouteEdit/Result · ▼ Result等</text>
+  </g>
+
+  <!-- ===== 10. Result 成绩页 ===== -->
+  <g filter="url(#shadow)">
+    <rect x="1840" y="1480" width="360" height="310" rx="14" fill="#FFFFFF"/>
+    <rect x="1840" y="1480" width="360" height="50" rx="14" fill="#F59E0B"/>
+    <rect x="1840" y="1510" width="360" height="20" fill="#F59E0B"/>
+    <text x="2020" y="1512" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">成绩页</text>
+    <text x="2020" y="1560" text-anchor="middle" font-size="13" fill="#F59E0B" font-weight="600">Result</text>
+    <text x="1870" y="1592" font-size="13" fill="#334155">• 顶栏「成绩」</text>
+    <text x="1870" y="1612" font-size="13" fill="#334155">• Hero：RESULT + 路线名 + 日期</text>
+    <text x="1870" y="1632" font-size="13" fill="#334155">• 指标六联：完成楼层/爬升/用时</text>
+    <text x="1870" y="1652" font-size="13" fill="#334155">  /步数/平均单层/最快单层</text>
+    <text x="1870" y="1672" font-size="13" fill="#334155">• 详情卡片：起止/置信度/中断</text>
+    <text x="1870" y="1692" font-size="13" fill="#334155">• 单层用时卡片（最快层高亮）</text>
+    <text x="1870" y="1712" font-size="13" fill="#334155">• 主按钮「再爬一次」</text>
+    <text x="1870" y="1732" font-size="13" fill="#334155">• 副按钮「返回首页」</text>
+    <text x="1870" y="1762" font-size="12" fill="#6B7280" font-weight="600">▲ Climb/History · ▼ Climb/RouteEdit</text>
+  </g>
+
+  <!-- ===== 箭头连线 ===== -->
+  <!-- 1. Privacy → RouteEdit (同意 replace) -->
+  <path d="M 1320,330 L 1320,425" stroke="#6B7280" stroke-width="2.5" fill="none" marker-end="url(#arrGray)"/>
+  <rect x="1335" y="358" width="120" height="22" rx="4" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="1395" y="373" text-anchor="middle" font-size="11" fill="#6B7280">同意 · replace</text>
+
+  <!-- 2. RouteEdit ↔ Settings (navigate 双向) -->
+  <path d="M 1130,590 L 445,590" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#arrPurple)"/>
+  <path d="M 445,610 L 1130,610" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#arrPurple)" stroke-dasharray="5,3"/>
+  <text x="787" y="582" text-anchor="middle" font-size="11" fill="#7C3AED">navigate · 设置/返回</text>
+
+  <!-- 3. RouteEdit ↔ History (navigate 双向) -->
+  <path d="M 1510,590 L 2195,590" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#arrPurple)"/>
+  <path d="M 2195,610 L 1510,610" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#arrPurple)" stroke-dasharray="5,3"/>
+  <text x="1852" y="582" text-anchor="middle" font-size="11" fill="#7C3AED">navigate · 历史/返回</text>
+
+  <!-- 4. RouteEdit → LocationPicker (新建/补充地点) -->
+  <path d="M 1140,780 Q 700,860 300,945" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrBlue)"/>
+  <rect x="560" y="830" width="190" height="22" rx="4" fill="#FFFFFF" stroke="#93C5FD"/>
+  <text x="655" y="845" text-anchor="middle" font-size="11" fill="#2563EB">navigate · 新建/补充 routeId</text>
+
+  <!-- 5. LocationPicker → Calibrate (seed replace) -->
+  <path d="M 445,1130 L 515,1130" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrBlue)"/>
+  <text x="480" y="1120" text-anchor="middle" font-size="11" fill="#2563EB">seed</text>
+
+  <!-- 6. Calibrate → Review (replace) -->
+  <path d="M 885,1130 L 955,1130" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrBlue)"/>
+  <text x="920" y="1120" text-anchor="middle" font-size="11" fill="#2563EB">replace</text>
+
+  <!-- 7. Review → Validate (id replace) -->
+  <path d="M 1325,1130 L 1395,1130" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrBlue)"/>
+  <text x="1360" y="1120" text-anchor="middle" font-size="11" fill="#2563EB">id</text>
+
+  <!-- 8. Calibrate → RouteEdit (放弃 navigate 虚线) -->
+  <path d="M 700,945 Q 900,840 1140,760" stroke="#9CA3AF" stroke-width="1.8" fill="none" marker-end="url(#arrGray)" stroke-dasharray="6,4"/>
+  <text x="930" y="830" font-size="11" fill="#9CA3AF">放弃 navigate</text>
+
+  <!-- 9. Review → RouteEdit (放弃 replace 虚线) -->
+  <path d="M 1140,950 Q 1200,840 1280,805" stroke="#9CA3AF" stroke-width="1.8" fill="none" marker-end="url(#arrGray)" stroke-dasharray="6,4"/>
+  <text x="1210" y="870" font-size="11" fill="#9CA3AF">放弃 replace</text>
+
+  <!-- 10. Validate → RouteEdit (返回 navigate 虚线) -->
+  <path d="M 1580,945 Q 1500,840 1380,805" stroke="#9CA3AF" stroke-width="1.8" fill="none" marker-end="url(#arrGray)" stroke-dasharray="6,4"/>
+  <text x="1460" y="870" font-size="11" fill="#9CA3AF">返回 navigate</text>
+
+  <!-- 11. RouteEdit → Validate (未验证路线 navigate) -->
+  <path d="M 1500,780 Q 1560,860 1580,945" stroke="#4F46E5" stroke-width="2" fill="none" marker-end="url(#arrIndigo)"/>
+  <rect x="1520" y="830" width="150" height="22" rx="4" fill="#FFFFFF" stroke="#A5B4FC"/>
+  <text x="1595" y="845" text-anchor="middle" font-size="11" fill="#4F46E5">未验证 · navigate</text>
+
+  <!-- 12. RouteEdit → Climb (已验证 navigate) -->
+  <path d="M 1500,770 Q 1800,840 2020,945" stroke="#EA580C" stroke-width="2.5" fill="none" marker-end="url(#arrOrange)"/>
+  <rect x="1700" y="820" width="160" height="22" rx="4" fill="#FFFFFF" stroke="#FDBA74"/>
+  <text x="1780" y="835" text-anchor="middle" font-size="11" fill="#EA580C">已验证 · navigate</text>
+
+  <!-- 13. Climb → Result (replace) -->
+  <path d="M 2020,1305 L 2020,1475" stroke="#EA580C" stroke-width="2.5" fill="none" marker-end="url(#arrOrange)"/>
+  <rect x="2035" y="1370" width="110" height="22" rx="4" fill="#FFFFFF" stroke="#FDBA74"/>
+  <text x="2090" y="1385" text-anchor="middle" font-size="11" fill="#EA580C">完成 replace</text>
+
+  <!-- 14. Result → Climb (再爬一次 replace) -->
+  <path d="M 1900,1475 L 1900,1305" stroke="#EA580C" stroke-width="2" fill="none" marker-end="url(#arrOrange)" stroke-dasharray="5,3"/>
+  <rect x="1800" y="1370" width="120" height="22" rx="4" fill="#FFFFFF" stroke="#FDBA74"/>
+  <text x="1860" y="1385" text-anchor="middle" font-size="11" fill="#EA580C">再爬一次</text>
+
+  <!-- 15. Result → RouteEdit (返回首页 navigate 虚线) -->
+  <path d="M 1840,1640 Q 1600,900 1500,790" stroke="#9CA3AF" stroke-width="1.8" fill="none" marker-end="url(#arrGray)" stroke-dasharray="6,4"/>
+  <text x="1620" y="1100" font-size="11" fill="#9CA3AF">返回首页 navigate</text>
+
+  <!-- 16. Climb → RouteEdit (返回路线 navigate 虚线) -->
+  <path d="M 1840,1150 Q 1600,870 1500,780" stroke="#9CA3AF" stroke-width="1.8" fill="none" marker-end="url(#arrGray)" stroke-dasharray="6,4"/>
+  <text x="1620" y="900" font-size="11" fill="#9CA3AF">返回路线</text>
+
+  <!-- 17. Climb → LocationPicker (缺地点 replace 点线) -->
+  <path d="M 1840,1050 Q 1000,830 300,950" stroke="#2563EB" stroke-width="1.6" fill="none" marker-end="url(#arrBlue)" stroke-dasharray="2,4"/>
+  <rect x="950" y="800" width="160" height="22" rx="4" fill="#FFFFFF" stroke="#93C5FD"/>
+  <text x="1030" y="815" text-anchor="middle" font-size="11" fill="#2563EB">缺地点 · replace</text>
+
+  <!-- 18. Climb → Validate (未验证 replace 点线) -->
+  <path d="M 1840,1100 L 1765,1100" stroke="#4F46E5" stroke-width="1.8" fill="none" marker-end="url(#arrIndigo)" stroke-dasharray="2,4"/>
+  <text x="1800" y="1090" text-anchor="middle" font-size="11" fill="#4F46E5">未验证</text>
+
+  <!-- 19. History → Result (点击卡片 navigate) -->
+  <path d="M 2380,745 Q 2450,1100 2210,1480" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#arrPurple)"/>
+  <rect x="2360" y="1080" width="140" height="22" rx="4" fill="#FFFFFF" stroke="#C4B5FD"/>
+  <text x="2430" y="1095" text-anchor="middle" font-size="11" fill="#7C3AED">点击卡片</text>
+
+  <!-- 20. Settings → Privacy (查看协议 navigate) -->
+  <path d="M 440,500 Q 800,200 1140,210" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#arrPurple)"/>
+  <rect x="700" y="180" width="150" height="22" rx="4" fill="#FFFFFF" stroke="#C4B5FD"/>
+  <text x="775" y="195" text-anchor="middle" font-size="11" fill="#7C3AED">查看协议 navigate</text>
+
+  <!-- ===== 图例 ===== -->
+  <g filter="url(#softShadow)">
+    <rect x="80" y="1420" width="560" height="370" rx="14" fill="#FFFFFF"/>
+    <rect x="80" y="1420" width="560" height="44" rx="14" fill="#0F172A"/>
+    <rect x="80" y="1450" width="560" height="14" fill="#0F172A"/>
+    <text x="360" y="1450" text-anchor="middle" font-size="17" font-weight="700" fill="#FFFFFF">图例 Legend</text>
+
+    <!-- 线条类型 -->
+    <text x="110" y="1495" font-size="14" font-weight="700" fill="#0F172A">线条类型</text>
+    <line x1="110" y1="1520" x2="170" y2="1520" stroke="#333" stroke-width="2.5" marker-end="url(#arrGray)"/>
+    <text x="185" y="1525" font-size="13" fill="#334155">实线 = navigate（压栈）</text>
+    <line x1="110" y1="1548" x2="170" y2="1548" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrGray)"/>
+    <text x="185" y="1553" font-size="13" fill="#334155">虚线 = replace（替换栈顶）/返回</text>
+    <line x1="110" y1="1576" x2="170" y2="1576" stroke="#2563EB" stroke-width="1.8" stroke-dasharray="2,4" marker-end="url(#arrBlue)"/>
+    <text x="185" y="1581" font-size="13" fill="#334155">点线 = 异常/条件跳转（缺地点/未验证）</text>
+
+    <!-- 颜色含义 -->
+    <text x="110" y="1620" font-size="14" font-weight="700" fill="#0F172A">颜色含义</text>
+    <rect x="110" y="1635" width="22" height="14" rx="3" fill="#059669"/>
+    <text x="142" y="1647" font-size="13" fill="#334155">首页中枢（RouteEdit）</text>
+    <rect x="110" y="1660" width="22" height="14" rx="3" fill="#2563EB"/>
+    <text x="142" y="1672" font-size="13" fill="#334155">标定流程（LocationPicker→Calibrate→Review）</text>
+    <rect x="110" y="1685" width="22" height="14" rx="3" fill="#4F46E5"/>
+    <text x="142" y="1697" font-size="13" fill="#334155">验证流程（Validate）</text>
+    <rect x="110" y="1710" width="22" height="14" rx="3" fill="#EA580C"/>
+    <text x="142" y="1722" font-size="13" fill="#334155">爬楼流程（Climb→Result）</text>
+    <rect x="110" y="1735" width="22" height="14" rx="3" fill="#7C3AED"/>
+    <text x="142" y="1747" font-size="13" fill="#334155">辅助页（Settings / History）</text>
+    <rect x="110" y="1760" width="22" height="14" rx="3" fill="#6B7280"/>
+    <text x="142" y="1772" font-size="13" fill="#334155">启动入口（Privacy）</text>
+  </g>
+
+  <!-- ===== 主流程说明 ===== -->
+  <g filter="url(#softShadow)">
+    <rect x="680" y="1420" width="1080" height="370" rx="14" fill="#FFFFFF"/>
+    <rect x="680" y="1420" width="1080" height="44" rx="14" fill="#0F172A"/>
+    <rect x="680" y="1450" width="1080" height="14" fill="#0F172A"/>
+    <text x="1220" y="1450" text-anchor="middle" font-size="17" font-weight="700" fill="#FFFFFF">核心流程 Core Flow</text>
+
+    <text x="710" y="1495" font-size="14" font-weight="700" fill="#059669">① 启动</text>
+    <text x="710" y="1518" font-size="13" fill="#334155">App 启动 → 检查隐私协议 → 未同意则 Privacy → 同意后 replace 到 RouteEdit（首页中枢）</text>
+
+    <text x="710" y="1552" font-size="14" font-weight="700" fill="#2563EB">② 标定新路线（蓝色链）</text>
+    <text x="710" y="1575" font-size="13" fill="#334155">RouteEdit → LocationPicker（选点）→ Calibrate（采集传感器数据）→ Review（复核/调整楼层）→ Validate（验证）→ RouteEdit</text>
+    <text x="710" y="1598" font-size="13" fill="#64748B">数据经 setActiveDraft 在 Calibrate→Review 间传递；Validate 通过后路线 status 变为 verified</text>
+
+    <text x="710" y="1632" font-size="14" font-weight="700" fill="#EA580C">③ 正式爬楼（橙色链）</text>
+    <text x="710" y="1655" font-size="13" fill="#334155">RouteEdit → Climb（实时识别楼层）→ Result（成绩）→ 可「再爬一次」回 Climb 或「返回首页」</text>
+    <text x="710" y="1678" font-size="13" fill="#64748B">仅 verified 路线可进入 Climb；缺地点会 replace 到 LocationPicker，未验证会 replace 到 Validate</text>
+
+    <text x="710" y="1712" font-size="14" font-weight="700" fill="#7C3AED">④ 辅助功能</text>
+    <text x="710" y="1735" font-size="13" fill="#334155">Settings：反馈开关 / 数据导入导出 / 隐私协议入口    ·    History：所有 session 列表 → 点击进入 Result</text>
+
+    <text x="710" y="1769" font-size="12" fill="#94A3B8" font-style="italic">注：共 10 个页面 · 26 条跳转路径 · RouteEdit 为唯一导航中枢，所有页面最终都可返回此处</text>
+  </g>
+</svg>

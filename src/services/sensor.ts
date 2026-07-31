@@ -1,5 +1,5 @@
-import { Accelerometer, Gyroscope, DeviceMotion } from 'expo-sensors'
-import { SensorSample } from '../core/types'
+import { Accelerometer, Gyroscope, DeviceMotion, Barometer } from 'expo-sensors'
+import { BarometerStatus, SensorSample } from '../core/types'
 import {
   PrivacyAuthorizeError,
   ensurePrivacyAuthorized,
@@ -14,9 +14,13 @@ export interface SensorStatus {
 
 export interface SensorRecorderOptions {
   retainSamples?: boolean
+  // 低功耗模式：仅订阅气压计，用于返回起点阶段辅助判断高度
+  lowPowerMode?: boolean
   onSample?: (sample: SensorSample) => void
   onStatus?: (status: SensorStatus) => void
   onGap?: (gap: { startMs: number; endMs: number }) => void
+  // 气压计状态回调：每次气压样本到达时触发，UI 据此显示气压/海拔/楼层变化
+  onBarometer?: (status: BarometerStatus) => void
 }
 
 type RequiredSensor = 'accelerometer' | 'gyroscope'
@@ -24,6 +28,8 @@ type RequiredSensor = 'accelerometer' | 'gyroscope'
 // expo-sensors 在 Android 12+ 上需要 HIGH_SAMPLING_RATE_SENSORS 权限才能拿到 game 级别
 // 的采样率（约 50Hz）。低于此速率时退回 ui 级别（约 16Hz），对步态检测仍够用。
 const UPDATE_INTERVAL_MS = 20
+// 气压计采样间隔：气压变化慢，5Hz 足够，省电
+const BAROMETER_INTERVAL_MS = 200
 
 export class SensorStartError extends Error {
   readonly sensor: RequiredSensor | 'privacy'
@@ -78,9 +84,13 @@ export function sensorStartErrorMessage(error: unknown): string {
 
 export class SensorRecorder {
   private options: SensorRecorderOptions
+  private lowPowerMode: boolean
   private samples: SensorSample[] = []
   private latestGyro = { x: 0, y: 0, z: 0 }
   private latestMotion = { alpha: 0, beta: 0, gamma: 0 }
+  private latestPressure: number | undefined  // 最新气压值（hPa）
+  private barometerAvailable = false          // 设备是否支持气压计
+  private barometerLastAt = 0                 // 上次气压样本时间戳
   private startedAt = 0
   private lastSampleAt = 0
   private gyroSampleAt = 0
@@ -90,9 +100,11 @@ export class SensorRecorder {
   private accelSub?: { remove: () => void }
   private gyroSub?: { remove: () => void }
   private motionSub?: { remove: () => void }
+  private baroSub?: { remove: () => void }
 
   constructor(options: SensorRecorderOptions = {}) {
     this.options = options
+    this.lowPowerMode = options.lowPowerMode ?? false
   }
 
   async start(): Promise<void> {
@@ -111,68 +123,123 @@ export class SensorRecorder {
     this.startedAt = Date.now()
     this.lastSampleAt = 0
     this.gyroSampleAt = 0
+    this.latestPressure = undefined
+    this.barometerAvailable = false
+    this.barometerLastAt = 0
     this.running = true
 
-    // 先设置采样间隔，再订阅，避免首批数据按默认间隔到达。
-    Accelerometer.setUpdateInterval(UPDATE_INTERVAL_MS)
-    Gyroscope.setUpdateInterval(UPDATE_INTERVAL_MS)
-    DeviceMotion.setUpdateInterval(UPDATE_INTERVAL_MS)
-
     try {
-      this.accelSub = Accelerometer.addListener((value) => {
-        const now = Date.now()
-        if (this.gapStartedAt) {
-          this.options.onGap?.({
-            startMs: this.gapStartedAt - this.startedAt,
-            endMs: now - this.startedAt,
-          })
-          this.gapStartedAt = undefined
-        }
-        const sample: SensorSample = {
-          t: now,
-          ax: Number(value.x) || 0,
-          ay: Number(value.y) || 0,
-          az: Number(value.z) || 0,
-          gx: this.latestGyro.x,
-          gy: this.latestGyro.y,
-          gz: this.latestGyro.z,
-          alpha: this.latestMotion.alpha,
-          beta: this.latestMotion.beta,
-          gamma: this.latestMotion.gamma,
-        }
-        if (this.options.retainSamples !== false) this.samples.push(sample)
-        this.lastSampleAt = now
-        this.options.onSample?.(sample)
-      })
+      if (!this.lowPowerMode) {
+        // 正常模式：加速度 + 陀螺仪 + DeviceMotion + 气压计
+        // 先设置采样间隔，再订阅，避免首批数据按默认间隔到达。
+        Accelerometer.setUpdateInterval(UPDATE_INTERVAL_MS)
+        Gyroscope.setUpdateInterval(UPDATE_INTERVAL_MS)
+        DeviceMotion.setUpdateInterval(UPDATE_INTERVAL_MS)
 
-      this.gyroSub = Gyroscope.addListener((value) => {
-        this.gyroSampleAt = Date.now()
-        this.latestGyro = {
-          x: Number(value.x) || 0,
-          y: Number(value.y) || 0,
-          z: Number(value.z) || 0,
-        }
-      })
+        this.accelSub = Accelerometer.addListener((value) => {
+          const now = Date.now()
+          if (this.gapStartedAt) {
+            this.options.onGap?.({
+              startMs: this.gapStartedAt - this.startedAt,
+              endMs: now - this.startedAt,
+            })
+            this.gapStartedAt = undefined
+          }
+          const sample: SensorSample = {
+            t: now,
+            ax: Number(value.x) || 0,
+            ay: Number(value.y) || 0,
+            az: Number(value.z) || 0,
+            gx: this.latestGyro.x,
+            gy: this.latestGyro.y,
+            gz: this.latestGyro.z,
+            alpha: this.latestMotion.alpha,
+            beta: this.latestMotion.beta,
+            gamma: this.latestMotion.gamma,
+            // 气压计若可用，把最新气压值附在样本上（可能 undefined）
+            pressure: this.latestPressure,
+          }
+          if (this.options.retainSamples !== false) this.samples.push(sample)
+          this.lastSampleAt = now
+          this.options.onSample?.(sample)
+        })
 
-      // DeviceMotion 为补充信息，识别目前只用加速度+陀螺仪 Z，缺失不应阻塞真机。
-      try {
-        this.motionSub = DeviceMotion.addListener((value) => {
-          const o = value.orientation
-          if (typeof o === 'number') {
-            this.latestMotion = {
-              alpha: o,
-              beta: 0,
-              gamma: 0,
-            }
+        this.gyroSub = Gyroscope.addListener((value) => {
+          this.gyroSampleAt = Date.now()
+          this.latestGyro = {
+            x: Number(value.x) || 0,
+            y: Number(value.y) || 0,
+            z: Number(value.z) || 0,
           }
         })
-      } catch (error) {
-        console.warn('[sensor] optional device motion unavailable', error)
+
+        // DeviceMotion 为补充信息，识别目前只用加速度+陀螺仪 Z，缺失不应阻塞真机。
+        try {
+          this.motionSub = DeviceMotion.addListener((value) => {
+            const o = value.orientation
+            if (typeof o === 'number') {
+              this.latestMotion = {
+                alpha: o,
+                beta: 0,
+                gamma: 0,
+              }
+            }
+          })
+        } catch (error) {
+          console.warn('[sensor] optional device motion unavailable', error)
+        }
       }
 
-      await this.waitForRequiredSamples()
-      this.emitStatus('waiting')
-      this.watchdog = setInterval(() => this.checkSignal(), 350)
+      // 气压计订阅：可选传感器，缺失不阻塞主流程。两种模式都订阅。
+      // 注意 expo-sensors 的 Barometer.isAvailableAsync() 在某些设备上行为不一致，
+      // 这里采用「尝试订阅 + 失败降级」策略：3 秒内无样本视为不可用
+      try {
+        Barometer.setUpdateInterval(BAROMETER_INTERVAL_MS)
+        this.baroSub = Barometer.addListener((value) => {
+          // expo-sensors Barometer 返回 { pressure: number }（hPa）
+          const pressure = Number(value.pressure)
+          if (Number.isFinite(pressure) && pressure > 0) {
+            this.latestPressure = pressure
+            this.barometerAvailable = true
+            this.barometerLastAt = Date.now()
+            this.options.onBarometer?.({
+              available: true,
+              running: true,
+              pressure,
+              lastSampleAt: this.barometerLastAt,
+            })
+          }
+        })
+        // 3 秒后若仍未收到气压样本，标记为不可用并通知 UI
+        setTimeout(() => {
+          if (this.running && !this.barometerAvailable) {
+            this.options.onBarometer?.({
+              available: false,
+              running: false,
+              pressure: 0,
+              lastSampleAt: 0,
+            })
+          }
+        }, 3000)
+      } catch (error) {
+        console.warn('[sensor] barometer unavailable', error)
+        this.barometerAvailable = false
+        this.options.onBarometer?.({
+          available: false,
+          running: false,
+          pressure: 0,
+          lastSampleAt: 0,
+        })
+      }
+
+      if (!this.lowPowerMode) {
+        await this.waitForRequiredSamples()
+        this.emitStatus('waiting')
+        this.watchdog = setInterval(() => this.checkSignal(), 350)
+      } else {
+        // 低功耗模式无需等待加速度/陀螺仪样本，直接就绪
+        this.emitStatus('good')
+      }
     } catch (error) {
       this.running = false
       await this.cleanup()
@@ -203,6 +270,16 @@ export class SensorRecorder {
 
   getStartedAt(): number {
     return this.startedAt
+  }
+
+  // 气压计是否可用（采集启动后才有意义）
+  isBarometerAvailable(): boolean {
+    return this.barometerAvailable
+  }
+
+  // 最新气压值（hPa），未启动或无气压计时为 undefined
+  getLatestPressure(): number | undefined {
+    return this.latestPressure
   }
 
   private checkSignal(): void {
@@ -254,11 +331,13 @@ export class SensorRecorder {
       this.accelSub?.remove()
       this.gyroSub?.remove()
       this.motionSub?.remove()
+      this.baroSub?.remove()
     } catch (error) {
       console.warn('[sensor] cleanup failed', error)
     }
     this.accelSub = undefined
     this.gyroSub = undefined
     this.motionSub = undefined
+    this.baroSub = undefined
   }
 }

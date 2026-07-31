@@ -2,7 +2,8 @@ export type CarryMode = 'pocket' | 'waist'
 export type MarkerType = 'turn' | 'landing' | 'pause' | 'manual_turn' | 'manual_floor'
 export type TurnDirection = 'left' | 'right'
 export type RouteStatus = 'draft' | 'needs_validation' | 'verified'
-export type ClimbMode = 'validation' | 'formal'
+// free：首次开张轮次，无模板对照，仅基于气压计估楼层；结束后用采集数据生成模板
+export type ClimbMode = 'validation' | 'formal' | 'free'
 
 // 人工标记：用户在采集过程中点击「标记拐弯」或「到达新楼层」时记录
 export interface ManualMark {
@@ -24,6 +25,16 @@ export interface SensorSample {
   alpha: number
   beta: number
   gamma: number
+  // 气压（hPa）。部分设备无气压计，缺失时为 undefined
+  pressure?: number
+}
+
+// 气压计状态：用于 UI 提示用户气压计是否连上
+export interface BarometerStatus {
+  available: boolean     // 设备是否有气压计
+  running: boolean       // 是否正在采样
+  pressure: number       // 最新气压值（hPa）
+  lastSampleAt: number   // 上次采样时间戳
 }
 
 export interface FeatureFrame {
@@ -127,6 +138,10 @@ export interface CalibrationDraft {
   manualMarks: ManualMark[]
   // 垂直位移估算（基于加速度二次积分，单位 m）
   estimatedAscentM?: number
+  // 楼层边界来源：人工标记 / 气压计 / 算法估算（缺失视为 inferred）
+  boundarySource?: 'manual' | 'barometer' | 'inferred'
+  // 爬升估算来源：气压反算 / 步数估算（缺失视为 step）
+  ascentSource?: 'barometer' | 'step'
 }
 
 export interface RecognitionEvent {
@@ -165,6 +180,9 @@ export interface ClimbSession {
   averageFloorMs?: number
   bestFloorSplitMs?: number
   sharePosterCreatedAt?: number
+  // 仅 mode='free' 时填充：第一轮采集的原始样本，用于结束后生成路线模板。
+  // 其他模式下不填，避免持久化时写入大量数据。
+  samples?: SensorSample[]
 }
 
 export interface RecognitionSnapshot {
@@ -187,3 +205,146 @@ export interface FloorSplit {
   turnCount: number             // 该段拐弯次数（自动+人工）
   ascentM: number               // 该段爬升估算
 }
+
+// ===== 多轮训练（Workout）类型 =====
+// 一次训练 ClimbWorkout 包含一轮或多轮 WorkoutRound。
+// 旧 ClimbSession 保留不动，新增类型平行存在。
+
+export type RoundCompletionReason =
+  | 'route_complete'
+  | 'manual_finish'
+  | 'interrupted'
+  | 'cancelled'
+
+export type WorkoutStatus = 'planned' | 'active' | 'completed' | 'cancelled'
+
+export type WorkoutGoalType = 'open' | 'rounds' | 'floors' | 'ascent' | 'duration'
+
+export type WorkoutGoal =
+  | { type: 'open' }
+  | { type: 'rounds'; targetRounds: number }
+  | { type: 'floors'; targetFloors: number }
+  | { type: 'ascent'; targetAscentM: number }
+  | { type: 'duration'; targetActiveDurationMs: number }
+
+export type ReturnConfirmationMode = 'manual' | 'assisted'
+
+export type CountdownDuration = 0 | 3 | 5 | 10
+
+// 训练阶段。放 types.ts 避免与 ActiveWorkoutCheckpoint 循环依赖。
+export type WorkoutPhase =
+  | 'setup'
+  | 'round_ready'
+  | 'countdown'
+  | 'ascending'
+  | 'round_complete'
+  | 'returning'
+  | 'start_confirmation'
+  | 'recovering'
+  | 'workout_complete'
+
+export interface WorkoutRound {
+  id: string
+  roundNumber: number
+  startedAt: number
+  endedAt: number
+  durationMs: number
+  startFloor: number
+  targetFloor: number
+  finalFloor: number
+  floorsCompleted: number
+  ascentM: number
+  steps: number
+  confidence: number
+  complete: boolean
+  completionReason: RoundCompletionReason
+  floorSplits: Array<{
+    floorFrom: number
+    floorTo: number
+    reachedAtMs: number
+    splitDurationMs: number
+    steps?: number
+    confidence?: number
+  }>
+  events: RecognitionEvent[]
+  interruptions: Array<{ startMs: number; endMs: number }>
+  averageFloorMs?: number
+  bestFloorSplitMs?: number
+  returnedToStartAt?: number
+  returnDurationMs?: number
+  recoveryDurationMs?: number
+}
+
+export interface ClimbWorkout {
+  id: string
+  templateId: string
+  templateVersion: number
+  routeSnapshot: {
+    name: string
+    locationName: string
+    startFloor: number
+    endFloor: number
+    floorsPerRound: number
+    ascentPerRoundM: number
+  }
+  goal: WorkoutGoal
+  returnConfirmationMode: ReturnConfirmationMode
+  countdownSeconds: CountdownDuration
+  status: WorkoutStatus
+  startedAt: number
+  endedAt?: number
+  rounds: WorkoutRound[]
+  currentRoundNumber: number
+  totalRoundsCompleted: number
+  totalFloorsCompleted: number
+  totalAscentM: number
+  totalSteps: number
+  activeDurationMs: number
+  returnDurationMs: number
+  recoveryDurationMs: number
+  totalElapsedMs: number
+  bestRoundMs?: number
+  averageRoundMs?: number
+  latestRoundMs?: number
+  sharePosterCreatedAt?: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface WorkoutSummary {
+  totalRounds: number
+  completeRounds: number
+  totalFloors: number
+  totalAscentM: number
+  totalSteps: number
+  activeDurationMs: number
+  returnDurationMs: number
+  recoveryDurationMs: number
+  totalElapsedMs: number
+  bestRoundMs?: number
+  worstRoundMs?: number
+  averageRoundMs?: number
+  latestRoundMs?: number
+  firstHalfAvgMs?: number
+  secondHalfAvgMs?: number
+  secondHalfDeclinePct?: number   // 后半程衰减百分比
+  coefficientOfVariation?: number // 变异系数
+}
+
+export interface ActiveWorkoutCheckpoint {
+  workoutId: string
+  phase: WorkoutPhase
+  currentRoundNumber: number
+  savedAt: number
+  completedRounds: WorkoutRound[]
+  // 恢复训练所需的最小参数快照
+  templateId: string
+  goal: WorkoutGoal
+  returnConfirmationMode: ReturnConfirmationMode
+  countdownSeconds: CountdownDuration
+  startedAt: number
+}
+
+export type HistoryItem =
+  | { type: 'legacy_session'; session: ClimbSession }
+  | { type: 'workout'; workout: ClimbWorkout }

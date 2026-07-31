@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "爬楼",
-    "slug": "palou-app",
+    "name": "循阶",
+    "slug": "steploop",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -40,6 +40,15 @@
     },
     "plugins": [
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#090d0c",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "用于在地图上选择爬楼建筑并推荐附近路线",
@@ -52,12 +61,18 @@
           "motionPermission": "用于识别爬楼过程中的脚步、转向与楼层切换"
         }
       ],
-      "expo-sharing"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": ""
-      }
-    }
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "允许循阶读取相册中的图片",
+          "savePhotosPermission": "允许循阶把成绩海报保存到相册",
+          "granularPermissions": [
+            "photo"
+          ]
+        }
+      ],
+      "expo-sharing",
+      "expo-font"
+    ]
   }
 }

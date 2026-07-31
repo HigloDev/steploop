@@ -1,6 +1,8 @@
 import { extractFrames, vectorizeFrame } from './analysis'
 import { dtwConfidence } from './dtw'
+import { getFloorTransitionCount } from './floors'
 import { clamp, uid } from './math'
+import { StairTurnGate } from './turn-gate'
 import {
   ClimbSession,
   ClimbMode,
@@ -13,6 +15,13 @@ import {
 
 const MATCH_THRESHOLD = 0.72
 const MIN_PROGRESS = 0.65
+const BAROMETER_BASELINE_SAMPLES = 5
+const BAROMETER_SMOOTH_SAMPLES = 10
+const METERS_PER_HPA = 8.3
+// 气压只作“已经爬够一层高度”的辅助确认；真正推进必须完成两个整拐。
+const FLOOR_HEIGHT_CONFIRM_RATIO = 0.88
+const TURNS_REQUIRED_PER_FLOOR = 2
+const BAROMETER_STEP_CONFIRM_RATIO = 0.65
 
 export class RouteRecognizer {
   private template: RouteTemplate
@@ -26,8 +35,13 @@ export class RouteRecognizer {
   private startedAt: number
   private paused = false
   private lastFrame?: FeatureFrame
-  private lastTurnAt = -Infinity
+  private readonly turnGate = new StairTurnGate()
   private currentConfidence = 0
+  private baselinePressure?: number
+  private baselineSamples: number[] = []
+  private pressureWindow: number[] = []
+  private hasBarometer = false
+  private estimatedHeightM = 0
 
   constructor(template: RouteTemplate, startedAt = Date.now()) {
     this.template = template
@@ -35,7 +49,7 @@ export class RouteRecognizer {
   }
 
   pushFrame(frame: FeatureFrame): RecognitionSnapshot {
-    if (this.paused || this.segmentIndex >= this.template.segments.length) {
+    if (this.paused || this.segmentIndex >= this.segmentCount) {
       return this.snapshot()
     }
     const segment = this.template.segments[this.segmentIndex]
@@ -44,14 +58,13 @@ export class RouteRecognizer {
     this.totalSteps += frame.steps
     this.lastFrame = frame
 
-    if (Math.abs(frame.turnRad) > 0.58 && frame.startMs - this.lastTurnAt > 1200) {
-      const direction = frame.turnRad >= 0 ? 'left' : 'right'
-      this.lastTurnAt = frame.startMs
+    const completedTurn = this.turnGate.push(frame)
+    if (completedTurn) {
       this.events.push({
-        t: frame.startMs,
+        t: completedTurn.atMs,
         type: 'turn',
-        direction,
-        confidence: clamp(Math.abs(frame.turnRad) / 1.2, 0.5, 0.98),
+        direction: completedTurn.direction,
+        confidence: completedTurn.confidence,
       })
     }
 
@@ -63,25 +76,118 @@ export class RouteRecognizer {
     if (
       progress >= MIN_PROGRESS &&
       stepProgress >= 0.58 &&
-      this.currentConfidence >= MATCH_THRESHOLD
+      this.currentConfidence >= MATCH_THRESHOLD &&
+      this.hasCompletedFloorRoute() &&
+      (!this.hasBarometer || this.hasReachedCurrentFloorHeight())
     ) {
-      const elapsedMs = frame.endMs
-      this.events.push({
-        t: elapsedMs,
-        type: 'floor',
-        floor: segment.floorTo,
-        confidence: this.currentConfidence,
-      })
-      this.floorSplits.push({
-        floor: segment.floorTo,
-        atMs: elapsedMs,
-        elapsedMs,
-      })
-      this.segmentIndex += 1
-      this.observed = []
-      this.observedSteps = 0
+      this.advanceSegment(frame.endMs, this.currentConfidence)
     }
     return this.snapshot()
+  }
+
+  /**
+   * 正式训练也接收气压。动作模板负责识别节奏，气压负责守住整层边界并
+   * 在模板局部对不上时脱困，避免第二轮永远卡在第一段。
+   */
+  pushBarometer(pressure: number): RecognitionSnapshot {
+    if (!Number.isFinite(pressure) || pressure <= 0 || this.paused) {
+      return this.snapshot()
+    }
+    this.hasBarometer = true
+    if (this.baselinePressure === undefined) {
+      this.baselineSamples.push(pressure)
+      if (this.baselineSamples.length >= BAROMETER_BASELINE_SAMPLES) {
+        this.baselinePressure =
+          this.baselineSamples.reduce((sum, value) => sum + value, 0) /
+          this.baselineSamples.length
+      }
+      return this.snapshot()
+    }
+
+    this.pressureWindow.push(pressure)
+    if (this.pressureWindow.length > BAROMETER_SMOOTH_SAMPLES) {
+      this.pressureWindow.shift()
+    }
+    const smoothed =
+      this.pressureWindow.reduce((sum, value) => sum + value, 0) /
+      this.pressureWindow.length
+    this.estimatedHeightM = Math.max(
+      0,
+      (this.baselinePressure - smoothed) * METERS_PER_HPA,
+    )
+
+    if (this.segmentIndex >= this.segmentCount) return this.snapshot()
+    const segment = this.template.segments[this.segmentIndex]
+    if (!segment || !this.hasReachedCurrentFloorHeight()) return this.snapshot()
+
+    // 气压只负责确认高度，不能单独推进楼层。
+    const minimumSteps = Math.max(
+      8,
+      Math.round(segment.stepCount * BAROMETER_STEP_CONFIRM_RATIO),
+    )
+    if (
+      this.observedSteps < minimumSteps ||
+      !this.hasCompletedFloorRoute()
+    ) {
+      return this.snapshot()
+    }
+
+    const elapsedMs = Math.max(0, Date.now() - this.startedAt)
+    // 气压兜底的置信度略低于动作完整匹配，但足以让路线继续向前。
+    this.advanceSegment(elapsedMs, Math.max(0.74, this.currentConfidence))
+    return this.snapshot()
+  }
+
+  private hasReachedCurrentFloorHeight(): boolean {
+    const current = this.template.segments[this.segmentIndex]
+    if (!current) return false
+    const expectedFlights = this.segmentCount
+    const learnedHeightPerFloor =
+      expectedFlights > 0 && this.template.totalAscentM > 0
+        ? this.template.totalAscentM / expectedFlights
+        : Math.max(0, current.ascentM)
+    const threshold =
+      (this.segmentIndex + FLOOR_HEIGHT_CONFIRM_RATIO) *
+      learnedHeightPerFloor
+    return threshold > 0 && this.estimatedHeightM >= threshold
+  }
+
+  private hasCompletedFloorRoute(): boolean {
+    return this.turnGate.completedTurns >= TURNS_REQUIRED_PER_FLOOR
+  }
+
+  /**
+   * 1 层到 15 层实际只有 14 次跨层。旧版路线曾可能多存一段，
+   * 训练时必须以起终层为上限，不能因为多余模板段而冲到 16 层。
+   */
+  private get segmentCount(): number {
+    const expected = getFloorTransitionCount(
+      this.template.startFloor,
+      this.template.endFloor,
+    )
+    return expected > 0
+      ? Math.min(expected, this.template.segments.length)
+      : this.template.segments.length
+  }
+
+  private advanceSegment(elapsedMs: number, confidence: number): void {
+    const segment = this.template.segments[this.segmentIndex]
+    if (!segment) return
+    this.events.push({
+      t: elapsedMs,
+      type: 'floor',
+      floor: segment.floorTo,
+      confidence,
+    })
+    this.floorSplits.push({
+      floor: segment.floorTo,
+      atMs: elapsedMs,
+      elapsedMs,
+    })
+    this.segmentIndex += 1
+    this.observed = []
+    this.observedSteps = 0
+    this.turnGate.reset()
   }
 
   pushSamples(samples: SensorSample[]): RecognitionSnapshot {
@@ -107,11 +213,15 @@ export class RouteRecognizer {
   snapshot(): RecognitionSnapshot {
     const completed = this.template.segments.slice(0, this.segmentIndex)
     const currentFloor = completed.at(-1)?.floorTo ?? this.template.startFloor
-    const complete = this.segmentIndex >= this.template.segments.length
+    const complete = this.segmentIndex >= this.segmentCount
+    const canonicalAscent =
+      this.segmentCount > 0 && this.template.totalAscentM > 0
+        ? (this.template.totalAscentM * completed.length) / this.segmentCount
+        : completed.reduce((sum, segment) => sum + segment.ascentM, 0)
     return {
       currentFloor,
       floorsCompleted: completed.length,
-      ascentM: completed.reduce((sum, segment) => sum + segment.ascentM, 0),
+      ascentM: Number(canonicalAscent.toFixed(1)),
       steps: this.totalSteps,
       confidence: complete ? 1 : this.currentConfidence,
       status: complete
@@ -127,7 +237,12 @@ export class RouteRecognizer {
 
   finish(endedAt = Date.now(), mode: ClimbMode = 'formal'): ClimbSession {
     const snapshot = this.snapshot()
-    const durationMs = Math.max(0, endedAt - this.startedAt)
+    // 净用时：扣除中断期间（锁屏、切出应用、传感器断流）
+    const interruptedMs = this.interruptions.reduce(
+      (sum, gap) => sum + Math.max(0, gap.endMs - gap.startMs),
+      0,
+    )
+    const durationMs = Math.max(0, endedAt - this.startedAt - interruptedMs)
     const splitDurations = this.floorSplits.map((split, index) =>
       Math.max(0, split.elapsedMs - (this.floorSplits[index - 1]?.elapsedMs ?? 0)),
     )

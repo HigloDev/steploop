@@ -1,8 +1,12 @@
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack'
-import { RouteLocation } from '../core/types'
+import {
+  CountdownDuration,
+  ReturnConfirmationMode,
+  RouteLocation,
+  WorkoutGoal,
+} from '../core/types'
 
 // 路由参数定义。
-// mode=formal|validation, from=route-edit|settings 等。
 // LocationPicker 接受可选 routeId：有 routeId 表示为旧路线补充地点模式，确认后写回路线；无 routeId 表示新建路线，确认后跳转 Calibrate。
 export type RouteParam =
   | { name: 'RouteEdit'; params?: undefined }
@@ -10,11 +14,24 @@ export type RouteParam =
   | { name: 'Calibrate'; params: { seed: CalibrateSeed } }
   | { name: 'Review'; params?: { draft?: never } }
   | { name: 'Validate'; params?: { id?: string } }
-  | { name: 'Climb'; params: { id: string; mode: 'formal' | 'validation' } }
+  | { name: 'RouteProfile'; params: { id: string } }
+  | { name: 'WorkoutSetup'; params: { id: string } }
+  | {
+      name: 'ClimbWorkout'
+      params: {
+        id: string
+        goal: WorkoutGoal
+        returnConfirmationMode: ReturnConfirmationMode
+        countdownSeconds: CountdownDuration
+      }
+    }
+  | { name: 'WorkoutResult'; params: { id: string } }
+  | { name: 'ShareStudio'; params: { id: string } }
   | { name: 'Result'; params: { id: string } }
   | { name: 'Privacy'; params?: { from?: string } }
   | { name: 'History'; params?: undefined }
   | { name: 'Settings'; params?: undefined }
+  | { name: 'ClimbPreview'; params?: undefined }
 
 // 标定种子：从 LocationPicker 传给 Calibrate，再封装为 RouteSeed 进入 draft。
 // carryMode 可选（默认 pocket），Calibrate 页内可选择修改。
@@ -30,11 +47,21 @@ export type RootStackParamList = {
   Calibrate: { seed: CalibrateSeed }
   Review: undefined
   Validate: { id?: string }
-  Climb: { id: string; mode: 'formal' | 'validation' }
+  RouteProfile: { id: string }
+  WorkoutSetup: { id: string }
+  ClimbWorkout: {
+    id: string
+    goal: WorkoutGoal
+    returnConfirmationMode: ReturnConfirmationMode
+    countdownSeconds: CountdownDuration
+  }
+  WorkoutResult: { id: string }
+  ShareStudio: { id: string }
   Result: { id: string }
   Privacy: { from?: string }
   History: undefined
   Settings: undefined
+  ClimbPreview: undefined
 }
 
 export type RootStackNavigation = NativeStackNavigationProp<RootStackParamList>

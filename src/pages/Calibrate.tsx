@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Header } from '../components/Header'
+import { BuildingSketch, buildRealtimeFloors } from '../components/BuildingSketch'
 import { Button, Card, Metric, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
@@ -25,8 +26,9 @@ import { SensorRecorder, SensorStatus, sensorStartErrorMessage } from '../servic
 import { setActiveDraft } from '../services/draft'
 import { analyzeCalibration } from '../core/analysis'
 import { formatDuration, uid } from '../core/math'
-import { ManualMark, RouteSeed, SensorSample } from '../core/types'
+import { ManualMark, RouteSeed, SensorSample, BarometerStatus } from '../core/types'
 import { triggerHaptic } from '../services/preferences'
+import { pressureToAltitude } from '../core/analysis'
 
 type Phase = 'ready' | 'recording' | 'stopped'
 
@@ -103,6 +105,18 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
   const [cadence, setCadence] = useState(0)              // 步/分钟
   const [ascentM, setAscentM] = useState(0)              // 估算垂直爬升
 
+  // 气压计实时显示
+  // null = 未知（采集启动后 3 秒内待定），true/false = 是否可用
+  const [baroAvailable, setBaroAvailable] = useState<boolean | null>(null)
+  const [baroPressure, setBaroPressure] = useState(0)         // 当前气压 hPa
+  const [baroRelAltitude, setBaroRelAltitude] = useState(0)   // 相对起点海拔 m
+  const [baroFloorDetected, setBaroFloorDetected] = useState(0) // 气压自动检测到的楼层数
+  const baroStartPressureRef = useRef<number | null>(null)    // 起点气压（首次样本）
+  const baroFloorCountRef = useRef(0)                         // 气压楼层计数（ref）
+  const baroLastFloorAtRef = useRef(0)                        // 上次楼层检测时间
+  const BARO_FLOOR_THRESHOLD_HPA = 0.3                        // 楼层气压阈值
+  const BARO_FLOOR_COOLDOWN_MS = 2000                         // 楼层检测冷却
+
   // 异常提醒
   const [warnings, setWarnings] = useState<string[]>([])
   const lastStepAtForIdleRef = useRef(0)  // 用于静止检测
@@ -158,6 +172,14 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
     setDiagNet(0)
     setDiagGravity(GRAVITY)
     setWaveBars(new Array(WAVEFORM_BARS).fill(0))
+    // 重置气压计状态
+    setBaroAvailable(null)
+    setBaroPressure(0)
+    setBaroRelAltitude(0)
+    setBaroFloorDetected(0)
+    baroStartPressureRef.current = null
+    baroFloorCountRef.current = 0
+    baroLastFloorAtRef.current = 0
     const recorder = new SensorRecorder({
       retainSamples: true,
       onSample: (sample) => {
@@ -238,6 +260,38 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
       onStatus: (status) => {
         setSignal(status.signal)
       },
+      onBarometer: (status: BarometerStatus) => {
+        // 首次收到气压样本时锁定起点气压，用于后续计算相对海拔
+        if (status.available) {
+          if (baroStartPressureRef.current === null) {
+            baroStartPressureRef.current = status.pressure
+          }
+          setBaroAvailable(true)
+          setBaroPressure(status.pressure)
+          // 相对海拔 = 当前海拔 - 起点海拔
+          const startP = baroStartPressureRef.current
+          if (startP !== null) {
+            const relAlt = pressureToAltitude(status.pressure) - pressureToAltitude(startP)
+            setBaroRelAltitude(Number(relAlt.toFixed(1)))
+            // 实时楼层检测：气压下降超阈值且过冷却时间
+            const drop = startP - status.pressure
+            const expectedFloors = Math.floor(drop / BARO_FLOOR_THRESHOLD_HPA)
+            const now = Date.now()
+            if (
+              expectedFloors > baroFloorCountRef.current &&
+              now - baroLastFloorAtRef.current > BARO_FLOOR_COOLDOWN_MS
+            ) {
+              baroFloorCountRef.current = expectedFloors
+              baroLastFloorAtRef.current = now
+              setBaroFloorDetected(expectedFloors)
+            }
+          }
+        } else {
+          // 气压计不可用：仅当状态仍为 null（待定）时才设为 false，
+          // 避免被迟到的「不可用」通知覆盖已确认的可用状态
+          setBaroAvailable((prev) => (prev === null ? false : prev))
+        }
+      },
     })
     recorderRef.current = recorder
     try {
@@ -257,8 +311,13 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           ? Math.round((recentSteps.length / windowMs) * 60000)
           : 0
         setCadence(cpm)
-        // 估算垂直爬升
-        setAscentM(Number((stepCountRef.current * ASCENT_PER_STEP_M).toFixed(1)))
+        // 估算垂直爬升：气压计可用时用气压反算（更准），否则按步数估算
+        if (baroFloorCountRef.current > 0 || baroStartPressureRef.current !== null) {
+          // 气压爬升已在 onBarometer 中更新到 baroRelAltitude，这里同步到 ascentM
+          setAscentM(baroRelAltitude)
+        } else {
+          setAscentM(Number((stepCountRef.current * ASCENT_PER_STEP_M).toFixed(1)))
+        }
         setTurnCount(turnCountRef.current)
         // 异常实时提醒
         const warns: string[] = []
@@ -427,6 +486,11 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           ? '设备不支持'
           : '等待信号'
 
+  // 大楼简笔画：起始楼层固定为 1（Calibrate 内部未提供编辑入口）
+  // 拐弯段总数 = 自动拐弯 + 人工拐弯，按已完成楼层均分
+  const totalTurnsForBuilding = turnCount + manualTurnCount
+  const buildingFloors = buildRealtimeFloors(1, currentFloor, totalTurnsForBuilding)
+
   return (
     <View style={styles.page}>
       <Header title="标定采集" back />
@@ -435,9 +499,8 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>CALIBRATION</Text>
           <Text style={styles.title}>标定新路线</Text>
-          <Text style={styles.subtitle}>{seed.location.address || seed.location.name}</Text>
+          <Text style={styles.subtitle}>采集中显示运动强度</Text>
         </View>
 
         {phase === 'ready' ? (
@@ -447,7 +510,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
               style={styles.input}
               value={routeName}
               onChangeText={setRouteName}
-              placeholder="如：上海中心大厦 1F→7F"
+              placeholder="如：上海中心大厦1层→7层"
               placeholderTextColor={theme.muted}
               returnKeyType="done"
               blurOnSubmit
@@ -500,17 +563,6 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           </Card>
         )}
 
-        <Card raised style={styles.guideCard}>
-          <Text style={styles.guideTitle}>采集说明</Text>
-          <Text style={styles.guideText}>
-            1. 到达起点楼层后点击「开始采集」。{'\n'}
-            2. 保持手机固定在 {carryMode === 'waist' ? '腰包' : '裤袋'}，朝向一致。{'\n'}
-            3. 每爬到楼梯转角时点击「标记拐弯」。{'\n'}
-            4. 每到达一个新楼层时点击「到达新楼层」。{'\n'}
-            5. 到达终点楼层后点击「停止并分析」。
-          </Text>
-        </Card>
-
         {phase === 'recording' ? (
           <>
             <Card raised style={styles.vizCard}>
@@ -540,6 +592,13 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                 </View>
                 <Pill tone={signalTone}>{signalText}</Pill>
               </View>
+
+              {/* 大楼剖面简笔画：把楼层+拐弯+当前进度合成成一张图 */}
+              <BuildingSketch
+                floors={buildingFloors}
+                climbing
+                style={styles.buildingSketch}
+              />
 
               {/* 实时加速度波形（对称条形） */}
               <View style={styles.waveformWrap}>
@@ -606,7 +665,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                 <View style={styles.vizMetricDivider} />
                 <View style={styles.vizMetric}>
                   <Text style={styles.vizMetricValue}>{ascentM.toFixed(1)}</Text>
-                  <Text style={styles.vizMetricLabel}>爬升m</Text>
+                  <Text style={styles.vizMetricLabel}>爬升米数</Text>
                 </View>
               </View>
 
@@ -632,7 +691,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
               <View style={styles.diagRow}>
                 <View style={styles.diagBlock}>
                   <Text style={styles.diagValue}>{diagMag.toFixed(2)}</Text>
-                  <Text style={styles.diagLabel}>|a| m/s²</Text>
+                  <Text style={styles.diagLabel}>加速度（米/秒²）</Text>
                 </View>
                 <View style={styles.diagBlock}>
                   <Text
@@ -643,11 +702,59 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                   >
                     {diagNet.toFixed(2)}
                   </Text>
-                  <Text style={styles.diagLabel}>net m/s²（阈值{STEP_THRESHOLD}）</Text>
+                  <Text style={styles.diagLabel}>净加速度（米/秒²，阈值{STEP_THRESHOLD}）</Text>
                 </View>
                 <View style={styles.diagBlock}>
                   <Text style={styles.diagValue}>{diagGravity.toFixed(2)}</Text>
-                  <Text style={styles.diagLabel}>g 基线</Text>
+                  <Text style={styles.diagLabel}>重力基线</Text>
+                </View>
+              </View>
+
+              {/* 气压计实时显示：气压 / 相对海拔 / 自动楼层 */}
+              <View style={styles.baroRow}>
+                <View style={styles.baroStatusBlock}>
+                  <Text
+                    style={[
+                      styles.baroStatusText,
+                      {
+                        color:
+                          baroAvailable === true
+                            ? theme.greenInk
+                            : baroAvailable === false
+                              ? theme.muted
+                              : theme.amber,
+                      },
+                    ]}
+                  >
+                    {baroAvailable === true
+                      ? '气压计已连接'
+                      : baroAvailable === false
+                        ? '气压计不可用'
+                        : '气压计检测中…'}
+                  </Text>
+                </View>
+                <View style={styles.baroBlock}>
+                  <Text style={styles.baroValue}>
+                    {baroPressure > 0 ? baroPressure.toFixed(1) : '—'}
+                  </Text>
+                  <Text style={styles.baroLabel}>百帕</Text>
+                </View>
+                <View style={styles.baroBlock}>
+                  <Text
+                    style={[
+                      styles.baroValue,
+                      { color: baroRelAltitude > 0.5 ? theme.greenInk : theme.ink },
+                    ]}
+                  >
+                    {baroAvailable === true ? `+${baroRelAltitude.toFixed(1)}` : '—'}
+                  </Text>
+                  <Text style={styles.baroLabel}>相对爬升米数</Text>
+                </View>
+                <View style={styles.baroBlock}>
+                  <Text style={[styles.baroValue, { color: theme.amber }]}>
+                    {baroAvailable === true ? baroFloorDetected : '—'}
+                  </Text>
+                  <Text style={styles.baroLabel}>气压楼层</Text>
                 </View>
               </View>
 
@@ -676,7 +783,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
             <Card raised style={styles.markCard}>
               <Text style={styles.markTitle}>人工标记</Text>
               <Text style={styles.markHint}>
-                当前楼层 {currentFloor}F · 已标记 {floorMarkCount} 个新楼层
+                当前楼层 {currentFloor}层 · 已标记 {floorMarkCount} 个新楼层
               </Text>
               <View style={styles.markRow}>
                 <Pressable style={[styles.markBtn, styles.markTurnBtn]} onPress={handleMarkTurn}>
@@ -687,7 +794,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                 <Pressable style={[styles.markBtn, styles.markFloorBtn]} onPress={handleMarkFloor}>
                   <Text style={styles.markBtnIcon}>▲</Text>
                   <Text style={styles.markBtnText}>到达新楼层</Text>
-                  <Text style={styles.markBtnSub}>{currentFloor}F → {currentFloor + 1}F</Text>
+                  <Text style={styles.markBtnSub}>{currentFloor}层 → {currentFloor + 1}层</Text>
                 </Pressable>
               </View>
             </Card>
@@ -717,6 +824,26 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           <Button title="已跳转复核" disabled />
         )}
         <Button title="放弃并返回" variant="secondary" onPress={handleCancel} />
+
+        {phase === 'ready' ? (
+          <Card raised style={styles.guideCard}>
+            <Text style={styles.guideTitle}>采集说明</Text>
+            <Text style={styles.guideText}>
+              1. 到达起点楼层后点击「开始采集」。{'\n'}
+              2. 保持手机固定在 {carryMode === 'waist' ? '腰包' : '裤袋'}，朝向一致。{'\n'}
+              3. 每爬到楼梯转角时点击「标记拐弯」。{'\n'}
+              4. 每到达一个新楼层时点击「到达新楼层」。{'\n'}
+              5. 到达终点楼层后点击「停止并分析」。{'\n'}
+              {'\n'}
+              气压计会自动检测楼层变化（精度±0.3米），{'\n'}
+              若手机有气压计，可少做或不做人工楼层标记。
+            </Text>
+            <View style={styles.guideAddrBox}>
+              <Text style={styles.guideAddrLabel}>地址</Text>
+              <Text style={styles.guideAddrText}>{seed.location.address || seed.location.name}</Text>
+            </View>
+          </Card>
+        ) : null}
       </ScrollView>
     </View>
   )
@@ -817,6 +944,22 @@ const makeStyles = (theme: Theme) =>
       fontSize: 13,
       lineHeight: 20,
     },
+    guideAddrBox: {
+      marginTop: 10,
+      paddingTop: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.line,
+    },
+    guideAddrLabel: {
+      color: theme.muted,
+      fontSize: 11,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    guideAddrText: {
+      color: theme.ink,
+      fontSize: 13,
+    },
     metricGrid: {
       flexDirection: 'row',
       gap: 8,
@@ -824,6 +967,10 @@ const makeStyles = (theme: Theme) =>
     },
     metric: { flex: 1 },
     vizCard: { padding: 14, marginBottom: 12 },
+    buildingSketch: {
+      marginBottom: 12,
+      alignItems: 'center',
+    },
     vizHead: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -947,6 +1094,48 @@ const makeStyles = (theme: Theme) =>
       fontVariant: ['tabular-nums'],
     },
     diagLabel: {
+      marginTop: 2,
+      color: theme.muted,
+      fontSize: 10,
+      textAlign: 'center',
+    },
+    baroRow: {
+      flexDirection: 'row',
+      marginTop: 8,
+      gap: 8,
+      alignItems: 'stretch',
+    },
+    baroStatusBlock: {
+      flex: 1.4,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      backgroundColor: theme.surfaceSoft,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.line,
+      justifyContent: 'center',
+    },
+    baroStatusText: {
+      fontSize: 12,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    baroBlock: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 8,
+      backgroundColor: theme.surfaceSoft,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.line,
+    },
+    baroValue: {
+      color: theme.ink,
+      fontSize: 15,
+      fontWeight: '700',
+      fontVariant: ['tabular-nums'],
+    },
+    baroLabel: {
       marginTop: 2,
       color: theme.muted,
       fontSize: 10,

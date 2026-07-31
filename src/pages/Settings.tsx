@@ -1,4 +1,4 @@
-// 设置页：震动/声音/携带提示开关 + 数据导出/导入 + 关于。
+// 设置页：震动/声音反馈开关 + 数据导出/导入 + 关于。
 
 import React, { useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native'
@@ -46,9 +46,9 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
     update({ soundFeedback: value })
   }
 
-  const toggleCarry = (value: boolean) => {
-    update({ carryReminder: value })
-    if (value) triggerHaptic('light')
+  const adjustWeight = (delta: number) => {
+    const current = prefs?.bodyWeightKg ?? 65
+    update({ bodyWeightKg: Math.min(200, Math.max(30, current + delta)) })
   }
 
   const handleExport = async () => {
@@ -112,6 +112,37 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
         style={styles.flex}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
+        <Text style={styles.sectionLabel}>运动资料</Text>
+        <Card raised style={styles.group}>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>体重</Text>
+              <Text style={styles.rowDesc}>用于估算爬楼消耗，可随时调整</Text>
+            </View>
+            <View style={styles.weightControl}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="体重减一千克"
+                style={styles.weightButton}
+                onPress={() => adjustWeight(-1)}
+              >
+                <Text style={styles.weightButtonText}>−</Text>
+              </Pressable>
+              <Text style={styles.weightValue}>
+                {Math.round(prefs?.bodyWeightKg ?? 65)} 千克
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="体重加一千克"
+                style={styles.weightButton}
+                onPress={() => adjustWeight(1)}
+              >
+                <Text style={styles.weightButtonText}>＋</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Card>
+
         <Text style={styles.sectionLabel}>反馈</Text>
         <Card raised style={styles.group}>
           <View style={styles.row}>
@@ -139,19 +170,6 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
               thumbColor={theme.card}
             />
           </View>
-          <View style={styles.divider} />
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>携带提示</Text>
-              <Text style={styles.rowDesc}>开始标定或爬楼前提示确认携带方式</Text>
-            </View>
-            <Switch
-              value={Boolean(prefs?.carryReminder)}
-              onValueChange={toggleCarry}
-              trackColor={{ false: theme.line, true: theme.green }}
-              thumbColor={theme.card}
-            />
-          </View>
         </Card>
 
         <Text style={styles.sectionLabel}>数据</Text>
@@ -159,7 +177,7 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
           <Pressable style={styles.row} onPress={handleExport} disabled={exporting}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>导出备份</Text>
-              <Text style={styles.rowDesc}>导出路线与成绩为 JSON 文件</Text>
+              <Text style={styles.rowDesc}>导出路线与成绩数据文件</Text>
             </View>
             <Text style={styles.rowAction}>{exporting ? '导出中…' : '导出'}</Text>
           </Pressable>
@@ -170,7 +188,7 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
           <Pressable style={styles.row} onPress={handleImport} disabled={importing}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>导入备份</Text>
-              <Text style={styles.rowDesc}>从 JSON 文件恢复路线与成绩</Text>
+              <Text style={styles.rowDesc}>从数据文件恢复路线与成绩</Text>
             </View>
             <Text style={styles.rowAction}>{importing ? '导入中…' : '导入'}</Text>
           </Pressable>
@@ -193,6 +211,21 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
             <Text style={styles.rowTitle}>隐私协议</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
+          {__DEV__ && (
+            <>
+              <View style={styles.divider} />
+              <Pressable
+                style={styles.row}
+                onPress={() => navigation.navigate('ClimbPreview')}
+              >
+                <View style={styles.rowText}>
+                  <Text style={styles.rowTitle}>开发预览</Text>
+                  <Text style={styles.rowDesc}>多轮训练状态机预览（仅调试）</Text>
+                </View>
+                <Text style={styles.rowAction}>进入</Text>
+              </Pressable>
+            </>
+          )}
         </Card>
 
         <Button
@@ -241,6 +274,34 @@ const makeStyles = (theme: Theme) =>
       marginTop: 3,
       color: theme.muted,
       fontSize: 12,
+    },
+    weightControl: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    weightButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.line,
+      backgroundColor: theme.surfaceSoft,
+    },
+    weightButtonText: {
+      color: theme.green,
+      fontSize: 20,
+      fontWeight: '700',
+      lineHeight: 22,
+    },
+    weightValue: {
+      minWidth: 58,
+      color: theme.ink,
+      fontSize: 14,
+      fontWeight: '800',
+      textAlign: 'center',
     },
     rowValue: {
       color: theme.muted,

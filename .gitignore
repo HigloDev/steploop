@@ -5,6 +5,7 @@ node_modules/
 
 # Expo
 .expo/
+.expo-export-check/
 dist/
 web-build/
 expo-env.d.ts
@@ -44,4 +45,30 @@ yarn-error.*
 *.apk
 *.ipa
 *.tmp
-.tmp_ui_now.xml
+
+# root debug artifacts (device screenshots, UI dumps, QA scratch files)
+.tmp_*.xml
+palou-*.png
+palou-*.xml
+device-*.png
+share-copy-real.png
+share-studio-current.png
+share-studio-real.png
+share-studio-qa-comparison.png
+result-screen.png
+route-card-before.png
+calibrate.png
+logo-new.png
+logo.png
+expo-qr.png
+qr.html
+RKStorage-debug-*
+output/
+
+# unrelated agent scratch files (paimon desktop pet project, debug screenshots)
+.trae/debug-*.png
+.trae/screen.png
+.trae/ui_dump.xml
+.trae/documents/trae-paimon-desktop-pet-plan.md
+.trae/documents/_fix_*.py
+.trae/documents/_verify_*.py

@@ -1,6 +1,7 @@
 // 验证页：选择已验证路线做正式爬楼验证，逻辑类似 Climb 但 mode='validation'。
+// 使用 useClimbRoundSession 复用单轮识别三件套，避免与正式训练页代码重复。
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -9,21 +10,27 @@ import { Button, Card, Metric, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
 import { getRoute, saveRoute, saveSession } from '../services/storage'
-import { SensorRecorder, sensorStartErrorMessage } from '../services/sensor'
-import { LiveFeaturePump } from '../services/live-feature-pump'
-import { RouteRecognizer } from '../core/recognizer'
+import { sensorStartErrorMessage } from '../services/sensor'
+import { useClimbRoundSession } from '../hooks/useClimbRoundSession'
 import { formatDuration } from '../core/math'
-import { RecognitionSnapshot, RouteTemplate } from '../core/types'
+import { RouteTemplate } from '../core/types'
 
-function initialSnapshot(startFloor: number): RecognitionSnapshot {
-  return {
-    currentFloor: startFloor,
-    floorsCompleted: 0,
-    ascentM: 0,
-    steps: 0,
-    confidence: 0,
-    status: 'matching',
-  }
+// 占位模板，routeTpl 加载前使用（hook 必须无条件调用）
+const DUMMY_TEMPLATE: RouteTemplate = {
+  id: '',
+  name: '',
+  startFloor: 0,
+  endFloor: 0,
+  carryMode: 'pocket',
+  floorHeightM: 0,
+  totalAscentM: 0,
+  device: { platform: '', model: '', system: '' },
+  segments: [],
+  markers: [],
+  createdAt: 0,
+  updatedAt: 0,
+  version: 0,
+  status: 'draft',
 }
 
 export default function ValidateScreen({ navigation, route }: RootStackScreen<'Validate'>) {
@@ -32,20 +39,13 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
   const styles = makeStyles(theme)
   const routeId = route.params?.id
 
-  const recorderRef = useRef<SensorRecorder | undefined>(undefined)
-  const recognizerRef = useRef<RouteRecognizer | undefined>(undefined)
-  const pumpRef = useRef<LiveFeaturePump | undefined>(undefined)
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
-  const routeRef = useRef<RouteTemplate | undefined>(undefined)
-
   const [routeTpl, setRouteTpl] = useState<RouteTemplate | null>(null)
   const [loadError, setLoadError] = useState('')
   const [phase, setPhase] = useState<'ready' | 'recording' | 'result'>('ready')
-  const [elapsed, setElapsed] = useState('00:00')
-  const [snapshot, setSnapshot] = useState<RecognitionSnapshot>(initialSnapshot(0))
   const [success, setSuccess] = useState(false)
   const [resultText, setResultText] = useState('')
 
+  // 加载路线
   useEffect(() => {
     if (!routeId) {
       setLoadError('路线不存在')
@@ -57,68 +57,49 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
           setLoadError('路线不存在')
           return
         }
-        routeRef.current = r
         setRouteTpl(r)
-        setSnapshot(initialSnapshot(r.startFloor))
       })
       .catch(() => setLoadError('加载路线失败'))
   }, [routeId])
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-      recorderRef.current?.stop().catch(() => undefined)
-    }
-  }, [])
+  // 单轮识别会话（mode='validation'）
+  const roundSession = useClimbRoundSession({
+    template: routeTpl ?? DUMMY_TEMPLATE,
+    mode: 'validation',
+  })
 
-  const computeProgress = (snap: RecognitionSnapshot): number => {
-    const r = routeRef.current
-    if (!r) return 0
-    const span = r.endFloor - r.startFloor
+  // 用于显示的用时
+  const elapsedText = useMemo(
+    () => formatDuration(roundSession.elapsedMs),
+    [roundSession.elapsedMs],
+  )
+
+  const computeProgress = (completed: number): number => {
+    if (!routeTpl) return 0
+    const span = routeTpl.segments.length
     if (span <= 0) return 0
-    return Math.min(100, Math.round((snap.floorsCompleted / span) * 100))
+    return Math.min(100, Math.round((completed / span) * 100))
   }
 
   const handleStart = async () => {
-    const r = routeRef.current
-    if (!r) return
-    const recognizer = new RouteRecognizer(r)
-    recognizerRef.current = recognizer
-    const pump = new LiveFeaturePump((frame) => {
-      const next = recognizer.pushFrame(frame)
-      setSnapshot(next)
-    })
-    pumpRef.current = pump
-    const recorder = new SensorRecorder({
-      retainSamples: false,
-      onSample: (sample) => pump.push(sample),
-      onGap: (gap) => {
-        recognizer.pause(gap.startMs)
-        recognizer.resume(gap.endMs)
-      },
-    })
-    recorderRef.current = recorder
+    if (!routeTpl) return
     try {
-      await recorder.start()
+      await roundSession.start()
       setPhase('recording')
-      timerRef.current = setInterval(() => {
-        if (recorderRef.current) {
-          setElapsed(formatDuration(Date.now() - recorderRef.current.getStartedAt()))
-        }
-      }, 500)
     } catch (err) {
       Alert.alert('传感器无法启动', sensorStartErrorMessage(err), [{ text: '知道了' }])
     }
   }
 
   const handleFinish = async () => {
-    const r = routeRef.current
-    const recorder = recorderRef.current
-    const recognizer = recognizerRef.current
-    if (!r || !recorder || !recognizer) return
-    if (timerRef.current) clearInterval(timerRef.current)
-    await recorder.stop()
-    const session = recognizer.finish(Date.now(), 'validation')
+    const r = routeTpl
+    if (!r) return
+    // finish() 幂等：自动完成后再调用返回同一 session
+    const session = roundSession.finish()
+    if (!session) {
+      Alert.alert('验证失败', '未能生成验证记录，请重试。')
+      return
+    }
     const ok =
       session.finalFloor === r.endFloor &&
       session.floorsCompleted === r.segments.length &&
@@ -136,7 +117,6 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
         '保存失败',
         err instanceof Error ? err.message : '本地存储空间不足，验证结果未能保存。',
       )
-      setPhase('recording')
       return
     }
     const nextFloor =
@@ -145,10 +125,18 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
     setResultText(
       ok
         ? '模板验证通过，可以用于正式爬楼。'
-        : `匹配停在 ${nextFloor}F 附近，请检查该楼层边界或重新标定这一条路线。`,
+        : `匹配停在${nextFloor}层附近，请检查该楼层边界或重新标定这一条路线。`,
     )
     setPhase('result')
   }
+
+  const handleReset = () => {
+    setPhase('ready')
+    setResultText('')
+    setSuccess(false)
+  }
+
+  // === 渲染 ===
 
   if (loadError) {
     return (
@@ -194,16 +182,15 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
           <Button
             title="再验证一次"
             variant="secondary"
-            onPress={() => {
-              setPhase('ready')
-              setSnapshot(initialSnapshot(routeTpl.startFloor))
-              setElapsed('00:00')
-            }}
+            onPress={handleReset}
           />
         </ScrollView>
       </View>
     )
   }
+
+  const snapshot = roundSession.snapshot
+  const isCompleted = roundSession.isCompleted
 
   return (
     <View style={styles.page}>
@@ -213,21 +200,20 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>VALIDATION</Text>
           <Text style={styles.title}>{routeTpl.name}</Text>
           <Text style={styles.subtitle}>
-            {routeTpl.startFloor}F → {routeTpl.endFloor}F · {routeTpl.totalAscentM} m
+            {routeTpl.startFloor}层 → {routeTpl.endFloor}层 · {routeTpl.totalAscentM}米
           </Text>
         </View>
 
         <View style={styles.metricGrid}>
-          <Metric label="当前楼层" value={`${snapshot.currentFloor}F`} style={styles.metric} />
+          <Metric label="当前楼层" value={`${snapshot.currentFloor}层`} style={styles.metric} />
           <Metric
             label="已完成"
             value={`${snapshot.floorsCompleted} 层`}
             style={styles.metric}
           />
-          <Metric label="用时" value={elapsed} style={styles.metric} />
+          <Metric label="用时" value={elapsedText} style={styles.metric} />
           <Metric
             label="置信度"
             value={`${Math.round(snapshot.confidence * 100)}%`}
@@ -238,17 +224,24 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
         <Card raised style={styles.statusCard}>
           <Text style={styles.statusLabel}>状态</Text>
           <Text style={styles.statusValue}>
-            {phase === 'recording' ? '正在验证' : '准备开始'}
+            {phase === 'recording'
+              ? isCompleted
+                ? '已到达终点'
+                : '正在验证'
+              : '准备开始'}
           </Text>
           <Text style={styles.progressLabel}>
-            进度 {computeProgress(snapshot)}%
+            进度 {computeProgress(snapshot.floorsCompleted)}%
           </Text>
         </Card>
 
         {phase === 'ready' ? (
           <Button title="开始验证" onPress={handleStart} />
         ) : (
-          <Button title="完成验证" onPress={handleFinish} />
+          <Button
+            title={isCompleted ? '查看验证结果' : '完成验证'}
+            onPress={handleFinish}
+          />
         )}
         <Button
           title="返回路线"

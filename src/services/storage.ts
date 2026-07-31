@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { ClimbSession, RouteTemplate } from '../core/types'
+import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
 import { normalizeSession } from '../core/session'
 
 const ROUTES_KEY = 'palou.routes.v2'
 const LEGACY_ROUTES_KEY = 'palou.routes.v1'
 const SESSIONS_KEY = 'palou.sessions.v1'
+const WORKOUTS_KEY = 'palou.workouts.v1'
 
 async function readArray<T>(key: string): Promise<T[]> {
   try {
@@ -57,10 +58,19 @@ export async function saveRoute(route: RouteTemplate): Promise<void> {
 }
 
 export async function deleteRoute(id: string): Promise<void> {
-  await safeWrite(
-    ROUTES_KEY,
-    (await listRoutes()).filter((route) => route.id !== id),
+  await deleteRoutes([id])
+}
+
+export async function deleteRoutes(ids: string[]): Promise<void> {
+  const idSet = new Set(ids)
+  if (!idSet.size) return
+  const remainingRoutes = (await listRoutes()).filter(
+    (route) => !idSet.has(route.id),
   )
+  await safeWrite(ROUTES_KEY, remainingRoutes)
+  if (!remainingRoutes.length) {
+    await AsyncStorage.removeItem(LEGACY_ROUTES_KEY)
+  }
 }
 
 export async function updateRouteLocation(
@@ -97,7 +107,7 @@ export async function listSessions(limit?: number): Promise<ClimbSession[]> {
       normalized.push(normalizeSession(session, await getRoute(session.templateId)))
     } catch (err) {
       // 跳过损坏的单条会话，避免一条坏数据让整个 history 页崩溃
-      console.warn('[palou] skip corrupted session', session?.id, err)
+      console.warn('[steploop] skip corrupted session', session?.id, err)
     }
   }
   return typeof limit === 'number' && limit >= 0 ? normalized.slice(0, limit) : normalized
@@ -115,6 +125,8 @@ export interface BackupPayload {
   exportedAt: number
   routes: RouteTemplate[]
   sessions: ClimbSession[]
+  // 新增多轮训练记录，旧备份可能缺失，导入时按可选处理
+  workouts?: ClimbWorkout[]
 }
 
 /** 导出当前设备的路线与会话原始数据，不做任何归一化处理，用于备份/迁移。 */
@@ -124,13 +136,15 @@ export async function exportRawData(): Promise<BackupPayload> {
     exportedAt: Date.now(),
     routes: await readArray<RouteTemplate>(ROUTES_KEY),
     sessions: await readArray<ClimbSession>(SESSIONS_KEY),
+    workouts: await readArray<ClimbWorkout>(WORKOUTS_KEY),
   }
 }
 
-/** 校验并导入备份文件；返回写入的路线与会话数量。 */
+/** 校验并导入备份文件；返回写入的路线、会话与训练数量。 */
 export async function importRawData(payload: BackupPayload): Promise<{
   routesCount: number
   sessionsCount: number
+  workoutsCount: number
 }> {
   if (!payload || typeof payload !== 'object') {
     throw new Error('备份内容格式无效')
@@ -144,5 +158,12 @@ export async function importRawData(payload: BackupPayload): Promise<{
   // 直接覆盖本地存储；导入前调用方应已弹窗确认。
   await safeWrite(ROUTES_KEY, payload.routes)
   await safeWrite(SESSIONS_KEY, payload.sessions)
-  return { routesCount: payload.routes.length, sessionsCount: payload.sessions.length }
+  // workouts 可选（旧备份无此字段）
+  const workouts = Array.isArray(payload.workouts) ? payload.workouts : []
+  await safeWrite(WORKOUTS_KEY, workouts)
+  return {
+    routesCount: payload.routes.length,
+    sessionsCount: payload.sessions.length,
+    workoutsCount: workouts.length,
+  }
 }

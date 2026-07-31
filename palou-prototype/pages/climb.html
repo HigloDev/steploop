@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正式爬楼</title>
+    <style id="theme-vars">
+/* 帕楼原型 · 主题令牌
+   基于 src/theme.ts 的浅色主题映射为 CSS 变量
+   主色: #12372e (深绿), 语义色: amber/red/blue
+*/
+:root {
+  /* 基础色板 */
+  --palou-background: #f3f5f4;
+  --palou-foreground: #101916;
+  --palou-card: #ffffff;
+  --palou-card-foreground: #101916;
+  --palou-popover: #ffffff;
+  --palou-popover-foreground: #101916;
+
+  /* 主品牌色 */
+  --palou-primary: #12372e;
+  --palou-primary-foreground: #f3f5f4;
+
+  /* 辅助文本 */
+  --palou-muted: #65716c;
+  --palou-muted-foreground: #43534d;
+
+  /* 边框/输入 */
+  --palou-border: #dce2df;
+  --palou-input: #dce2df;
+  --palou-ring: #12372e;
+
+  /* 语义状态色 */
+  --palou-state-success: #12372e;
+  --palou-state-warning: #e7b45a;
+  --palou-state-warning-soft: #fff8e8;
+  --palou-state-warning-ink: #9b6a15;
+  --palou-state-error: #e26058;
+  --palou-state-error-soft: #fff1ef;
+  --palou-state-info: #2a6b8a;
+  --palou-state-info-soft: #e3eef4;
+
+  /* 次级表面 */
+  --palou-card-soft: #f7f9f8;
+  --palou-surface-soft: #edf1ef;
+  --palou-line-soft: #e7ebe9;
+
+  /* 品牌色阶 */
+  --palou-primary-ink: #276750;
+  --palou-primary-bright: #35715f;
+  --palou-primary-soft: #e1f1ea;
+  --palou-mint: #71e2b5;
+
+  /* 琥珀色阶 */
+  --palou-amber: #e7b45a;
+  --palou-amber-soft: #fff8e8;
+  --palou-amber-chip: #fff4d9;
+  --palou-amber-ink: #9b6a15;
+
+  /* 橙色 */
+  --palou-orange: #ff914d;
+
+  /* 红色阶 */
+  --palou-red: #e26058;
+  --palou-red-soft: #fff1ef;
+  --palou-red-chip: #f8dfda;
+  --palou-red-ink: #68403d;
+
+  /* 圆角 */
+  --palou-radius-sm: 6px;
+  --palou-radius-md: 10px;
+  --palou-radius-lg: 14px;
+  --palou-radius-xl: 16px;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--palou-background);
+    --color-foreground: var(--palou-foreground);
+    --color-card: var(--palou-card);
+    --color-card-foreground: var(--palou-card-foreground);
+    --color-popover: var(--palou-popover);
+    --color-popover-foreground: var(--palou-popover-foreground);
+    --color-primary: var(--palou-primary);
+    --color-primary-foreground: var(--palou-primary-foreground);
+    --color-muted: var(--palou-muted);
+    --color-muted-foreground: var(--palou-muted-foreground);
+    --color-border: var(--palou-border);
+    --color-input: var(--palou-input);
+    --color-ring: var(--palou-ring);
+    --radius-sm: var(--palou-radius-sm);
+    --radius-md: var(--palou-radius-md);
+    --radius-lg: var(--palou-radius-lg);
+    --radius-xl: var(--palou-radius-xl);
+  }
+  @layer base {
+    body { background: var(--palou-background); color: var(--palou-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--palou-background); }
+      .text-background { color: var(--palou-background); }
+      .border-background { border-color: var(--palou-background); }
+      .ring-background { --tw-ring-color: var(--palou-background); }
+      .bg-foreground { background-color: var(--palou-foreground); }
+      .text-foreground { color: var(--palou-foreground); }
+      .border-foreground { border-color: var(--palou-foreground); }
+      .ring-foreground { --tw-ring-color: var(--palou-foreground); }
+      .bg-card { background-color: var(--palou-card); }
+      .text-card { color: var(--palou-card); }
+      .border-card { border-color: var(--palou-card); }
+      .ring-card { --tw-ring-color: var(--palou-card); }
+      .bg-card-foreground { background-color: var(--palou-card-foreground); }
+      .text-card-foreground { color: var(--palou-card-foreground); }
+      .border-card-foreground { border-color: var(--palou-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--palou-card-foreground); }
+      .bg-popover { background-color: var(--palou-popover); }
+      .text-popover { color: var(--palou-popover); }
+      .border-popover { border-color: var(--palou-popover); }
+      .ring-popover { --tw-ring-color: var(--palou-popover); }
+      .bg-popover-foreground { background-color: var(--palou-popover-foreground); }
+      .text-popover-foreground { color: var(--palou-popover-foreground); }
+      .border-popover-foreground { border-color: var(--palou-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--palou-popover-foreground); }
+      .bg-primary { background-color: var(--palou-primary); }
+      .text-primary { color: var(--palou-primary); }
+      .border-primary { border-color: var(--palou-primary); }
+      .ring-primary { --tw-ring-color: var(--palou-primary); }
+      .bg-primary-foreground { background-color: var(--palou-primary-foreground); }
+      .text-primary-foreground { color: var(--palou-primary-foreground); }
+      .border-primary-foreground { border-color: var(--palou-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--palou-primary-foreground); }
+      .bg-muted { background-color: var(--palou-muted); }
+      .text-muted { color: var(--palou-muted); }
+      .border-muted { border-color: var(--palou-muted); }
+      .ring-muted { --tw-ring-color: var(--palou-muted); }
+      .bg-muted-foreground { background-color: var(--palou-muted-foreground); }
+      .text-muted-foreground { color: var(--palou-muted-foreground); }
+      .border-muted-foreground { border-color: var(--palou-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--palou-muted-foreground); }
+      .bg-border { background-color: var(--palou-border); }
+      .text-border { color: var(--palou-border); }
+      .border-border { border-color: var(--palou-border); }
+      .ring-border { --tw-ring-color: var(--palou-border); }
+      .bg-input { background-color: var(--palou-input); }
+      .text-input { color: var(--palou-input); }
+      .border-input { border-color: var(--palou-input); }
+      .ring-input { --tw-ring-color: var(--palou-input); }
+      .bg-ring { background-color: var(--palou-ring); }
+      .text-ring { color: var(--palou-ring); }
+      .border-ring { border-color: var(--palou-ring); }
+      .ring-ring { --tw-ring-color: var(--palou-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main data-viewport-mode="document-scroll">
+      <div class="app-frame">
+        <!-- ===== Fixed Header ===== -->
+        <header class="app-header">
+          <button class="h-btn ico-md" aria-label="返回">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <div class="h-title">正式爬楼</div>
+          <button class="h-btn ico-md" aria-label="更多">
+            <i data-lucide="more-vertical"></i>
+          </button>
+        </header>
+
+        <!-- ===== Scroll Region ===== -->
+        <div class="app-scroll no-scrollbar" data-scroll-region="primary">
+          <!-- Route Info -->
+          <section class="section">
+            <div class="route-eyebrow">
+              <span class="re-bar"></span>
+              <span>CLIMB</span>
+            </div>
+            <h1 style="font-size:22px;font-weight:700;color:var(--palou-foreground);line-height:1.25;margin:6px 0 4px;letter-spacing:-0.01em;">
+              武夷大厦·东侧楼梯
+            </h1>
+            <p style="font-size:13px;color:var(--palou-muted-foreground);display:flex;align-items:center;gap:6px;margin:0;">
+              <i data-lucide="trending-up" style="width:13px;height:13px;color:var(--palou-muted);"></i>
+              <span class="tnum">1F → 8F · 24.0 m</span>
+            </p>
+          </section>
+
+          <!-- Central Timer -->
+          <section class="section" style="padding-top:4px;">
+            <div class="timer-wrap">
+              <div class="timer-eyebrow">
+                <span class="live-dot"></span>
+                <span>RECORDING</span>
+              </div>
+              <div class="timer-value tnum">03:42</div>
+              <div class="timer-label">用时</div>
+            </div>
+          </section>
+
+          <!-- Live Metrics Grid -->
+          <section class="section" style="padding-top:4px;">
+            <div class="sec-head">
+              <div class="sh-title ico-sm">
+                <i data-lucide="activity"></i>
+                <span>实时数据</span>
+              </div>
+              <div class="sh-aux tnum">更新于 03:42</div>
+            </div>
+            <div class="metric-grid">
+              <div class="metric-tile">
+                <div class="m-label ico-sm">
+                  <i data-lucide="layers"></i>
+                  <span>当前楼层</span>
+                </div>
+                <div class="m-value tnum">4<span class="m-unit">F</span></div>
+              </div>
+              <div class="metric-tile">
+                <div class="m-label ico-sm">
+                  <i data-lucide="trending-up"></i>
+                  <span>已完成</span>
+                </div>
+                <div class="m-value tnum">3<span class="m-unit">层</span></div>
+              </div>
+              <div class="metric-tile">
+                <div class="m-label ico-sm">
+                  <i data-lucide="footprints"></i>
+                  <span>步数</span>
+                </div>
+                <div class="m-value tnum">287<span class="m-unit">步</span></div>
+              </div>
+              <div class="metric-tile">
+                <div class="m-label ico-sm">
+                  <i data-lucide="activity"></i>
+                  <span>爬升</span>
+                </div>
+                <div class="m-value tnum">9.0<span class="m-unit">m</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Progress Section -->
+          <section class="section" style="padding-top:4px;">
+            <div class="surface-card" style="padding:14px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+                <div style="display:inline-flex;align-items:center;gap:6px;">
+                  <i data-lucide="trending-up" style="width:14px;height:14px;color:var(--palou-amber-ink);"></i>
+                  <span style="font-size:13px;font-weight:600;color:var(--palou-foreground);">进度</span>
+                  <span class="tnum" style="font-size:13px;font-weight:700;color:var(--palou-amber-ink);">37%</span>
+                </div>
+                <div style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--palou-muted-foreground);">
+                  <span style="width:6px;height:6px;border-radius:999px;background:var(--palou-amber);"></span>
+                  <span>进行中</span>
+                </div>
+              </div>
+              <div class="pbar-track" role="progressbar" aria-valuenow="37" aria-valuemin="0" aria-valuemax="100">
+                <div class="pbar-fill" style="width:37%;"></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+                <div style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--palou-muted-foreground);">
+                  <i data-lucide="activity" style="width:12px;height:12px;color:var(--palou-primary-bright);"></i>
+                  <span>置信度 <span class="tnum" style="color:var(--palou-foreground);font-weight:600;">86%</span> · 正在匹配路线</span>
+                </div>
+                <span class="tnum" style="font-size:11px;color:var(--palou-muted);">3 / 7</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Floor Progress Visualization -->
+          <section class="section" style="padding-top:4px;">
+            <div class="sec-head">
+              <div class="sh-title ico-sm">
+                <i data-lucide="layers"></i>
+                <span>分段计时</span>
+              </div>
+              <div class="sh-aux">1F — 8F</div>
+            </div>
+            <div class="floor-grid">
+              <!-- Done floors -->
+              <div class="floor-chip is-done">
+                <div class="f-no">1F</div>
+                <div class="f-split tnum">12.3s</div>
+              </div>
+              <div class="floor-chip is-done">
+                <div class="f-no">2F</div>
+                <div class="f-split tnum">11.8s</div>
+              </div>
+              <div class="floor-chip is-done">
+                <div class="f-no">3F</div>
+                <div class="f-split tnum">13.1s</div>
+              </div>
+              <!-- Current floor -->
+              <div class="floor-chip is-current">
+                <div class="f-no">4F</div>
+                <div class="f-split">攀登中</div>
+              </div>
+              <!-- Pending floors -->
+              <div class="floor-chip is-pending">
+                <div class="f-no">5F</div>
+                <div class="f-split">—</div>
+              </div>
+              <div class="floor-chip is-pending">
+                <div class="f-no">6F</div>
+                <div class="f-split">—</div>
+              </div>
+              <div class="floor-chip is-pending">
+                <div class="f-no">7F</div>
+                <div class="f-split">—</div>
+              </div>
+              <div class="floor-chip is-pending">
+                <div class="f-no">8F</div>
+                <div class="f-split">—</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Sensor Status Strip -->
+          <section class="section" style="padding-top:4px;padding-bottom:20px;">
+            <div class="sensor-strip">
+              <div class="s-item">
+                <span class="s-dot"></span>
+                <span>传感器: <span style="color:var(--palou-primary);font-weight:600;">正常</span></span>
+              </div>
+              <span class="s-sep"></span>
+              <div class="s-item">
+                <i data-lucide="activity" style="width:12px;height:12px;color:var(--palou-muted);"></i>
+                <span>|a| <span class="tnum" style="color:var(--palou-foreground);font-weight:600;">9.81</span> m/s²</span>
+              </div>
+              <span class="s-sep"></span>
+              <div class="s-item">
+                <span>net <span class="tnum" style="color:var(--palou-foreground);font-weight:600;">0.12</span> m/s²</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===== Fixed Bottom Action Bar ===== -->
+        <footer class="app-footer">
+          <button class="btn btn-primary ico-md" type="button">
+            <i data-lucide="square" style="width:16px;height:16px;"></i>
+            <span>结束并保存</span>
+          </button>
+          <button class="btn btn-secondary ico-sm" type="button">
+            <i data-lucide="chevron-left"></i>
+            <span>返回路线</span>
+          </button>
+        </footer>
+      </div>
+    </main>
+    <script>lucide.createIcons();</script>
+
+    <style id="critical-layout">
+      /* ===== App Shell Frame ===== */
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: var(--palou-surface-soft);
+        display: flex;
+        justify-content: center;
+      }
+      .app-frame {
+        position: relative;
+        width: 100%;
+        max-width: 390px;
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--palou-background);
+        box-shadow: 0 0 0 1px var(--palou-line-soft);
+      }
+
+      /* ===== Fixed Header ===== */
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        flex-shrink: 0;
+        background: var(--palou-card);
+        border-bottom: 1px solid var(--palou-line-soft);
+        padding: 10px 16px;
+        padding-top: max(10px, env(safe-area-inset-top));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .app-header .h-btn {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--palou-radius-md);
+        color: var(--palou-foreground);
+        background: transparent;
+        border: 1px solid transparent;
+        transition: background-color .15s ease, border-color .15s ease;
+        cursor: pointer;
+      }
+      .app-header .h-btn:hover { background: var(--palou-card-soft); }
+      .app-header .h-btn:active { background: var(--palou-surface-soft); }
+      .app-header .h-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--palou-foreground);
+        letter-spacing: 0.01em;
+      }
+
+      /* ===== Content Region ===== */
+      .app-scroll {
+        padding-bottom: 16px;
+      }
+
+      /* ===== Bottom Action Bar ===== */
+      .app-footer {
+        background: var(--palou-card);
+        border-top: 1px solid var(--palou-line-soft);
+        padding: 12px 16px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* ===== Layout primitives ===== */
+      .section { padding: 16px; }
+      .section + .section { padding-top: 0; }
+
+      /* Tabular numbers */
+      .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+      /* ===== Metric tile grid ===== */
+      .metric-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .metric-tile {
+        background: var(--palou-card);
+        border: 1px solid var(--palou-line-soft);
+        border-radius: var(--palou-radius-md);
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .metric-tile .m-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--palou-muted-foreground);
+        line-height: 1;
+      }
+      .metric-tile .m-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--palou-foreground);
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+      }
+      .metric-tile .m-unit {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--palou-muted);
+        margin-left: 2px;
+      }
+
+      /* ===== Floor chip grid ===== */
+      .floor-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .floor-chip {
+        flex: 0 0 calc(33.333% - 6px);
+        box-sizing: border-box;
+        border-radius: var(--palou-radius-md);
+        padding: 10px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: 1px solid var(--palou-line-soft);
+        background: var(--palou-card);
+        min-width: 0;
+      }
+      .floor-chip .f-no {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--palou-foreground);
+        line-height: 1;
+      }
+      .floor-chip .f-split {
+        font-size: 11px;
+        color: var(--palou-muted);
+        line-height: 1;
+      }
+      /* Done state */
+      .floor-chip.is-done {
+        background: var(--palou-primary-soft);
+        border-color: var(--palou-primary-soft);
+      }
+      .floor-chip.is-done .f-no { color: var(--palou-primary); }
+      .floor-chip.is-done .f-split { color: var(--palou-primary-ink); }
+      /* Current state */
+      .floor-chip.is-current {
+        background: var(--palou-primary);
+        border-color: var(--palou-primary);
+        box-shadow: 0 6px 14px -6px rgba(18,55,46,0.45);
+      }
+      .floor-chip.is-current .f-no { color: var(--palou-primary-foreground); }
+      .floor-chip.is-current .f-split { color: var(--palou-mint); font-weight: 600; }
+      /* Pending state */
+      .floor-chip.is-pending .f-no { color: var(--palou-muted); }
+      .floor-chip.is-pending .f-split { color: var(--palou-line-soft); }
+
+      /* ===== Progress bar ===== */
+      .pbar-track {
+        position: relative;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--palou-line-soft);
+        overflow: hidden;
+      }
+      .pbar-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        border-radius: 999px;
+        background: var(--palou-amber);
+      }
+      .pbar-fill::after {
+        content: "";
+        position: absolute;
+        right: -2px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--palou-amber);
+        box-shadow: 0 0 0 3px var(--palou-amber-soft);
+      }
+
+      /* ===== Sensor strip ===== */
+      .sensor-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        background: var(--palou-card-soft);
+        border: 1px solid var(--palou-line-soft);
+        border-radius: var(--palou-radius-md);
+        padding: 8px 12px;
+      }
+      .sensor-strip .s-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--palou-muted-foreground);
+        line-height: 1;
+      }
+      .sensor-strip .s-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--palou-primary-bright);
+        box-shadow: 0 0 0 3px var(--palou-primary-soft);
+      }
+      .sensor-strip .s-sep {
+        width: 1px;
+        height: 12px;
+        background: var(--palou-line-soft);
+      }
+
+      /* ===== Buttons ===== */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 46px;
+        border-radius: var(--palou-radius-md);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform .12s ease, background-color .15s ease, border-color .15s ease;
+        border: 1px solid transparent;
+      }
+      .btn:active { transform: translateY(1px); }
+      .btn-primary {
+        background: var(--palou-primary);
+        color: var(--palou-primary-foreground);
+      }
+      .btn-primary:hover { background: var(--palou-primary-bright); }
+      .btn-secondary {
+        background: var(--palou-card);
+        color: var(--palou-primary);
+        border-color: var(--palou-border);
+      }
+      .btn-secondary:hover { background: var(--palou-card-soft); }
+
+      /* ===== Card surface ===== */
+      .surface-card {
+        background: var(--palou-card);
+        border: 1px solid var(--palou-line-soft);
+        border-radius: var(--palou-radius-lg);
+      }
+
+      /* ===== Timer block ===== */
+      .timer-wrap {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 20px 16px 18px;
+        border-radius: var(--palou-radius-xl);
+        background: linear-gradient(180deg, var(--palou-primary-soft) 0%, var(--palou-card) 100%);
+        border: 1px solid var(--palou-primary-soft);
+        overflow: hidden;
+      }
+      .timer-wrap::before {
+        content: "";
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 180px;
+        height: 120px;
+        background: radial-gradient(closest-side, rgba(113,226,181,0.35), transparent);
+        pointer-events: none;
+      }
+      .timer-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        color: var(--palou-primary-ink);
+        text-transform: uppercase;
+      }
+      .timer-eyebrow .live-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--palou-red);
+        box-shadow: 0 0 0 3px var(--palou-red-soft);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+      }
+      .timer-value {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--palou-primary);
+        letter-spacing: -0.02em;
+        position: relative;
+      }
+      .timer-label {
+        font-size: 12px;
+        color: var(--palou-muted-foreground);
+        letter-spacing: 0.08em;
+      }
+
+      /* ===== Route header ===== */
+      .route-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        color: var(--palou-primary);
+      }
+      .route-eyebrow .re-bar {
+        width: 18px;
+        height: 2px;
+        background: var(--palou-primary);
+        border-radius: 999px;
+      }
+
+      /* Lucide sizing helper */
+      [data-lucide] { width: 16px; height: 16px; stroke-width: 2; }
+      .ico-sm [data-lucide] { width: 14px; height: 14px; }
+      .ico-md [data-lucide] { width: 18px; height: 18px; }
+      .ico-lg [data-lucide] { width: 22px; height: 22px; }
+
+      /* Section header row */
+      .sec-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .sec-head .sh-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--palou-foreground);
+      }
+      .sec-head .sh-title [data-lucide] { color: var(--palou-primary-ink); }
+      .sec-head .sh-aux {
+        font-size: 12px;
+        color: var(--palou-muted-foreground);
+      }
+    </style>
+</body>
+</html>

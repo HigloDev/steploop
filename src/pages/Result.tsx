@@ -12,6 +12,7 @@ import { getRoute, getSession } from '../services/storage'
 import { formatDuration } from '../core/math'
 import { splitDurations, normalizeSession } from '../core/session'
 import { ClimbSession, RouteTemplate } from '../core/types'
+import { getFloorAchievementCount } from '../core/floors'
 
 function dateText(timestamp: number): string {
   const date = new Date(timestamp)
@@ -55,7 +56,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
           const durations = splitDurations(normalized)
           const best = durations.length ? Math.min(...durations) : 0
           let title = '本次记录'
-          let text = `路线匹配到 ${normalized.finalFloor}F，未到达模板终点。`
+          let text = `路线匹配到${normalized.finalFloor}层，未到达模板终点。`
           if (normalized.complete) {
             title = '完整完成'
             text = '路线全程匹配，且没有检测到传感器中断。'
@@ -77,7 +78,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         })
       })
       .catch((err) => {
-        console.warn('[palou] load session failed', err)
+        console.warn('[steploop] load session failed', err)
         setLoadError('加载失败')
       })
     return () => {
@@ -116,7 +117,6 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>RESULT</Text>
           <Text style={styles.routeName}>{routeName}</Text>
           <Text style={styles.dateText}>{dateText(session.endedAt)}</Text>
           <View style={styles.statusRow}>
@@ -128,10 +128,17 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         </View>
 
         <View style={styles.metricGrid}>
-          <Metric label="完成楼层" value={`${session.floorsCompleted} 层`} style={styles.metric} />
+          <Metric
+            label="完成楼层"
+            value={`${
+              getFloorAchievementCount(session.startFloor, session.finalFloor) ||
+              session.floorsCompleted
+            } 层`}
+            style={styles.metric}
+          />
           <Metric
             label="累计爬升"
-            value={`${session.ascentM} m`}
+            value={`${session.ascentM}米`}
             style={styles.metric}
           />
           <Metric label="总用时" value={formatDuration(session.durationMs ?? 0)} style={styles.metric} />
@@ -152,7 +159,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>起止楼层</Text>
             <Text style={styles.detailValue}>
-              {session.startFloor}F → {session.finalFloor}F
+              {session.startFloor}层 → {session.finalFloor}层
             </Text>
           </View>
           <View style={styles.detailRow}>
@@ -170,7 +177,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
             <Text style={styles.splitTitle}>单层用时</Text>
             {floorSplits.map((split, index) => (
               <View key={`${split.floor}-${index}`} style={styles.splitRow}>
-                <Text style={styles.splitFloor}>{split.floor}F</Text>
+                <Text style={styles.splitFloor}>{split.floor}层</Text>
                 <Text style={styles.splitTime}>{split.time}</Text>
                 <Text
                   style={[
@@ -189,7 +196,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         <Button
           title="再爬一次"
           onPress={() =>
-            navigation.replace('Climb', { id: session.templateId, mode: 'formal' })
+            navigation.replace('WorkoutSetup', { id: session.templateId })
           }
         />
         <Button

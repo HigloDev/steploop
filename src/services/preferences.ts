@@ -13,12 +13,14 @@ export interface Preferences {
   carryReminder: boolean
   /** 上次使用的携带方式，用于在设置/确认时回显。 */
   lastCarryMode?: 'pocket' | 'waist'
+  bodyWeightKg: number
 }
 
 const DEFAULTS: Preferences = {
   hapticFeedback: true,
   soundFeedback: false,
   carryReminder: true,
+  bodyWeightKg: 65,
 }
 
 let cached: Preferences | undefined

@@ -65,7 +65,6 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>PRIVACY</Text>
           <Text style={styles.title}>隐私协议</Text>
           <Text style={styles.subtitle}>本协议说明本应用收集与处理的信息。请阅读后确认。</Text>
         </View>
@@ -112,7 +111,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>6. 技术边界</Text>
           <Text style={styles.paragraph}>· 累计高度来自人工确认的楼层模板，不是手机实时物理测高。</Text>
-          <Text style={styles.paragraph}>· GPS 仅用于确定建筑和附近路线排序，不用于室内测高。</Text>
+          <Text style={styles.paragraph}>· 手机定位仅用于确定建筑和附近路线排序，不用于室内测高。</Text>
           <Text style={styles.paragraph}>· 识别依赖固定手机、固定携带位置和固定路线；更换手机后必须重新验证。</Text>
           <Text style={styles.paragraph}>· 锁屏、切出应用或传感器超过一秒无数据会留下中断记录，本次成绩不会被标记为完整。</Text>
         </View>

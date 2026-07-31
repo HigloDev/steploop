@@ -8,7 +8,7 @@
 // 与微信小程序版同名导出保持兼容，但函数都改为 Promise 风格（AsyncStorage 影响）。
 
 import * as Location from 'expo-location'
-import { Platform } from 'react-native'
+import { NativeModules, Platform } from 'react-native'
 import {
   PrivacyAuthorizeError,
   ensurePrivacyAuthorized,
@@ -21,6 +21,14 @@ export interface LocationResult {
   accuracy: number
   altitude: number | null
 }
+
+interface AndroidSystemLocationModule {
+  getCurrentLocation(timeoutMs: number): Promise<LocationResult>
+}
+
+const androidSystemLocation = NativeModules.AndroidSystemLocation as
+  | AndroidSystemLocationModule
+  | undefined
 
 export class LocationPermissionError extends Error {
   readonly stage: 'privacy' | 'getSetting' | 'authorize' | 'openSetting' | 'getLocation'
@@ -97,12 +105,56 @@ export async function getCurrentLocation(
 ): Promise<LocationResult> {
   await ensureLocationPermission()
 
+  if (Platform.OS === 'android' && androidSystemLocation) {
+    try {
+      return await androidSystemLocation.getCurrentLocation(
+        Math.max(options.expireMs ?? 10000, 5000),
+      )
+    } catch {
+      // 少数设备的系统 LocationManager 也可能暂时无结果，再尝试 Expo 定位。
+    }
+  }
+
   try {
-    const result = await Location.getCurrentPositionAsync({
-      accuracy: options.highAccuracy ?? true ? Location.Accuracy.High : Location.Accuracy.Balanced,
-      mayShowUserSettingsDialog: true,
-      timeInterval: options.expireMs ?? 5000,
+    const timeoutMs = Math.max(options.expireMs ?? 10000, 5000)
+
+    // getCurrentPositionAsync 本身没有“等待多久就停止”的参数。
+    // 之前把 timeInterval 当成超时使用，室内 GPS 信号弱时会一直等，看起来像按钮失效。
+    // 地图选点同时请求卫星定位和网络辅助定位：卫星先到就用卫星，
+    // 室内只有网络位置时也能先把地图带到用户附近。
+    const currentPositions = [
+      Location.getCurrentPositionAsync({
+        accuracy:
+          (options.highAccuracy ?? true) ? Location.Accuracy.High : Location.Accuracy.Balanced,
+        mayShowUserSettingsDialog: true,
+      }),
+    ]
+    if (options.highAccuracy ?? true) {
+      currentPositions.push(
+        Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          mayShowUserSettingsDialog: true,
+        }),
+      )
+    }
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('location timeout')), timeoutMs)
     })
+
+    let result: Location.LocationObject
+    try {
+      result = await Promise.race([Promise.any(currentPositions), timeout])
+    } catch (currentError) {
+      // GPS 暂时拿不到时，使用十分钟内、误差不超过 500 米的系统最近位置。
+      // 先把地图带到用户附近，用户仍可拖动地图把大头针对准入口。
+      const lastKnown = await Location.getLastKnownPositionAsync({
+        maxAge: 600000,
+        requiredAccuracy: 500,
+      })
+      if (!lastKnown) throw currentError
+      result = lastKnown
+    }
+
     return {
       latitude: result.coords.latitude,
       longitude: result.coords.longitude,

@@ -77,6 +77,7 @@ export async function exportBackup(): Promise<ExportResult> {
 export interface ImportResult {
   routesCount: number
   sessionsCount: number
+  workoutsCount: number
   exportedAt: number
 }
 
@@ -117,6 +118,7 @@ export async function importBackup(): Promise<ImportResult> {
   return {
     routesCount: result.routesCount,
     sessionsCount: result.sessionsCount,
+    workoutsCount: result.workoutsCount,
     exportedAt: payload.exportedAt || 0,
   }
 }

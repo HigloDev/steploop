@@ -16,6 +16,18 @@ const STEP_REFRACTORY_MS = 260
 const STEP_THRESHOLD = 0.13
 const TURN_THRESHOLD_RAD = 0.62
 
+// 气压楼层检测参数
+// 海平面标准气压 1013.25 hPa；低海拔每升高 1m 气压降约 0.12 hPa。
+// 一层楼约 3m，对应气压下降约 0.36 hPa。设 0.3 hPa 为楼层变化阈值，留余量防噪声。
+const BARO_FLOOR_THRESHOLD_HPA = 0.3
+// 气压平滑窗口（样本数，气压计 5Hz，约 2 秒）
+const BARO_SMOOTH_WINDOW = 10
+// 楼层变化冷却：一次上升事件后 2 秒内不再触发，避免一次爬升被切片
+const BARO_FLOOR_COOLDOWN_MS = 2000
+// 国际气压公式常数
+const P0_HPA = 1013.25
+const BARO_EXP = 0.190263
+
 interface TimedSignal {
   t: number
   motion: number
@@ -182,13 +194,10 @@ export function detectMarkers(frames: FeatureFrame[]): RouteMarker[] {
 }
 
 function boundaryCandidates(markers: RouteMarker[]): number[] {
-  const preferred = markers
-    .filter((marker) => marker.type === 'landing')
-    .map((marker) => marker.endMs ?? marker.atMs)
-  const turns = markers
-    .filter((marker) => marker.type === 'turn')
-    .map((marker) => marker.endMs ?? marker.atMs)
-  return (preferred.length ? preferred : turns).sort((a, b) => a - b)
+  // 转弯和短暂停留都可能发生在半层平台，不能作为整层边界。
+  // 保留参数是为了兼容旧调用；无气压时由步数和时间均分兜底。
+  void markers
+  return []
 }
 
 function nearestBoundary(
@@ -213,14 +222,9 @@ export function inferRoute(frames: FeatureFrame[], markers: RouteMarker[]): Infe
   const landingCount = markers.filter((marker) => marker.type === 'landing').length
   const duration = frames.at(-1)?.endMs ?? 0
   const bySteps = Math.max(1, Math.round(totalSteps / 18))
-  const markerCount = landingCount || turnCount
-  const byMarkers =
-    markerCount > 1
-      ? Math.max(1, Math.round(markerCount / (totalSteps / markerCount < 15 ? 2 : 1)))
-      : bySteps
-  const estimates = [bySteps, byMarkers].sort((a, b) => a - b)
-  const estimatedFloorCount = Math.max(1, Math.round((estimates[0] + estimates[1]) / 2))
-  const agreement = 1 - Math.min(1, Math.abs(bySteps - byMarkers) / Math.max(1, bySteps))
+  // 楼层数不再从转弯/平台数量反推，避免半层转弯被当成整层。
+  const estimatedFloorCount = bySteps
+  const agreement = 0.65
   const signalCoverage = clamp(totalSteps / (estimatedFloorCount * 14), 0, 1)
   const floorConfidence = clamp(agreement * 0.65 + signalCoverage * 0.35, 0.25, 0.95)
   const candidates = boundaryCandidates(markers)
@@ -251,19 +255,88 @@ export function inferRoute(frames: FeatureFrame[], markers: RouteMarker[]): Infe
 }
 
 export function rebuildDraftBoundaries(
-  draft: Pick<CalibrationDraft, 'frames' | 'markers'>,
+  draft: Pick<CalibrationDraft, 'frames' | 'samples'>,
   floorCount: number,
 ): number[] {
   const duration = draft.frames.at(-1)?.endMs ?? 0
-  const candidates = boundaryCandidates(draft.markers)
   const count = Math.max(1, Math.round(floorCount))
+  const pressureBoundaries = confirmedBoundariesByPressure(
+    draft.samples,
+    count,
+    duration,
+  )
+  if (pressureBoundaries) return pressureBoundaries
+
+  // 没有可靠气压时只按整段时间均分。半层转弯只能作为动作特征，
+  // 不再把转弯吸附成整层边界。
   const minSpacing = Math.min(1000, (duration / count) * 0.3)
   const boundaries = [0]
   for (let floor = 1; floor < count; floor += 1) {
     const target = (duration * floor) / count
     const lower = boundaries.at(-1)! + minSpacing
     const upper = duration - (count - floor) * minSpacing
-    boundaries.push(Math.round(nearestBoundary(draft.frames, candidates, target, lower, upper)))
+    boundaries.push(Math.round(clamp(target, lower, upper)))
+  }
+  boundaries.push(duration)
+  return boundaries
+}
+
+/**
+ * 已知终点后，按整轮总气压下降的等高位置切分真实楼层。
+ * 例如 1F→15F 切 14 个高度段；中途转弯完全不参与边界计算。
+ */
+function confirmedBoundariesByPressure(
+  samples: SensorSample[],
+  count: number,
+  fallbackDuration: number,
+): number[] | null {
+  const baro = samples.filter(
+    (sample) => typeof sample.pressure === 'number' && (sample.pressure ?? 0) > 0,
+  )
+  if (baro.length < 20 || count < 1) return null
+
+  const firstT = baro[0].t
+  const duration = Math.max(1, baro.at(-1)!.t - firstT, fallbackDuration)
+  const smoothed = baro.map((sample, index) => {
+    const window = baro.slice(
+      Math.max(0, index - BARO_SMOOTH_WINDOW + 1),
+      index + 1,
+    )
+    return {
+      t: sample.t - firstT,
+      pressure:
+        window.reduce((sum, point) => sum + (point.pressure ?? 0), 0) /
+        window.length,
+    }
+  })
+  const startPressure =
+    smoothed.slice(0, 5).reduce((sum, point) => sum + point.pressure, 0) / 5
+  const endPressure =
+    smoothed.slice(-5).reduce((sum, point) => sum + point.pressure, 0) / 5
+  const totalDrop = startPressure - endPressure
+  if (totalDrop < 0.2) return null
+
+  const boundaries = [0]
+  let searchFrom = 1
+  for (let index = 1; index < count; index += 1) {
+    const targetDrop = (totalDrop * index) / count
+    let found = -1
+    for (
+      let pointIndex = searchFrom;
+      pointIndex < smoothed.length - 1;
+      pointIndex += 1
+    ) {
+      if (startPressure - smoothed[pointIndex].pressure >= targetDrop) {
+        found = pointIndex
+        break
+      }
+    }
+    if (found < 0) return null
+    const lower = boundaries.at(-1)! + 500
+    const upper = duration - (count - index) * 500
+    if (lower > upper) return null
+    boundaries.push(clamp(Math.round(smoothed[found].t), lower, upper))
+    searchFrom = found + 1
   }
   boundaries.push(duration)
   return boundaries
@@ -314,14 +387,23 @@ export function analyzeCalibration(
   const frames = extractFrames(samples)
   const markers = detectMarkers(frames)
   const inferred = inferRoute(frames, markers)
-  // 若有人工楼层标记，优先用人工标记重建 boundaries
+  // 楼层边界优先级：人工楼层标记 > 气压检测 > 算法估算
   const floorMarks = manualMarks
     .filter((m) => m.type === 'floor')
     .sort((a, b) => a.atMs - b.atMs)
-  const boundaries =
-    floorMarks.length >= 1
-      ? buildBoundariesFromManualMarks(floorMarks, samples)
-      : inferred.floorBoundaries
+  const baroBoundaries = detectFloorBoundariesByPressure(samples)
+  let boundaries: number[]
+  let boundarySource: 'manual' | 'barometer' | 'inferred'
+  if (floorMarks.length >= 1) {
+    boundaries = buildBoundariesFromManualMarks(floorMarks, samples)
+    boundarySource = 'manual'
+  } else if (baroBoundaries.length >= 2) {
+    boundaries = baroBoundaries
+    boundarySource = 'barometer'
+  } else {
+    boundaries = inferred.floorBoundaries
+    boundarySource = 'inferred'
+  }
   // 将人工拐弯标记合并到 markers（保留人工标记的 confidence=1）
   const manualTurnMarkers: RouteMarker[] = manualMarks
     .filter((m) => m.type === 'turn')
@@ -333,8 +415,10 @@ export function analyzeCalibration(
       confidence: 1,
     }))
   const allMarkers = [...markers, ...manualTurnMarkers].sort((a, b) => a.atMs - b.atMs)
-  // 垂直位移估算
-  const estimatedAscentM = estimateVerticalAscent(samples)
+  // 垂直爬升估算：气压反算优先（精度 ±0.3m），无气压则步数估算
+  const baroAscent = estimateAscentByPressure(samples)
+  const stepAscent = estimateVerticalAscent(samples)
+  const estimatedAscentM = baroAscent !== null ? baroAscent : stepAscent
   return {
     seed,
     samples,
@@ -347,6 +431,9 @@ export function analyzeCalibration(
     gaps,
     manualMarks,
     estimatedAscentM,
+    // 通过附加字段暴露楼层边界来源与气压爬升，供 Review 页面提示用户精度
+    ...(boundarySource !== 'inferred' ? { boundarySource } : {}),
+    ...(baroAscent !== null ? { ascentSource: 'barometer' as const } : {}),
   }
 }
 
@@ -432,7 +519,76 @@ export function buildRouteDiagram(splits: FloorSplit[]): string {
   for (const s of splits) {
     const stepStr = `${s.stepCount}步·${(s.durationMs / 1000).toFixed(0)}秒`
     const turnStr = s.turnCount > 0 ? ` ──[拐弯×${s.turnCount}]──> ` : ' ──> '
-    lines.push(`${s.floor}F ──[${stepStr}]──>${turnStr}${s.floor + 1}F`)
+    lines.push(`${s.floor}层 ──[${stepStr}]──>${turnStr}${s.floor + 1}层`)
   }
   return lines.join('\n')
+}
+
+// ===== 气压计相关 =====
+
+// 国际气压公式：hPa → 海拔米
+// h = 44330 × (1 - (P/P0)^0.190263)
+export function pressureToAltitude(pressureHpa: number): number {
+  return 44330 * (1 - Math.pow(pressureHpa / P0_HPA, BARO_EXP))
+}
+
+// 气压反算相对爬升：用首末气压差反推高度差。
+// 比步数估算准（±0.3m vs ±30%），但需要设备有气压计。
+// 返回 null 表示无气压数据可用。
+export function estimateAscentByPressure(samples: SensorSample[]): number | null {
+  const baro = samples.filter((s) => typeof s.pressure === 'number' && s.pressure > 0)
+  if (baro.length < 10) return null
+  // 取前 5 个气压的平均作为起点（平滑初始噪声），后 5 个的平均作为终点
+  const startP = baro.slice(0, 5).reduce((sum, s) => sum + (s.pressure ?? 0), 0) / 5
+  const endP = baro.slice(-5).reduce((sum, s) => sum + (s.pressure ?? 0), 0) / 5
+  // 气压下降 = 高度上升
+  if (endP >= startP) return 0
+  const startH = pressureToAltitude(startP)
+  const endH = pressureToAltitude(endP)
+  return Number(Math.max(0, endH - startH).toFixed(1))
+}
+
+// 基于气压计检测楼层变化边界。
+// 算法：滑动平均平滑气压 → 检测气压下降事件 → 每次下降超阈值记一个楼层边界。
+// 返回 [0, t1, t2, ..., lastT] 形式的边界时间数组（相对采集开始的毫秒）。
+// 若气压数据不足或无楼层变化，返回空数组 []。
+export function detectFloorBoundariesByPressure(samples: SensorSample[]): number[] {
+  const baro = samples.filter(
+    (s) => typeof s.pressure === 'number' && (s.pressure ?? 0) > 0,
+  )
+  if (baro.length < 20) return []  // 至少 4 秒气压数据
+  const firstT = baro[0].t
+  const lastT = baro[baro.length - 1].t
+  const duration = lastT - firstT
+  // 滑动平均平滑气压
+  const smoothed: Array<{ t: number; p: number }> = []
+  for (let i = 0; i < baro.length; i += 1) {
+    const start = Math.max(0, i - BARO_SMOOTH_WINDOW + 1)
+    const window = baro.slice(start, i + 1)
+    const avg = window.reduce((sum, s) => sum + (s.pressure ?? 0), 0) / window.length
+    smoothed.push({ t: baro[i].t - firstT, p: avg })
+  }
+  // 检测气压下降事件：找连续下降段，累计下降超阈值记一次
+  const boundaries: number[] = [0]
+  let segStart = smoothed[0]
+  let lastBoundaryAt = -Infinity
+  for (let i = 1; i < smoothed.length; i += 1) {
+    const drop = segStart.p - smoothed[i].p
+    if (drop >= BARO_FLOOR_THRESHOLD_HPA) {
+      // 检测到一次楼层上升，记录边界时间为下降段中点
+      const boundaryT = Math.round((segStart.t + smoothed[i].t) / 2)
+      if (boundaryT - lastBoundaryAt >= BARO_FLOOR_COOLDOWN_MS) {
+        boundaries.push(boundaryT)
+        lastBoundaryAt = boundaryT
+      }
+      // 重置段起点为当前点，继续检测下一次下降
+      segStart = smoothed[i]
+    } else if (smoothed[i].p > segStart.p) {
+      // 气压回升（可能是下降休息或噪声），重置起点
+      segStart = smoothed[i]
+    }
+  }
+  boundaries.push(duration)
+  // 只有当检测到至少一次楼层变化时才返回，否则返回空数组让调用方走算法估算
+  return boundaries.length > 2 ? boundaries : []
 }

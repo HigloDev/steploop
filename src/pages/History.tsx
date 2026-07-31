@@ -1,32 +1,50 @@
-// 历史记录页：列出所有 sessions，按状态筛选，点击跳转 Result。
+// 历史记录页：列出所有训练(Workout)与旧单轮记录(ClimbSession)，按时间合并排序。
+// 卡片显示多轮汇总或单轮摘要，点击跳转 WorkoutResult / Result。
+// 顶部显示检查点恢复提示（如有未结束的训练）。
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Header } from '../components/Header'
-import { Button, Card, EmptyState, Pill } from '../components/ui'
+import { Button, Card, EmptyState, Notice, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
 import { listSessions } from '../services/storage'
-import { ClimbSession } from '../core/types'
+import {
+  clearActiveCheckpoint,
+  listWorkouts,
+  loadActiveCheckpoint,
+} from '../services/workout-storage'
+import { calculateWorkoutSummary } from '../core/workout-summary'
+import { getFloorAchievementCount } from '../core/floors'
+import {
+  ActiveWorkoutCheckpoint,
+  ClimbSession,
+  ClimbWorkout,
+} from '../core/types'
 import { formatDuration } from '../core/math'
 
 type Filter = 'all' | 'complete' | 'interrupted'
 
-interface SessionCard {
+interface BaseCard {
   id: string
-  routeName: string
+  kind: 'workout' | 'legacy_session'
+  // 排序时间戳
+  sortAt: number
+  // 摘要数据
+  title: string
+  subtitle: string
+  // 状态
   statusText: string
   statusTone: 'default' | 'good' | 'warn' | 'danger'
-  completedAtText: string
-  durationText: string
-  floorsText: string
-  steps: number
-  ascentM: number
-  confidencePercent: number
   complete: boolean
   interrupted: boolean
+  // 详情
+  metricsLine: string
+  highlightLine: string
+  // 跳转目标
+  target: { route: 'WorkoutResult'; params: { id: string } } | { route: 'Result'; params: { id: string } }
 }
 
 function dateText(ts: number): string {
@@ -36,36 +54,75 @@ function dateText(ts: number): string {
   const day = String(date.getDate()).padStart(2, '0')
   const hour = String(date.getHours()).padStart(2, '0')
   const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${month}-${day} ${hour}:${minute}`
+  return `${date.getFullYear()}.${month}.${day} ${hour}:${minute}`
 }
 
-function toCard(session: ClimbSession): SessionCard {
-  const interrupted = session.interruptions.length > 0
+function workoutToCard(w: ClimbWorkout): BaseCard {
+  const summary = calculateWorkoutSummary(w.rounds, w.startedAt, w.endedAt)
+  const interrupted = w.rounds.some((r) => r.completionReason === 'interrupted')
+  const complete = w.status === 'completed' && summary.completeRounds > 0
   let statusText = '未完成'
-  let statusTone: SessionCard['statusTone'] = 'default'
-  if (session.complete) {
+  let statusTone: BaseCard['statusTone'] = 'default'
+  if (complete && !interrupted) {
+    statusText = `${summary.completeRounds} 轮`
+    statusTone = 'good'
+  } else if (interrupted) {
+    statusText = '含中断'
+    statusTone = 'warn'
+  }
+  const floorsPerRound =
+    getFloorAchievementCount(
+      w.routeSnapshot.startFloor,
+      w.routeSnapshot.endFloor,
+    ) || w.routeSnapshot.floorsPerRound || 0
+  const floorsText = summary.totalFloors > 0 ? `${summary.totalFloors} 层` : ''
+  const ascentText = `${summary.totalAscentM.toFixed(1)}米`
+  const stepsText = `${summary.totalSteps} 步`
+  return {
+    id: w.id,
+    kind: 'workout',
+    sortAt: w.updatedAt || w.startedAt,
+    title: w.routeSnapshot.locationName || w.routeSnapshot.name,
+    subtitle: `${w.routeSnapshot.startFloor}层 → ${w.routeSnapshot.endFloor}层 · 单轮 ${floorsPerRound} 层`,
+    statusText,
+    statusTone,
+    complete,
+    interrupted,
+    metricsLine: `${floorsText} · ${ascentText} · ${stepsText}`,
+    highlightLine: `净爬楼 ${formatDuration(summary.activeDurationMs)} · 总历时 ${formatDuration(summary.totalElapsedMs)}${
+      summary.bestRoundMs ? ` · 最快 ${formatDuration(summary.bestRoundMs)}` : ''
+    }`,
+    target: { route: 'WorkoutResult', params: { id: w.id } },
+  }
+}
+
+function sessionToCard(s: ClimbSession): BaseCard {
+  const interrupted = s.interruptions.length > 0
+  let statusText = '未完成'
+  let statusTone: BaseCard['statusTone'] = 'default'
+  if (s.complete) {
     statusText = '完成'
     statusTone = 'good'
   } else if (interrupted) {
     statusText = '中断'
     statusTone = 'warn'
-  } else if (session.confidence < 0.72) {
+  } else if (s.confidence < 0.72) {
     statusText = '低置信'
     statusTone = 'warn'
   }
   return {
-    id: session.id,
-    routeName: session.routeSnapshot?.locationName ?? '已删除的路线',
+    id: s.id,
+    kind: 'legacy_session',
+    sortAt: s.endedAt || s.startedAt,
+    title: s.routeSnapshot?.locationName ?? '已删除的路线',
+    subtitle: '单轮记录',
     statusText,
     statusTone,
-    completedAtText: dateText(session.endedAt),
-    durationText: formatDuration(session.durationMs ?? 0),
-    floorsText: `${session.startFloor}F → ${session.finalFloor}F`,
-    steps: session.steps,
-    ascentM: session.ascentM,
-    confidencePercent: Math.round(session.confidence * 100),
-    complete: session.complete,
+    complete: s.complete,
     interrupted,
+    metricsLine: `${s.startFloor}层 → ${s.finalFloor}层 · ${s.ascentM}米 · ${s.steps} 步`,
+    highlightLine: `用时 ${formatDuration(s.durationMs ?? 0)} · 置信度 ${Math.round(s.confidence * 100)}%`,
+    target: { route: 'Result', params: { id: s.id } },
   }
 }
 
@@ -75,25 +132,55 @@ const FILTERS: Array<{ key: Filter; label: string }> = [
   { key: 'interrupted', label: '中断' },
 ]
 
+const PHASE_LABEL: Record<ActiveWorkoutCheckpoint['phase'], string> = {
+  setup: '准备中',
+  round_ready: '准备下一轮',
+  countdown: '倒计时中',
+  ascending: '爬楼中',
+  round_complete: '本轮完成',
+  returning: '返回起点中',
+  start_confirmation: '确认返回起点',
+  recovering: '恢复休息中',
+  workout_complete: '已完成',
+}
+
 export default function HistoryScreen({ navigation }: RootStackScreen<'History'>) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
-  const [sessions, setSessions] = useState<SessionCard[]>([])
+  const [cards, setCards] = useState<BaseCard[]>([])
   const [filter, setFilter] = useState<Filter>('all')
   const [totalCompleted, setTotalCompleted] = useState(0)
   const [totalAscent, setTotalAscent] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [checkpoint, setCheckpoint] = useState<ActiveWorkoutCheckpoint | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const list = (await listSessions()).map(toCard)
-      setSessions(list)
-      setTotalCompleted(list.filter((s) => s.complete).length)
-      setTotalAscent(list.filter((s) => s.complete).reduce((sum, s) => sum + s.ascentM, 0))
+      const [workouts, sessions, cp] = await Promise.all([
+        listWorkouts(),
+        listSessions(),
+        loadActiveCheckpoint(),
+      ])
+      const items: BaseCard[] = [
+        ...workouts.map(workoutToCard),
+        ...sessions.map(sessionToCard),
+      ]
+      items.sort((a, b) => b.sortAt - a.sortAt)
+      setCards(items)
+      const completed = items.filter((c) => c.complete)
+      setTotalCompleted(completed.length)
+      setTotalAscent(
+        completed.reduce((sum, c) => {
+          // 从成绩文字中解析爬升米数
+          const match = c.metricsLine.match(/([\d.]+)米/)
+          return sum + (match ? parseFloat(match[1]) : 0)
+        }, 0),
+      )
+      setCheckpoint(cp)
     } catch (err) {
-      console.warn('[palou] load sessions failed', err)
+      console.warn('[steploop] load history failed', err)
     } finally {
       setLoading(false)
     }
@@ -101,12 +188,29 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
 
   useEffect(() => {
     refresh()
-    // 从 Result 页返回时刷新
     const unsubscribe = navigation.addListener('focus', refresh)
     return unsubscribe
   }, [navigation, refresh])
 
-  const filtered = applyFilter(sessions, filter)
+  const filtered = applyFilter(cards, filter)
+
+  const handleDiscardCheckpoint = () => {
+    Alert.alert(
+      '放弃未结束的训练？',
+      '当前训练检查点会被清除，已完成的轮次不会保存。',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '放弃',
+          style: 'destructive',
+          onPress: async () => {
+            await clearActiveCheckpoint()
+            setCheckpoint(null)
+          },
+        },
+      ],
+    )
+  }
 
   return (
     <View style={styles.page}>
@@ -115,6 +219,36 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
         style={styles.flex}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
+        {/* 检查点恢复提示 */}
+        {checkpoint && (
+          <Notice tone="warn">
+            <Text style={styles.checkpointTitle}>
+              发现未结束的训练
+            </Text>
+            {'\n'}
+            已完成 {checkpoint.completedRounds.filter((r) => r.complete).length} 轮 ·{' '}
+            {PHASE_LABEL[checkpoint.phase] ?? checkpoint.phase}
+            {'\n'}
+            <Text
+              style={styles.checkpointAction}
+              onPress={() =>
+                navigation.navigate('ClimbWorkout', {
+                  id: checkpoint.templateId,
+                  goal: checkpoint.goal,
+                  returnConfirmationMode: checkpoint.returnConfirmationMode,
+                  countdownSeconds: checkpoint.countdownSeconds,
+                })
+              }
+            >
+              继续训练
+            </Text>
+            {'  ·  '}
+            <Text style={styles.checkpointAction} onPress={handleDiscardCheckpoint}>
+              放弃保存
+            </Text>
+          </Notice>
+        )}
+
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{totalCompleted}</Text>
@@ -122,7 +256,7 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
           </View>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{totalAscent.toFixed(1)}</Text>
-            <Text style={styles.summaryLabel}>累计爬升 m</Text>
+            <Text style={styles.summaryLabel}>累计爬升米数</Text>
           </View>
         </View>
 
@@ -144,30 +278,27 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
 
         {!loading && filtered.length === 0 ? (
           <EmptyState
-            title={sessions.length ? '没有符合筛选条件的记录' : '还没有爬楼记录'}
-            subtitle={sessions.length ? '试试切换筛选条件' : '完成第一次爬楼后会出现在这里'}
+            title={cards.length ? '没有符合筛选条件的记录' : '还没有爬楼记录'}
+            subtitle={cards.length ? '试试切换筛选条件' : '完成第一次训练后会出现在这里'}
           />
         ) : (
           filtered.map((card) => (
             <Pressable
-              key={card.id}
+              key={`${card.kind}-${card.id}`}
               style={styles.cardPressable}
-              onPress={() => navigation.navigate('Result', { id: card.id })}
+              onPress={() => navigation.navigate(card.target.route, card.target.params)}
             >
               <Card raised style={styles.card}>
                 <View style={styles.cardHead}>
                   <Text style={styles.cardTitle} numberOfLines={1}>
-                    {card.routeName}
+                    {card.title}
                   </Text>
                   <Pill tone={card.statusTone}>{card.statusText}</Pill>
                 </View>
-                <Text style={styles.cardMeta}>
-                  {card.completedAtText} · {card.durationText}
-                </Text>
-                <Text style={styles.cardMeta}>
-                  {card.floorsText} · {card.ascentM} m · {card.steps} 步
-                </Text>
-                <Text style={styles.cardConfidence}>置信度 {card.confidencePercent}%</Text>
+                <Text style={styles.cardDate}>{dateText(card.sortAt)}</Text>
+                <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
+                <Text style={styles.cardMetrics}>{card.metricsLine}</Text>
+                <Text style={styles.cardHighlight}>{card.highlightLine}</Text>
               </Card>
             </Pressable>
           ))
@@ -183,11 +314,11 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
   )
 }
 
-function applyFilter(sessions: SessionCard[], filter: Filter): SessionCard[] {
-  if (filter === 'all') return sessions
-  if (filter === 'complete') return sessions.filter((s) => s.complete)
-  if (filter === 'interrupted') return sessions.filter((s) => s.interrupted)
-  return sessions
+function applyFilter(cards: BaseCard[], filter: Filter): BaseCard[] {
+  if (filter === 'all') return cards
+  if (filter === 'complete') return cards.filter((c) => c.complete)
+  if (filter === 'interrupted') return cards.filter((c) => c.interrupted)
+  return cards
 }
 
 const makeStyles = (theme: Theme) =>
@@ -251,7 +382,7 @@ const makeStyles = (theme: Theme) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 6,
+      marginBottom: 4,
       gap: 8,
     },
     cardTitle: {
@@ -260,14 +391,38 @@ const makeStyles = (theme: Theme) =>
       fontSize: 16,
       fontWeight: '700',
     },
-    cardMeta: {
+    cardDate: {
       color: theme.muted,
-      fontSize: 13,
+      fontSize: 12,
       marginTop: 2,
     },
-    cardConfidence: {
+    cardSubtitle: {
       color: theme.mutedStrong,
       fontSize: 12,
       marginTop: 6,
+      fontWeight: '600',
+    },
+    cardMetrics: {
+      color: theme.ink,
+      fontSize: 14,
+      fontWeight: '700',
+      marginTop: 6,
+    },
+    cardHighlight: {
+      color: theme.green,
+      fontSize: 12,
+      marginTop: 4,
+      fontWeight: '600',
+    },
+    checkpointTitle: {
+      color: theme.amberInk,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    checkpointAction: {
+      color: theme.green,
+      fontSize: 13,
+      fontWeight: '700',
+      textDecorationLine: 'underline',
     },
   })

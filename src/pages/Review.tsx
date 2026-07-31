@@ -5,6 +5,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Header } from '../components/Header'
+import { BuildingSketch, buildPlaybackFloors } from '../components/BuildingSketch'
 import { Button, Card, Field, Metric, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
@@ -74,10 +75,14 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
     )
     setFloorCountInput(String(count))
     setEstimatedSteps(draft.inferred.estimatedStepCount)
-    setEstimatedAscentM(draft.inferred.estimatedAscentM)
+    // 爬升优先用气压反算（精度 ±0.3m），无气压则用步数估算
+    const ascent = draft.estimatedAscentM ?? draft.inferred.estimatedAscentM
+    setEstimatedAscentM(ascent)
     setEstimatedFloorCount(count)
     setFloorConfidence(Math.round(draft.inferred.confidence.floors * 100))
-    setHeightConfidence(Math.round(draft.inferred.confidence.height * 100))
+    // 气压反算爬升时高度置信度更高（±0.3m），否则保持算法估算的低位
+    const heightConf = draft.ascentSource === 'barometer' ? 92 : draft.inferred.confidence.height * 100
+    setHeightConfidence(Math.round(heightConf))
     setLoaded(true)
     // 统计人工标记
     const mTurn = draft.manualMarks.filter((m) => m.type === 'turn').length
@@ -241,6 +246,12 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
     }))
   }, [loaded])
 
+  // 大楼剖面图：基于 floorSplits 回放，所有楼层显示为已完成
+  const buildingFloors = useMemo(
+    () => buildPlaybackFloors(floorSplits),
+    [floorSplits],
+  )
+
   if (!loaded) {
     return (
       <View style={styles.page}>
@@ -260,7 +271,6 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>CALIBRATION</Text>
           <Text style={styles.title}>
             {draftRef.current?.seed.name ?? '路线标定'}
           </Text>
@@ -278,11 +288,22 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
           />
           <Metric
             label="估算爬升"
-            value={`${estimatedAscentM} m`}
+            value={`${estimatedAscentM}米`}
             hint={`置信度 ${heightConfidence}%`}
             style={styles.metric}
           />
         </View>
+
+        {/* 大楼剖面简笔画：把已完成的楼层 + 拐弯合成成一张图 */}
+        {buildingFloors.length > 0 ? (
+          <Card raised style={styles.buildingCard}>
+            <Text style={styles.buildingTitle}>大楼剖面图</Text>
+            <Text style={styles.buildingHint}>
+              每节楼梯 = 一次拐弯 · ✓ = 已抵达楼层
+            </Text>
+            <BuildingSketch floors={buildingFloors} style={styles.buildingSketch} />
+          </Card>
+        ) : null}
 
         {/* 爬楼路线图：基于人工楼层标记分段 */}
         {floorSplits.length > 0 ? (
@@ -290,12 +311,19 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
             <View style={styles.diagramHead}>
               <Text style={styles.diagramTitle}>爬楼路线图</Text>
               <View style={styles.diagramMetaRow}>
-                <Pill tone="good">
-                  人工楼层 ×{manualMarkCount.floor}
-                </Pill>
+                {draftRef.current?.boundarySource === 'manual' ? (
+                  <Pill tone="good">人工楼层 ×{manualMarkCount.floor}</Pill>
+                ) : draftRef.current?.boundarySource === 'barometer' ? (
+                  <Pill tone="good">气压自动分层</Pill>
+                ) : (
+                  <Pill tone="warn">算法估算分层</Pill>
+                )}
                 <Pill tone="warn">
                   人工拐弯 ×{manualMarkCount.turn}
                 </Pill>
+                {draftRef.current?.ascentSource === 'barometer' ? (
+                  <Pill tone="good">气压爬升</Pill>
+                ) : null}
               </View>
             </View>
 
@@ -304,14 +332,14 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
               <View style={styles.diagramBox}>
                 {floorSplits.map((s, i) => (
                   <View key={i} style={styles.diagramLine}>
-                    <Text style={styles.diagramFloor}>{s.floor}F</Text>
+                    <Text style={styles.diagramFloor}>{s.floor}层</Text>
                     <Text style={styles.diagramArrow}>──</Text>
                     <Text style={styles.diagramMeta}>
                       [{s.stepCount}步·{(s.durationMs / 1000).toFixed(0)}秒
                       {s.turnCount > 0 ? `·拐弯×${s.turnCount}` : ''}]
                     </Text>
                     <Text style={styles.diagramArrow}>──&gt;</Text>
-                    <Text style={styles.diagramFloor}>{s.floor + 1}F</Text>
+                    <Text style={styles.diagramFloor}>{s.floor + 1}层</Text>
                   </View>
                 ))}
               </View>
@@ -321,13 +349,13 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
             <View style={styles.splitList}>
               {floorSplits.map((s, i) => (
                 <View key={i} style={styles.splitRow}>
-                  <Text style={styles.splitFloor}>{s.floor}F→{s.floor + 1}F</Text>
+                  <Text style={styles.splitFloor}>{s.floor}层→{s.floor + 1}层</Text>
                   <Text style={styles.splitSteps}>{s.stepCount} 步</Text>
                   <Text style={styles.splitTime}>{formatDuration(s.durationMs)}</Text>
                   <Text style={styles.splitTurns}>
                     {s.turnCount > 0 ? `${s.turnCount} 拐` : '—'}
                   </Text>
-                  <Text style={styles.splitAscent}>{s.ascentM} m</Text>
+                  <Text style={styles.splitAscent}>{s.ascentM}米</Text>
                 </View>
               ))}
             </View>
@@ -367,7 +395,7 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
           <Card key={b.index} raised style={styles.boundaryCard}>
             <View style={styles.boundaryHead}>
               <Text style={styles.boundaryFloor}>
-                {b.floorFrom}F → {b.floorTo}F
+                {b.floorFrom}层 → {b.floorTo}层
               </Text>
               <Pill tone={b.isFinal ? 'good' : 'default'}>{b.timeText}</Pill>
             </View>
@@ -376,16 +404,16 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
                 style={styles.adjustBtn}
                 onPress={() => adjustBoundary(b.index, -500)}
               >
-                <Text style={styles.adjustBtnText}>-0.5s</Text>
+                <Text style={styles.adjustBtnText}>-0.5秒</Text>
               </Pressable>
               <Pressable
                 style={styles.adjustBtn}
                 onPress={() => adjustBoundary(b.index, 500)}
               >
-                <Text style={styles.adjustBtnText}>+0.5s</Text>
+                <Text style={styles.adjustBtnText}>+0.5秒</Text>
               </Pressable>
               <Field
-                label="层高(m)"
+                label="层高（米）"
                 value={b.height}
                 onChangeText={(v) => updateHeight(b.index - 1, v)}
                 keyboardType="decimal-pad"
@@ -540,6 +568,21 @@ const makeStyles = (theme: Theme) =>
       color: theme.muted,
       fontSize: 12,
       marginLeft: 'auto',
+    },
+    buildingCard: { padding: 14, marginTop: 8 },
+    buildingTitle: {
+      color: theme.ink,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    buildingHint: {
+      marginTop: 4,
+      color: theme.muted,
+      fontSize: 11,
+      marginBottom: 10,
+    },
+    buildingSketch: {
+      alignItems: 'center',
     },
     diagramCard: { padding: 14, marginTop: 8 },
     diagramHead: {

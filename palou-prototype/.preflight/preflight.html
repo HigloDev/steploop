@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preflight</title>
+    <style id="theme-vars">
+/* 帕楼原型 · 主题令牌
+   基于 src/theme.ts 的浅色主题映射为 CSS 变量
+   主色: #12372e (深绿), 语义色: amber/red/blue
+*/
+:root {
+  /* 基础色板 */
+  --palou-background: #f3f5f4;
+  --palou-foreground: #101916;
+  --palou-card: #ffffff;
+  --palou-card-foreground: #101916;
+  --palou-popover: #ffffff;
+  --palou-popover-foreground: #101916;
+
+  /* 主品牌色 */
+  --palou-primary: #12372e;
+  --palou-primary-foreground: #f3f5f4;
+
+  /* 辅助文本 */
+  --palou-muted: #65716c;
+  --palou-muted-foreground: #43534d;
+
+  /* 边框/输入 */
+  --palou-border: #dce2df;
+  --palou-input: #dce2df;
+  --palou-ring: #12372e;
+
+  /* 语义状态色 */
+  --palou-state-success: #12372e;
+  --palou-state-warning: #e7b45a;
+  --palou-state-warning-soft: #fff8e8;
+  --palou-state-warning-ink: #9b6a15;
+  --palou-state-error: #e26058;
+  --palou-state-error-soft: #fff1ef;
+  --palou-state-info: #2a6b8a;
+  --palou-state-info-soft: #e3eef4;
+
+  /* 次级表面 */
+  --palou-card-soft: #f7f9f8;
+  --palou-surface-soft: #edf1ef;
+  --palou-line-soft: #e7ebe9;
+
+  /* 品牌色阶 */
+  --palou-primary-ink: #276750;
+  --palou-primary-bright: #35715f;
+  --palou-primary-soft: #e1f1ea;
+  --palou-mint: #71e2b5;
+
+  /* 琥珀色阶 */
+  --palou-amber: #e7b45a;
+  --palou-amber-soft: #fff8e8;
+  --palou-amber-chip: #fff4d9;
+  --palou-amber-ink: #9b6a15;
+
+  /* 橙色 */
+  --palou-orange: #ff914d;
+
+  /* 红色阶 */
+  --palou-red: #e26058;
+  --palou-red-soft: #fff1ef;
+  --palou-red-chip: #f8dfda;
+  --palou-red-ink: #68403d;
+
+  /* 圆角 */
+  --palou-radius-sm: 6px;
+  --palou-radius-md: 10px;
+  --palou-radius-lg: 14px;
+  --palou-radius-xl: 20px;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--palou-background);
+    --color-foreground: var(--palou-foreground);
+    --color-card: var(--palou-card);
+    --color-card-foreground: var(--palou-card-foreground);
+    --color-popover: var(--palou-popover);
+    --color-popover-foreground: var(--palou-popover-foreground);
+    --color-primary: var(--palou-primary);
+    --color-primary-foreground: var(--palou-primary-foreground);
+    --color-muted: var(--palou-muted);
+    --color-muted-foreground: var(--palou-muted-foreground);
+    --color-border: var(--palou-border);
+    --color-input: var(--palou-input);
+    --color-ring: var(--palou-ring);
+    --radius-sm: var(--palou-radius-sm);
+    --radius-md: var(--palou-radius-md);
+    --radius-lg: var(--palou-radius-lg);
+    --radius-xl: var(--palou-radius-xl);
+  }
+  @layer base {
+    body { background: var(--palou-background); color: var(--palou-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--palou-background); }
+      .text-background { color: var(--palou-background); }
+      .border-background { border-color: var(--palou-background); }
+      .ring-background { --tw-ring-color: var(--palou-background); }
+      .bg-foreground { background-color: var(--palou-foreground); }
+      .text-foreground { color: var(--palou-foreground); }
+      .border-foreground { border-color: var(--palou-foreground); }
+      .ring-foreground { --tw-ring-color: var(--palou-foreground); }
+      .bg-card { background-color: var(--palou-card); }
+      .text-card { color: var(--palou-card); }
+      .border-card { border-color: var(--palou-card); }
+      .ring-card { --tw-ring-color: var(--palou-card); }
+      .bg-card-foreground { background-color: var(--palou-card-foreground); }
+      .text-card-foreground { color: var(--palou-card-foreground); }
+      .border-card-foreground { border-color: var(--palou-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--palou-card-foreground); }
+      .bg-popover { background-color: var(--palou-popover); }
+      .text-popover { color: var(--palou-popover); }
+      .border-popover { border-color: var(--palou-popover); }
+      .ring-popover { --tw-ring-color: var(--palou-popover); }
+      .bg-popover-foreground { background-color: var(--palou-popover-foreground); }
+      .text-popover-foreground { color: var(--palou-popover-foreground); }
+      .border-popover-foreground { border-color: var(--palou-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--palou-popover-foreground); }
+      .bg-primary { background-color: var(--palou-primary); }
+      .text-primary { color: var(--palou-primary); }
+      .border-primary { border-color: var(--palou-primary); }
+      .ring-primary { --tw-ring-color: var(--palou-primary); }
+      .bg-primary-foreground { background-color: var(--palou-primary-foreground); }
+      .text-primary-foreground { color: var(--palou-primary-foreground); }
+      .border-primary-foreground { border-color: var(--palou-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--palou-primary-foreground); }
+      .bg-muted { background-color: var(--palou-muted); }
+      .text-muted { color: var(--palou-muted); }
+      .border-muted { border-color: var(--palou-muted); }
+      .ring-muted { --tw-ring-color: var(--palou-muted); }
+      .bg-muted-foreground { background-color: var(--palou-muted-foreground); }
+      .text-muted-foreground { color: var(--palou-muted-foreground); }
+      .border-muted-foreground { border-color: var(--palou-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--palou-muted-foreground); }
+      .bg-border { background-color: var(--palou-border); }
+      .text-border { color: var(--palou-border); }
+      .border-border { border-color: var(--palou-border); }
+      .ring-border { --tw-ring-color: var(--palou-border); }
+      .bg-input { background-color: var(--palou-input); }
+      .text-input { color: var(--palou-input); }
+      .border-input { border-color: var(--palou-input); }
+      .ring-input { --tw-ring-color: var(--palou-input); }
+      .bg-ring { background-color: var(--palou-ring); }
+      .text-ring { color: var(--palou-ring); }
+      .border-ring { border-color: var(--palou-ring); }
+      .ring-ring { --tw-ring-color: var(--palou-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
