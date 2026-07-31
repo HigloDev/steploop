@@ -40,7 +40,9 @@
     "android:release": "expo run:android --variant release --no-bundler --no-build-cache",
     "check": "tsc --noEmit && npx expo-doctor",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test:core": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --outDir node_modules/.cache/steploop-core --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck src/core/floors.ts src/core/recognizer.ts src/core/analysis.ts src/core/turn-gate.ts src/core/math.ts src/core/dtw.ts src/core/route-state.ts src/core/types.ts src/core/workout-machine.ts src/core/workout-summary.ts src/core/calories.ts src/core/free-recognizer.ts src/core/route-learning.ts src/core/sensor-visualization.ts src/core/session.ts src/core/location.ts && node --test scripts/test-core.cjs && node scripts/verify-floor-model.cjs",
+    "test": "npm run test:core"
   },
   "private": true
 }
