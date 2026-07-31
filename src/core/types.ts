@@ -193,6 +193,9 @@ export interface RecognitionSnapshot {
   confidence: number
   status: 'matching' | 'low_confidence' | 'paused' | 'complete'
   lastTurn?: TurnDirection
+  // 本轮净爬楼时间（毫秒）：只累计有真实动作的帧（步数>0 或能量达标），
+  // 原地等待、休息、电梯等静止时间不计入。用于卡路里与净用时统计。
+  activeMs: number
 }
 
 // 爬楼路线图：基于人工楼层标记分段后的单层数据

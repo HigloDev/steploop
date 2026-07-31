@@ -58,6 +58,7 @@ export class FreeRecognizer {
   private hasBarometer = false
   private estimatedHeightM = 0
   private readonly turnGate = new StairTurnGate()
+  private activeMs = 0
 
   constructor(template: RouteTemplate, startedAt = Date.now()) {
     this.template = template
@@ -132,6 +133,10 @@ export class FreeRecognizer {
 
   pushFrame(frame: FeatureFrame): RecognitionSnapshot {
     if (this.paused) return this.snapshot()
+    // 净爬楼时间：只累计真实动作帧（与 RouteRecognizer 口径一致）
+    if (frame.steps > 0 || frame.energy >= 0.06) {
+      this.activeMs += frame.endMs - frame.startMs
+    }
     this.totalSteps += frame.steps
 
     const completedTurn = this.turnGate.push(frame)
@@ -214,17 +219,15 @@ export class FreeRecognizer {
       lastTurn: this.events
         .filter((e) => e.type === 'turn')
         .at(-1)?.direction,
+      activeMs: this.activeMs,
     }
   }
 
   finish(endedAt = Date.now(), mode: ClimbMode = 'free'): ClimbSession {
     const snapshot = this.snapshot()
     const knownEnd = hasKnownRouteEnd(this.template)
-    const interruptedMs = this.interruptions.reduce(
-      (sum, gap) => sum + Math.max(0, gap.endMs - gap.startMs),
-      0,
-    )
-    const durationMs = Math.max(0, endedAt - this.startedAt - interruptedMs)
+    // 净爬楼时间：只统计真实动作帧（原地等待不计入）
+    const durationMs = Math.max(0, this.activeMs)
     const splitDurations = this.floorSplits.map((split, index) =>
       Math.max(0, split.elapsedMs - (this.floorSplits[index - 1]?.elapsedMs ?? 0)),
     )

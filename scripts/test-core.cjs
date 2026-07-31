@@ -262,3 +262,57 @@ test('analysis: 气压反算爬升', () => {
   const noBaro = estimateAscentByPressure([{ t: 0, ax: 0, ay: 0, az: 0, gx: 0, gy: 0, gz: 0 }])
   assert.equal(noBaro, null, '无气压数据返回 null')
 })
+
+// === recognizer：净爬楼时间 ===
+function makeCalorieTestTemplate() {
+  return {
+    id: 'route-cal',
+    name: '测试路线',
+    startFloor: 1,
+    endFloor: 3,
+    carryMode: 'pocket',
+    floorHeightM: 3,
+    totalAscentM: 6,
+    device: { platform: 'android', model: 'test', system: 'test' },
+    segments: [
+      { id: 's1', type: 'flight', startMs: 0, endMs: 1000, floorFrom: 1, floorTo: 2, ascentM: 3, stepCount: 8, features: [[0.5, 0.5, 0, 0]] },
+      { id: 's2', type: 'flight', startMs: 1000, endMs: 2000, floorFrom: 2, floorTo: 3, ascentM: 3, stepCount: 8, features: [[0.5, 0.5, 0, 0]] },
+    ],
+    markers: [],
+    createdAt: 0,
+    updatedAt: 0,
+    version: 1,
+    status: 'verified',
+  }
+}
+
+const activeFrame = (startMs, endMs) => ({
+  startMs, endMs, steps: 8, cadence: 120, energy: 0.2, turnRad: 0, paused: 0,
+})
+const idleFrame = (startMs, endMs) => ({
+  startMs, endMs, steps: 0, cadence: 0, energy: 0.02, turnRad: 0, paused: 1,
+})
+
+test('recognizer: 净爬楼时间只统计动作帧（卡路里/净用时口径）', () => {
+  const { RouteRecognizer } = load('recognizer')
+  const rec = new RouteRecognizer(makeCalorieTestTemplate(), 0)
+  rec.pushFrame(activeFrame(0, 500))
+  rec.pushFrame(activeFrame(500, 1000))
+  rec.pushFrame(idleFrame(1000, 1500))
+  rec.pushFrame(idleFrame(1500, 2000))
+  rec.pushFrame(activeFrame(2000, 2500))
+  assert.equal(rec.snapshot().activeMs, 1500, '3 个动作帧各 500ms')
+  const session = rec.finish(100000)
+  assert.equal(session.durationMs, 1500, 'durationMs 应为净爬楼时间而非挂钟时长')
+})
+
+test('free-recognizer: 净爬楼时间只统计动作帧', () => {
+  const { FreeRecognizer } = load('free-recognizer')
+  const rec = new FreeRecognizer(makeCalorieTestTemplate(), 0)
+  rec.pushFrame(activeFrame(0, 500))
+  rec.pushFrame(idleFrame(500, 1000))
+  rec.pushFrame(idleFrame(1000, 1500))
+  assert.equal(rec.snapshot().activeMs, 500, '只有动作帧计入')
+  const session = rec.finish(100000)
+  assert.equal(session.durationMs, 500)
+})

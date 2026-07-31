@@ -35,6 +35,7 @@ function initialSnapshot(startFloor: number): RecognitionSnapshot {
     steps: 0,
     confidence: 0,
     status: 'matching',
+    activeMs: 0,
   }
 }
 

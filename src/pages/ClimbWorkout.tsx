@@ -150,9 +150,11 @@ export default function ClimbWorkoutScreen({
     returnConfirmationMode,
   })
   const activeRouteTpl = workout.activeTemplate
+  // 卡路里只按净爬楼时间计算：已完成轮的净用时 + 当前轮的真实动作帧累计。
+  // 不能使用本轮挂钟 elapsedMs（原地等待/休息时挂钟仍在走，卡路里会虚增）。
   const liveActiveDurationMs =
     (workout.summary?.activeDurationMs ?? 0) +
-    (workout.phase === 'ascending' ? workout.roundSession.elapsedMs : 0)
+    (workout.phase === 'ascending' ? workout.roundSession.snapshot.activeMs : 0)
   const liveCalories = calculateStairCalories(
     liveActiveDurationMs,
     bodyWeightKg,
@@ -438,7 +440,6 @@ export default function ClimbWorkoutScreen({
           <AscendingView
             routeTpl={activeRouteTpl}
             snapshot={workout.roundSession.snapshot}
-            elapsedMs={workout.roundSession.elapsedMs}
             visualization={workout.roundSession.visualization}
             barometerAvailable={workout.roundSession.barometerAvailable}
             floorCards={floorCards}
@@ -620,12 +621,11 @@ const RoundTrack = memo(function RoundTrack({
   )
 })
 
-// 高频状态（snapshot/elapsed/visualization）驱动它重渲染时，
+// 高频状态（snapshot/visualization）驱动它重渲染时，
 // 内部按各自数据变化的子组件（波形图/楼层格/指标）已独立 memo。
 const AscendingView = memo(function AscendingView({
   routeTpl,
   snapshot,
-  elapsedMs,
   visualization,
   barometerAvailable,
   floorCards,
@@ -635,8 +635,7 @@ const AscendingView = memo(function AscendingView({
   learningRoute,
 }: {
   routeTpl: RouteTemplate
-  snapshot: { currentFloor: number; floorsCompleted: number; ascentM: number; steps: number; confidence: number; status: string }
-  elapsedMs: number
+  snapshot: { currentFloor: number; floorsCompleted: number; ascentM: number; steps: number; confidence: number; status: string; activeMs: number }
   visualization: ReturnType<typeof useClimbWorkout>['roundSession']['visualization']
   barometerAvailable: boolean
   floorCards: FloorCard[]
@@ -693,7 +692,11 @@ const AscendingView = memo(function AscendingView({
           }
           style={styles.metric}
         />
-        <Metric label="本轮用时" value={formatDuration(elapsedMs)} style={styles.metric} />
+        <Metric
+          label="净爬楼"
+          value={formatDuration(snapshot.activeMs)}
+          style={styles.metric}
+        />
         <Metric label="本轮步数" value={snapshot.steps} style={styles.metric} />
       </View>
 

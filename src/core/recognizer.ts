@@ -22,6 +22,9 @@ const METERS_PER_HPA = 8.3
 const FLOOR_HEIGHT_CONFIRM_RATIO = 0.88
 const TURNS_REQUIRED_PER_FLOOR = 2
 const BAROMETER_STEP_CONFIRM_RATIO = 0.65
+// 净爬楼时间判定：帧内有步数或动作能量达标才计入（与 analysis.ts 的活动帧口径一致）。
+// 原地等待/休息/电梯等静止时间不进入卡路里与净用时统计。
+const ACTIVE_FRAME_ENERGY = 0.06
 
 export class RouteRecognizer {
   private template: RouteTemplate
@@ -42,6 +45,7 @@ export class RouteRecognizer {
   private pressureWindow: number[] = []
   private hasBarometer = false
   private estimatedHeightM = 0
+  private activeMs = 0
 
   constructor(template: RouteTemplate, startedAt = Date.now()) {
     this.template = template
@@ -51,6 +55,10 @@ export class RouteRecognizer {
   pushFrame(frame: FeatureFrame): RecognitionSnapshot {
     if (this.paused || this.segmentIndex >= this.segmentCount) {
       return this.snapshot()
+    }
+    // 净爬楼时间：只累计真实动作帧（LiveFeaturePump 输出的帧是连续的 500ms 窗口）
+    if (frame.steps > 0 || frame.energy >= ACTIVE_FRAME_ENERGY) {
+      this.activeMs += frame.endMs - frame.startMs
     }
     const segment = this.template.segments[this.segmentIndex]
     this.observed.push(vectorizeFrame(frame))
@@ -239,17 +247,15 @@ export class RouteRecognizer {
             ? 'low_confidence'
             : 'matching',
       lastTurn: this.events.filter((event) => event.type === 'turn').at(-1)?.direction,
+      activeMs: this.activeMs,
     }
   }
 
   finish(endedAt = Date.now(), mode: ClimbMode = 'formal'): ClimbSession {
     const snapshot = this.snapshot()
-    // 净用时：扣除中断期间（锁屏、切出应用、传感器断流）
-    const interruptedMs = this.interruptions.reduce(
-      (sum, gap) => sum + Math.max(0, gap.endMs - gap.startMs),
-      0,
-    )
-    const durationMs = Math.max(0, endedAt - this.startedAt - interruptedMs)
+    // 净爬楼时间：只统计真实动作帧的累计时长。原地等待、休息、
+    // 锁屏/切出/传感器断流等静止时间天然不产生动作帧，自动排除。
+    const durationMs = Math.max(0, this.activeMs)
     const splitDurations = this.floorSplits.map((split, index) =>
       Math.max(0, split.elapsedMs - (this.floorSplits[index - 1]?.elapsedMs ?? 0)),
     )
