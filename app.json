@@ -72,7 +72,8 @@
         }
       ],
       "expo-sharing",
-      "expo-font"
+      "expo-font",
+      "./plugins/withAndroidLocationModule.js"
     ]
   }
 }
