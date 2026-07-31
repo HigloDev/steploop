@@ -54,6 +54,13 @@ export class RouteRecognizer {
     }
     const segment = this.template.segments[this.segmentIndex]
     this.observed.push(vectorizeFrame(frame))
+    // 防呆：observed 只用于与模板段匹配，超出模板长度 2 倍后丢弃最早帧。
+    // 匹配长期失败（原地等待、乘电梯、站在楼层里）时，DTW 的 O(n·m) 分配
+    // 会随数组无限增长，导致 JS 堆持续攀升直至系统杀进程。
+    const observedCap = Math.max(24, segment.features.length * 2)
+    if (this.observed.length > observedCap) {
+      this.observed.splice(0, this.observed.length - observedCap)
+    }
     this.observedSteps += frame.steps
     this.totalSteps += frame.steps
     this.lastFrame = frame

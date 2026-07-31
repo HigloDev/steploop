@@ -1,15 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { memo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import Svg, {
-  Line,
-  Path,
-  Text as SvgText,
-} from 'react-native-svg'
 
 import {
   SensorMotionActivity,
   SensorVisualizationState,
-  SensorWavePoint,
 } from '../core/sensor-visualization'
 import { clamp } from '../core/math'
 import { Theme, useTheme } from '../theme'
@@ -34,32 +28,55 @@ const ACTIVITY_LABEL: Record<SensorMotionActivity, string> = {
   elevator_down: '电梯下降',
 }
 
-const CHART_WIDTH = 360
-const PLOT_LEFT = 58
-const PLOT_RIGHT = 344
+// 波形显示（纯 View 柱状图实现）。
+//
+// 重要：不要改回 react-native-svg。真机实测在 RN 0.86 新架构下，
+// SVG 图表每次重渲染（即便只有几条动态 Path）都会在原生侧持续泄漏
+// 内存（约 0.6MB/s，长训会被系统杀进程）。普通 View 重渲染无泄漏。
+// 波形刷新频率 2.5fps（见 sensor-visualization.ts DISPLAY_INTERVAL_MS）。
 
-function linePath(
-  points: SensorWavePoint[],
-  top: number,
-  height: number,
-  value: (point: SensorWavePoint) => number,
-  minValue: number,
-  maxValue: number,
-): string {
-  if (!points.length) return ''
+const WAVE_BAR_WIDTH = 4
+const WAVE_BAR_GAP = 2
+const WAVE_BAR_MAX_HEIGHT = 34
+const WAVE_LABEL_WIDTH = 44
+const WAVE_ROW_HEIGHT = 48
+
+function WaveRow({
+  label,
+  values,
+  color,
+  minValue,
+  maxValue,
+  theme,
+}: {
+  label: string
+  values: number[]
+  color: string
+  minValue: number
+  maxValue: number
+  theme: Theme
+}) {
   const range = Math.max(0.001, maxValue - minValue)
-
-  return points
-    .map((point, index) => {
-      const x =
-        PLOT_LEFT +
-        (index / Math.max(1, points.length - 1)) *
-          (PLOT_RIGHT - PLOT_LEFT)
-      const normalized = clamp((value(point) - minValue) / range, 0, 1)
-      const y = top + height - normalized * height
-      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`
-    })
-    .join(' ')
+  return (
+    <View style={stylesFor(theme).waveRow}>
+      <Text style={stylesFor(theme).waveLabel}>{label}</Text>
+      <View style={stylesFor(theme).waveRowBody}>
+        {values.map((value, index) => {
+          const normalized = clamp((value - minValue) / range, 0, 1)
+          const barHeight = Math.max(2, normalized * WAVE_BAR_MAX_HEIGHT)
+          return (
+            <View
+              key={index}
+              style={[
+                stylesFor(theme).waveBar,
+                { height: barHeight, backgroundColor: color },
+              ]}
+            />
+          )
+        })}
+      </View>
+    </View>
+  )
 }
 
 function WaveformPanel({
@@ -76,161 +93,69 @@ function WaveformPanel({
   const heightMin = Math.min(0, ...heightValues)
   const heightMax = Math.max(0.5, ...heightValues)
   const latest = waves[waves.length - 1]
-
-  const motionPath = useMemo(
-    () => linePath(waves, 25, 42, (point) => point.motion, 0, 1),
-    [waves],
-  )
-  const turnPath = useMemo(
-    () => linePath(waves, 94, 42, (point) => point.turn, -1, 1),
-    [waves],
-  )
-  const heightPath = useMemo(
-    () =>
-      linePath(
-        waves,
-        163,
-        42,
-        (point) => point.height,
-        heightMin,
-        heightMax,
-      ),
-    [waves, heightMin, heightMax],
-  )
+  const styles = stylesFor(theme)
 
   return (
-    <View style={stylesFor(theme).chart}>
-      <Svg width="100%" height={228} viewBox={`0 0 ${CHART_WIDTH} 228`}>
-        {[82, 140].map((y) => (
-          <Line
-            key={`divider-${y}`}
-            x1={12}
-            y1={y}
-            x2={348}
-            y2={y}
-            stroke={theme.line}
-            strokeWidth={1}
+    <View style={styles.chart}>
+      {waves.length ? (
+        <>
+          <WaveRow
+            label="动作"
+            values={waves.map((point) => point.motion)}
+            color={theme.mint}
+            minValue={0}
+            maxValue={1}
+            theme={theme}
           />
-        ))}
-        {[58, 105, 153, 201, 249, 296, 344].map((x) => (
-          <Line
-            key={`grid-${x}`}
-            x1={x}
-            y1={18}
-            x2={x}
-            y2={210}
-            stroke={theme.line}
-            strokeWidth={0.7}
-            opacity={0.45}
+          <WaveRow
+            label="转向"
+            values={waves.map((point) => point.turn)}
+            color={theme.orange}
+            minValue={-1}
+            maxValue={1}
+            theme={theme}
           />
-        ))}
-        {[46, 115, 184].map((y) => (
-          <Line
-            key={`baseline-${y}`}
-            x1={PLOT_LEFT}
-            y1={y}
-            x2={PLOT_RIGHT}
-            y2={y}
-            stroke={theme.line}
-            strokeWidth={1}
-            strokeDasharray="4 5"
-          />
-        ))}
+          {barometerAvailable ? (
+            <WaveRow
+              label="气压"
+              values={waves.map((point) => point.height)}
+              color={theme.blueInk}
+              minValue={heightMin}
+              maxValue={heightMax}
+              theme={theme}
+            />
+          ) : (
+            <View style={styles.waveRow}>
+              <Text style={styles.waveLabel}>气压</Text>
+              <Text style={styles.noBaro}>无气压计</Text>
+            </View>
+          )}
 
-        <SvgText x={12} y={49} fill={theme.muted} fontSize={11} fontWeight="700">
-          动作
-        </SvgText>
-        <SvgText x={12} y={118} fill={theme.muted} fontSize={11} fontWeight="700">
-          转向
-        </SvgText>
-        <SvgText x={12} y={187} fill={theme.muted} fontSize={11} fontWeight="700">
-          气压
-        </SvgText>
-
-        {motionPath ? (
-          <Path
-            d={motionPath}
-            fill="none"
-            stroke={theme.mint}
-            strokeWidth={2.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : null}
-        {turnPath ? (
-          <Path
-            d={turnPath}
-            fill="none"
-            stroke={theme.orange}
-            strokeWidth={2.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : null}
-        {barometerAvailable && heightPath ? (
-          <Path
-            d={heightPath}
-            fill="none"
-            stroke={theme.blueInk}
-            strokeWidth={2.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : null}
-
-        {waves.length ? (
-          <>
-            <SvgText
-              x={342}
-              y={31}
-              fill={theme.mint}
-              fontSize={10}
-              fontWeight="700"
-              textAnchor="end"
-            >
+          <View style={styles.waveReadingRow}>
+            <Text style={styles.waveReadingValue}>
               {latest.motion.toFixed(2)}
-            </SvgText>
-            <SvgText
-              x={342}
-              y={100}
-              fill={theme.orange}
-              fontSize={10}
-              fontWeight="700"
-              textAnchor="end"
-            >
+            </Text>
+            <Text style={styles.waveReadingValue}>
               {latest.turn > 0 ? '+' : ''}
               {latest.turn.toFixed(2)}
-            </SvgText>
-            <SvgText
-              x={342}
-              y={169}
-              fill={theme.blueInk}
-              fontSize={10}
-              fontWeight="700"
-              textAnchor="end"
-            >
+            </Text>
+            <Text style={styles.waveReadingValue}>
               {barometerAvailable
                 ? `${visualization.relativeHeightM.toFixed(1)}米`
                 : '不可用'}
-            </SvgText>
-          </>
-        ) : (
-          <SvgText
-            x={201}
-            y={117}
-            fill={theme.muted}
-            fontSize={12}
-            textAnchor="middle"
-          >
-            开始爬楼后显示实时波形
-          </SvgText>
-        )}
-      </Svg>
+            </Text>
+          </View>
+        </>
+      ) : (
+        <Text style={styles.emptyHint}>开始爬楼后显示实时波形</Text>
+      )}
     </View>
   )
 }
 
-export function SensorMotionVisualizer({
+// memo：训练页有约 10~20 次/秒的状态更新（波形/快照/计时），
+// 波形图只在 visualization 等实际变化时重渲染，避免整页级联重绘。
+export const SensorMotionVisualizer = memo(function SensorMotionVisualizer({
   visualization,
   currentFloor,
   startFloor,
@@ -297,7 +222,7 @@ export function SensorMotionVisualizer({
       </View>
     </View>
   )
-}
+})
 
 function LegendDot({ color, label }: { color: string; label: string }) {
   const theme = useTheme()
@@ -365,6 +290,58 @@ const stylesFor = (theme: Theme) =>
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.line,
       backgroundColor: theme.paper,
+      paddingVertical: 8,
+    },
+    waveRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      height: WAVE_ROW_HEIGHT,
+      paddingHorizontal: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.lineSoft,
+    },
+    waveLabel: {
+      width: WAVE_LABEL_WIDTH,
+      color: theme.muted,
+      fontSize: 10,
+      fontWeight: '700',
+      paddingBottom: 6,
+    },
+    waveRowBody: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      height: WAVE_ROW_HEIGHT - 6,
+      paddingBottom: 2,
+    },
+    waveBar: {
+      width: WAVE_BAR_WIDTH,
+      marginHorizontal: WAVE_BAR_GAP / 2,
+      borderRadius: 1.5,
+      opacity: 0.85,
+    },
+    noBaro: {
+      paddingBottom: 6,
+      color: theme.muted,
+      fontSize: 11,
+    },
+    emptyHint: {
+      paddingVertical: 36,
+      color: theme.muted,
+      fontSize: 12,
+      textAlign: 'center',
+    },
+    waveReadingRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingTop: 6,
+    },
+    waveReadingValue: {
+      color: theme.ink,
+      fontSize: 11,
+      fontWeight: '800',
+      fontVariant: ['tabular-nums'],
     },
     readingRow: {
       flexDirection: 'row',

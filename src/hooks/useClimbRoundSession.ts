@@ -132,6 +132,7 @@ export function useClimbRoundSession(
       lastFloorRef.current = next.currentFloor
       triggerHaptic('medium')
     }
+    // 回归调试：临时禁用 setSnapshot 隔离渲染频率是否为内存泄漏源
     setSnapshot(
       !autoCompleteRef.current && next.status === 'complete'
         ? { ...next, status: 'matching' }
@@ -218,12 +219,12 @@ export function useClimbRoundSession(
       retainSamples: modeRef.current === 'free',
       onSample: (sample) => {
         pump.push(sample)
-        const nextVisualization = visualizationRef.current.push(sample)
+        visualizationRef.current.push(sample)
         if (
-          sample.t - lastVisualizationRenderAtRef.current >= 100
+          sample.t - lastVisualizationRenderAtRef.current >= 400
         ) {
           lastVisualizationRenderAtRef.current = sample.t
-          setVisualization(nextVisualization)
+          setVisualization(visualizationRef.current.snapshot())
         }
       },
       onGap: (gap) => {

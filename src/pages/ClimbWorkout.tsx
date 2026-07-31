@@ -3,7 +3,7 @@
 //       → returning → start_confirmation → recovering → 下一轮
 // 用户主动结束 → workout_complete → 跳转 WorkoutResult
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BackHandler,
   Modal,
@@ -240,7 +240,7 @@ export default function ClimbWorkoutScreen({
     workout.beginAscending,
   ])
 
-  const handleFinishWorkout = () => {
+  const handleFinishWorkout = useCallback(() => {
     const phase = workout.phase
     if (phase === 'ascending') {
       setConfirmMode('finish_workout')
@@ -248,43 +248,46 @@ export default function ClimbWorkoutScreen({
     }
     // 其他阶段直接结束
     workout.finishWorkout({ saveIncompleteRound: false })
-  }
+  }, [workout.phase, workout.finishWorkout])
 
-  const handleConfirmFinish = async (
-    action: 'save' | 'abnormal' | 'discard' | 'cancel',
-    confirmedEndFloor?: number,
-  ) => {
-    const mode = confirmMode
-    setConfirmMode(null)
-    if (action === 'cancel') return
-    if (
-      mode === 'learning_endpoint' &&
-      action === 'save' &&
-      confirmedEndFloor !== undefined
-    ) {
-      await workout.completeLearningRound(confirmedEndFloor)
-      return
-    }
-    if (action === 'save') {
-      await workout.finishWorkout({
-        saveIncompleteRound: true,
-        confirmedEndFloor,
-        excludeFromLearning:
-          workout.firstRoundCalibration && !workout.templateGenerated,
-      })
-    } else if (action === 'abnormal') {
-      await workout.finishWorkout({
-        saveIncompleteRound: true,
-        excludeFromLearning: true,
-      })
-    } else {
-      await workout.discardCurrentRoundAndFinish()
-    }
-  }
+  const handleConfirmFinish = useCallback(
+    async (
+      action: 'save' | 'abnormal' | 'discard' | 'cancel',
+      confirmedEndFloor?: number,
+    ) => {
+      const mode = confirmMode
+      setConfirmMode(null)
+      if (action === 'cancel') return
+      if (
+        mode === 'learning_endpoint' &&
+        action === 'save' &&
+        confirmedEndFloor !== undefined
+      ) {
+        await workout.completeLearningRound(confirmedEndFloor)
+        return
+      }
+      if (action === 'save') {
+        await workout.finishWorkout({
+          saveIncompleteRound: true,
+          confirmedEndFloor,
+          excludeFromLearning:
+            workout.firstRoundCalibration && !workout.templateGenerated,
+        })
+      } else if (action === 'abnormal') {
+        await workout.finishWorkout({
+          saveIncompleteRound: true,
+          excludeFromLearning: true,
+        })
+      } else {
+        await workout.discardCurrentRoundAndFinish()
+      }
+    },
+    [confirmMode, workout],
+  )
 
-  const handleReachedLearningEndpoint = () => {
+  const handleReachedLearningEndpoint = useCallback(() => {
     setConfirmMode('learning_endpoint')
-  }
+  }, [])
 
   // === Android 硬件返回键 ===
   // 训练进行中按返回键不应直接退出，而是触发与"结束训练"按钮相同的流程。
@@ -543,7 +546,8 @@ const DUMMY_TEMPLATE: RouteTemplate = {
 }
 
 // === 轮次轨道组件 ===
-function RoundTrack({
+// 仅依赖轮次编号与完成状态，训练中的高频状态更新不应触发它重渲染。
+const RoundTrack = memo(function RoundTrack({
   currentRound,
   completedRounds,
   goal,
@@ -614,11 +618,11 @@ function RoundTrack({
       )}
     </View>
   )
-}
+})
 
-// === 各阶段视图组件 ===
-
-function AscendingView({
+// 高频状态（snapshot/elapsed/visualization）驱动它重渲染时，
+// 内部按各自数据变化的子组件（波形图/楼层格/指标）已独立 memo。
+const AscendingView = memo(function AscendingView({
   routeTpl,
   snapshot,
   elapsedMs,
@@ -784,9 +788,9 @@ function AscendingView({
       )}
     </>
   )
-}
+})
 
-function RoundCompleteView({
+const RoundCompleteView = memo(function RoundCompleteView({
   round,
   previousRound,
   routeTpl,
@@ -836,9 +840,9 @@ function RoundCompleteView({
       <Button title="结束训练" variant="secondary" onPress={onFinish} />
     </>
   )
-}
+})
 
-function ReturningView({
+const ReturningView = memo(function ReturningView({
   round,
   routeTpl,
   returnElapsedMs,
@@ -939,9 +943,9 @@ function ReturningView({
       <Button title="结束训练" variant="secondary" onPress={onFinish} />
     </>
   )
-}
+})
 
-function StartConfirmationView({
+const StartConfirmationView = memo(function StartConfirmationView({
   onConfirm,
   onNotYet,
   onFinish,
@@ -963,9 +967,9 @@ function StartConfirmationView({
       <Button title="结束训练" variant="secondary" onPress={onFinish} />
     </>
   )
-}
+})
 
-function RecoveringView({
+const RecoveringView = memo(function RecoveringView({
   roundNumber,
   nextRoundNumber,
   recoveryElapsedMs,
@@ -1038,7 +1042,7 @@ function RecoveringView({
       )}
     </>
   )
-}
+})
 
 // === 弹窗组件 ===
 

@@ -583,11 +583,12 @@ export function useClimbWorkout(
       const recorder = new SensorRecorder({
         retainSamples: false,
         onSample: (sample) => {
-          const next = returnVisualizationRef.current.push(sample)
+          returnVisualizationRef.current.push(sample)
           if (
-            sample.t - returnVisualizationRenderAtRef.current >= 100
+            sample.t - returnVisualizationRenderAtRef.current >= 400
           ) {
             returnVisualizationRenderAtRef.current = sample.t
+            const next = returnVisualizationRef.current.snapshot()
             setReturnVisualization({
               ...next,
               relativeHeightM:

@@ -38,8 +38,14 @@ const METERS_PER_HPA = 8.3
 const STEP_THRESHOLD = 0.13
 const STEP_REFRACTORY_MS = 260
 const ANALYSIS_WINDOW_MS = 3500
-const DISPLAY_INTERVAL_MS = 100
+// 波形显示刷新间隔：400ms 约 2.5 帧/秒。波形图只是训练辅助提示，
+// 过高频率会让 SVG 动态元素每秒重建上百个原生视图（Fabric 下会持续
+// 增长内存，真机长训会触发系统杀进程）。2.5fps 肉眼仍可跟读。
+const DISPLAY_INTERVAL_MS = 400
 const DISPLAY_POINTS = 48
+// points 压缩阈值：窗口点数（采样率×3.5s）远小于该值时不拷贝数组。
+// 50Hz 时窗口约 175 点，压缩间隔约 1.5 秒一次，避免每秒 50 次 filter。
+const POINTS_COMPACT_THRESHOLD = 240
 
 export function emptySensorVisualization(): SensorVisualizationState {
   return {
@@ -87,7 +93,7 @@ export class SensorMotionInterpreter {
     this.lastDisplayAt = 0
   }
 
-  push(sample: SensorSample): SensorVisualizationState {
+  push(sample: SensorSample): void {
     const magnitude = Math.sqrt(
       sample.ax ** 2 + sample.ay ** 2 + sample.az ** 2,
     )
@@ -122,8 +128,12 @@ export class SensorMotionInterpreter {
       step,
     }
     this.points.push(point)
-    const cutoff = sample.t - ANALYSIS_WINDOW_MS
-    this.points = this.points.filter((item) => item.t >= cutoff)
+    // 按需压缩：窗口内点数是（采样率×3.5s），远小于压缩上限时不做
+    // 数组拷贝，避免每秒几十次 filter 分配（真机上会持续增长内存）。
+    if (this.points.length > POINTS_COMPACT_THRESHOLD) {
+      const cutoff = sample.t - ANALYSIS_WINDOW_MS
+      this.points = this.points.filter((item) => item.t >= cutoff)
+    }
 
     if (
       !this.lastDisplayAt ||
@@ -143,8 +153,6 @@ export class SensorMotionInterpreter {
         )
       }
     }
-
-    return this.snapshot(sample.t)
   }
 
   snapshot(now = Date.now()): SensorVisualizationState {
