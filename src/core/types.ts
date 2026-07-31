@@ -345,6 +345,9 @@ export interface ActiveWorkoutCheckpoint {
   // @deprecated 倒计时功能已移除，保留字段仅为读取旧检查点
   countdownSeconds?: number
   startedAt: number
+  // ascending 阶段本轮开始时间。应用被杀导致中断时，恢复流程据此构造
+  // completionReason='interrupted' 的轮次记录（旧检查点无此字段，用 savedAt 兜底）
+  currentRoundStartedAt?: number
 }
 
 export type HistoryItem =

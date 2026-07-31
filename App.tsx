@@ -19,7 +19,7 @@ import {
   saveWorkout,
 } from './src/services/workout-storage'
 import { getRoute } from './src/services/storage'
-import { calculateWorkoutSummary } from './src/core/workout-summary'
+import { calculateWorkoutSummary, buildInterruptedRound } from './src/core/workout-summary'
 import { ActiveWorkoutCheckpoint, ClimbWorkout } from './src/core/types'
 import { hasKnownRouteEnd } from './src/core/route-state'
 import { getFloorAchievementCount } from './src/core/floors'
@@ -65,11 +65,13 @@ async function saveCheckpointAsCompleted(
 ): Promise<ClimbWorkout | null> {
   const route = await getRoute(cp.templateId)
   if (!route) return null
-  const summary = calculateWorkoutSummary(
-    cp.completedRounds,
-    cp.startedAt,
-    Date.now(),
-  )
+  // ascending 被中断时无法恢复半轮特征：把本轮记录为 interrupted 轮次，
+  // 与 resumeFromCheckpoint 行为保持一致，让历史记录可见这次中断
+  const rounds =
+    cp.phase === 'ascending' || cp.phase === 'countdown'
+      ? [...cp.completedRounds, buildInterruptedRound(cp, route)]
+      : cp.completedRounds
+  const summary = calculateWorkoutSummary(rounds, cp.startedAt, Date.now())
   const knownEnd = hasKnownRouteEnd(route)
   const workout: ClimbWorkout = {
     id: cp.workoutId,
@@ -90,7 +92,7 @@ async function saveCheckpointAsCompleted(
     status: 'completed',
     startedAt: cp.startedAt,
     endedAt: Date.now(),
-    rounds: cp.completedRounds,
+    rounds,
     currentRoundNumber: cp.currentRoundNumber,
     totalRoundsCompleted: summary.completeRounds,
     totalFloorsCompleted: summary.totalFloors,

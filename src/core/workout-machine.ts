@@ -18,7 +18,6 @@ export type WorkoutAction =
   | { type: 'BEGIN_RECOVERY' }
   | { type: 'START_NEXT_ROUND' }
   | { type: 'FINISH_WORKOUT' }
-  | { type: 'GOAL_REACHED' }
 
 export const INITIAL_WORKOUT_STATE: WorkoutMachineState = {
   phase: 'setup',
@@ -116,32 +115,7 @@ export function workoutReducer(
         recoveringSince: undefined,
       }
 
-    case 'GOAL_REACHED':
-      // 目标达成仅作提示，不强制改变 phase。用户可选择继续加练或完成训练。
-      return state
-
     default:
       return state
   }
-}
-
-/**
- * 是否可在当前阶段结束训练。
- */
-export function canFinishWorkout(phase: WorkoutPhase): boolean {
-  return phase !== 'setup' && phase !== 'workout_complete'
-}
-
-/**
- * 是否为传感器高频阶段（需要加速度+陀螺仪+识别器）。
- */
-export function isSensorHeavyPhase(phase: WorkoutPhase): boolean {
-  return phase === 'ascending'
-}
-
-/**
- * 是否为气压低频阶段（仅保留气压计辅助判断高度）。
- */
-export function isBarometerLightPhase(phase: WorkoutPhase): boolean {
-  return phase === 'returning' || phase === 'start_confirmation'
 }

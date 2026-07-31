@@ -27,11 +27,9 @@ import { RouteLocation, RouteTemplate } from '../core/types'
 import { uid } from '../core/math'
 import { getCurrentLocation, locationPermissionErrorMessage } from '../services/location'
 import { saveRoute, updateRouteLocation } from '../services/storage'
+import { AMAP_JS_KEY, AMAP_SECURITY_CODE } from '../services/amap'
 
-// 高德 JS API Key + 安全密钥（Web端 JS API 类型）。
-// 注意：此 key 会暴露在前端代码中，高德 JS API 个人开发者免费不限调用次数，只限 QPS。
-const AMAP_JS_KEY = '86de9d2ef905545ffefa7e8559ebbfbd'
-const AMAP_SECURITY_CODE = '1fc0d516d6c4a6f0fca7ee7873e9cb9d'
+// 高德 JS API key 与安全密钥统一在 services/amap.ts 管理（含上线前说明）
 
 // 默认坐标：武夷山市（项目所在地，GCJ-02 坐标系，高德默认坐标系）
 const DEFAULT_LAT = 27.7559

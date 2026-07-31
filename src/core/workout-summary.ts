@@ -1,7 +1,9 @@
 import { uid } from './math'
 import {
+  ActiveWorkoutCheckpoint,
   ClimbSession,
   ClimbWorkout,
+  RouteTemplate,
   WorkoutGoal,
   WorkoutRound,
   WorkoutSummary,
@@ -10,6 +12,42 @@ import {
   getFloorAchievementCount,
   getRoundAchievementCount,
 } from './floors'
+
+/**
+ * 中断轮记录：应用被杀时正在 ascending 的本轮无法恢复半轮特征，
+ * 恢复/结束保存时构造一条 completionReason='interrupted' 的轮次写入 rounds，
+ * 保证历史记录中能看到这次中断的尝试。
+ *
+ * 注意：durationMs/steps/ascentM/floorsCompleted 全部为 0，
+ * 避免把半轮爬升计入净爬楼时间、步数等汇总口径。
+ */
+export function buildInterruptedRound(
+  checkpoint: Pick<
+    ActiveWorkoutCheckpoint,
+    'currentRoundNumber' | 'savedAt' | 'currentRoundStartedAt'
+  >,
+  template: RouteTemplate,
+): WorkoutRound {
+  return {
+    id: uid('round'),
+    roundNumber: checkpoint.currentRoundNumber,
+    startedAt: checkpoint.currentRoundStartedAt ?? checkpoint.savedAt,
+    endedAt: checkpoint.savedAt,
+    durationMs: 0,
+    startFloor: template.startFloor,
+    targetFloor: template.endFloor,
+    finalFloor: template.startFloor,
+    floorsCompleted: 0,
+    ascentM: 0,
+    steps: 0,
+    confidence: 0,
+    complete: false,
+    completionReason: 'interrupted',
+    floorSplits: [],
+    events: [],
+    interruptions: [],
+  }
+}
 
 /**
  * 计算训练汇总。纯函数，所有总数据从轮次数据派生。

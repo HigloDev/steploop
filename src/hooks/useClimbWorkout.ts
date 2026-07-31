@@ -21,6 +21,7 @@ import { useClimbRoundSession } from './useClimbRoundSession'
 import {
   calculateWorkoutSummary,
   checkGoalReached,
+  buildInterruptedRound,
   roundFromSession,
 } from '../core/workout-summary'
 import {
@@ -240,6 +241,8 @@ export function useClimbWorkout(
   // 当前轮次编号引用，避免回调闭包过期
   const currentRoundNumberRef = useRef<number>(0)
   currentRoundNumberRef.current = machine.currentRoundNumber
+  // 本轮开始时间戳（ascending 阶段），应用被杀中断时用于构造 interrupted 轮
+  const currentRoundStartedAtRef = useRef<number | undefined>(undefined)
 
   // === 气压基线（ascending 阶段采集，returning 阶段使用） ===
   // 本轮起点气压基线（hPa）。每轮 ascending 开始时重新采集。
@@ -281,6 +284,10 @@ export function useClimbWorkout(
         goal: w.goal,
         returnConfirmationMode: w.returnConfirmationMode,
         startedAt: w.startedAt,
+        currentRoundStartedAt:
+          phase === 'ascending'
+            ? currentRoundStartedAtRef.current
+            : undefined,
       }
       await saveActiveCheckpoint(checkpoint)
     },
@@ -529,6 +536,14 @@ export function useClimbWorkout(
     phaseStartedAtRef.current = Date.now()
     const phase = machine.phase
     const roundNumber = machine.currentRoundNumber
+
+    // 维护本轮开始时间（必须放在 persistCheckpoint 之前：
+    // 持久化会把 ascending 阶段的本轮开始时间写入检查点，供中断恢复使用）
+    if (phase === 'ascending' && currentRoundStartedAtRef.current === undefined) {
+      currentRoundStartedAtRef.current = Date.now()
+    } else if (phase !== 'ascending') {
+      currentRoundStartedAtRef.current = undefined
+    }
 
     // 只持久化仍在进行中的训练。结束流程会先清除检查点，再派发
     // FINISH_WORKOUT；若这里把 workout_complete 再写回，会导致下次启动
@@ -900,13 +915,24 @@ export function useClimbWorkout(
       // 恢复到对应阶段
       // 不恢复 ascending 阶段（无法恢复半轮 DTW 缓冲）
       let resumePhase: WorkoutPhase = checkpoint.phase
+      let resumeRoundNumber = checkpoint.currentRoundNumber
       if (resumePhase === 'ascending' || resumePhase === 'countdown') {
-        // 半轮被中断（countdown 为旧检查点遗留阶段），从下一轮开始
+        // 半轮被中断（countdown 为旧检查点遗留阶段）：
+        // 1) 把中断的本轮记录为 completionReason='interrupted' 的轮次
+        // 2) 从下一轮（roundNumber+1）的 round_ready 重新开始
+        const interruptedRound = buildInterruptedRound(checkpoint, template)
+        const updatedWorkout: ClimbWorkout = {
+          ...w,
+          rounds: [...w.rounds, interruptedRound],
+        }
+        setWorkout(updatedWorkout)
+        workoutRef.current = updatedWorkout
         resumePhase = 'round_ready'
+        resumeRoundNumber = checkpoint.currentRoundNumber + 1
       }
       setMachine({
         phase: resumePhase,
-        currentRoundNumber: checkpoint.currentRoundNumber,
+        currentRoundNumber: resumeRoundNumber,
         returningSince:
           resumePhase === 'returning' ? Date.now() : undefined,
         recoveringSince:

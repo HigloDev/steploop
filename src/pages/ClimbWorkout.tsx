@@ -866,8 +866,10 @@ function ReturningView({
 }) {
   const theme = useTheme()
   const styles = makeStyles(theme)
+  // 每层高度：优先用路线模板的实际值，无采集数据时按典型 3 米兜底
+  const floorHeightM = routeTpl.floorHeightM > 0 ? routeTpl.floorHeightM : 3
   const rawEstimatedFloor =
-    routeTpl.startFloor + Math.round((relativeHeightM ?? 0) / 3)
+    routeTpl.startFloor + Math.round((relativeHeightM ?? 0) / floorHeightM)
   const estimatedFloor = hasKnownRouteEnd(routeTpl)
     ? Math.max(
         routeTpl.startFloor,

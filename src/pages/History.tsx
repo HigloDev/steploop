@@ -43,6 +43,8 @@ interface BaseCard {
   // 详情
   metricsLine: string
   highlightLine: string
+  // 累计爬升米数（用于顶部汇总，避免从显示文本解析）
+  ascentM: number
   // 跳转目标
   target: { route: 'WorkoutResult'; params: { id: string } } | { route: 'Result'; params: { id: string } }
 }
@@ -89,6 +91,7 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
     complete,
     interrupted,
     metricsLine: `${floorsText} · ${ascentText} · ${stepsText}`,
+    ascentM: summary.totalAscentM,
     highlightLine: `净爬楼 ${formatDuration(summary.activeDurationMs)} · 总历时 ${formatDuration(summary.totalElapsedMs)}${
       summary.bestRoundMs ? ` · 最快 ${formatDuration(summary.bestRoundMs)}` : ''
     }`,
@@ -121,6 +124,7 @@ function sessionToCard(s: ClimbSession): BaseCard {
     complete: s.complete,
     interrupted,
     metricsLine: `${s.startFloor}层 → ${s.finalFloor}层 · ${s.ascentM}米 · ${s.steps} 步`,
+    ascentM: s.ascentM,
     highlightLine: `用时 ${formatDuration(s.durationMs ?? 0)} · 置信度 ${Math.round(s.confidence * 100)}%`,
     target: { route: 'Result', params: { id: s.id } },
   }
@@ -172,11 +176,7 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
       const completed = items.filter((c) => c.complete)
       setTotalCompleted(completed.length)
       setTotalAscent(
-        completed.reduce((sum, c) => {
-          // 从成绩文字中解析爬升米数
-          const match = c.metricsLine.match(/([\d.]+)米/)
-          return sum + (match ? parseFloat(match[1]) : 0)
-        }, 0),
+        completed.reduce((sum, c) => sum + c.ascentM, 0),
       )
       setCheckpoint(cp)
     } catch (err) {
