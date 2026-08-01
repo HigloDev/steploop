@@ -132,18 +132,33 @@ function WaveformPanel({
           )}
 
           <View style={styles.waveReadingRow}>
-            <Text style={styles.waveReadingValue}>
-              {latest.motion.toFixed(2)}
-            </Text>
-            <Text style={styles.waveReadingValue}>
-              {latest.turn > 0 ? '+' : ''}
-              {latest.turn.toFixed(2)}
-            </Text>
-            <Text style={styles.waveReadingValue}>
-              {barometerAvailable
-                ? `${visualization.relativeHeightM.toFixed(1)}米`
-                : '不可用'}
-            </Text>
+            <View style={styles.waveReadingItem}>
+              <Text style={[styles.waveReadingLabel, { color: theme.mint }]}>
+                动作
+              </Text>
+              <Text style={styles.waveReadingValue}>
+                {latest.motion.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.waveReadingItem}>
+              <Text style={[styles.waveReadingLabel, { color: theme.orange }]}>
+                转向
+              </Text>
+              <Text style={styles.waveReadingValue}>
+                {latest.turn > 0 ? '+' : ''}
+                {latest.turn.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.waveReadingItem}>
+              <Text style={[styles.waveReadingLabel, { color: theme.blueInk }]}>
+                气压
+              </Text>
+              <Text style={styles.waveReadingValue}>
+                {barometerAvailable
+                  ? `${visualization.relativeHeightM.toFixed(1)}米`
+                  : '不可用'}
+              </Text>
+            </View>
           </View>
         </>
       ) : (
@@ -333,13 +348,27 @@ const stylesFor = (theme: Theme) =>
     },
     waveReadingRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingHorizontal: 12,
-      paddingTop: 6,
+      gap: 6,
+      paddingHorizontal: 8,
+      paddingTop: 8,
+    },
+    waveReadingItem: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 5,
+      paddingHorizontal: 8,
+      borderRadius: theme.radiusSm,
+      borderCurve: 'continuous',
+      backgroundColor: theme.surfaceSoft,
+    },
+    waveReadingLabel: {
+      fontSize: 10,
+      fontWeight: '700',
     },
     waveReadingValue: {
+      paddingTop: 2,
       color: theme.ink,
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '800',
       fontVariant: ['tabular-nums'],
     },
