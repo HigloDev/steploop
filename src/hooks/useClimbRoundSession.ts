@@ -146,7 +146,6 @@ export function useClimbRoundSession(
       lastFloorRef.current = next.currentFloor
       triggerHapticPattern('floor')
     }
-    // 回归调试：临时禁用 setSnapshot 隔离渲染频率是否为内存泄漏源
     setSnapshot(
       !autoCompleteRef.current && next.status === 'complete'
         ? { ...next, status: 'matching' }

@@ -32,6 +32,9 @@ export async function listRoutes(): Promise<RouteTemplate[]> {
       routes = legacy.map((route) => migrateRouteToV3(route))
       try {
         await AsyncStorage.setItem(ROUTES_KEY, JSON.stringify(routes))
+        // V3 写入成功后再清理旧键，避免备份/排障误读未迁移数据
+        if (v2.length) await AsyncStorage.removeItem(V2_ROUTES_KEY)
+        await AsyncStorage.removeItem(LEGACY_ROUTES_KEY)
       } catch (error) {
         console.warn('[storage] route v3 migration write failed', error)
         // Keep the legacy data readable even when storage is temporarily full.
@@ -138,12 +141,12 @@ export interface BackupPayload {
   workouts?: ClimbWorkout[]
 }
 
-/** 导出当前设备的路线与会话原始数据，不做任何归一化处理，用于备份/迁移。 */
+/** 导出当前设备的路线与会话数据；路线走 listRoutes 以保证已迁移且不丢旧键数据。 */
 export async function exportRawData(): Promise<BackupPayload> {
   return {
     version: 2,
     exportedAt: Date.now(),
-    routes: await readArray<RouteTemplate>(ROUTES_KEY),
+    routes: await listRoutes(),
     sessions: await readArray<ClimbSession>(SESSIONS_KEY),
     workouts: await readArray<ClimbWorkout>(WORKOUTS_KEY),
   }

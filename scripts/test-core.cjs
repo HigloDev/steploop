@@ -622,3 +622,56 @@ test('training progress: 仅可信完整训练进入周目标与个人最佳', (
   assert.equal(progress.floors, 30)
   assert.equal(progress.personalBests.route.workoutId, 'best')
 })
+
+test('diagnostics export: 导出包剥离绝对时间与地点机型', () => {
+  const { sanitizeDiagnosticBundleForExport } = load('diagnostics')
+  const bundle = makeDiagnosticBundle('stationary')
+  bundle.createdAt = 1_700_000_000_000
+  bundle.routeTemplate = {
+    ...makeCalorieTestTemplate(),
+    location: {
+      name: '真实建筑',
+      address: '真实地址',
+      latitude: 31,
+      longitude: 121,
+      accuracy: 10,
+      source: 'gps',
+      confirmedAt: 0,
+    },
+  }
+  bundle.routeTemplate.device = {
+    platform: 'android',
+    model: 'Pixel 9',
+    system: '14',
+  }
+  const safe = sanitizeDiagnosticBundleForExport(bundle)
+  assert.equal(safe.createdAt, 0)
+  assert.equal(safe.routeTemplate.location, undefined)
+  assert.equal(safe.routeTemplate.device.model, 'redacted')
+  assert.equal(safe.samples[0].t, bundle.samples[0].t)
+})
+
+test('diagnostics compare: 空数据集或缺 results 时数据集不兼容', () => {
+  const { compareDiagnosticReports } = load('diagnostics')
+  const metric = {
+    exactFinalFloorRate: 1,
+    floorEventPrecision: 1,
+    floorEventRecall: 1,
+    negativeFalsePositiveRate: 0,
+    p95FloorLatencyMs: 1000,
+    results: [{ bundleId: 'a' }],
+  }
+  const empty = compareDiagnosticReports(metric, { ...metric, results: [] })
+  assert.equal(empty.datasetCompatible, false)
+  assert.equal(empty.passed, false)
+  const missing = compareDiagnosticReports(metric, { ...metric, results: undefined })
+  assert.equal(missing.datasetCompatible, false)
+})
+
+test('calories: 体重与净爬楼时长决定消耗', () => {
+  const { calculateStairCalories } = load('calories')
+  const light = calculateStairCalories(60_000, 50)
+  const heavy = calculateStairCalories(60_000, 90)
+  assert.ok(heavy > light, '体重越大消耗应越高')
+  assert.equal(calculateStairCalories(0, 70), 0, '无动作时间不应计消耗')
+})

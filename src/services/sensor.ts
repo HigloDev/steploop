@@ -67,7 +67,7 @@ export function sensorStartErrorMessage(error: unknown): string {
     detail.includes('permission') ||
     detail.includes('authorize')
   ) {
-    return `${label}权限被拒绝。请在手机系统设置 → 应用 → 爬楼 → 权限中允许「运动与健身/身体传感器」访问。`
+    return `${label}权限被拒绝。请在手机系统设置 → 应用 → 循阶 → 权限中允许传感器访问后重试。`
   }
   if (
     detail.includes('not support') ||

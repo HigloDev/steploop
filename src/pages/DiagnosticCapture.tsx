@@ -24,6 +24,7 @@ import {
   DIAGNOSTIC_PARAMETER_VERSION,
   calculateDiagnosticQuality,
   normalizeDiagnosticSamples,
+  sanitizeDiagnosticBundleForExport,
   sanitizeDiagnosticRoute,
 } from '../core/diagnostics'
 import { CarryMode, RouteTemplate } from '../core/types'
@@ -233,7 +234,7 @@ export default function DiagnosticCaptureScreen({
       const bundle: DiagnosticBundle = {
         version: DIAGNOSTIC_BUNDLE_VERSION,
         id: uid('diagnostic'),
-        createdAt: startedAt,
+        createdAt: 0,
         durationMs,
         activity,
         carryMode,
@@ -267,7 +268,9 @@ export default function DiagnosticCaptureScreen({
           ? [...quality.invalidReasons, 'marked_invalid_by_tester']
           : quality.invalidReasons,
       }
-      const result = await exportDiagnosticBundle(bundle)
+      const result = await exportDiagnosticBundle(
+        sanitizeDiagnosticBundleForExport(bundle),
+      )
       setSampleCount(samples.length)
       setElapsedMs(durationMs)
       setMessage(result.message)

@@ -12,11 +12,9 @@ export interface DiagnosticExportResult {
 }
 
 function fileName(bundle: DiagnosticBundle): string {
-  const stamp = new Date(bundle.createdAt)
-    .toISOString()
-    .replace(/[:.]/g, '-')
   const cohort = bundle.capture.deviceCohortId.replace(/[^a-zA-Z0-9_-]/g, '-')
-  return `palou-diagnostic-${cohort}-${bundle.activity}-${stamp}.json`
+  const duration = Math.max(0, Math.round(bundle.durationMs))
+  return `palou-diagnostic-${cohort}-${bundle.activity}-${duration}ms.json`
 }
 
 export function serializeDiagnosticBundle(bundle: DiagnosticBundle): string {

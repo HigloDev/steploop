@@ -46,6 +46,10 @@ yarn-error.*
 *.ipa
 *.tmp
 
+# local synthetic diagnostics fixtures (pipeline smoke only)
+.diagnostics-synthetic/
+.diagnostics-synthetic-report.json
+
 # root debug artifacts (device screenshots, UI dumps, QA scratch files)
 .tmp_*.xml
 palou-*.png

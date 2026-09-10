@@ -71,12 +71,3 @@ export async function ensurePrivacyAuthorized(): Promise<void> {
     throw new PrivacyAuthorizeError('dismissed', 'user has not agreed privacy policy yet')
   }
 }
-
-/**
- * 注册全局隐私授权拦截器。
- * Android 上无对应原生事件，本函数保留为空实现以兼容旧调用方。
- * 应用启动时仍应通过 App.tsx 路由到 privacy 页强制阅读协议。
- */
-export function registerPrivacyHandler(): void {
-  // no-op on Android: privacy gating is enforced by App.tsx route guard.
-}

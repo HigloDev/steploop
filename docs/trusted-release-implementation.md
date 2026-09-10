@@ -16,6 +16,8 @@
 - 结果页增加同路线个人最佳与可追溯的规则建议。
 - Android 权限收敛到定位、活动识别、震动和联网；读相册、旧外部存储、身体传感器和高频传感器权限已从最终 Manifest 移除。
 - 高德配置改为本地/构建环境注入，不再直接保存在业务源码。
+- 诊断导出包剥离绝对采集日历时间（`createdAt=0`），文件名不使用绝对 ISO 时间戳。
+- 路线 V3 迁移写入成功后清理 v1/v2 旧键；备份导出走 `listRoutes()` 保证不丢迁移数据。
 
 ## 自动验收入口
 
@@ -31,6 +33,8 @@ npm run smoke:android -- -Serial <device-serial>
 ## 本地验证记录
 
 - 2026-09-10：`npm test` 26/26 通过（含楼层模型检查）；`npx tsc --noEmit` 通过。
+- 2026-09-10：`npm test` 29/29 通过；`npx tsc --noEmit` 通过；`expo export --platform android` 成功。
+- 2026-09-10：合成夹具跑通 `diagnostics:replay` → `diagnostics:gate`；负样本误报率为 0，门禁在合成爬楼准确率不足时正确失败。
 
 ## 仍然阻断公开发布的外部验收
 

@@ -84,6 +84,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
           <Text style={styles.sectionTitle}>2. 信息存储</Text>
           <Text style={styles.paragraph}>所有路线模板、爬楼记录与成绩摘要均存储在本地存储中，保存在当前设备下，不会上传到任何服务器。</Text>
           <Text style={styles.paragraph}>原始传感器数据仅在标定复核期间临时保存在内存中，离开页面即清除。</Text>
+          <Text style={styles.paragraph}>开发者诊断包仅在用户主动导出时生成；导出前会剥离地点、机型与绝对采集日历时间，不自动上传。</Text>
           <Text style={styles.paragraph}>最近 100 次会话摘要会被保留，超出部分会被覆盖。</Text>
         </View>
 

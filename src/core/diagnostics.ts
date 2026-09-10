@@ -288,6 +288,21 @@ export function normalizeDiagnosticSamples(
   }))
 }
 
+/**
+ * 导出前最后一道脱敏：去掉绝对采集日历时间，并再次剥离路线地点与机型。
+ * 操作系统版本与传感器相对时间戳保留，用于复现识别结果。
+ */
+export function sanitizeDiagnosticBundleForExport(
+  bundle: DiagnosticBundle,
+): DiagnosticBundle {
+  return {
+    ...bundle,
+    createdAt: 0,
+    routeTemplate: sanitizeDiagnosticRoute(bundle.routeTemplate),
+    samples: bundle.samples.map((sample) => ({ ...sample })),
+  }
+}
+
 export function parseDiagnosticBundle(value: unknown): DiagnosticBundle {
   if (!value || typeof value !== 'object') {
     throw new Error('诊断文件不是有效对象')

@@ -43,6 +43,8 @@ const expandedInputs = inputs.flatMap((input) => {
   return fs
     .readdirSync(resolved)
     .filter((name) => name.toLowerCase().endsWith('.json'))
+    // 跳过汇总报告本身，避免把上次 --out 结果再当诊断样本解析
+    .filter((name) => !/^(.*-)?report\.json$/i.test(name))
     .map((name) => path.join(resolved, name))
 })
 if (!inputs.length) {
