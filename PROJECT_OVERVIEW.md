@@ -45,12 +45,13 @@ npx tsc --noEmit
 npx expo export --platform android --output-dir .expo-export-check --clear
 npm run diagnostics:replay -- --out <report.json> <诊断目录>
 npm run diagnostics:gate -- <report.json>
+npm run diagnostics:smoke
 npm run smoke:android -- -Serial <device-serial>
 ```
 
 ## 最近验证
 
-- 2026-09-10：`npm test` 26/26 通过（含楼层模型检查）；`npx tsc --noEmit` 通过。
+- 2026-09-10：`npm test` 29/29 通过；`npx tsc --noEmit` 通过；`expo export --platform android` 成功；`npm run diagnostics:smoke` 链路通过。
 
 ## 关键文档
 
