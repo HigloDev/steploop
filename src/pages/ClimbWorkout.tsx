@@ -26,7 +26,7 @@ import { useTheme, Theme } from '../theme'
 import { RootStackScreen } from '../navigation/types'
 import { getRoute } from '../services/storage'
 import { loadActiveCheckpoint } from '../services/workout-storage'
-import { RouteTemplate, WorkoutGoal } from '../core/types'
+import { RecognitionSnapshot, RouteTemplate, WorkoutGoal } from '../core/types'
 import { formatDuration } from '../core/math'
 import { useClimbWorkout } from '../hooks/useClimbWorkout'
 import { hasKnownRouteEnd } from '../core/route-state'
@@ -445,6 +445,10 @@ export default function ClimbWorkoutScreen({
             floorCards={floorCards}
             summary={workout.summary}
             onFinish={handleFinishWorkout}
+            onConfirmRoundComplete={workout.confirmCurrentRoundComplete}
+            autoCompletePending={workout.roundSession.autoCompletePending}
+            autoCompleteCountdown={workout.roundSession.autoCompleteCountdown}
+            onCancelAutoComplete={workout.roundSession.cancelAutoComplete}
             onReachedLearningEndpoint={handleReachedLearningEndpoint}
             learningRoute={
               workout.firstRoundCalibration &&
@@ -631,16 +635,24 @@ const AscendingView = memo(function AscendingView({
   floorCards,
   summary,
   onFinish,
+  onConfirmRoundComplete,
+  autoCompletePending,
+  autoCompleteCountdown,
+  onCancelAutoComplete,
   onReachedLearningEndpoint,
   learningRoute,
 }: {
   routeTpl: RouteTemplate
-  snapshot: { currentFloor: number; floorsCompleted: number; ascentM: number; steps: number; confidence: number; status: string; activeMs: number }
+  snapshot: RecognitionSnapshot
   visualization: ReturnType<typeof useClimbWorkout>['roundSession']['visualization']
   barometerAvailable: boolean
   floorCards: FloorCard[]
   summary: { totalFloors: number; totalSteps: number; totalAscentM: number } | null
   onFinish: () => void
+  onConfirmRoundComplete: () => Promise<boolean>
+  autoCompletePending: boolean
+  autoCompleteCountdown: number
+  onCancelAutoComplete: () => void
   onReachedLearningEndpoint: () => void
   learningRoute: boolean
 }) {
@@ -662,6 +674,14 @@ const AscendingView = memo(function AscendingView({
           (Math.max(1, achievedFloors) / Math.max(1, targetFloors)) * 100,
         ),
       )
+  const recognitionLabel =
+    snapshot.quality === 'invalid'
+      ? '需要检查'
+      : snapshot.statusReason === 'confirming_next_floor'
+        ? '正在确认'
+        : snapshot.quality === 'stable'
+          ? '识别稳定'
+          : '降级识别'
   return (
     <>
       <SensorMotionVisualizer
@@ -673,16 +693,23 @@ const AscendingView = memo(function AscendingView({
         routeLearning={learningRoute}
       />
 
+      <View
+        accessible
+        accessibilityRole="summary"
+        accessibilityLabel={`当前${snapshot.currentFloor}层，${recognitionLabel}，净爬楼${formatDuration(snapshot.activeMs)}`}
+        style={styles.floorHero}
+      >
+        <Text style={styles.floorHeroLabel}>
+          {learningRoute ? '估算位置' : '当前楼层'}
+        </Text>
+        <View style={styles.floorHeroValueRow}>
+          <Text style={styles.floorHeroValue}>{snapshot.currentFloor}</Text>
+          <Text style={styles.floorHeroUnit}>层</Text>
+        </View>
+        <Text style={styles.floorHeroStatus}>{recognitionLabel}</Text>
+      </View>
+
       <View style={styles.metricGrid}>
-        <Metric
-          label={learningRoute ? '估算位置' : '当前楼层'}
-          value={
-            learningRoute
-              ? `${snapshot.currentFloor}层附近`
-              : `${snapshot.currentFloor}层`
-          }
-          style={styles.metric}
-        />
         <Metric
           label={learningRoute ? '估算爬升' : '本轮已爬'}
           value={
@@ -712,7 +739,9 @@ const AscendingView = memo(function AscendingView({
         <Text style={styles.confidenceLabel}>
           {learningRoute
             ? `这里只显示传感器估算；到达真实终点后，由你确认实际楼层。`
-            : `置信度 ${Math.round(snapshot.confidence * 100)}% · 爬升 ${snapshot.ascentM.toFixed(1)}米`}
+            : snapshot.candidateFloor !== undefined
+              ? `正在结合步态、转弯和高度确认 ${snapshot.candidateFloor} 层`
+              : `${recognitionLabel} · 爬升 ${snapshot.ascentM.toFixed(1)}米`}
         </Text>
       </Card>
 
@@ -783,11 +812,35 @@ const AscendingView = memo(function AscendingView({
           />
         </>
       ) : (
-        <Button
-          title="结束训练"
-          variant="secondary"
-          onPress={onFinish}
-        />
+        <>
+          {autoCompletePending ? (
+            <Card raised style={styles.statusCard}>
+              <Text style={styles.summaryTitle}>
+                {autoCompleteCountdown} 秒后自动完成本轮
+              </Text>
+              <Text style={styles.confidenceLabel}>
+                已同时确认高度与运动证据；如果尚未到达终点，请立即撤销。
+              </Text>
+              <Button
+                title="撤销自动完成"
+                variant="secondary"
+                onPress={onCancelAutoComplete}
+              />
+            </Card>
+          ) : null}
+          {snapshot.status === 'complete' && !snapshot.canAutoComplete ? (
+            <Button
+              title="确认到达终点"
+              accessibilityLabel="确认本轮已经到达路线终点"
+              onPress={onConfirmRoundComplete}
+            />
+          ) : null}
+          <Button
+            title="结束训练"
+            variant="secondary"
+            onPress={onFinish}
+          />
+        </>
       )}
     </>
   )
@@ -1323,6 +1376,36 @@ const makeStyles = (theme: Theme) =>
       textAlign: 'center',
     },
     // 指标
+    floorHero: {
+      alignItems: 'center',
+      paddingVertical: 22,
+      borderRadius: theme.radiusXl,
+      backgroundColor: theme.green,
+    },
+    floorHeroLabel: {
+      color: theme.card,
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 1,
+    },
+    floorHeroValueRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 7,
+    },
+    floorHeroValue: {
+      color: theme.card,
+      fontSize: 84,
+      lineHeight: 94,
+      fontWeight: '900',
+      fontVariant: ['tabular-nums'],
+    },
+    floorHeroUnit: { color: theme.card, fontSize: 20, fontWeight: '800' },
+    floorHeroStatus: {
+      color: theme.card,
+      fontSize: 14,
+      fontWeight: '800',
+    },
     metricGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',

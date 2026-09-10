@@ -29,6 +29,7 @@ export type RouteParam =
   | { name: 'Privacy'; params?: { from?: string } }
   | { name: 'History'; params?: undefined }
   | { name: 'Settings'; params?: undefined }
+  | { name: 'DiagnosticCapture'; params?: undefined }
   | { name: 'ClimbPreview'; params?: undefined }
 
 // 标定种子：从 LocationPicker 传给 Calibrate，再封装为 RouteSeed 进入 draft。
@@ -58,6 +59,7 @@ export type RootStackParamList = {
   Privacy: { from?: string }
   History: undefined
   Settings: undefined
+  DiagnosticCapture: undefined
   ClimbPreview: undefined
 }
 

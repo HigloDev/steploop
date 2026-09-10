@@ -311,5 +311,13 @@ export function roundFromSession(
     interruptions: session.interruptions,
     averageFloorMs: session.averageFloorMs,
     bestFloorSplitMs: session.bestFloorSplitMs,
+    recognitionEndState: session.recognitionEndState,
+    userCorrectionCount: 0,
+    completionSource:
+      completionReason === 'route_complete' ? 'automatic' : 'manual',
+    trustworthy:
+      session.complete &&
+      session.interruptions.length === 0 &&
+      session.confidence >= 0.8,
   }
 }

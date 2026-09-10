@@ -73,6 +73,43 @@ export async function triggerHaptic(style: 'light' | 'medium' | 'heavy' = 'light
   }
 }
 
+export type HapticPattern =
+  | 'floor'
+  | 'round_complete'
+  | 'goal_complete'
+  | 'recognition_warning'
+
+/** 训练状态使用固定触感语言，UI 不自行拼装震动节奏。 */
+export async function triggerHapticPattern(pattern: HapticPattern): Promise<void> {
+  const prefs = await readPrefs()
+  if (!prefs.hapticFeedback) return
+  try {
+    const impact = (style: Haptics.ImpactFeedbackStyle) =>
+      Haptics.impactAsync(style)
+    if (pattern === 'floor') {
+      await impact(Haptics.ImpactFeedbackStyle.Light)
+      return
+    }
+    if (pattern === 'recognition_warning') {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+      return
+    }
+    await impact(
+      pattern === 'goal_complete'
+        ? Haptics.ImpactFeedbackStyle.Heavy
+        : Haptics.ImpactFeedbackStyle.Medium,
+    )
+    await new Promise((resolve) => setTimeout(resolve, 140))
+    await impact(
+      pattern === 'goal_complete'
+        ? Haptics.ImpactFeedbackStyle.Heavy
+        : Haptics.ImpactFeedbackStyle.Medium,
+    )
+  } catch {
+    // 触感反馈不阻塞训练状态机。
+  }
+}
+
 /**
  * 触发一次声音反馈：用震动通知 style=Heavy 模拟"结束提示"。
  * RN 没有等价于 wx.showToast 内置音效，统一用震动替代。

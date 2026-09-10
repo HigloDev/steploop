@@ -8,6 +8,8 @@ import {
   ClimbMode,
   FeatureFrame,
   RecognitionEvent,
+  RecognitionDecision,
+  RecognitionEvidence,
   RecognitionSnapshot,
   RouteTemplate,
   SensorSample,
@@ -46,6 +48,7 @@ export class RouteRecognizer {
   private hasBarometer = false
   private estimatedHeightM = 0
   private activeMs = 0
+  private lastDecision?: RecognitionDecision
 
   constructor(template: RouteTemplate, startedAt = Date.now()) {
     this.template = template
@@ -95,7 +98,7 @@ export class RouteRecognizer {
       this.hasCompletedFloorRoute() &&
       (!this.hasBarometer || this.hasReachedCurrentFloorHeight())
     ) {
-      this.advanceSegment(frame.endMs, this.currentConfidence)
+      this.advanceSegment(frame.endMs, this.currentConfidence, 'motion')
     }
     return this.snapshot()
   }
@@ -104,7 +107,7 @@ export class RouteRecognizer {
    * 正式训练也接收气压。动作模板负责识别节奏，气压负责守住整层边界并
    * 在模板局部对不上时脱困，避免第二轮永远卡在第一段。
    */
-  pushBarometer(pressure: number): RecognitionSnapshot {
+  pushBarometer(pressure: number, atMs?: number): RecognitionSnapshot {
     if (!Number.isFinite(pressure) || pressure <= 0 || this.paused) {
       return this.snapshot()
     }
@@ -112,9 +115,8 @@ export class RouteRecognizer {
     if (this.baselinePressure === undefined) {
       this.baselineSamples.push(pressure)
       if (this.baselineSamples.length >= BAROMETER_BASELINE_SAMPLES) {
-        this.baselinePressure =
-          this.baselineSamples.reduce((sum, value) => sum + value, 0) /
-          this.baselineSamples.length
+        // 若按下开始后已经迈步，最高气压最接近真正的起点高度。
+        this.baselinePressure = Math.max(...this.baselineSamples)
       }
       return this.snapshot()
     }
@@ -126,31 +128,42 @@ export class RouteRecognizer {
     const smoothed =
       this.pressureWindow.reduce((sum, value) => sum + value, 0) /
       this.pressureWindow.length
+    // 本轮只会向上，采用平滑后的最高相对高度，避免楼道气流造成短暂回落。
     this.estimatedHeightM = Math.max(
-      0,
+      this.estimatedHeightM,
       (this.baselinePressure - smoothed) * METERS_PER_HPA,
+      0,
     )
 
-    if (this.segmentIndex >= this.segmentCount) return this.snapshot()
-    const segment = this.template.segments[this.segmentIndex]
-    if (!segment || !this.hasReachedCurrentFloorHeight()) return this.snapshot()
-
-    // 气压只负责确认高度，不能单独推进楼层。
-    const minimumSteps = Math.max(
-      8,
-      Math.round(segment.stepCount * BAROMETER_STEP_CONFIRM_RATIO),
+    const elapsedMs = Math.max(
+      0,
+      atMs ?? Date.now() - this.startedAt,
     )
-    if (
-      this.observedSteps < minimumSteps ||
-      !this.hasCompletedFloorRoute()
-    ) {
-      return this.snapshot()
+    // 气压给出绝对高度锚点；若此前漏掉一层，保留下来的步数和转弯证据
+    // 可以在同一批气压样本中逐层追回，而不是永远锁在旧楼层。
+    while (this.segmentIndex < this.segmentCount) {
+      const segment = this.template.segments[this.segmentIndex]
+      if (!segment || !this.hasReachedCurrentFloorHeight()) break
+      if (
+        this.observedSteps < this.minimumStepEvidence(segment.stepCount) ||
+        !this.hasCompletedFloorRoute()
+      ) {
+        break
+      }
+      this.advanceSegment(
+        elapsedMs,
+        Math.max(0.74, this.currentConfidence),
+        'barometer',
+      )
     }
-
-    const elapsedMs = Math.max(0, Date.now() - this.startedAt)
-    // 气压兜底的置信度略低于动作完整匹配，但足以让路线继续向前。
-    this.advanceSegment(elapsedMs, Math.max(0.74, this.currentConfidence))
     return this.snapshot()
+  }
+
+  private minimumStepEvidence(segmentSteps: number): number {
+    return Math.max(
+      8,
+      Math.round(Math.max(1, segmentSteps) * BAROMETER_STEP_CONFIRM_RATIO),
+    )
   }
 
   private hasReachedCurrentFloorHeight(): boolean {
@@ -161,10 +174,20 @@ export class RouteRecognizer {
       expectedFlights > 0 && this.template.totalAscentM > 0
         ? this.template.totalAscentM / expectedFlights
         : Math.max(0, current.ascentM)
-    const threshold =
+    const threshold = this.requiredHeightForCurrentFloor(learnedHeightPerFloor)
+    return threshold > 0 && this.estimatedHeightM >= threshold
+  }
+
+  private requiredHeightForCurrentFloor(heightPerFloor?: number): number {
+    const learnedHeightPerFloor =
+      heightPerFloor ??
+      (this.segmentCount > 0 && this.template.totalAscentM > 0
+        ? this.template.totalAscentM / this.segmentCount
+        : Math.max(0, this.template.segments[this.segmentIndex]?.ascentM ?? 0))
+    return (
       (this.segmentIndex + FLOOR_HEIGHT_CONFIRM_RATIO) *
       learnedHeightPerFloor
-    return threshold > 0 && this.estimatedHeightM >= threshold
+    )
   }
 
   private hasCompletedFloorRoute(): boolean {
@@ -185,14 +208,43 @@ export class RouteRecognizer {
       : this.template.segments.length
   }
 
-  private advanceSegment(elapsedMs: number, confidence: number): void {
+  private advanceSegment(
+    elapsedMs: number,
+    confidence: number,
+    source: 'motion' | 'barometer',
+  ): void {
     const segment = this.template.segments[this.segmentIndex]
     if (!segment) return
+    const stepEvidence = this.observedSteps
+    const turnEvidence = this.turnGate.completedTurns
+    const evidence = this.buildFloorEvidence(elapsedMs, source, segment)
+    const quality = this.interruptions.length
+      ? 'degraded'
+      : this.hasBarometer
+        ? 'stable'
+        : 'degraded'
+    const finalSegment = this.segmentIndex + 1 >= this.segmentCount
+    this.lastDecision = {
+      type: finalSegment ? 'route_complete' : 'confirmed_floor',
+      floor: segment.floorTo,
+      confidence,
+      evidence,
+      quality,
+    }
     this.events.push({
       t: elapsedMs,
       type: 'floor',
       floor: segment.floorTo,
       confidence,
+      source,
+      heightM: Number(this.estimatedHeightM.toFixed(2)),
+      stepEvidence,
+      turnEvidence,
+      evidence,
+      reasonCode:
+        source === 'barometer'
+          ? 'height_motion_turn_confirmed'
+          : 'template_motion_turn_confirmed',
     })
     this.floorSplits.push({
       floor: segment.floorTo,
@@ -201,8 +253,73 @@ export class RouteRecognizer {
     })
     this.segmentIndex += 1
     this.observed = []
-    this.observedSteps = 0
-    this.turnGate.reset()
+    // 只消费这一层真正需要的证据；多爬的步数、额外整拐继续留给下一层，
+    // 让绝对高度已经领先时能够逐层追赶。
+    this.observedSteps = Math.max(
+      0,
+      stepEvidence - this.minimumStepEvidence(segment.stepCount),
+    )
+    this.turnGate.consume(TURNS_REQUIRED_PER_FLOOR)
+  }
+
+  private buildFloorEvidence(
+    atMs: number,
+    source: 'motion' | 'barometer',
+    segment: RouteTemplate['segments'][number],
+  ): RecognitionEvidence[] {
+    const evidence: RecognitionEvidence[] = [
+      {
+        source: 'motion',
+        score: clamp(
+          this.observedSteps / Math.max(1, this.minimumStepEvidence(segment.stepCount)),
+          0,
+          1,
+        ),
+        observedAt: atMs,
+        reasonCode: 'step_evidence_satisfied',
+      },
+      {
+        source: 'turn',
+        score: clamp(
+          this.turnGate.completedTurns / TURNS_REQUIRED_PER_FLOOR,
+          0,
+          1,
+        ),
+        observedAt: atMs,
+        reasonCode: 'turn_route_satisfied',
+      },
+    ]
+    if (this.currentConfidence > 0) {
+      evidence.push({
+        source: 'route_template',
+        score: clamp(this.currentConfidence, 0, 1),
+        observedAt: atMs,
+        reasonCode: 'template_match_observed',
+      })
+    }
+    if (this.hasBarometer) {
+      evidence.push({
+        source: 'barometer',
+        score: this.hasReachedCurrentFloorHeight() || source === 'barometer' ? 1 : 0,
+        observedAt: atMs,
+        reasonCode: 'floor_height_reached',
+      })
+    }
+    return evidence
+  }
+
+  private candidateFloor(): number | undefined {
+    const segment = this.template.segments[this.segmentIndex]
+    if (!segment) return undefined
+    const stepProgress =
+      this.observedSteps / Math.max(1, this.minimumStepEvidence(segment.stepCount))
+    const turnProgress = this.turnGate.completedTurns / TURNS_REQUIRED_PER_FLOOR
+    const heightProgress = this.hasBarometer
+      ? this.estimatedHeightM / Math.max(0.1, this.requiredHeightForCurrentFloor())
+      : 0
+    return Math.max(stepProgress, turnProgress, heightProgress) >= 0.65
+      ? segment.floorTo
+      : undefined
   }
 
   pushSamples(samples: SensorSample[]): RecognitionSnapshot {
@@ -233,12 +350,33 @@ export class RouteRecognizer {
       this.segmentCount > 0 && this.template.totalAscentM > 0
         ? (this.template.totalAscentM * completed.length) / this.segmentCount
         : completed.reduce((sum, segment) => sum + segment.ascentM, 0)
+    const measuredAscent = this.hasBarometer
+      ? Math.min(
+          this.template.totalAscentM > 0
+            ? this.template.totalAscentM
+            : Number.POSITIVE_INFINITY,
+          this.estimatedHeightM,
+        )
+      : canonicalAscent
+    const quality = this.interruptions.length
+      ? 'degraded'
+      : this.hasBarometer
+        ? 'stable'
+        : 'degraded'
+    const candidateFloor = complete ? undefined : this.candidateFloor()
+    const evidenceSources = new Set(
+      this.lastDecision?.evidence
+        .filter((item) => item.score > 0)
+        .map((item) => item.source) ?? [],
+    )
     return {
       currentFloor,
       floorsCompleted: completed.length,
-      ascentM: Number(canonicalAscent.toFixed(1)),
+      ascentM: Number(measuredAscent.toFixed(1)),
       steps: this.totalSteps,
-      confidence: complete ? 1 : this.currentConfidence,
+      confidence: complete
+        ? this.lastDecision?.confidence ?? this.currentConfidence
+        : this.currentConfidence,
       status: complete
         ? 'complete'
         : this.paused
@@ -248,6 +386,29 @@ export class RouteRecognizer {
             : 'matching',
       lastTurn: this.events.filter((event) => event.type === 'turn').at(-1)?.direction,
       activeMs: this.activeMs,
+      quality,
+      statusReason: complete
+        ? 'route_complete'
+        : this.paused
+          ? 'sensor_interrupted'
+          : candidateFloor !== undefined
+            ? 'confirming_next_floor'
+            : this.currentConfidence > 0 && this.currentConfidence < MATCH_THRESHOLD
+              ? 'template_confidence_low'
+              : 'matching_route',
+      candidateFloor,
+      canAutoComplete:
+        complete &&
+        this.template.status === 'verified' &&
+        (this.lastDecision?.confidence ?? 0) >= 0.9 &&
+        evidenceSources.size >= 2 &&
+        quality === 'stable',
+      activeSensorSources: [
+        'motion',
+        'turn',
+        'route_template',
+        ...(this.hasBarometer ? (['barometer'] as const) : []),
+      ],
     }
   }
 
@@ -289,6 +450,18 @@ export class RouteRecognizer {
         ? Math.round(durationMs / snapshot.floorsCompleted)
         : 0,
       bestFloorSplitMs: splitDurations.length ? Math.min(...splitDurations) : 0,
+      recognitionEndState: {
+        segmentIndex: this.segmentIndex,
+        expectedSegments: this.segmentCount,
+        currentFloor: snapshot.currentFloor,
+        estimatedHeightM: Number(this.estimatedHeightM.toFixed(2)),
+        requiredHeightM: Number(
+          this.requiredHeightForCurrentFloor().toFixed(2),
+        ),
+        pendingSteps: this.observedSteps,
+        pendingTurns: this.turnGate.completedTurns,
+        barometerAvailable: this.hasBarometer,
+      },
     }
   }
 }

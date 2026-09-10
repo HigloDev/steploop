@@ -28,11 +28,19 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
         "android.permission.BODY_SENSORS",
         "android.permission.HIGH_SAMPLING_RATE_SENSORS",
-        "android.permission.VIBRATE",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -43,7 +51,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#090d0c",
-          "image": "./assets/splash-icon.png",
+          "image": "./assets/splash-icon-v2.png",
           "imageWidth": 180,
           "resizeMode": "contain"
         }
@@ -64,11 +72,9 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "允许循阶读取相册中的图片",
+          "photosPermission": false,
           "savePhotosPermission": "允许循阶把成绩海报保存到相册",
-          "granularPermissions": [
-            "photo"
-          ]
+          "granularPermissions": []
         }
       ],
       "expo-sharing",

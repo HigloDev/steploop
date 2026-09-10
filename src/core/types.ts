@@ -4,6 +4,28 @@ export type TurnDirection = 'left' | 'right'
 export type RouteStatus = 'draft' | 'needs_validation' | 'verified'
 // free：首次开张轮次，无模板对照，仅基于气压计估楼层；结束后用采集数据生成模板
 export type ClimbMode = 'validation' | 'formal' | 'free'
+export type RecognitionQuality = 'stable' | 'degraded' | 'invalid'
+export type RecognitionEvidenceSource =
+  | 'motion'
+  | 'barometer'
+  | 'turn'
+  | 'route_template'
+  | 'manual'
+
+export interface RecognitionEvidence {
+  source: RecognitionEvidenceSource
+  score: number
+  observedAt: number
+  reasonCode: string
+}
+
+export interface RecognitionDecision {
+  type: 'candidate_floor' | 'confirmed_floor' | 'route_complete' | 'rejected'
+  floor: number
+  confidence: number
+  evidence: RecognitionEvidence[]
+  quality: RecognitionQuality
+}
 
 // 人工标记：用户在采集过程中点击「标记拐弯」或「到达新楼层」时记录
 export interface ManualMark {
@@ -44,6 +66,9 @@ export interface FeatureFrame {
   cadence: number
   energy: number
   turnRad: number
+  // 陀螺仪在“重力方向”上的旋转分量。它代表人绕竖直方向转弯，
+  // 不受手机横放、竖放或在口袋里倾斜的影响；旧模板仍使用 turnRad 匹配。
+  headingTurnRad?: number
   paused: number
 }
 
@@ -116,6 +141,38 @@ export interface RouteTemplate {
   status: RouteStatus
   verifiedAt?: number
   location?: RouteLocation
+  modelVersion?: 3
+  algorithmVersion?: string
+  learning?: RouteLearningModel
+  deviceCapabilities?: {
+    barometerAvailable: boolean | 'unknown'
+    effectiveSamplingHz: number | null
+  }
+}
+
+export interface DistributionSummary {
+  count: number
+  mean: number
+  standardDeviation: number
+  minimum: number
+  maximum: number
+}
+
+export interface RouteLearningModel {
+  sampleCount: number
+  stability: number
+  lastLearnedAt?: number
+  state: 'unlearned' | 'learning' | 'usable' | 'verified' | 'needs_review'
+  reasonCode:
+    | 'no_eligible_samples'
+    | 'collecting_samples'
+    | 'consistent_samples'
+    | 'verified_samples'
+    | 'sample_conflict'
+  floorHeightM: DistributionSummary
+  stepsPerFloor: DistributionSummary
+  durationPerFloorMs: DistributionSummary
+  turnsPerFloor: DistributionSummary
 }
 
 export interface RouteSeed {
@@ -150,6 +207,24 @@ export interface RecognitionEvent {
   floor?: number
   direction?: TurnDirection
   confidence: number
+  // 楼层推进的轻量诊断信息，便于真机复盘，不保存整段原始传感器数据。
+  source?: 'motion' | 'barometer'
+  heightM?: number
+  stepEvidence?: number
+  turnEvidence?: number
+  evidence?: RecognitionEvidence[]
+  reasonCode?: string
+}
+
+export interface RecognitionEndState {
+  segmentIndex: number
+  expectedSegments: number
+  currentFloor: number
+  estimatedHeightM: number
+  requiredHeightM: number
+  pendingSteps: number
+  pendingTurns: number
+  barometerAvailable: boolean
 }
 
 export interface ClimbSession {
@@ -179,6 +254,7 @@ export interface ClimbSession {
   durationMs?: number
   averageFloorMs?: number
   bestFloorSplitMs?: number
+  recognitionEndState?: RecognitionEndState
   sharePosterCreatedAt?: number
   // 仅 mode='free' 时填充：第一轮采集的原始样本，用于结束后生成路线模板。
   // 其他模式下不填，避免持久化时写入大量数据。
@@ -196,6 +272,11 @@ export interface RecognitionSnapshot {
   // 本轮净爬楼时间（毫秒）：只累计有真实动作的帧（步数>0 或能量达标），
   // 原地等待、休息、电梯等静止时间不计入。用于卡路里与净用时统计。
   activeMs: number
+  quality: RecognitionQuality
+  statusReason: string
+  candidateFloor?: number
+  canAutoComplete: boolean
+  activeSensorSources: RecognitionEvidenceSource[]
 }
 
 // 爬楼路线图：基于人工楼层标记分段后的单层数据
@@ -276,6 +357,10 @@ export interface WorkoutRound {
   returnedToStartAt?: number
   returnDurationMs?: number
   recoveryDurationMs?: number
+  recognitionEndState?: RecognitionEndState
+  userCorrectionCount?: number
+  completionSource?: 'automatic' | 'manual' | 'recovered'
+  trustworthy?: boolean
 }
 
 export interface ClimbWorkout {
@@ -313,6 +398,34 @@ export interface ClimbWorkout {
   sharePosterCreatedAt?: number
   createdAt: number
   updatedAt: number
+  trustQuality?: RecognitionQuality
+  userCorrectionCount?: number
+  personalBestEligible?: boolean
+  completionSource?: 'automatic' | 'manual' | 'mixed' | 'recovered'
+  weeklyContribution?: {
+    workouts: number
+    floors: number
+    ascentM: number
+  }
+}
+
+export interface TrainingPersonalBest {
+  routeId: string
+  workoutId: string
+  durationMs: number
+  floors: number
+  ascentM: number
+  achievedAt: number
+}
+
+export interface TrainingProgress {
+  weekStart: number
+  weekEnd: number
+  validWorkouts: number
+  floors: number
+  ascentM: number
+  consecutiveWeeks: number
+  personalBests: Record<string, TrainingPersonalBest>
 }
 
 export interface WorkoutSummary {

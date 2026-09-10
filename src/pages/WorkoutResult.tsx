@@ -10,6 +10,10 @@ import { formatDuration } from '../core/math'
 import { getRoundAchievementCount } from '../core/floors'
 import { summarizeRouteLearning } from '../core/route-learning'
 import {
+  deriveTrainingProgress,
+  trainingSuggestion,
+} from '../core/training-progress'
+import {
   ClimbWorkout,
   WorkoutSummary,
 } from '../core/types'
@@ -42,6 +46,8 @@ export default function WorkoutResultScreen({
   const [learningLabel, setLearningLabel] = useState('')
   const [learningMessage, setLearningMessage] = useState('')
   const [error, setError] = useState('')
+  const [suggestion, setSuggestion] = useState('')
+  const [isPersonalBest, setIsPersonalBest] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -63,6 +69,11 @@ export default function WorkoutResultScreen({
       )
       setWorkout(stored)
       setSummary(nextSummary)
+      const progress = deriveTrainingProgress(workouts, stored.endedAt ?? Date.now())
+      setSuggestion(trainingSuggestion(stored, progress))
+      setIsPersonalBest(
+        progress.personalBests[stored.templateId]?.workoutId === stored.id,
+      )
       if (storedRoute) {
         const learning = summarizeRouteLearning(storedRoute, workouts)
         setLearningLabel(learning.stageLabel)
@@ -96,6 +107,7 @@ export default function WorkoutResultScreen({
     .filter((round) => round.complete)
     .slice()
     .sort((a, b) => a.durationMs - b.durationMs)[0]
+  const hasCompletedRound = summary.completeRounds > 0
 
   return (
     <View style={styles.page}>
@@ -116,7 +128,9 @@ export default function WorkoutResultScreen({
               </Text>
               <Text style={styles.date}>{dateText(workout.startedAt)}</Text>
             </View>
-            <Pill tone="good">完成</Pill>
+            <Pill tone={hasCompletedRound ? 'good' : 'warn'}>
+              {isPersonalBest ? '个人最佳' : hasCompletedRound ? '完成' : '未完成'}
+            </Pill>
           </View>
           <View style={styles.heroMetric}>
             <Text style={styles.heroNumber}>{summary.totalFloors}</Text>
@@ -126,6 +140,13 @@ export default function WorkoutResultScreen({
             今天，你一直在向上。
           </Text>
         </Card>
+
+        {suggestion ? (
+          <Card raised style={styles.learningCard}>
+            <Text style={styles.cardTitle}>下一次建议</Text>
+            <Text style={styles.learningText}>{suggestion}</Text>
+          </Card>
+        ) : null}
 
         <View style={styles.metricGrid}>
           <Metric

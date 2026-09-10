@@ -16,6 +16,8 @@ import {
   ClimbSession,
   FeatureFrame,
   RecognitionSnapshot,
+  RecognitionDecision,
+  RecognitionEvidence,
   RouteTemplate,
 } from './types'
 import { hasKnownRouteEnd } from './route-state'
@@ -59,6 +61,7 @@ export class FreeRecognizer {
   private estimatedHeightM = 0
   private readonly turnGate = new StairTurnGate()
   private activeMs = 0
+  private lastDecision?: RecognitionDecision
 
   constructor(template: RouteTemplate, startedAt = Date.now()) {
     this.template = template
@@ -70,7 +73,7 @@ export class FreeRecognizer {
    * 接收气压样本（hPa）。由上层 onBarometer 回调驱动。
    * 内部维护基线、平滑、楼层判定。
    */
-  pushBarometer(pressure: number): RecognitionSnapshot {
+  pushBarometer(pressure: number, atMs?: number): RecognitionSnapshot {
     if (!pressure || pressure <= 0) return this.snapshot()
     this.hasBarometer = true
 
@@ -78,9 +81,9 @@ export class FreeRecognizer {
     if (this.baselinePressure === undefined) {
       this.baselineSamples.push(pressure)
       if (this.baselineSamples.length >= BASELINE_SAMPLE_COUNT) {
-        this.baselinePressure =
-          this.baselineSamples.reduce((s, p) => s + p, 0) /
-          this.baselineSamples.length
+        // 开始按钮按下后若用户已迈步，取这一秒里的最高气压作为最低点基线，
+        // 避免基线被刚开始的上升动作抬高。
+        this.baselinePressure = Math.max(...this.baselineSamples)
       }
       return this.snapshot()
     }
@@ -94,8 +97,9 @@ export class FreeRecognizer {
       this.pressureWindow.reduce((s, p) => s + p, 0) /
       this.pressureWindow.length
     this.estimatedHeightM = Math.max(
-      0,
+      this.estimatedHeightM,
       (this.baselinePressure - smoothed) * METERS_PER_HPA,
+      0,
     )
 
     // 楼层判定：当前应到达的气压阈值
@@ -103,7 +107,8 @@ export class FreeRecognizer {
     const expectedPressure =
       this.baselinePressure - (floorsClimbed + 1) * BARO_FLOOR_THRESHOLD_HPA
 
-    const now = Date.now()
+    const elapsedMs = Math.max(0, atMs ?? Date.now() - this.startedAt)
+    const now = this.startedAt + elapsedMs
     if (
       smoothed <= expectedPressure &&
       now - this.lastFloorAt > BARO_FLOOR_COOLDOWN_MS &&
@@ -114,19 +119,33 @@ export class FreeRecognizer {
     ) {
       this.currentFloor += 1
       this.lastFloorAt = now
-      const elapsedMs = now - this.startedAt
+      const evidence = this.floorEvidence(elapsedMs, true)
+      this.lastDecision = {
+        type:
+          hasKnownRouteEnd(this.template) &&
+          this.currentFloor >= this.template.endFloor
+            ? 'route_complete'
+            : 'confirmed_floor',
+        floor: this.currentFloor,
+        confidence: 0.78,
+        evidence,
+        quality: 'stable',
+      }
       this.events.push({
         t: elapsedMs,
         type: 'floor',
         floor: this.currentFloor,
-        confidence: 0.7,
+        confidence: 0.78,
+        source: 'barometer',
+        evidence,
+        reasonCode: 'height_step_turn_confirmed',
       })
       this.floorSplits.push({
         floor: this.currentFloor,
         atMs: elapsedMs,
         elapsedMs,
       })
-      this.turnGate.reset()
+      this.turnGate.consume(TURNS_REQUIRED_PER_FLOOR)
     }
     return this.snapshot()
   }
@@ -161,18 +180,33 @@ export class FreeRecognizer {
       ) {
         this.currentFloor += 1
         const elapsedMs = frame.endMs
+        const evidence = this.floorEvidence(elapsedMs, false)
+        this.lastDecision = {
+          type:
+            hasKnownRouteEnd(this.template) &&
+            this.currentFloor >= this.template.endFloor
+              ? 'route_complete'
+              : 'confirmed_floor',
+          floor: this.currentFloor,
+          confidence: 0.55,
+          evidence,
+          quality: 'degraded',
+        }
         this.events.push({
           t: elapsedMs,
           type: 'floor',
           floor: this.currentFloor,
-          confidence: 0.4,
+          confidence: 0.55,
+          source: 'motion',
+          evidence,
+          reasonCode: 'step_turn_fallback_confirmed',
         })
         this.floorSplits.push({
           floor: this.currentFloor,
           atMs: elapsedMs,
           elapsedMs,
         })
-        this.turnGate.reset()
+        this.turnGate.consume(TURNS_REQUIRED_PER_FLOOR)
       }
     }
 
@@ -181,6 +215,45 @@ export class FreeRecognizer {
 
   private hasCompletedFloorRoute(): boolean {
     return this.turnGate.completedTurns >= TURNS_REQUIRED_PER_FLOOR
+  }
+
+  private floorEvidence(
+    atMs: number,
+    withBarometer: boolean,
+  ): RecognitionEvidence[] {
+    const floorsClimbed = Math.max(
+      1,
+      this.currentFloor - this.template.startFloor,
+    )
+    const evidence: RecognitionEvidence[] = [
+      {
+        source: 'motion',
+        score: Math.min(
+          1,
+          this.totalSteps / (floorsClimbed * STEPS_PER_FLOOR_FALLBACK),
+        ),
+        observedAt: atMs,
+        reasonCode: 'step_evidence_satisfied',
+      },
+      {
+        source: 'turn',
+        score: Math.min(
+          1,
+          this.turnGate.completedTurns / TURNS_REQUIRED_PER_FLOOR,
+        ),
+        observedAt: atMs,
+        reasonCode: 'turn_route_satisfied',
+      },
+    ]
+    if (withBarometer) {
+      evidence.push({
+        source: 'barometer',
+        score: 1,
+        observedAt: atMs,
+        reasonCode: 'floor_height_reached',
+      })
+    }
+    return evidence
   }
 
   pause(atMs: number): void {
@@ -208,18 +281,51 @@ export class FreeRecognizer {
         (this.template.floorHeightM > 0
           ? this.template.floorHeightM
           : DEFAULT_FLOOR_HEIGHT_M)
+    const quality = this.interruptions.length || !this.hasBarometer
+      ? 'degraded'
+      : 'stable'
+    const nextFloor =
+      !complete &&
+      (this.totalSteps % STEPS_PER_FLOOR_FALLBACK) /
+        STEPS_PER_FLOOR_FALLBACK >=
+        0.65
+        ? this.currentFloor + 1
+        : undefined
     return {
       currentFloor: this.currentFloor,
       floorsCompleted,
       ascentM,
       steps: this.totalSteps,
       // free 模式无模板对照，置信度固定 0.7（气压）或 0.4（步数）
-      confidence: complete ? 1 : this.hasBarometer ? 0.7 : 0.4,
+      confidence: complete
+        ? this.lastDecision?.confidence ?? (this.hasBarometer ? 0.7 : 0.4)
+        : this.hasBarometer ? 0.7 : 0.4,
       status: complete ? 'complete' : this.paused ? 'paused' : 'matching',
       lastTurn: this.events
         .filter((e) => e.type === 'turn')
         .at(-1)?.direction,
       activeMs: this.activeMs,
+      quality,
+      statusReason: complete
+        ? 'route_complete'
+        : this.paused
+          ? 'sensor_interrupted'
+          : nextFloor !== undefined
+            ? 'confirming_next_floor'
+            : this.hasBarometer
+              ? 'matching_height_and_motion'
+              : 'motion_fallback',
+      candidateFloor: nextFloor,
+      canAutoComplete:
+        complete &&
+        this.template.status === 'verified' &&
+        (this.lastDecision?.confidence ?? 0) >= 0.9 &&
+        quality === 'stable',
+      activeSensorSources: [
+        'motion',
+        'turn',
+        ...(this.hasBarometer ? (['barometer'] as const) : []),
+      ],
     }
   }
 

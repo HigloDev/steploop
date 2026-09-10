@@ -295,10 +295,7 @@ export default function ShareStudioScreen({
     if (!workout || busyAction) return
     setBusyAction('save')
     try {
-      const permission = await MediaLibrary.requestPermissionsAsync(
-        true,
-        ['photo'],
-      )
+      const permission = await MediaLibrary.requestPermissionsAsync(true)
       if (permission.status !== 'granted') {
         Alert.alert('无法保存', '请允许循阶把海报保存到手机相册。')
         return

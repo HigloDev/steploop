@@ -58,6 +58,7 @@ import {
   loadActiveCheckpoint,
   saveActiveCheckpoint,
   saveWorkout,
+  listWorkouts,
 } from '../services/workout-storage'
 import { getRoute, saveRoute } from '../services/storage'
 import { SensorRecorder } from '../services/sensor'
@@ -67,6 +68,7 @@ import {
   SensorVisualizationState,
 } from '../core/sensor-visualization'
 import { hasKnownRouteEnd } from '../core/route-state'
+import { updateRouteModelFromWorkouts } from '../core/route-model'
 
 // 气压转高度系数：近海平面 1 hPa ≈ 8.3 m。
 // 用线性近似已足够判断"是否回到起点"，无需引入完整气压公式。
@@ -138,6 +140,8 @@ export interface UseClimbWorkoutResult {
   }) => Promise<ClimbWorkout | null>
   // 首次采集到达真实终点：只结束本轮并进入返回阶段，不结束整次训练。
   completeLearningRound: (confirmedEndFloor: number) => Promise<boolean>
+  // 识别到终点但未达到自动完成门槛时，由用户确认本轮完成并进入返程。
+  confirmCurrentRoundComplete: () => Promise<boolean>
   // 丢弃当前未完成轮并结束训练
   discardCurrentRoundAndFinish: () => Promise<ClimbWorkout | null>
   // 用户点击"我已回到1F"：returning/start_confirmation → recovering
@@ -390,6 +394,12 @@ export function useClimbWorkout(
             }
           : session
       const round = roundFromSession(confirmedSession, roundNumber, reason)
+      if (confirmedEndFloor !== undefined) {
+        round.userCorrectionCount = 1
+        round.completionSource = 'manual'
+        round.trustworthy = false
+      }
+      if (excludeFromLearning) round.trustworthy = false
       // 更新 workout
       const updatedWorkout: ClimbWorkout = {
         ...w,
@@ -714,11 +724,49 @@ export function useClimbWorkout(
         totalElapsedMs: finalSummary.totalElapsedMs,
         returnDurationMs: finalSummary.returnDurationMs,
         recoveryDurationMs: finalSummary.recoveryDurationMs,
+        trustQuality: finalWorkout.rounds.every((round) => round.trustworthy)
+          ? 'stable'
+          : 'degraded',
+        userCorrectionCount: finalWorkout.rounds.reduce(
+          (sum, round) => sum + (round.userCorrectionCount ?? 0),
+          0,
+        ),
+        personalBestEligible: finalWorkout.rounds.every(
+          (round) => Boolean(round.trustworthy),
+        ),
+        completionSource: finalWorkout.rounds.every(
+          (round) => round.completionSource === 'automatic',
+        )
+          ? 'automatic'
+          : 'mixed',
+        weeklyContribution: {
+          workouts: finalWorkout.rounds.some((round) => round.trustworthy) ? 1 : 0,
+          floors: finalWorkout.rounds
+            .filter((round) => round.trustworthy)
+            .reduce((sum, round) => sum + round.floorsCompleted, 0),
+          ascentM: finalWorkout.rounds
+            .filter((round) => round.trustworthy)
+            .reduce((sum, round) => sum + round.ascentM, 0),
+        },
       }
       setWorkout(completedWorkout)
       workoutRef.current = completedWorkout
 
       await saveWorkout(completedWorkout)
+      try {
+        const savedRoute = await getRoute(completedWorkout.templateId)
+        if (savedRoute) {
+          const learnedRoute = updateRouteModelFromWorkouts(
+            savedRoute,
+            await listWorkouts(),
+          )
+          await saveRoute(learnedRoute)
+          setEffectiveTemplate(learnedRoute)
+        }
+      } catch (error) {
+        // 训练记录已安全保存。学习失败只延后模型更新，不能破坏完成流程。
+        console.warn('[useClimbWorkout] safe route learning failed', error)
+      }
       await clearActiveCheckpoint()
 
       dispatch({ type: 'FINISH_WORKOUT' })
@@ -748,6 +796,14 @@ export function useClimbWorkout(
     [handleRoundComplete],
   )
 
+  const confirmCurrentRoundComplete = useCallback(async (): Promise<boolean> => {
+    if (phaseRef.current !== 'ascending') return false
+    const session = roundSessionRef.current.finish()
+    if (!session || session.finalFloor < session.routeSnapshot!.endFloor) return false
+    await handleRoundComplete(session, 'route_complete')
+    return true
+  }, [handleRoundComplete])
+
   const discardCurrentRoundAndFinish = useCallback(async (): Promise<ClimbWorkout | null> => {
     const w = workoutRef.current
     if (!w) return null
@@ -768,6 +824,10 @@ export function useClimbWorkout(
       status: 'completed',
       endedAt: Date.now(),
       totalElapsedMs: finalSummary.totalElapsedMs,
+      trustQuality: 'degraded',
+      personalBestEligible: false,
+      completionSource: 'mixed',
+      weeklyContribution: { workouts: 0, floors: 0, ascentM: 0 },
     }
     setWorkout(completedWorkout)
     workoutRef.current = completedWorkout
@@ -1035,6 +1095,7 @@ export function useClimbWorkout(
     beginAscending,
     finishWorkout,
     completeLearningRound,
+    confirmCurrentRoundComplete,
     discardCurrentRoundAndFinish,
     confirmReturnedToStart,
     startNextRound,

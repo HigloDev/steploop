@@ -24,7 +24,10 @@ export class StairTurnGate {
   private completedCount = 0
 
   push(frame: FeatureFrame): CompletedTurn | undefined {
-    const isTurning = Math.abs(frame.turnRad) >= TURNING_FRAME_THRESHOLD_RAD
+    const turnRad = Number.isFinite(frame.headingTurnRad)
+      ? frame.headingTurnRad!
+      : frame.turnRad
+    const isTurning = Math.abs(turnRad) >= TURNING_FRAME_THRESHOLD_RAD
     const hasLongGap = frame.startMs - this.lastFrameEnd > TURN_GAP_MS
     this.lastFrameEnd = frame.endMs
     let completed: CompletedTurn | undefined
@@ -43,21 +46,26 @@ export class StairTurnGate {
     // 一次拐弯中方向不应反复切换。方向反向时，把前一段结算并重新开始。
     if (
       this.accumulatedRad !== 0 &&
-      Math.sign(this.accumulatedRad) !== Math.sign(frame.turnRad)
+      Math.sign(this.accumulatedRad) !== Math.sign(turnRad)
     ) {
       const completed = this.flush(frame.startMs)
       this.active = true
-      this.accumulatedRad = frame.turnRad
+      this.accumulatedRad = turnRad
       this.startedAt = frame.startMs
       return completed
     }
 
-    this.accumulatedRad += frame.turnRad
+    this.accumulatedRad += turnRad
     return completed
   }
 
   get completedTurns(): number {
     return this.completedCount
+  }
+
+  /** 一层只消费两个整拐，保留多余证据供漏识别后的楼层追赶使用。 */
+  consume(count: number): void {
+    this.completedCount = Math.max(0, this.completedCount - Math.max(0, count))
   }
 
   reset(): void {

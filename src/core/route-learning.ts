@@ -1,5 +1,6 @@
 import { ClimbWorkout, RouteTemplate, WorkoutRound } from './types'
 import { getFloorAchievementCount, getRoundAchievementCount } from './floors'
+import { isLearningEligibleRound } from './route-model'
 
 export type RouteLearningStage =
   | 'unlearned'
@@ -34,13 +35,7 @@ export interface RouteLearningSummary {
 }
 
 function isValidRound(round: WorkoutRound): boolean {
-  return (
-    round.complete &&
-    round.floorsCompleted > 0 &&
-    round.ascentM > 0 &&
-    round.durationMs >= 10_000 &&
-    round.interruptions.length === 0
-  )
+  return isLearningEligibleRound(round) && round.ascentM > 0
 }
 
 function variationScore(values: number[]): number {

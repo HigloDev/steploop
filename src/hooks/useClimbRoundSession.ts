@@ -12,7 +12,7 @@ import { RouteRecognizer } from '../core/recognizer'
 import { FreeRecognizer } from '../core/free-recognizer'
 import { LiveFeaturePump } from '../services/live-feature-pump'
 import { SensorRecorder } from '../services/sensor'
-import { triggerHaptic, triggerSound } from '../services/preferences'
+import { triggerHapticPattern, triggerSound } from '../services/preferences'
 import {
   emptySensorVisualization,
   SensorMotionInterpreter,
@@ -36,6 +36,10 @@ function initialSnapshot(startFloor: number): RecognitionSnapshot {
     confidence: 0,
     status: 'matching',
     activeMs: 0,
+    quality: 'degraded',
+    statusReason: 'waiting_for_sensor',
+    canAutoComplete: false,
+    activeSensorSources: [],
   }
 }
 
@@ -61,6 +65,8 @@ export interface UseClimbRoundSessionResult {
   startedAt: number | undefined
   isRunning: boolean
   isCompleted: boolean
+  autoCompletePending: boolean
+  autoCompleteCountdown: number
   // 气压计是否可用（本轮 ascending 期间）
   barometerAvailable: boolean
   // 最新气压值（hPa），无气压计时为 undefined
@@ -72,6 +78,7 @@ export interface UseClimbRoundSessionResult {
   // 结束并返回 ClimbSession。自动完成时用完成时刻，手动结束时用 Date.now()。
   // 幂等：多次调用返回同一 session。
   finish: (endedAt?: number) => ClimbSession | null
+  cancelAutoComplete: () => void
   // 清理（组件卸载或轮次切换时调用）
   cleanup: () => void
 }
@@ -90,6 +97,10 @@ export function useClimbRoundSession(
   const visualizationRef = useRef(new SensorMotionInterpreter('ascending'))
   const lastVisualizationRenderAtRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const autoCompleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const autoCompleteCountdownRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const autoCompletePendingRef = useRef(false)
+  const autoCompleteSuppressedRef = useRef(false)
   const startedAtRef = useRef<number | undefined>(undefined)
   const completedAtRef = useRef<number | undefined>(undefined)
   const finishedSessionRef = useRef<ClimbSession | null>(null)
@@ -113,6 +124,8 @@ export function useClimbRoundSession(
   const [elapsedMs, setElapsedMs] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [autoCompletePending, setAutoCompletePending] = useState(false)
+  const [autoCompleteCountdown, setAutoCompleteCountdown] = useState(0)
   // 气压计状态：设备是否支持 + 最新气压值
   const [barometerAvailable, setBarometerAvailable] = useState(false)
   const [latestPressure, setLatestPressure] = useState<number | undefined>(
@@ -131,7 +144,7 @@ export function useClimbRoundSession(
     ) {
       callbacksRef.current.onFloorChanged?.(next.currentFloor, Date.now() - startedAt)
       lastFloorRef.current = next.currentFloor
-      triggerHaptic('medium')
+      triggerHapticPattern('floor')
     }
     // 回归调试：临时禁用 setSnapshot 隔离渲染频率是否为内存泄漏源
     setSnapshot(
@@ -140,38 +153,67 @@ export function useClimbRoundSession(
         : next,
     )
 
-    // 自动完成检测（只触发一次）
+    // 已验证路线先给用户 3 秒撤销窗口，再自动完成。
     if (
       autoCompleteRef.current &&
       next.status === 'complete' &&
-      !completedAtRef.current
+      next.canAutoComplete &&
+      !completedAtRef.current &&
+      !autoCompletePendingRef.current &&
+      !autoCompleteSuppressedRef.current
     ) {
-      completedAtRef.current = Date.now()
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = undefined
-      }
-      triggerHaptic('heavy')
-      triggerSound('success')
-      // 生成 session 并通知上层
-      const recognizer = recognizerRef.current
-      if (recognizer && !finishedSessionRef.current) {
-        const session = recognizer.finish(completedAtRef.current, modeRef.current)
-        // free 模式：附上原始样本供上层生成路线模板（stop 后 samples 仍可用）
-        if (modeRef.current === 'free' && recorderRef.current) {
-          finishedSessionRef.current = {
-            ...session,
-            samples: recorderRef.current.getSamples(),
-          }
-        } else {
-          finishedSessionRef.current = session
+      autoCompletePendingRef.current = true
+      setAutoCompletePending(true)
+      setAutoCompleteCountdown(3)
+      triggerHapticPattern('recognition_warning')
+      autoCompleteCountdownRef.current = setInterval(() => {
+        setAutoCompleteCountdown((value) => Math.max(0, value - 1))
+      }, 1000)
+      autoCompleteTimeoutRef.current = setTimeout(() => {
+        autoCompleteTimeoutRef.current = undefined
+        completedAtRef.current = Date.now()
+        autoCompletePendingRef.current = false
+        setAutoCompletePending(false)
+        setAutoCompleteCountdown(0)
+        if (autoCompleteCountdownRef.current) {
+          clearInterval(autoCompleteCountdownRef.current)
+          autoCompleteCountdownRef.current = undefined
         }
-        callbacksRef.current.onComplete?.(finishedSessionRef.current)
-      }
-      recorderRef.current?.stop().catch(() => undefined)
-      setIsRunning(false)
-      setIsCompleted(true)
+        if (timerRef.current) {
+          clearInterval(timerRef.current)
+          timerRef.current = undefined
+        }
+        triggerHapticPattern('round_complete')
+        triggerSound('success')
+        const recognizer = recognizerRef.current
+        if (recognizer && !finishedSessionRef.current) {
+          const session = recognizer.finish(completedAtRef.current, modeRef.current)
+          finishedSessionRef.current =
+            modeRef.current === 'free' && recorderRef.current
+              ? { ...session, samples: recorderRef.current.getSamples() }
+              : session
+          callbacksRef.current.onComplete?.(finishedSessionRef.current)
+        }
+        recorderRef.current?.stop().catch(() => undefined)
+        setIsRunning(false)
+        setIsCompleted(true)
+      }, 3000)
     }
+  }, [])
+
+  const cancelAutoComplete = useCallback(() => {
+    if (autoCompleteTimeoutRef.current) {
+      clearTimeout(autoCompleteTimeoutRef.current)
+      autoCompleteTimeoutRef.current = undefined
+    }
+    if (autoCompleteCountdownRef.current) {
+      clearInterval(autoCompleteCountdownRef.current)
+      autoCompleteCountdownRef.current = undefined
+    }
+    autoCompletePendingRef.current = false
+    autoCompleteSuppressedRef.current = true
+    setAutoCompletePending(false)
+    setAutoCompleteCountdown(0)
   }, [])
 
   const cleanupInternal = useCallback(() => {
@@ -179,6 +221,15 @@ export function useClimbRoundSession(
       clearInterval(timerRef.current)
       timerRef.current = undefined
     }
+    if (autoCompleteTimeoutRef.current) {
+      clearTimeout(autoCompleteTimeoutRef.current)
+      autoCompleteTimeoutRef.current = undefined
+    }
+    if (autoCompleteCountdownRef.current) {
+      clearInterval(autoCompleteCountdownRef.current)
+      autoCompleteCountdownRef.current = undefined
+    }
+    autoCompletePendingRef.current = false
     recorderRef.current?.stop().catch(() => undefined)
     recorderRef.current = undefined
     recognizerRef.current = undefined
@@ -190,12 +241,15 @@ export function useClimbRoundSession(
     cleanupInternal()
     // 重置本轮状态（每轮全新）
     completedAtRef.current = undefined
+    autoCompleteSuppressedRef.current = false
     finishedSessionRef.current = null
     lastFloorRef.current = template.startFloor
     startedAtRef.current = undefined
     setSnapshot(initialSnapshot(template.startFloor))
     setElapsedMs(0)
     setIsCompleted(false)
+    setAutoCompletePending(false)
+    setAutoCompleteCountdown(0)
     // 重置气压计状态
     setBarometerAvailable(false)
     setLatestPressure(undefined)
@@ -287,6 +341,17 @@ export function useClimbRoundSession(
         clearInterval(timerRef.current)
         timerRef.current = undefined
       }
+      if (autoCompleteTimeoutRef.current) {
+        clearTimeout(autoCompleteTimeoutRef.current)
+        autoCompleteTimeoutRef.current = undefined
+      }
+      if (autoCompleteCountdownRef.current) {
+        clearInterval(autoCompleteCountdownRef.current)
+        autoCompleteCountdownRef.current = undefined
+      }
+      autoCompletePendingRef.current = false
+      setAutoCompletePending(false)
+      setAutoCompleteCountdown(0)
       recorderRef.current?.stop().catch(() => undefined)
       setIsRunning(false)
       return finishedSessionRef.current
@@ -312,11 +377,14 @@ export function useClimbRoundSession(
     startedAt: startedAtRef.current,
     isRunning,
     isCompleted,
+    autoCompletePending,
+    autoCompleteCountdown,
     barometerAvailable,
     latestPressure,
     visualization,
     start,
     finish,
+    cancelAutoComplete,
     cleanup,
   }
 }

@@ -25,8 +25,8 @@ export interface SensorRecorderOptions {
 
 type RequiredSensor = 'accelerometer' | 'gyroscope'
 
-// expo-sensors 在 Android 12+ 上需要 HIGH_SAMPLING_RATE_SENSORS 权限才能拿到 game 级别
-// 的采样率（约 50Hz）。低于此速率时退回 ui 级别（约 16Hz），对步态检测仍够用。
+// 目标 50Hz，低于 Android 12 对普通应用的 200Hz 上限，因此无需申请
+// HIGH_SAMPLING_RATE_SENSORS；真实频率由诊断 V2 记录并作为样本质量门槛。
 const UPDATE_INTERVAL_MS = 20
 // 气压计采样间隔：气压变化慢，5Hz 足够，省电
 const BAROMETER_INTERVAL_MS = 200
@@ -176,12 +176,17 @@ export class SensorRecorder {
         // DeviceMotion 为补充信息，识别目前只用加速度+陀螺仪 Z，缺失不应阻塞真机。
         try {
           this.motionSub = DeviceMotion.addListener((value) => {
-            const o = value.orientation
-            if (typeof o === 'number') {
+            const rotation = value.rotation
+            if (
+              rotation &&
+              Number.isFinite(rotation.alpha) &&
+              Number.isFinite(rotation.beta) &&
+              Number.isFinite(rotation.gamma)
+            ) {
               this.latestMotion = {
-                alpha: o,
-                beta: 0,
-                gamma: 0,
+                alpha: rotation.alpha,
+                beta: rotation.beta,
+                gamma: rotation.gamma,
               }
             }
           })

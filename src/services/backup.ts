@@ -127,7 +127,7 @@ export async function importBackup(): Promise<ImportResult> {
 export function peekBackupPayload(json: string): BackupPayload | null {
   try {
     const parsed = JSON.parse(json) as BackupPayload
-    if (parsed.version !== 1) return null
+    if (parsed.version !== 1 && parsed.version !== 2) return null
     if (!Array.isArray(parsed.routes) || !Array.isArray(parsed.sessions)) return null
     return parsed
   } catch {

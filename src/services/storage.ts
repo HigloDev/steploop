@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
 import { normalizeSession } from '../core/session'
+import { migrateRouteToV3 } from '../core/route-model'
 
-const ROUTES_KEY = 'palou.routes.v2'
+const ROUTES_KEY = 'palou.routes.v3'
+const V2_ROUTES_KEY = 'palou.routes.v2'
 const LEGACY_ROUTES_KEY = 'palou.routes.v1'
 const SESSIONS_KEY = 'palou.sessions.v1'
 const WORKOUTS_KEY = 'palou.workouts.v1'
@@ -21,12 +23,17 @@ async function readArray<T>(key: string): Promise<T[]> {
 export async function listRoutes(): Promise<RouteTemplate[]> {
   let routes = await readArray<RouteTemplate>(ROUTES_KEY)
   if (!routes.length) {
-    const legacy = await readArray<RouteTemplate>(LEGACY_ROUTES_KEY)
+    const v2 = await readArray<RouteTemplate>(V2_ROUTES_KEY)
+    const legacy = v2.length
+      ? v2
+      : await readArray<RouteTemplate>(LEGACY_ROUTES_KEY)
     if (legacy.length) {
-      routes = legacy.map((route) => ({ ...route, location: route.location }))
+      // 先完整转换，全部成功后再一次写入 V3。失败时继续读取旧数据，绝不清空。
+      routes = legacy.map((route) => migrateRouteToV3(route))
       try {
         await AsyncStorage.setItem(ROUTES_KEY, JSON.stringify(routes))
-      } catch {
+      } catch (error) {
+        console.warn('[storage] route v3 migration write failed', error)
         // Keep the legacy data readable even when storage is temporarily full.
       }
     }
@@ -50,10 +57,11 @@ async function safeWrite(key: string, value: unknown): Promise<void> {
 }
 
 export async function saveRoute(route: RouteTemplate): Promise<void> {
+  const normalized = migrateRouteToV3(route)
   const routes = await listRoutes()
-  const index = routes.findIndex((item) => item.id === route.id)
-  if (index >= 0) routes[index] = route
-  else routes.unshift(route)
+  const index = routes.findIndex((item) => item.id === normalized.id)
+  if (index >= 0) routes[index] = normalized
+  else routes.unshift(normalized)
   await safeWrite(ROUTES_KEY, routes)
 }
 
@@ -70,6 +78,7 @@ export async function deleteRoutes(ids: string[]): Promise<void> {
   await safeWrite(ROUTES_KEY, remainingRoutes)
   if (!remainingRoutes.length) {
     await AsyncStorage.removeItem(LEGACY_ROUTES_KEY)
+    await AsyncStorage.removeItem(V2_ROUTES_KEY)
   }
 }
 
@@ -121,7 +130,7 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 export interface BackupPayload {
-  version: 1
+  version: 1 | 2
   exportedAt: number
   routes: RouteTemplate[]
   sessions: ClimbSession[]
@@ -132,7 +141,7 @@ export interface BackupPayload {
 /** 导出当前设备的路线与会话原始数据，不做任何归一化处理，用于备份/迁移。 */
 export async function exportRawData(): Promise<BackupPayload> {
   return {
-    version: 1,
+    version: 2,
     exportedAt: Date.now(),
     routes: await readArray<RouteTemplate>(ROUTES_KEY),
     sessions: await readArray<ClimbSession>(SESSIONS_KEY),
@@ -149,20 +158,21 @@ export async function importRawData(payload: BackupPayload): Promise<{
   if (!payload || typeof payload !== 'object') {
     throw new Error('备份内容格式无效')
   }
-  if (payload.version !== 1) {
+  if (payload.version !== 1 && payload.version !== 2) {
     throw new Error(`不支持的备份版本：${payload.version}`)
   }
   if (!Array.isArray(payload.routes) || !Array.isArray(payload.sessions)) {
     throw new Error('备份内容缺少 routes 或 sessions 字段')
   }
   // 直接覆盖本地存储；导入前调用方应已弹窗确认。
-  await safeWrite(ROUTES_KEY, payload.routes)
+  const migratedRoutes = payload.routes.map((route) => migrateRouteToV3(route))
+  await safeWrite(ROUTES_KEY, migratedRoutes)
   await safeWrite(SESSIONS_KEY, payload.sessions)
   // workouts 可选（旧备份无此字段）
   const workouts = Array.isArray(payload.workouts) ? payload.workouts : []
   await safeWrite(WORKOUTS_KEY, workouts)
   return {
-    routesCount: payload.routes.length,
+    routesCount: migratedRoutes.length,
     sessionsCount: payload.sessions.length,
     workoutsCount: workouts.length,
   }

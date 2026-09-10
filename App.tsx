@@ -39,6 +39,7 @@ import ClimbWorkoutScreen from './src/pages/ClimbWorkout'
 import WorkoutResultScreen from './src/pages/WorkoutResult'
 import ShareStudioScreen from './src/pages/ShareStudio'
 import ClimbPreviewScreen from './src/pages/ClimbPreview'
+import DiagnosticCaptureScreen from './src/pages/DiagnosticCapture'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
@@ -264,6 +265,7 @@ export default function App() {
           <Stack.Screen name="WorkoutResult" component={WorkoutResultScreen} />
           <Stack.Screen name="ShareStudio" component={ShareStudioScreen} />
           <Stack.Screen name="ClimbPreview" component={ClimbPreviewScreen} />
+          <Stack.Screen name="DiagnosticCapture" component={DiagnosticCaptureScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />

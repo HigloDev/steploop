@@ -206,6 +206,36 @@ test('turn-gate: 半圈不结算，方向反转结算上一拐', () => {
   assert.equal(gate.completedTurns, 0, 'reset 后归零')
 })
 
+test('turn-gate: 使用重力轴转向并只消费当前楼层的两个整拐', () => {
+  const { StairTurnGate } = load('turn-gate')
+  const gate = new StairTurnGate()
+  for (let index = 0; index < 3; index += 1) {
+    gate.push({
+      startMs: index * 1000,
+      endMs: index * 1000 + 500,
+      steps: 8,
+      cadence: 120,
+      energy: 0.1,
+      turnRad: 0,
+      headingTurnRad: 1.2,
+      paused: 0,
+    })
+    gate.push({
+      startMs: index * 1000 + 500,
+      endMs: index * 1000 + 1000,
+      steps: 0,
+      cadence: 0,
+      energy: 0.05,
+      turnRad: 0,
+      headingTurnRad: 0,
+      paused: 1,
+    })
+  }
+  assert.equal(gate.completedTurns, 3, '手机自身 Z 轴为零时也应识别身体转弯')
+  gate.consume(2)
+  assert.equal(gate.completedTurns, 1, '推进一层后应保留多余整拐')
+})
+
 // === analysis：帧提取与气压边界 ===
 test('analysis: extractFrames 产生 500ms 帧并检测步数', () => {
   const { extractFrames } = load('analysis')
@@ -234,6 +264,67 @@ test('analysis: extractFrames 产生 500ms 帧并检测步数', () => {
   const totalSteps = frames.reduce((sum, f) => sum + f.steps, 0)
   assert.equal(totalSteps, 4, '4 次冲击应检出 4 步')
   assert.ok(frames.every((f) => f.endMs > f.startMs), '帧时间递增')
+})
+
+test('analysis: 手机横放或竖放都能得到相同的竖直转向', () => {
+  const { extractFrames } = load('analysis')
+  const makeSamples = (gravity, gyro) => {
+    const samples = []
+    for (let t = 0; t <= 600; t += 20) {
+      samples.push({
+        t,
+        ax: gravity[0], ay: gravity[1], az: gravity[2],
+        gx: gyro[0], gy: gyro[1], gz: gyro[2],
+        alpha: 0, beta: 0, gamma: 0,
+      })
+    }
+    return samples
+  }
+  const flat = extractFrames(makeSamples([0, 0, 1], [0, 0, 2]))[0]
+  const upright = extractFrames(makeSamples([0, 1, 0], [0, 2, 0]))[0]
+  assert.ok(flat.headingTurnRad > 0.7, '平放手机应识别绕竖直轴转弯')
+  assert.ok(upright.headingTurnRad > 0.7, '竖放手机应识别绕竖直轴转弯')
+  assert.ok(Math.abs(flat.headingTurnRad - upright.headingTurnRad) < 0.05)
+  assert.equal(upright.turnRad, 0, '旧的单 Z 轴在竖放时确实会漏掉该转弯')
+})
+
+test('recognizer: 高度领先时保留步数和整拐并追回漏掉的楼层', () => {
+  const { RouteRecognizer } = load('recognizer')
+  const segment = (floor) => ({
+    id: `catch-${floor}`,
+    type: 'flight',
+    startMs: (floor - 1) * 1000,
+    endMs: floor * 1000,
+    floorFrom: floor,
+    floorTo: floor + 1,
+    ascentM: 3,
+    stepCount: 8,
+    features: [[0.2, 0.2, 0, 0]],
+  })
+  const rec = new RouteRecognizer({
+    id: 'catch-up', name: '追赶测试', startFloor: 1, endFloor: 4,
+    carryMode: 'pocket', floorHeightM: 3, totalAscentM: 9,
+    device: { platform: 'android', model: 'test', system: 'test' },
+    segments: [segment(1), segment(2), segment(3)], markers: [],
+    createdAt: 0, updatedAt: 0, version: 1, status: 'verified',
+  }, 0)
+  for (let i = 0; i < 5; i += 1) rec.pushBarometer(1000)
+  for (let i = 0; i < 6; i += 1) {
+    rec.pushFrame({
+      startMs: i * 1000, endMs: i * 1000 + 500,
+      steps: 8, cadence: 120, energy: 0.2,
+      turnRad: 0, headingTurnRad: 1.2, paused: 0,
+    })
+    rec.pushFrame({
+      startMs: i * 1000 + 500, endMs: i * 1000 + 1000,
+      steps: 0, cadence: 0, energy: 0.05,
+      turnRad: 0, headingTurnRad: 0, paused: 1,
+    })
+  }
+  assert.equal(rec.snapshot().currentFloor, 1, '高度未到时先保留动作证据')
+  rec.pushBarometer(998.9)
+  assert.equal(rec.snapshot().currentFloor, 4, '高度到位后应逐层追回，不能锁死')
+  assert.equal(rec.snapshot().status, 'complete')
 })
 
 test('analysis: 气压楼层边界检测', () => {
@@ -315,4 +406,219 @@ test('free-recognizer: 净爬楼时间只统计动作帧', () => {
   assert.equal(rec.snapshot().activeMs, 500, '只有动作帧计入')
   const session = rec.finish(100000)
   assert.equal(session.durationMs, 500)
+})
+
+// === diagnostics：真机数据格式与回放报告 ===
+function makeDiagnosticBundle(activity = 'stationary') {
+  const samples = []
+  for (let index = 0; index < 150; index += 1) {
+    samples.push({
+      t: index * 20,
+      ax: 0,
+      ay: 0,
+      az: 1,
+      gx: 0,
+      gy: 0,
+      gz: 0,
+      alpha: 0,
+      beta: 0,
+      gamma: 0,
+      pressure: 1000,
+    })
+  }
+  return {
+    version: 1,
+    id: `diagnostic-${activity}`,
+    createdAt: 123456,
+    durationMs: 3000,
+    activity,
+    carryMode: 'pocket',
+    routeTemplate: makeCalorieTestTemplate(),
+    truth: { startFloor: 1, endFloor: 1, completedFloors: 0 },
+    samples,
+    annotations: [],
+    gaps: [],
+    capture: {
+      platform: 'android',
+      systemVersion: 'test',
+      sampleIntervalTargetMs: 20,
+      barometerAvailable: true,
+    },
+  }
+}
+
+test('diagnostics: 诊断路线移除地点和设备型号', () => {
+  const { sanitizeDiagnosticRoute } = load('diagnostics')
+  const route = {
+    ...makeCalorieTestTemplate(),
+    location: {
+      name: '真实建筑',
+      address: '真实地址',
+      latitude: 31,
+      longitude: 121,
+      accuracy: 10,
+      source: 'gps',
+      confirmedAt: 0,
+    },
+  }
+  const safe = sanitizeDiagnosticRoute(route)
+  assert.equal(safe.location, undefined)
+  assert.equal(safe.name, '诊断路线')
+  assert.equal(safe.device.model, 'redacted')
+})
+
+test('diagnostics: 静止负样本不误报楼层', () => {
+  const { replayDiagnosticBundle } = load('diagnostics')
+  const result = replayDiagnosticBundle(makeDiagnosticBundle())
+  assert.equal(result.recognizedFloors, 0)
+  assert.equal(result.falsePositive, false)
+  assert.equal(result.exactFinalFloor, true)
+})
+
+test('diagnostics: 汇总报告计算负样本误报率', () => {
+  const { aggregateDiagnosticResults } = load('diagnostics')
+  const base = {
+    bundleId: 'a',
+    activity: 'stationary',
+    carryMode: 'pocket',
+    platform: 'android',
+    expectedFloors: 0,
+    recognizedFloors: 0,
+    finalFloorError: 0,
+    exactFinalFloor: true,
+    floorEventPrecision: 1,
+    floorEventRecall: 1,
+    medianFloorLatencyMs: null,
+    p95FloorLatencyMs: null,
+    sampleCount: 100,
+    durationMs: 1000,
+    barometerAvailable: true,
+    recognitionEvents: [],
+  }
+  const report = aggregateDiagnosticResults([
+    { ...base, falsePositive: false },
+    { ...base, bundleId: 'b', falsePositive: true, recognizedFloors: 1 },
+  ])
+  assert.equal(report.negativeBundles, 2)
+  assert.equal(report.negativeFalsePositiveRate, 0.5)
+  assert.equal(report.cohorts.carryMode.pocket.bundles, 2)
+})
+
+test('diagnostics: 基线比较会阻止准确率退化', () => {
+  const { compareDiagnosticReports } = load('diagnostics')
+  const baseline = {
+    exactFinalFloorRate: 0.98,
+    floorEventPrecision: 0.97,
+    floorEventRecall: 0.96,
+    negativeFalsePositiveRate: 0.01,
+    p95FloorLatencyMs: 3000,
+  }
+  const comparison = compareDiagnosticReports(baseline, {
+    ...baseline,
+    exactFinalFloorRate: 0.9,
+    negativeFalsePositiveRate: 0.04,
+    p95FloorLatencyMs: 3800,
+  })
+  assert.equal(comparison.passed, false)
+  assert.deepEqual(
+    comparison.regressions.map((item) => item.metric),
+    ['exactFinalFloorRate', 'negativeFalsePositiveRate', 'p95FloorLatencyMs'],
+  )
+})
+
+test('diagnostics v2: 兼容读取 v1 并计算采样质量', () => {
+  const { parseDiagnosticBundle } = load('diagnostics')
+  const legacy = makeDiagnosticBundle('stationary')
+  legacy.version = 1
+  const parsed = parseDiagnosticBundle(legacy)
+  assert.equal(parsed.version, 2)
+  assert.equal(parsed.algorithmVersion, 'legacy-v1')
+  assert.equal(parsed.capture.deviceCohortId, 'legacy-unknown')
+  assert.ok(['valid', 'degraded'].includes(parsed.sampleQuality))
+  assert.ok(parsed.samplingStats.actualHz > 40)
+})
+
+test('diagnostics v2: 无效样本保留但不进入发布指标', () => {
+  const { aggregateDiagnosticResults } = load('diagnostics')
+  const base = {
+    bundleId: 'valid', activity: 'climb_up', carryMode: 'pocket', platform: 'android',
+    deviceCohortId: 'android-a', sampleQuality: 'valid', routeStructure: 'standard',
+    expectedFloors: 1, recognizedFloors: 1, finalFloorError: 0,
+    exactFinalFloor: true, falsePositive: false, floorEventPrecision: 1,
+    floorEventRecall: 1, medianFloorLatencyMs: 1000, p95FloorLatencyMs: 1000,
+    sampleCount: 100, durationMs: 3000, barometerAvailable: true,
+    recognitionEvents: [],
+  }
+  const report = aggregateDiagnosticResults([
+    base,
+    { ...base, bundleId: 'invalid', sampleQuality: 'invalid', exactFinalFloor: false },
+  ])
+  assert.equal(report.bundles, 2)
+  assert.equal(report.eligibleBundles, 1)
+  assert.equal(report.invalidBundles, 1)
+  assert.equal(report.exactFinalFloorRate, 1)
+})
+
+test('route model v3: 旧路线惰性迁移且异常轮次不学习', () => {
+  const { migrateRouteToV3, updateRouteModelFromWorkouts } = load('route-model')
+  const route = makeCalorieTestTemplate()
+  const migrated = migrateRouteToV3(route)
+  assert.equal(migrated.modelVersion, 3)
+  assert.equal(migrated.learning.sampleCount, 1)
+  const badRound = { ...makeRound(1, 30000), interruptions: [{ startMs: 1, endMs: 2 }] }
+  const updated = updateRouteModelFromWorkouts(migrated, [{
+    id: 'w', templateId: route.id, status: 'completed', startedAt: 1,
+    rounds: [badRound],
+  }])
+  assert.equal(updated.learning.sampleCount, 1)
+})
+
+test('route model v3: 五次一致可信训练可验证路线', () => {
+  const { migrateRouteToV3, updateRouteModelFromWorkouts } = load('route-model')
+  const route = migrateRouteToV3(makeCalorieTestTemplate())
+  const rounds = Array.from({ length: 5 }, (_, index) => ({
+    ...makeRound(index + 1, 30000 + index * 200),
+    floorsCompleted: 2,
+    ascentM: 6,
+    steps: 64 + index,
+    confidence: 0.92,
+    interruptions: [],
+    completionReason: 'route_complete',
+    userCorrectionCount: 0,
+    events: [
+      { type: 'turn', confidence: 0.9, t: 1 },
+      { type: 'turn', confidence: 0.9, t: 2 },
+      { type: 'turn', confidence: 0.9, t: 3 },
+      { type: 'turn', confidence: 0.9, t: 4 },
+    ],
+  }))
+  const updated = updateRouteModelFromWorkouts(route, [{
+    id: 'w', templateId: route.id, status: 'completed', startedAt: 1, rounds,
+  }])
+  assert.equal(updated.learning.sampleCount, 5)
+  assert.equal(updated.learning.state, 'verified')
+  assert.equal(updated.status, 'verified')
+})
+
+test('training progress: 仅可信完整训练进入周目标与个人最佳', () => {
+  const { deriveTrainingProgress } = load('training-progress')
+  const now = Date.now()
+  const workout = (id, duration, trustworthy = true) => ({
+    id, templateId: 'route', status: 'completed', startedAt: now,
+    endedAt: now + duration, updatedAt: now + duration,
+    totalFloorsCompleted: 15, totalAscentM: 45, activeDurationMs: duration,
+    rounds: [{
+      ...makeRound(1, duration), completionReason: 'route_complete',
+      confidence: 0.92, interruptions: trustworthy ? [] : [{ startMs: 1, endMs: 2 }],
+      userCorrectionCount: 0,
+    }],
+  })
+  const progress = deriveTrainingProgress([
+    workout('slower', 60000),
+    workout('best', 50000),
+    workout('invalid', 40000, false),
+  ], now)
+  assert.equal(progress.validWorkouts, 2)
+  assert.equal(progress.floors, 30)
+  assert.equal(progress.personalBests.route.workoutId, 'best')
 })

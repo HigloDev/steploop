@@ -32,6 +32,7 @@ interface TimedSignal {
   t: number
   motion: number
   turn: number
+  headingTurn: number
   step: boolean
 }
 
@@ -41,6 +42,11 @@ function prepareSignal(samples: SensorSample[]): TimedSignal[] {
   let smooth = 0
   let previous = 0
   let lastStepAt = -Infinity
+  // 在设备坐标系中低通估算重力方向。陀螺仪向量投影到重力轴后，
+  // 得到人绕世界竖直方向的转速，不再依赖手机自身的 Z 轴朝向。
+  let gravityX = samples[0].ax
+  let gravityY = samples[0].ay
+  let gravityZ = samples[0].az
 
   return samples.map((sample) => {
     const magnitude = Math.sqrt(sample.ax ** 2 + sample.ay ** 2 + sample.az ** 2)
@@ -53,10 +59,21 @@ function prepareSignal(samples: SensorSample[]): TimedSignal[] {
       sample.t - lastStepAt >= STEP_REFRACTORY_MS
     if (step) lastStepAt = sample.t
     previous = smooth
+    gravityX = gravityX * 0.97 + sample.ax * 0.03
+    gravityY = gravityY * 0.97 + sample.ay * 0.03
+    gravityZ = gravityZ * 0.97 + sample.az * 0.03
+    const gravityNorm = Math.max(
+      0.001,
+      Math.sqrt(gravityX ** 2 + gravityY ** 2 + gravityZ ** 2),
+    )
+    const headingTurn =
+      (sample.gx * gravityX + sample.gy * gravityY + sample.gz * gravityZ) /
+      gravityNorm
     return {
       t: sample.t,
       motion: smooth,
       turn: sample.gz,
+      headingTurn,
       step,
     }
   })
@@ -76,9 +93,11 @@ export function extractFrames(samples: SensorSample[]): FeatureFrame[] {
     const steps = points.filter((point) => point.step).length
     const energy = points.reduce((sum, point) => sum + point.motion, 0) / points.length
     let turnRad = 0
+    let headingTurnRad = 0
     for (let index = 1; index < points.length; index += 1) {
       const dt = clamp((points[index].t - points[index - 1].t) / 1000, 0, 0.1)
       turnRad += points[index].turn * dt
+      headingTurnRad += points[index].headingTurn * dt
     }
     frames.push({
       startMs: start - first,
@@ -87,6 +106,7 @@ export function extractFrames(samples: SensorSample[]): FeatureFrame[] {
       cadence: steps * (60000 / FRAME_MS),
       energy,
       turnRad,
+      headingTurnRad,
       paused: steps === 0 && energy < 0.045 ? 1 : 0,
     })
   }
@@ -117,10 +137,13 @@ export function detectMarkers(frames: FeatureFrame[]): RouteMarker[] {
   }
 
   frames.forEach((frame, index) => {
-    const isTurning = Math.abs(frame.turnRad) >= 0.12
+    const turnRad = Number.isFinite(frame.headingTurnRad)
+      ? frame.headingTurnRad!
+      : frame.turnRad
+    const isTurning = Math.abs(turnRad) >= 0.12
     if (isTurning) {
       if (turnStart < 0) turnStart = frame.startMs
-      turnSum += frame.turnRad
+      turnSum += turnRad
     } else if (turnStart >= 0) {
       flushTurn(frame.startMs)
     }

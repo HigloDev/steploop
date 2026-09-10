@@ -25,7 +25,7 @@ import {
   listRoutes,
   saveRoute,
 } from '../services/storage'
-import { getCurrentLocation } from '../services/location'
+import { getCurrentLocationIfAuthorized } from '../services/location'
 import { routesByDistance } from '../core/location'
 import {
   RouteLearningStage,
@@ -33,7 +33,9 @@ import {
 } from '../core/route-learning'
 import { getFloorAchievementCount } from '../core/floors'
 import { listWorkouts } from '../services/workout-storage'
+import { deriveTrainingProgress } from '../core/training-progress'
 import {
+  ClimbWorkout,
   RouteLocation,
   RouteSegment,
   RouteTemplate,
@@ -344,6 +346,15 @@ export default function RouteEditScreen({
     () => new Set(),
   )
   const [revealedRouteId, setRevealedRouteId] = useState<string | undefined>()
+  const [quickStart, setQuickStart] = useState<{
+    route: RouteTemplate
+    workout?: ClimbWorkout
+  } | null>(null)
+  const [weekProgress, setWeekProgress] = useState({
+    validWorkouts: 0,
+    floors: 0,
+    ascentM: 0,
+  })
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -354,6 +365,19 @@ export default function RouteEditScreen({
         routeView(r, workouts, distanceM),
       )
       setAllRoutes(views)
+      const progress = deriveTrainingProgress(workouts)
+      setWeekProgress(progress)
+      const latestWorkout = workouts.find((workout) =>
+        list.some((route) => route.id === workout.templateId),
+      )
+      const latestRoute = latestWorkout
+        ? list.find((route) => route.id === latestWorkout.templateId)
+        : list.find((route) => route.status === 'verified' && route.location)
+      setQuickStart(
+        latestRoute
+          ? { route: latestRoute, workout: latestWorkout }
+          : null,
+      )
     } catch (err) {
       console.warn('[steploop] load routes failed', err)
     } finally {
@@ -370,9 +394,9 @@ export default function RouteEditScreen({
   // 后台静默获取一次定位，用于路线距离排序。失败时不影响列表展示。
   useEffect(() => {
     let cancelled = false
-    getCurrentLocation({ highAccuracy: false, expireMs: 4000 })
+    getCurrentLocationIfAuthorized({ highAccuracy: false, expireMs: 4000 })
       .then((result) => {
-        if (cancelled) return
+        if (cancelled || !result) return
         setLocation({
           name: '当前位置',
           address: '手机定位点',
@@ -457,6 +481,16 @@ export default function RouteEditScreen({
       return
     }
     navigation.navigate('RouteProfile', { id: rv.id })
+  }
+
+  const handleQuickStart = () => {
+    if (!quickStart) return
+    navigation.navigate('ClimbWorkout', {
+      id: quickStart.route.id,
+      goal: quickStart.workout?.goal ?? { type: 'open' },
+      returnConfirmationMode:
+        quickStart.workout?.returnConfirmationMode ?? 'assisted',
+    })
   }
 
   const handleRename = (rv: RouteView) => {
@@ -571,16 +605,28 @@ export default function RouteEditScreen({
           </Text>
         </View>
 
+        <Card raised style={styles.weekCard}>
+          <Text style={styles.weekLabel}>本周向上</Text>
+          <View style={styles.weekMetrics}>
+            <Text style={styles.weekMetric}>{weekProgress.floors} 层</Text>
+            <Text style={styles.weekMetric}>{weekProgress.ascentM.toFixed(0)} 米</Text>
+            <Text style={styles.weekMetric}>{weekProgress.validWorkouts} 次</Text>
+          </View>
+        </Card>
+
+        {quickStart ? (
+          <Button
+            title={`开始 · ${quickStart.route.name}`}
+            accessibilityLabel={`使用上次设置开始${quickStart.route.name}`}
+            onPress={handleQuickStart}
+          />
+        ) : null}
+
         <Button
-          title="新建路线"
+          title="创建固定路线"
+          variant={quickStart ? 'secondary' : 'primary'}
           onPress={() => navigation.navigate('LocationPicker')}
         />
-
-        {__DEV__ ? (
-          <Pressable style={styles.devInjectBtn} onPress={handleInjectMockRoute}>
-            <Text style={styles.devInjectText}>注入测试路线（仅开发）</Text>
-          </Pressable>
-        ) : null}
 
         <View style={styles.toolbarRow}>
           {batchMode ? (
@@ -713,6 +759,20 @@ const makeStyles = (theme: Theme) =>
     flex: { flex: 1 },
     content: { paddingHorizontal: theme.pagePaddingH },
     hero: { marginTop: 8, marginBottom: 12 },
+    weekCard: { padding: 16, marginBottom: 12 },
+    weekLabel: { color: theme.muted, fontSize: 12, fontWeight: '700' },
+    weekMetrics: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginTop: 10,
+    },
+    weekMetric: {
+      color: theme.ink,
+      fontSize: 17,
+      fontWeight: '900',
+      fontVariant: ['tabular-nums'],
+    },
     eyebrow: {
       color: theme.green,
       fontSize: theme.fontEyebrow,

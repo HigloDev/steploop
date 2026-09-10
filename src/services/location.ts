@@ -12,6 +12,7 @@ import { NativeModules, Platform } from 'react-native'
 import {
   PrivacyAuthorizeError,
   ensurePrivacyAuthorized,
+  isPrivacyAgreed,
   privacyAuthorizeErrorMessage,
 } from './privacy'
 
@@ -167,4 +168,19 @@ export async function getCurrentLocation(
       error instanceof Error ? error.message : String(error),
     )
   }
+}
+
+/**
+ * 首页距离排序使用的静默定位入口。
+ * 只有用户已同意隐私协议且系统定位权限已授予时才读取位置，绝不在首页弹权限框。
+ */
+export async function getCurrentLocationIfAuthorized(
+  options: { highAccuracy?: boolean; expireMs?: number } = {},
+): Promise<LocationResult | null> {
+  if (!(await isPrivacyAgreed())) return null
+  if (Platform.OS === 'android' || Platform.OS === 'ios') {
+    const permission = await Location.getForegroundPermissionsAsync()
+    if (permission.status !== 'granted') return null
+  }
+  return getCurrentLocation(options)
 }
