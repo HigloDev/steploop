@@ -15,6 +15,7 @@ import {
   Preferences as Prefs,
 } from '../services/preferences'
 import { exportBackup, importBackup } from '../services/backup'
+import { exportWorkoutCsv } from '../services/export-csv'
 
 const APP_VERSION = '1.0.0'
 
@@ -24,6 +25,7 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
   const styles = makeStyles(theme)
   const [prefs, setPrefs] = useState<Prefs | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [exportingCsv, setExportingCsv] = useState(false)
   const [importing, setImporting] = useState(false)
   const [exportMessage, setExportMessage] = useState('')
   const [importMessage, setImportMessage] = useState('')
@@ -62,6 +64,20 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
       setExportMessage(`导出失败：${err instanceof Error ? err.message : '未知错误'}`)
     } finally {
       setExporting(false)
+    }
+  }
+
+  const handleExportCsv = async () => {
+    if (exportingCsv) return
+    setExportingCsv(true)
+    setExportMessage('正在生成 CSV…')
+    try {
+      const result = await exportWorkoutCsv()
+      setExportMessage(result.message)
+    } catch (err) {
+      setExportMessage(`CSV 导出失败：${err instanceof Error ? err.message : '未知错误'}`)
+    } finally {
+      setExportingCsv(false)
     }
   }
 
@@ -185,6 +201,14 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
             <Text style={styles.messageText}>{exportMessage}</Text>
           ) : null}
           <View style={styles.divider} />
+          <Pressable style={styles.row} onPress={handleExportCsv} disabled={exportingCsv}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>导出 CSV</Text>
+              <Text style={styles.rowDesc}>训练记录表格，可用 Excel 打开</Text>
+            </View>
+            <Text style={styles.rowAction}>{exportingCsv ? '导出中…' : '导出'}</Text>
+          </Pressable>
+          <View style={styles.divider} />
           <Pressable style={styles.row} onPress={handleImport} disabled={importing}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>导入备份</Text>
@@ -211,20 +235,20 @@ export default function SettingsScreen({ navigation }: RootStackScreen<'Settings
             <Text style={styles.rowTitle}>隐私协议</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
-          <View style={styles.divider} />
-          <Pressable
-            accessibilityRole="button"
-            style={styles.row}
-            onPress={() => navigation.navigate('DiagnosticCapture')}
-          >
-            <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>测试采样（封测）</Text>
-              <Text style={styles.rowDesc}>本地采集、人工标注并主动导出脱敏样本</Text>
-            </View>
-            <Text style={styles.rowAction}>进入</Text>
-          </Pressable>
           {__DEV__ && (
             <>
+              <View style={styles.divider} />
+              <Pressable
+                accessibilityRole="button"
+                style={styles.row}
+                onPress={() => navigation.navigate('DiagnosticCapture')}
+              >
+                <View style={styles.rowText}>
+                  <Text style={styles.rowTitle}>测试采样</Text>
+                  <Text style={styles.rowDesc}>本地采集、标注并导出脱敏样本（仅开发构建）</Text>
+                </View>
+                <Text style={styles.rowAction}>进入</Text>
+              </Pressable>
               <View style={styles.divider} />
               <Pressable
                 style={styles.row}

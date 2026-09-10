@@ -27,6 +27,8 @@ npx tsc --noEmit
 npx expo export --platform android --output-dir .expo-export-check --clear
 npm run diagnostics:replay -- --out C:\diagnostics\report.json C:\diagnostics
 npm run diagnostics:gate -- C:\diagnostics\report.json
+npm run diagnostics:smoke
+npm run release:check
 npm run smoke:android -- -Serial <device-serial>
 ```
 

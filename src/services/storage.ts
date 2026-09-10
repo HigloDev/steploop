@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
 import { normalizeSession } from '../core/session'
 import { migrateRouteToV3 } from '../core/route-model'
+import { validateBackupPayload } from '../core/backup-payload'
 
 const ROUTES_KEY = 'palou.routes.v3'
 const V2_ROUTES_KEY = 'palou.routes.v2'
@@ -158,25 +159,18 @@ export async function importRawData(payload: BackupPayload): Promise<{
   sessionsCount: number
   workoutsCount: number
 }> {
-  if (!payload || typeof payload !== 'object') {
-    throw new Error('备份内容格式无效')
-  }
-  if (payload.version !== 1 && payload.version !== 2) {
-    throw new Error(`不支持的备份版本：${payload.version}`)
-  }
-  if (!Array.isArray(payload.routes) || !Array.isArray(payload.sessions)) {
-    throw new Error('备份内容缺少 routes 或 sessions 字段')
+  const checked = validateBackupPayload(payload)
+  if (!checked.ok) {
+    throw new Error(checked.error)
   }
   // 直接覆盖本地存储；导入前调用方应已弹窗确认。
-  const migratedRoutes = payload.routes.map((route) => migrateRouteToV3(route))
+  const migratedRoutes = checked.payload.routes.map((route) => migrateRouteToV3(route))
   await safeWrite(ROUTES_KEY, migratedRoutes)
-  await safeWrite(SESSIONS_KEY, payload.sessions)
-  // workouts 可选（旧备份无此字段）
-  const workouts = Array.isArray(payload.workouts) ? payload.workouts : []
-  await safeWrite(WORKOUTS_KEY, workouts)
+  await safeWrite(SESSIONS_KEY, checked.payload.sessions)
+  await safeWrite(WORKOUTS_KEY, checked.payload.workouts ?? [])
   return {
     routesCount: migratedRoutes.length,
-    sessionsCount: payload.sessions.length,
-    workoutsCount: workouts.length,
+    sessionsCount: checked.payload.sessions.length,
+    workoutsCount: checked.payload.workouts?.length ?? 0,
   }
 }

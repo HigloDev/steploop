@@ -131,9 +131,13 @@ export default function RouteProfileScreen({
             </View>
             <View style={styles.progressLabels}>
               <Text style={styles.progressText}>
-                {learning.validCount < 3 ? '3次基本可用' : '已达到基本可用'}
+                {learning.remainingCount > 0
+                  ? `还差 ${learning.remainingCount} 次可信训练可验证`
+                  : '已达到稳定验证'}
               </Text>
-              <Text style={styles.progressText}>约5次稳定验证</Text>
+              <Text style={styles.progressText}>
+                {learning.validCount}/5 次有效数据
+              </Text>
             </View>
             <Text style={styles.learningMessage}>{learning.message}</Text>
           </Card>

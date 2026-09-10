@@ -10,32 +10,37 @@
 | 可信识别（多证据 + 0.90 自动完成可撤销） | 已完成并验证 | 纯函数测试覆盖 |
 | 诊断采集 / V2 包 / 离线回放 / 发布门禁 | 已完成并验证 | 工具链与脱敏已加固；缺真实数据集 |
 | 路线模型 V3 学习 | 已完成并验证 | 五次一致可信训练可验证 |
-| 备份 V2 + 兼容 V1 | 已完成并验证（逻辑） | 导出走 listRoutes；迁移成功清理旧键 |
+| 备份 V2 + 兼容 V1 | 已完成并验证 | 导出走 listRoutes；校验抽纯函数；迁移清理旧键 |
 | 高德环境变量注入 | 已完成 | 需控制台轮换与来源限制（外部） |
 | Android 权限收敛 | 已完成 | 真机 Manifest 冒烟待矩阵执行 |
-| 分享海报 | 已完成并验证 | `design-qa.md` passed |
-| 本地自动化（test + tsc） | 已完成并验证 | 2026-09-10：29/29 + tsc 通过 |
+| 分享海报 | 已完成并验证 | `docs/archive/design-qa.md` passed |
+| 本地自动化（test + tsc） | 已完成并验证 | 2026-09-10：31/31 + tsc 通过 |
 | expo export 冒烟 | 已完成并验证 | 2026-09-10 Android 导出成功 |
 | 诊断回放/门禁 CLI 链路 | 已完成并验证 | 合成夹具 E2E；门禁正确拒绝不达标数据 |
+| `npm run release:check` | 已完成并验证 | 串联 test/tsc/diagnostics:smoke/export |
+| CSV 导出 | 已完成并验证 | 设置页 + 纯函数测试 |
+| 周报（首页/历史） | 已完成并验证 | 本周楼层/爬升/次数/连续周 |
+| 路线学习进度文案 | 已完成并验证 | 显示「还差 N 次可信训练可验证」 |
+| 开发者入口收敛 | 已完成 | Diagnostic/ClimbPreview 仅 `__DEV__`；mock 路线已删 |
+| 仓库累赘清理 | 已完成 | prototype 删除；文档归档 `docs/archive/` |
 | 真实验证集与 gate 指标 | 被阻塞 | 需真机采集，`C:\diagnostics` 不存在 |
 | 真机矩阵 / 耗电 / TalkBack / 杀进程 | 被阻塞 | 需人工；当前无 adb 设备连接 |
 | Release 签名、升级不丢数据、断 Metro | 被阻塞 | 需正式签名配置 |
 | 公开发布 | 被阻塞 | 门槛未在真实数据上证明 |
 
-## 本轮已修复（2026-09-10 审计）
+## 2026-09-10 工程收敛（本轮）
 
-- P0：诊断导出剥离绝对 `createdAt`，文件名不再含绝对 ISO 时间
-- P0：`exportRawData` 改走 `listRoutes()`，避免绕过 V3 迁移丢路线
-- P1：V3 迁移写入成功后清理 `palou.routes.v1/v2`
-- P1：传感器权限误导文案修正；删除未使用 `registerPrivacyHandler`
-- P1：补导出脱敏、空数据集比较、卡路里测试（29 用例）
-- P2：隐私协议补充诊断包导出说明
+- 删除 `palou-prototype/`；`design-qa` / `page-flow` / 多轮重构计划迁入 `docs/archive/`
+- 删除 RouteEdit mock 路线注入；诊断采样与开发预览仅开发构建可见
+- 新增 `npm run release:check`、CSV 导出、备份校验纯函数 `backup-payload`
+- 历史页周报；路线档案学习进度文案
 
 ## 仍存在的工程边界
 
 - `/android` 依赖 config plugin 在 prebuild 注入 `native/android-location`；封闭包必须用含该插件的 prebuild 流程验收
 - 客户端高德 Key 不可保密，必须控制台轮换与来源限制
 - 合成诊断夹具只证明工具链，**不能**当作真实准确率证据
+- 未做：本地通知周提醒、社交/账号、实时语音（有意排除）
 
 ## 风险
 

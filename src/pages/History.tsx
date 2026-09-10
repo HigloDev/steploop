@@ -24,6 +24,7 @@ import {
   ClimbWorkout,
 } from '../core/types'
 import { formatDuration } from '../core/math'
+import { deriveTrainingProgress } from '../core/training-progress'
 
 type Filter = 'all' | 'complete' | 'interrupted'
 
@@ -156,6 +157,12 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
   const [filter, setFilter] = useState<Filter>('all')
   const [totalCompleted, setTotalCompleted] = useState(0)
   const [totalAscent, setTotalAscent] = useState(0)
+  const [week, setWeek] = useState({
+    validWorkouts: 0,
+    floors: 0,
+    ascentM: 0,
+    consecutiveWeeks: 0,
+  })
   const [loading, setLoading] = useState(true)
   const [checkpoint, setCheckpoint] = useState<ActiveWorkoutCheckpoint | null>(null)
 
@@ -178,6 +185,13 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
       setTotalAscent(
         completed.reduce((sum, c) => sum + c.ascentM, 0),
       )
+      const progress = deriveTrainingProgress(workouts)
+      setWeek({
+        validWorkouts: progress.validWorkouts,
+        floors: progress.floors,
+        ascentM: progress.ascentM,
+        consecutiveWeeks: progress.consecutiveWeeks,
+      })
       setCheckpoint(cp)
     } catch (err) {
       console.warn('[steploop] load history failed', err)
@@ -256,6 +270,16 @@ export default function HistoryScreen({ navigation }: RootStackScreen<'History'>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{totalAscent.toFixed(1)}</Text>
             <Text style={styles.summaryLabel}>累计爬升米数</Text>
+          </View>
+        </View>
+
+        <View style={styles.weekRow}>
+          <Text style={styles.weekLabel}>本周向上</Text>
+          <View style={styles.weekMetrics}>
+            <Text style={styles.weekMetric}>{week.floors} 层</Text>
+            <Text style={styles.weekMetric}>{week.ascentM.toFixed(0)} 米</Text>
+            <Text style={styles.weekMetric}>{week.validWorkouts} 次</Text>
+            <Text style={styles.weekMetric}>连 {week.consecutiveWeeks} 周</Text>
           </View>
         </View>
 
@@ -347,6 +371,27 @@ const makeStyles = (theme: Theme) =>
       marginTop: 4,
       color: theme.muted,
       fontSize: 12,
+    },
+    weekRow: {
+      marginBottom: 12,
+      paddingHorizontal: 4,
+    },
+    weekLabel: {
+      color: theme.muted,
+      fontSize: 12,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    weekMetrics: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    weekMetric: {
+      color: theme.ink,
+      fontSize: 15,
+      fontWeight: '800',
+      fontVariant: ['tabular-nums'],
     },
     filterRow: {
       flexDirection: 'row',

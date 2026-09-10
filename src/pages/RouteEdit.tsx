@@ -37,57 +37,8 @@ import { deriveTrainingProgress } from '../core/training-progress'
 import {
   ClimbWorkout,
   RouteLocation,
-  RouteSegment,
   RouteTemplate,
 } from '../core/types'
-
-// 仅 __DEV__ 下可用：注入一条已验证的测试路线，便于查看正式爬楼界面
-function makeMockRoute(): RouteTemplate {
-  const now = Date.now()
-  // 生成单段 feature 数据：4 维向量 [cadence/240, energy/0.35, turnRad/1.2, paused]
-  // 模拟一层楼约 12 帧（6 秒）：起步→中途拐弯→登顶
-  const genSegmentFeatures = (seed: number): number[][] => {
-    const frames: number[][] = []
-    for (let i = 0; i < 12; i++) {
-      const cadence = 0.38 + Math.sin((i + seed) * 0.6) * 0.08 // ~90-110 步/分
-      const energy = 0.55 + Math.cos((i + seed) * 0.5) * 0.2    // 0.35-0.75
-      const turn = i === 5 || i === 6 ? 0.55 : 0.1              // 中段一次拐弯
-      frames.push([Number(cadence.toFixed(3)), Number(energy.toFixed(3)), turn, 0])
-    }
-    return frames
-  }
-  const segments: RouteSegment[] = [
-    { id: 's1', type: 'flight', startMs: 0, endMs: 6000, floorFrom: 1, floorTo: 2, ascentM: 3.2, stepCount: 18, features: genSegmentFeatures(0) },
-    { id: 's2', type: 'flight', startMs: 6000, endMs: 12000, floorFrom: 2, floorTo: 3, ascentM: 3.2, stepCount: 20, features: genSegmentFeatures(2) },
-    { id: 's3', type: 'flight', startMs: 12000, endMs: 18000, floorFrom: 3, floorTo: 4, ascentM: 3.2, stepCount: 17, features: genSegmentFeatures(4) },
-  ]
-  return {
-    id: 'mock-verified-route',
-    name: '测试大厦1层→4层',
-    startFloor: 1,
-    endFloor: 4,
-    carryMode: 'pocket',
-    floorHeightM: 3.2,
-    totalAscentM: 9.6,
-    device: { platform: 'android', model: 'unknown', system: 'unknown' },
-    segments,
-    markers: [],
-    createdAt: now,
-    updatedAt: now,
-    version: 1,
-    status: 'verified',
-    verifiedAt: now,
-    location: {
-      name: '测试大厦',
-      address: '武夷山市崇安街道测试路 1 号',
-      latitude: 27.755,
-      longitude: 118.033,
-      accuracy: 15,
-      source: 'map',
-      confirmedAt: now,
-    },
-  }
-}
 
 type Filter = 'all' | 'verified' | 'pending'
 
@@ -519,16 +470,6 @@ export default function RouteEditScreen({
       'plain-text',
       rv.name,
     )
-  }
-
-  const handleInjectMockRoute = async () => {
-    try {
-      await saveRoute(makeMockRoute())
-      await refresh()
-      navigation.navigate('RouteProfile', { id: 'mock-verified-route' })
-    } catch (err) {
-      Alert.alert('注入失败', err instanceof Error ? err.message : '未知错误')
-    }
   }
 
   const confirmDeleteRoutes = useCallback(

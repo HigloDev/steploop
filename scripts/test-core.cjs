@@ -675,3 +675,50 @@ test('calories: 体重与净爬楼时长决定消耗', () => {
   assert.ok(heavy > light, '体重越大消耗应越高')
   assert.equal(calculateStairCalories(0, 70), 0, '无动作时间不应计消耗')
 })
+
+test('export-csv: 表头、转义与可信标记', () => {
+  const { buildWorkoutCsv } = load('export-csv')
+  const csv = buildWorkoutCsv({
+    workouts: [
+      {
+        id: 'w1',
+        templateId: 'r1',
+        status: 'completed',
+        startedAt: 1000,
+        endedAt: 2000,
+        totalFloorsCompleted: 15,
+        totalAscentM: 45.5,
+        totalSteps: 1200,
+        activeDurationMs: 60000,
+        totalElapsedMs: 90000,
+        routeSnapshot: { name: 'A,楼', locationName: 'A,楼', startFloor: 1, endFloor: 16, floorsPerRound: 15, ascentPerRoundM: 45 },
+        rounds: [{
+          id: 'r', roundNumber: 1, startedAt: 1000, endedAt: 1500, durationMs: 500,
+          startFloor: 1, targetFloor: 16, finalFloor: 16, floorsCompleted: 15,
+          ascentM: 45, steps: 100, confidence: 0.95, complete: true,
+          completionReason: 'route_complete', floorSplits: [], events: [],
+          interruptions: [], userCorrectionCount: 0,
+        }],
+      },
+    ],
+  })
+  assert.ok(csv.startsWith('﻿'), '应含 UTF-8 BOM')
+  assert.ok(csv.includes('类型,记录ID'))
+  assert.ok(csv.includes('"A,楼"'), '逗号字段应加引号')
+  assert.ok(csv.includes(',1,'), '可信完整训练标记为 1')
+})
+
+test('backup payload: 校验通过与拒绝路径', () => {
+  const { validateBackupPayload } = load('backup-payload')
+  const ok = validateBackupPayload({
+    version: 2,
+    exportedAt: 1,
+    routes: [],
+    sessions: [],
+  })
+  assert.equal(ok.ok, true)
+  assert.deepEqual(ok.payload.workouts, [])
+  assert.equal(validateBackupPayload(null).ok, false)
+  assert.equal(validateBackupPayload({ version: 3, routes: [], sessions: [] }).ok, false)
+  assert.equal(validateBackupPayload({ version: 1, routes: [] }).ok, false)
+})
