@@ -1,0 +1,85 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+.expo-export-check/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android
+
+# binary artifacts (too large for git)
+*.apk
+*.ipa
+*.tmp
+
+# local synthetic diagnostics fixtures (pipeline smoke only)
+.diagnostics-synthetic/
+.diagnostics-synthetic-report.json
+
+# root debug artifacts (device screenshots, UI dumps, QA scratch files)
+.tmp_*.xml
+palou-*.png
+palou-*.xml
+device-*.png
+share-copy-real.png
+share-studio-current.png
+share-studio-real.png
+share-studio-qa-comparison.png
+result-screen.png
+route-card-before.png
+calibrate.png
+logo-new.png
+logo.png
+expo-qr.png
+qr.html
+RKStorage-debug-*
+output/
+
+# Local review captures and signing material; keep outside the public source set.
+.design-audit/
+.tmp_*.png
+*.keystore
+signing.properties
+*keystore-password*
+
+# unrelated agent scratch files (paimon desktop pet project, debug screenshots)
+.trae/debug-*.png
+.trae/screen.png
+.trae/ui_dump.xml
+.trae/documents/trae-paimon-desktop-pet-plan.md
+.trae/documents/_fix_*.py
+.trae/documents/_verify_*.py

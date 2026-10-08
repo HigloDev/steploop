@@ -1,0 +1,8 @@
+const assert = require('node:assert/strict')
+const path = require('node:path')
+const core = name => require(path.join(__dirname, '../node_modules/.cache/steploop-core', name+'.js'))
+const { getFloorTransitionCount, getRoundAchievementCount } = core('floors')
+assert.equal(getFloorTransitionCount(1,15),14)
+assert.equal(getRoundAchievementCount({startFloor:1,finalFloor:15,floorsCompleted:14,floorCounting:'transitions',floorConfirmation:'pending'}),0)
+assert.equal(getRoundAchievementCount({startFloor:1,finalFloor:15,floorsCompleted:14,floorCounting:'transitions',floorConfirmation:'manual'}),14)
+console.log('楼层记录检查通过：1楼到15楼爬升14层，待确认楼层不计成绩')

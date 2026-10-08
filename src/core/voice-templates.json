@@ -1,0 +1,51 @@
+{
+  "id": "xiaoxiao-zh-cn",
+  "version": "2.0.0",
+  "templates": {
+    "time_milestone": {
+      "id": "time.progress.v2", "priority": 20, "expiresAfterMs": 60000,
+      "parts": [{ "kind": "clip", "id": "time_prefix" }, { "kind": "number", "slot": "minutes" }, { "kind": "clip", "id": "minutes_unit" }, { "kind": "encouragement", "pool": ["encourage_pace", "encourage_steps", "encourage_forward"] }]
+    },
+    "calorie_milestone": {
+      "id": "calorie.progress.v2", "priority": 10, "expiresAfterMs": 60000,
+      "parts": [{ "kind": "clip", "id": "calorie_prefix" }, { "kind": "number", "slot": "calories" }, { "kind": "clip", "id": "calories_unit" }, { "kind": "encouragement", "pool": ["encourage_steps", "encourage_pace", "encourage_floors"] }]
+    },
+    "step_milestone": {
+      "id": "steps.progress.v2", "priority": 15, "expiresAfterMs": 60000,
+      "parts": [{ "kind": "clip", "id": "steps_prefix" }, { "kind": "number", "slot": "steps" }, { "kind": "clip", "id": "steps_suffix" }, { "kind": "encouragement", "pool": ["encourage_steps", "encourage_forward", "encourage_pace"] }]
+    },
+    "floor_milestone": {
+      "id": "floors.progress.v2", "priority": 25, "expiresAfterMs": 60000,
+      "parts": [{ "kind": "clip", "id": "floors_prefix" }, { "kind": "number", "slot": "floors" }, { "kind": "clip", "id": "floors_suffix" }, { "kind": "encouragement", "pool": ["encourage_floors", "encourage_steps", "encourage_forward"] }]
+    },
+    "rest_reminder": {
+      "id": "rest.gentle.v2", "priority": 5, "expiresAfterMs": 25000,
+      "parts": [{ "kind": "clip", "id": "rest_prefix" }, { "kind": "number", "slot": "minutes" }, { "kind": "clip", "id": "rest_suffix" }]
+    },
+    "round_finished": {
+      "id": "round.completed.v2", "priority": 70, "expiresAfterMs": 90000,
+      "parts": [{ "kind": "clip", "id": "round_prefix" }, { "kind": "number", "slot": "roundNumber" }, { "kind": "clip", "id": "round_finished_middle" }, { "kind": "number", "slot": "floors" }, { "kind": "clip", "id": "round_finished_suffix_plain" }],
+      "confirmedFloorParts": [{ "kind": "clip", "id": "correction_prefix" }, { "kind": "number", "slot": "floor" }, { "kind": "clip", "id": "correction_suffix_plain" }]
+    },
+    "elevator_descending": {
+      "id": "elevator.descending.v2", "priority": 50, "expiresAfterMs": 20000,
+      "parts": [{ "kind": "clip", "id": "elevator_descending" }]
+    },
+    "returned_to_start": {
+      "id": "round.returned.v2", "priority": 60, "expiresAfterMs": 25000,
+      "parts": [{ "kind": "clip", "id": "returned_prefix" }, { "kind": "number", "slot": "floor" }, { "kind": "clip", "id": "returned_suffix" }]
+    },
+    "round_started": {
+      "id": "round.started.v2", "priority": 65, "expiresAfterMs": 20000,
+      "parts": [{ "kind": "clip", "id": "round_prefix" }, { "kind": "number", "slot": "roundNumber" }, { "kind": "clip", "id": "round_started_suffix_plain" }, { "kind": "encouragement", "pool": ["encourage_forward", "encourage_pace", "encourage_steps"] }]
+    },
+    "workout_finished": {
+      "id": "workout.completed.v2", "priority": 100, "expiresAfterMs": 120000,
+      "parts": [{ "kind": "clip", "id": "workout_done_plain" }, { "kind": "clip", "id": "total_prefix" }, { "kind": "number", "slot": "floors" }, { "kind": "clip", "id": "total_suffix_plain" }, { "kind": "encouragement", "pool": ["encourage_building", "encourage_floors", "encourage_steps"] }]
+    },
+    "correction": {
+      "id": "floor.corrected.v2", "priority": 75, "expiresAfterMs": 30000,
+      "parts": [{ "kind": "clip", "id": "correction_prefix" }, { "kind": "number", "slot": "floor" }, { "kind": "clip", "id": "correction_suffix_plain" }]
+    }
+  }
+}

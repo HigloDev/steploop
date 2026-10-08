@@ -1,0 +1,83 @@
+{
+  "version": 3,
+  "language": "zh-CN",
+  "voice": "Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "rate": "native playback 0.8/1/1.2",
+  "generation": "Generated locally using official Qwen preset speakers. Fixed words and numbers are bundled; no runtime network or TTS required.",
+  "clips": {
+    "time_prefix": "已经运动了",
+    "time_suffix": "分钟。保持自己的节奏，继续向上。",
+    "calorie_prefix": "累计消耗约",
+    "calorie_suffix": "千卡。每一步，都在积累。",
+    "round_prefix": "第",
+    "round_finished_middle": "轮完成，爬升了",
+    "round_finished_suffix": "层。缓一缓，再乘电梯返回。",
+    "round_started_suffix": "轮开始。稳稳迈步，向上出发。",
+    "elevator_descending": "正在乘电梯下行。电梯时间会单独记录。",
+    "returned_prefix": "已返回",
+    "returned_suffix": "楼。准备好了，再开始下一轮。",
+    "workout_done": "训练完成。每一层，都算数。",
+    "total_prefix": "今天累计爬升了",
+    "total_suffix": "层。看看你盖起的楼吧。",
+    "correction_prefix": "已按你确认的",
+    "correction_suffix": "楼保存。实际完成的，每一层都记住了。",
+    "number_unavailable": "数字播报暂时不可用，具体进度可以查看屏幕。",
+    "minutes_unit": "分钟。",
+    "calories_unit": "千卡。",
+    "round_finished_suffix_plain": "层。可以乘电梯返回。",
+    "round_started_suffix_plain": "轮开始。",
+    "workout_done_plain": "训练完成。",
+    "total_suffix_plain": "层。",
+    "correction_suffix_plain": "楼保存，记录已更新。",
+    "steps_prefix": "累计步数达到",
+    "steps_suffix": "步。",
+    "floors_prefix": "累计爬升达到",
+    "floors_suffix": "层。",
+    "rest_prefix": "已经休息了",
+    "rest_suffix": "分钟。准备好了，再继续爬楼。",
+    "encourage_pace": "保持自己的节奏，继续向上。",
+    "encourage_steps": "每一步，都在积累。",
+    "encourage_forward": "稳稳迈步，向上出发。",
+    "encourage_floors": "每一层，都算数。",
+    "encourage_building": "看看你盖起的楼吧。",
+    "n0": "零",
+    "n1": "一",
+    "n2": "二",
+    "n3": "三",
+    "n4": "四",
+    "n5": "五",
+    "n6": "六",
+    "n7": "七",
+    "n8": "八",
+    "n9": "九",
+    "n10": "十",
+    "n100": "百",
+    "n1000": "千",
+    "n10000": "万",
+    "n_point": "点",
+    "n_minus": "负"
+  },
+  "defaultSpeaker": "serena",
+  "speakers": [
+    {
+      "id": "uncle_fu",
+      "name": "Uncle_Fu",
+      "label": "沉稳男声"
+    },
+    {
+      "id": "dylan",
+      "name": "Dylan",
+      "label": "年轻男声"
+    },
+    {
+      "id": "serena",
+      "name": "Serena",
+      "label": "温柔女声"
+    },
+    {
+      "id": "vivian",
+      "name": "Vivian",
+      "label": "明亮女声"
+    }
+  ]
+}

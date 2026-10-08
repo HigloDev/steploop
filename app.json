@@ -1,0 +1,90 @@
+{
+  "expo": {
+    "name": "循阶",
+    "slug": "steploop",
+    "version": "1.0.7",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zxn.palou",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "用于在地图上选择爬楼建筑并推荐附近路线",
+        "NSMotionUsageDescription": "用于识别爬楼过程中的脚步、转向与楼层切换",
+        "NSPhotoLibraryAddUsageDescription": "用于保存爬楼成绩海报到相册"
+      }
+    },
+    "android": {
+      "package": "com.zxn.palou",
+      "versionCode": 8,
+      "adaptiveIcon": {
+        "backgroundColor": "#3560e4",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.BODY_SENSORS",
+        "android.permission.HIGH_SAMPLING_RATE_SENSORS",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#101522",
+          "image": "./assets/splash-icon-v2.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "用于在地图上选择爬楼建筑并推荐附近路线",
+          "locationWhenInUsePermission": "用于在地图上选择爬楼建筑并推荐附近路线"
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "用于识别爬楼过程中的脚步、转向与楼层切换"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": false,
+          "savePhotosPermission": "允许循阶把成绩海报保存到相册",
+          "granularPermissions": []
+        }
+      ],
+      "expo-sharing",
+      "expo-font",
+      "./plugins/withAndroidLocationModule.js",
+      "./plugins/withAndroidTrainingModule.js",
+      "./plugins/withAndroidVoiceModule.js",
+      "./plugins/withAndroidLocalExportModule.js",
+      "./plugins/withAndroidReleaseSigning.js"
+    ]
+  }
+}
