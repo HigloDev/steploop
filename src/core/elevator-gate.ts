@@ -3,6 +3,9 @@ import {
   ELEVATOR_MIN_ACTIVE_FRAMES,
   ELEVATOR_MIN_FLOORS,
   ELEVATOR_WINDOW_MS,
+  ELEVATOR_MAX_STEPS_FUSION,
+  ELEVATOR_MIN_MS,
+  ELEVATOR_SPEED_MPS,
 } from './sensor-params'
 import { FeatureFrame } from './types'
 
@@ -61,5 +64,58 @@ export class ElevatorGate {
       this.turns.length === 0 &&
       activeIn < ELEVATOR_MIN_ACTIVE_FRAMES
     )
+  }
+}
+
+
+export type VerticalTransit = 'elevator_down' | 'elevator_up'
+
+/**
+ * fusion-v1 电梯识别：基于气压垂直速度 + 步数。
+ * - 垂直速度 < −0.7 m/s 持续 ≥ 2s，且这段时间步数 ≤ 2 → 电梯下行（用于自动切轮）；
+ * - 同样条件取正 → 电梯上行（期间不计层）。
+ * 速度来自 BaroAltimeter（只用真实气压事件），气压停更时调用方传 undefined，状态清零。
+ */
+export class ElevatorDetector {
+  private downSince?: number
+  private upSince?: number
+  private stepTimes: number[] = []
+
+  pushSteps(t: number, count: number): void {
+    for (let i = 0; i < count; i += 1) this.stepTimes.push(t)
+    while (this.stepTimes.length && this.stepTimes[0] < t - 30000) this.stepTimes.shift()
+  }
+
+  private stepsSince(t: number): number {
+    return this.stepTimes.filter(time => time >= t).length
+  }
+
+  /** 送入一个速度读数，返回当前识别到的电梯运动（没有时 undefined）。 */
+  observe(t: number, speedMps: number | undefined): VerticalTransit | undefined {
+    if (speedMps === undefined || !Number.isFinite(speedMps)) {
+      this.downSince = undefined
+      this.upSince = undefined
+      return undefined
+    }
+    if (speedMps < -ELEVATOR_SPEED_MPS) this.downSince ??= t
+    else this.downSince = undefined
+    if (speedMps > ELEVATOR_SPEED_MPS) this.upSince ??= t
+    else this.upSince = undefined
+    // 回归斜率本身有 ~2s 滞后，所以步数窗口向前多看 1s。
+    if (this.downSince !== undefined && t - this.downSince >= ELEVATOR_MIN_MS &&
+        this.stepsSince(this.downSince - 1000) <= ELEVATOR_MAX_STEPS_FUSION) return 'elevator_down'
+    if (this.upSince !== undefined && t - this.upSince >= ELEVATOR_MIN_MS &&
+        this.stepsSince(this.upSince - 1000) <= ELEVATOR_MAX_STEPS_FUSION) return 'elevator_up'
+    return undefined
+  }
+
+  /** 电梯下行开始的时刻（用于把本轮结束时间回溯到下行之前）。 */
+  get descentStartedAt(): number | undefined {
+    return this.downSince
+  }
+
+  reset(): void {
+    this.downSince = undefined
+    this.upSince = undefined
   }
 }
