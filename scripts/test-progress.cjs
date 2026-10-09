@@ -329,7 +329,7 @@ test('D09-2 重复 sessionId：只计一次，excluded.duplicate +1，且保留�
 
   const points = buildTrend([olderCopy, newerCopy], options)
   assert.equal(points[0].workouts, 1, '同 id 只计一次')
-  assert.equal(points[0].floors, 16)
+  assert.equal(points[0].floors, 15)
   assert.equal(points[0].excluded.duplicate, 1)
   assert.equal(points[0].bestRoundMs, 180000, '保留 updatedAt 更新的一条')
 
@@ -392,8 +392,8 @@ test('D09-3 修正链非空：默认不计 PB、计入 excluded.corrected；allo
   assert.equal(allowed.length, 1)
   assert.equal(allowed[0].bestRoundMs, 150000)
   assert.equal(allowed[0].fromCorrected, true)
-  // 成绩必须自洽：楼层数与被选中那次训练一致（修正后 1→12 层 = 12）
-  assert.equal(allowed[0].bestWorkoutFloors, 12)
+  // 成绩必须自洽：楼层数与被选中那次训练一致（修正后 1→12 楼 = 爬升 11 层（统一口径））
+  assert.equal(allowed[0].bestWorkoutFloors, 11)
   assert.equal(allowed[0].bestWorkoutAscentM, correctedRound.ascentM)
 
   // 只有 userCorrectionCount（链为空）同样算修正：不得当 PB
@@ -756,7 +756,7 @@ test('D09-6 周目标：三维度各自判定，未设目标为 undefined 而不
   assert.equal(partial.targetFloors, undefined, '未设目标必须是 undefined')
   assert.equal(partial.targetAscentM, undefined)
   assert.equal(partial.doneWorkouts, 2)
-  assert.equal(partial.doneFloors, 32)
+  assert.equal(partial.doneFloors, 30)
   assert.equal(partial.doneAscentM, 96)
   assert.equal(partial.achieved, true)
 
@@ -766,14 +766,14 @@ test('D09-6 周目标：三维度各自判定，未设目标为 undefined 而不
     now,
   )
   assert.equal(missed.doneWorkouts, 2)
-  assert.equal(missed.doneFloors, 32)
+  assert.equal(missed.doneFloors, 30)
   assert.equal(missed.achieved, false, '任一已设置维度未达标 → achieved=false')
   assert.equal(missed.targetFloors, 30)
   assert.equal(missed.targetAscentM, 100)
 
   const met = computeWeekGoal(
     workouts,
-    { targetWorkouts: 2, targetFloors: 32, targetAscentM: 96 },
+    { targetWorkouts: 2, targetFloors: 30, targetAscentM: 96 },
     now,
   )
   assert.equal(met.achieved, true, '三维度全达成 → achieved=true')
@@ -894,13 +894,14 @@ test('D09-7 旧记录（缺 corrections/interruptions/plan）不崩，口径与 
     contradictory.endedAt,
   )
   assert.equal(contradictoryPoints[0].floors, contradictorySummary.totalFloors, '楼层数必须与历史详情相同')
-  assert.equal(contradictoryPoints[0].floors, 16)
+  assert.equal(contradictoryPoints[0].floors, 15)
   const contradictoryProgress = deriveTrainingProgress([contradictory], startedAt + 1000)
   assert.equal(contradictoryProgress.validWorkouts, 1)
+  // fusion-v1 起统一口径：周卡片与历史详情一致（都按爬升段数），不再保留旧的 floorsCompleted 优先差异。
   assert.equal(
     contradictoryProgress.floors,
-    13,
-    'D06 周卡片仍按轮次 floorsCompleted 口径（本任务未改其既有语义）',
+    15,
+    '周卡片与历史详情同一楼层口径',
   )
 
   // 明确不会因为缺字段抛异常
@@ -935,7 +936,7 @@ test('D09-7 旧记录（缺 corrections/interruptions/plan）不崩，口径与 
     now,
   )
   assert.equal(regression.validWorkouts, 2)
-  assert.equal(regression.floors, 32)
+  assert.equal(regression.floors, 30)
   assert.equal(regression.personalBests.route.workoutId, 'best')
 })
 
