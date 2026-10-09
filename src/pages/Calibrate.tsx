@@ -691,7 +691,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                     const h = Math.min(30, v * 5)
                     const intensity = Math.min(1, v / 6)
                     // 强度越高颜色越偏向橙红
-                    const barColor = intensity > 0.6 ? theme.amber : theme.green
+                    const barColor = intensity > 0.6 ? theme.amber : theme.brand
                     return (
                       <View
                         key={i}
@@ -763,7 +763,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                   <Text style={styles.turnLabel}>人工拐弯</Text>
                 </View>
                 <View style={styles.turnBlock}>
-                  <Text style={[styles.turnValue, { color: theme.greenInk }]}>
+                  <Text style={[styles.turnValue, { color: theme.brandInk }]}>
                     {lastTurnDir === 'left' ? '左' : lastTurnDir === 'right' ? '右' : '—'}
                   </Text>
                   <Text style={styles.turnLabel}>上次方向</Text>
@@ -802,7 +802,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                       {
                         color:
                           baroAvailable === true
-                            ? theme.greenInk
+                            ? theme.brandInk
                             : baroAvailable === false
                               ? theme.muted
                               : theme.amber,
@@ -826,7 +826,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                   <Text
                     style={[
                       styles.baroValue,
-                      { color: baroRelAltitude > 0.5 ? theme.greenInk : theme.ink },
+                      { color: baroRelAltitude > 0.5 ? theme.brandInk : theme.ink },
                     ]}
                   >
                     {baroAvailable === true ? `+${baroRelAltitude.toFixed(1)}` : '—'}
@@ -918,7 +918,7 @@ const makeStyles = (theme: Theme) =>
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, gap: 16 },
     hero: { gap: 8 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',    },
     title: {
@@ -990,8 +990,8 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     carryOptionActive: {
-      borderColor: theme.green,
-      backgroundColor: theme.greenSoft,
+      borderColor: theme.brand,
+      backgroundColor: theme.brandSoft,
     },
     carryText: {
       color: theme.muted,
@@ -1000,7 +1000,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     carryTextActive: {
-      color: theme.green,
+      color: theme.brand,
     },
     guideTitle: {
       color: theme.ink,
@@ -1060,7 +1060,7 @@ const makeStyles = (theme: Theme) =>
       width: 12,
       height: 12,
       borderRadius: 6,
-      backgroundColor: theme.green,
+      backgroundColor: theme.brand,
     },
     vizTitle: {
       color: theme.ink,
@@ -1279,7 +1279,7 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.amberChip,
     },
     markFloorBtn: {
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     markBtnIcon: {
       color: theme.ink,
@@ -1314,7 +1314,7 @@ const makeStyles = (theme: Theme) =>
     captureNumberLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 8 },
     captureNumber: { color: theme.ink, fontSize: 52, lineHeight: 64, fontWeight: '700', fontVariant: ['tabular-nums'] },
     captureUnit: { color: theme.mutedStrong, fontSize: 20, lineHeight: 28 },
-    captureElapsed: { color: theme.green, fontSize: theme.fontBase, lineHeight: 22, fontVariant: ['tabular-nums'] },
+    captureElapsed: { color: theme.brand, fontSize: theme.fontBase, lineHeight: 22, fontVariant: ['tabular-nums'] },
     captureStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
     captureStat: { color: theme.mutedStrong, fontSize: theme.fontBase, lineHeight: 22, fontVariant: ['tabular-nums'] },
     footer: { backgroundColor: theme.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },

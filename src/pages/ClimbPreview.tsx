@@ -423,8 +423,8 @@ const makeStyles = (theme: Theme) =>
       borderColor: theme.line,
     },
     scenarioChipActive: {
-      backgroundColor: theme.green,
-      borderColor: theme.green,
+      backgroundColor: theme.brand,
+      borderColor: theme.brand,
     },
     scenarioChipText: {
       color: theme.ink,
@@ -433,7 +433,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     scenarioChipTextActive: {
-      color: theme.onPrimary,
+      color: theme.onBrand,
     },
     phaseCard: {
       padding: 16,
@@ -482,7 +482,7 @@ const makeStyles = (theme: Theme) =>
       fontVariant: ['tabular-nums'],
     },
     activeText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSmall,
       lineHeight: 18,
       marginTop: 2,
@@ -504,12 +504,12 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     trackDotDone: {
-      backgroundColor: theme.green,
-      borderColor: theme.green,
+      backgroundColor: theme.brand,
+      borderColor: theme.brand,
     },
     trackDotCurrent: {
-      borderColor: theme.green,
-      backgroundColor: theme.greenSoft,
+      borderColor: theme.brand,
+      backgroundColor: theme.brandSoft,
     },
     trackDotText: {
       color: theme.muted,
@@ -518,10 +518,10 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '700',
     },
     trackDotTextDone: {
-      color: theme.onPrimary,
+      color: theme.onBrand,
     },
     trackDotTextCurrent: {
-      color: theme.green,
+      color: theme.brand,
     },
     phaseTitle: {
       color: theme.ink,
@@ -532,7 +532,7 @@ const makeStyles = (theme: Theme) =>
     },
     phaseSubtitle: {
       marginTop: 6,
-      color: theme.green,
+      color: theme.brand,
       fontSize: 17,
       lineHeight: 24,
       fontWeight: '600',
@@ -583,7 +583,7 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 4,
     },
     barometerValue: {
-      color: theme.blueInk,
+      color: theme.infoInk,
       fontSize: 28,
       lineHeight: 36,
       fontWeight: '700',

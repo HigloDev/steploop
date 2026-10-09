@@ -74,19 +74,19 @@ export function WorkoutCompleteCeremony({ totalFloors, completeRounds, totalAsce
           {building.visibleFloors.map((floor, index) => {
             const y = drawingHeight - 10 - (index + 1) * floorHeight
             return <React.Fragment key={floor}>
-              <Rect x={36} y={y} width={128} height={floorHeight} fill={floor === displayFloors ? theme.green : theme.greenSoft} />
-              {[52, 82, 112, 142].map(x => <Rect key={x} x={x} y={y + floorHeight * 0.25} width={10} height={Math.max(1, floorHeight * 0.4)} fill={floor === displayFloors ? theme.onPrimary : theme.greenBright} opacity={0.65} />)}
+              <Rect x={36} y={y} width={128} height={floorHeight} fill={floor === displayFloors ? theme.brand : theme.brandSoft} />
+              {[52, 82, 112, 142].map(x => <Rect key={x} x={x} y={y + floorHeight * 0.25} width={10} height={Math.max(1, floorHeight * 0.4)} fill={floor === displayFloors ? theme.onBrand : theme.brandBright} opacity={0.65} />)}
             </React.Fragment>
           })}
           {builtHeight > 0 ? <>
-            <Rect x={164} y={roofY} width={14} height={builtHeight} fill={theme.greenInk} opacity={0.24} />
+            <Rect x={164} y={roofY} width={14} height={builtHeight} fill={theme.brandInk} opacity={0.24} />
             <Line x1={164} x2={164} y1={roofY} y2={drawingHeight - 10} stroke={theme.card} strokeWidth={1} />
-            <Rect x={34} y={roofY - 3} width={146} height={4} rx={1.5} fill={theme.green} />
+            <Rect x={34} y={roofY - 3} width={146} height={4} rx={1.5} fill={theme.brand} />
           </> : null}
         </Svg>
         <Text style={{ color: theme.mutedStrong, fontSize: 13, marginTop: 8 }}>{building.firstVisibleFloor > 1 ? `下方 ${building.firstVisibleFloor - 1} 层已建成 · ` : ''}已盖到第 {displayFloors} 层</Text>
         <View accessible accessibilityLabel={`完成 ${totalFloors} 层，${completeRounds} 轮`} style={{ alignItems: 'center', marginTop: 20 }}>
-          <Text style={{ color: theme.greenInk, fontSize: 64, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{reduced ? totalFloors : displayFloors}<Text style={{ fontSize: 22, fontWeight: '400', color: theme.mutedStrong }}> 层</Text></Text>
+          <Text style={{ color: theme.brandInk, fontSize: 64, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{reduced ? totalFloors : displayFloors}<Text style={{ fontSize: 22, fontWeight: '400', color: theme.mutedStrong }}> 层</Text></Text>
           <Text style={{ color: theme.mutedStrong, fontSize: 14, marginTop: 4 }}>累计实际爬升</Text>
         </View>
         <Text style={{ color: theme.mutedStrong, marginTop: 12, fontSize: 14 }}>{completeRounds} 轮 · {totalAscentM.toFixed(1)} 米</Text>

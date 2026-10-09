@@ -182,7 +182,7 @@ export default function FamiliarizeScreen({ navigation, route }: RootStackScreen
         {message ? <Card><Text accessibilityLiveRegion="polite" style={body}>{message}</Text></Card> : null}
         {running ? <Card>
           <Text style={body}>正在记录 · {Math.floor(seconds / 60)} 分 {seconds % 60} 秒</Text>
-          {perFloor ? <FlowReveal changeKey={floor}><Text style={{ color: theme.green, fontSize: 56, fontWeight: '700', paddingVertical: 16 }}>{floor} <Text style={{ fontSize: 20 }}>楼已记下</Text></Text></FlowReveal> : null}
+          {perFloor ? <FlowReveal changeKey={floor}><Text style={{ color: theme.brand, fontSize: 56, fontWeight: '700', paddingVertical: 16 }}>{floor} <Text style={{ fontSize: 20 }}>楼已记下</Text></Text></FlowReveal> : null}
           {perFloor && floor < template.endFloor ? <Button title={`我到了 ${floor + 1} 楼`} disabled={busy} onPress={markFloor} /> : null}
           {perFloor && floor > template.startFloor ? <Button title="刚才点错了，撤回一层" variant="secondary" disabled={busy} onPress={() => {
             const c = capture.current

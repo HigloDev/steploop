@@ -95,7 +95,7 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 16,
     },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
       letterSpacing: 1.5,

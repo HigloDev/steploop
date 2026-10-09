@@ -523,7 +523,7 @@ const makeStyles = (theme: Theme) =>
       flexDirection: 'row',
     },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
       letterSpacing: 1.5,
@@ -561,8 +561,8 @@ const makeStyles = (theme: Theme) =>
       borderColor: theme.line,
     },
     optionActive: {
-      borderColor: theme.green,
-      backgroundColor: theme.greenSoft,
+      borderColor: theme.brand,
+      backgroundColor: theme.brandSoft,
     },
     optionCompact: {
       padding: 10,
@@ -574,7 +574,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '700',
     },
     optionTitleActive: {
-      color: theme.green,
+      color: theme.brand,
     },
     optionDesc: {
       marginTop: 4,
@@ -612,7 +612,7 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     stepperBtnText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 22,
       fontWeight: '700',
     },

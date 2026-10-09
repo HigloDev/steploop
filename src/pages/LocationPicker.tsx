@@ -41,7 +41,7 @@ const DEFAULT_CARRY_MODE = 'pocket' as const
 
 // WebView 内嵌的 HTML：高德 JS API 2.0 原生地图 + 中心固定大头针 + 逆地理编码。
 // 包含 WGS-84 → GCJ-02 坐标转换（GPS 定位返回 WGS-84，高德地图是 GCJ-02）。
-function buildMapHtml(initialLat: number, initialLng: number, palette: Pick<Theme, 'paper' | 'green' | 'onPrimary'>, generation: number): string {
+function buildMapHtml(initialLat: number, initialLng: number, palette: Pick<Theme, 'paper' | 'brand' | 'onBrand'>, generation: number): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -50,7 +50,7 @@ function buildMapHtml(initialLat: number, initialLng: number, palette: Pick<Them
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #map { width: 100%; height: 100%; }
-    :root { --map-background: ${palette.paper}; --map-marker: ${palette.green}; --map-marker-ink: ${palette.onPrimary}; }
+    :root { --map-background: ${palette.paper}; --map-marker: ${palette.brand}; --map-marker-ink: ${palette.onBrand}; }
     #map { background: var(--map-background); }
     #pin path { fill: var(--map-marker); }
     #pin circle { fill: var(--map-marker-ink); }
@@ -370,10 +370,10 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
     if (!mapReady) return
     webviewRef.current?.injectJavaScript(
       'document.documentElement.style.setProperty("--map-background", ' + JSON.stringify(theme.paper) +
-      '); document.documentElement.style.setProperty("--map-marker", ' + JSON.stringify(theme.green) +
-      '); document.documentElement.style.setProperty("--map-marker-ink", ' + JSON.stringify(theme.onPrimary) + '); true;',
+      '); document.documentElement.style.setProperty("--map-marker", ' + JSON.stringify(theme.brand) +
+      '); document.documentElement.style.setProperty("--map-marker-ink", ' + JSON.stringify(theme.onBrand) + '); true;',
     )
-  }, [mapReady, theme.paper, theme.green, theme.onPrimary])
+  }, [mapReady, theme.paper, theme.brand, theme.onBrand])
 
   const retryMap = () => {
     if (savingRef.current) return
@@ -622,7 +622,7 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
               androidLayerType="hardware" originWhitelist={['*']} />
             {!mapReady && !mapError ? (
               <View style={styles.loadingOverlay}>
-                <ActivityIndicator size="large" color={theme.green} />
+                <ActivityIndicator size="large" color={theme.brand} />
                 <Text style={styles.mapBody}>地图加载中…</Text>
               </View>
             ) : null}
@@ -637,7 +637,7 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
             {mapReady ? (
               <Pressable accessibilityRole="button" accessibilityLabel="定位到当前位置" disabled={locating || saving}
                 onPress={handleLocate} style={({ pressed }) => [styles.locateButton, pressed && styles.pressed]}>
-                {locating ? <ActivityIndicator size="small" color={theme.green} /> : <Ionicons name="locate-outline" size={24} color={theme.green} />}
+                {locating ? <ActivityIndicator size="small" color={theme.brand} /> : <Ionicons name="locate-outline" size={24} color={theme.brand} />}
               </Pressable>
             ) : null}
           </View>

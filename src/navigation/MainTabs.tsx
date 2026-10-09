@@ -25,7 +25,7 @@ export default function MainTabs() {
       initialRouteName="Train"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: theme.green,
+        tabBarActiveTintColor: theme.brand,
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
           backgroundColor: theme.card,

@@ -503,7 +503,7 @@ const makeStyles = (theme: Theme) =>
       gap: 8,
     },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },

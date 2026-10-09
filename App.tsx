@@ -77,7 +77,7 @@ export default function App() {
   if (!ready) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={theme.green} />
+        <ActivityIndicator color={theme.brand} />
         <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       </View>
     )
@@ -89,7 +89,7 @@ export default function App() {
         theme={{
           dark: scheme === 'dark',
           colors: {
-            primary: theme.green,
+            primary: theme.brand,
             background: theme.paper,
             card: theme.card,
             text: theme.ink,

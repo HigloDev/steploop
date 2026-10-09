@@ -120,7 +120,7 @@ export const BuildingSketch = memo(function BuildingSketch({
             ? theme.line
             : isCurrent
               ? theme.amber
-              : theme.greenInk
+              : theme.brandInk
 
           return (
             <View
@@ -279,12 +279,12 @@ const makeStyles = (theme: Theme) =>
       borderBottomWidth: ROOF_HEIGHT,
       borderLeftColor: 'transparent',
       borderRightColor: 'transparent',
-      borderBottomColor: theme.green,
+      borderBottomColor: theme.brand,
     },
     body: {
       width: BUILDING_WIDTH,
       borderWidth: 2,
-      borderColor: theme.green,
+      borderColor: theme.brand,
       borderRadius: 4,
       overflow: 'hidden',
       backgroundColor: theme.card,
@@ -297,7 +297,7 @@ const makeStyles = (theme: Theme) =>
       borderBottomColor: theme.line,
     },
     floorCompleted: {
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     floorCurrent: {
       backgroundColor: theme.amberSoft,
@@ -343,7 +343,7 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     statusDone: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 14,
       fontWeight: '800',
     },

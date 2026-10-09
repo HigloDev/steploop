@@ -584,7 +584,7 @@ export default function RouteEditScreen({
           </Pressable>
         ) : null}
 
-        {loading ? <ActivityIndicator color={theme.green} accessibilityLabel="正在读取路线" /> : null}
+        {loading ? <ActivityIndicator color={theme.brand} accessibilityLabel="正在读取路线" /> : null}
         {loadError ? <View><Text style={{ color: theme.redInk, marginBottom: 12 }}>{loadError}</Text><Button title="重试" variant="secondary" onPress={refresh} /></View> : null}
         {!loading && !loadError && searchedRoutes.length === 0 ? (
           <EmptyState
@@ -639,7 +639,7 @@ const makeStyles = (theme: Theme) =>
     hero: { gap: 8, paddingBottom: 16 },
     searchInput: { minHeight: theme.tapMin, color: theme.ink, fontSize: theme.fontBase, lineHeight: 22, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderRadius: theme.radiusMd, borderColor: theme.line, backgroundColor: theme.card },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },
@@ -684,7 +684,7 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: 8,
     },
     toolbarLinkText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
       fontWeight: '600',
@@ -715,7 +715,7 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.surfaceSoft,
     },
     filterChipActive: {
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     filterChipText: {
       color: theme.muted,
@@ -724,7 +724,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     filterChipTextActive: {
-      color: theme.green,
+      color: theme.brand,
     },
     batchDeleteButton: {
       minHeight: theme.tapMin,
@@ -739,7 +739,7 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.surfaceSoft,
     },
     batchDeleteText: {
-      color: theme.onPrimary,
+      color: theme.onBrand,
       fontSize: theme.fontBase,
       fontWeight: '700',
     },
@@ -769,7 +769,7 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     swipeDeleteText: {
-      color: theme.onPrimary,
+      color: theme.onBrand,
       fontSize: theme.fontBase,
       fontWeight: '700',
     },
@@ -781,8 +781,8 @@ const makeStyles = (theme: Theme) =>
     },
     routeCardSelected: {
       borderWidth: 1,
-      borderColor: theme.green,
-      backgroundColor: theme.greenSoft,
+      borderColor: theme.brand,
+      backgroundColor: theme.brandSoft,
     },
     routeHead: {
       flexDirection: 'row',
@@ -803,8 +803,8 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     selectionCircleSelected: {
-      borderColor: theme.green,
-      backgroundColor: theme.green,
+      borderColor: theme.brand,
+      backgroundColor: theme.brand,
     },
     routeName: {
       flex: 1,
@@ -834,21 +834,21 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
     },
     routeActionText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
       fontWeight: '600',
     },
     routeEnterText: {
       marginLeft: 'auto',
-      color: theme.green,
+      color: theme.brand,
       fontSize: 14,
       fontWeight: '700',
     },
     batchCardHint: {
       marginTop: 10,
       textAlign: 'right',
-      color: theme.green,
+      color: theme.brand,
       fontSize: 13,
       fontWeight: '700',
     },

@@ -299,7 +299,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
           <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>{PHASE_LABEL[checkpoint.phase]} · 返回训练页继续处理</Text></View>
           <Feather name="chevron-right" size={20} color={theme.amberInk} />
         </Pressable> : null}
-        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.green} accessibilityLabel="正在读取记录" /> : null}
+        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.brand} accessibilityLabel="正在读取记录" /> : null}
         {loadError ? <><Notice tone="danger">{loadError}</Notice><Button title="重新读取" onPress={() => { void refresh() }} /></> : null}
         {/* 归档说明（D09 验收 4b）：不再有与事实不符的容量文案（旧文案声称超限即删）。
             文案与数字来自 historyRepository.summarize() 的 trimmedTotal /
@@ -311,7 +311,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         ) : null}
 
         {!loading || cards.length > 0 ? <View style={styles.weekHero}>
-          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text><Feather name="trending-up" size={22} color={theme.green} /></View>
+          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text><Feather name="trending-up" size={22} color={theme.brand} /></View>
           <View style={styles.weekFloor} accessible accessibilityLabel={`本周共爬升 ${week.floors} 层`}>
             <Text style={styles.weekFloorValue}>{week.floors}</Text><Text style={styles.weekFloorUnit}>层爬升</Text>
           </View>
@@ -470,10 +470,10 @@ const makeStyles = (theme: Theme) =>
     checkpoint: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: theme.amberSoft, borderRadius: 14, marginBottom: 16, minHeight: 64 },
     checkpointCopy: { flex: 1 },
     checkpointSub: { color: theme.amberInk, fontSize: 14, lineHeight: 21, marginTop: 4 },
-    weekHero: { backgroundColor: theme.greenSoft, borderRadius: 20, padding: 20, marginBottom: 24 },
+    weekHero: { backgroundColor: theme.brandSoft, borderRadius: 20, padding: 20, marginBottom: 24 },
     weekHeroHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     weekFloor: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginVertical: 12 },
-    weekFloorValue: { color: theme.green, fontSize: 48, lineHeight: 58, fontWeight: '700', fontVariant: ['tabular-nums'] },
+    weekFloorValue: { color: theme.brand, fontSize: 48, lineHeight: 58, fontWeight: '700', fontVariant: ['tabular-nums'] },
     weekFloorUnit: { color: theme.mutedStrong, fontSize: 15, lineHeight: 22 },
     weekMetricItem: { flex: 1 },
     weekMetricLabel: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 4 },
@@ -583,7 +583,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: 10,
     },
     filterChipActive: {
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     filterChipText: {
       color: theme.mutedStrong,
@@ -592,7 +592,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     filterChipTextActive: {
-      color: theme.green,
+      color: theme.brand,
     },
     cardPressable: {
       marginBottom: 12,
@@ -648,7 +648,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     checkpointAction: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 13,
       fontWeight: '700',
       textDecorationLine: 'underline',

@@ -506,7 +506,7 @@ const makeStyles = (theme: Theme) =>
     loadingText: { color: theme.mutedStrong, fontSize: theme.fontBase, lineHeight: 22 },
     hero: { gap: 8 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },
@@ -578,7 +578,7 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     adjustBtnText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
       fontWeight: '600',
@@ -608,7 +608,7 @@ const makeStyles = (theme: Theme) =>
       fontVariant: ['tabular-nums'],
     },
     markerDir: {
-      color: theme.greenInk,
+      color: theme.brandInk,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
     },
@@ -668,7 +668,7 @@ const makeStyles = (theme: Theme) =>
       paddingVertical: 8,
     },
     diagramFloor: {
-      color: theme.greenInk,
+      color: theme.brandInk,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
       fontWeight: '600',

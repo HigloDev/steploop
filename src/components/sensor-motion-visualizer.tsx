@@ -158,7 +158,7 @@ function WaveformPanel({
           <WaveRow
             label="动作"
             values={waves.map((point) => point.motion)}
-            color={theme.mint}
+            color={theme.brandTint}
             minValue={0}
             maxValue={1}
             theme={theme}
@@ -175,7 +175,7 @@ function WaveformPanel({
             <WaveRow
               label="气压"
               values={waves.map((point) => point.height)}
-              color={theme.blueInk}
+              color={theme.infoInk}
               minValue={heightMin}
               maxValue={heightMax}
               theme={theme}
@@ -189,7 +189,7 @@ function WaveformPanel({
 
           <View style={styles.waveReadingRow}>
             <View style={styles.waveReadingItem}>
-              <Text style={[styles.waveReadingLabel, { color: theme.mint }]}>
+              <Text style={[styles.waveReadingLabel, { color: theme.brandTint }]}>
                 动作
               </Text>
               <Text style={styles.waveReadingValue}>
@@ -206,7 +206,7 @@ function WaveformPanel({
               </Text>
             </View>
             <View style={styles.waveReadingItem}>
-              <Text style={[styles.waveReadingLabel, { color: theme.blueInk }]}>
+              <Text style={[styles.waveReadingLabel, { color: theme.infoInk }]}>
                 气压
               </Text>
               <Text style={styles.waveReadingValue}>
@@ -326,9 +326,9 @@ export const SensorMotionVisualizer = memo(function SensorMotionVisualizer({
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <LegendDot color={theme.mint} label="动作幅度" />
+        <LegendDot color={theme.brandTint} label="动作幅度" />
         <LegendDot color={theme.orange} label="左右转向" />
-        <LegendDot color={theme.blueInk} label="相对高度" />
+        <LegendDot color={theme.infoInk} label="相对高度" />
       </View>
     </View>
   )
@@ -380,16 +380,16 @@ const stylesFor = (theme: Theme) =>
       paddingHorizontal: 10,
       paddingVertical: 7,
       borderRadius: 999,
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     activityDot: {
       width: 7,
       height: 7,
       borderRadius: 4,
-      backgroundColor: theme.green,
+      backgroundColor: theme.brand,
     },
     activityText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 11,
       fontWeight: '700',
     },

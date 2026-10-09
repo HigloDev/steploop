@@ -93,7 +93,7 @@ export function Button({
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? theme.onPrimary : theme.green} />
+        <ActivityIndicator color={variant === 'primary' ? theme.onBrand : theme.brand} />
       ) : (
         <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'danger' && { color: theme.redInk }]}>{title}</Text>
       )}
@@ -290,22 +290,22 @@ const makeStyles = (theme: Theme) =>
     },
     fullWidth: { alignSelf: 'stretch' },
     primary: {
-      backgroundColor: theme.green,
+      backgroundColor: theme.brand,
 
     },
     secondary: {
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     danger: {
       backgroundColor: theme.redChip,
     },
     label: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 16,
       fontWeight: '700',
     },
     labelOnPrimary: {
-      color: theme.onPrimary,
+      color: theme.onBrand,
     },
     pressed: {
       transform: [{ scale: 0.985 }],

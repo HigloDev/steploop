@@ -208,9 +208,9 @@ export default function WorkoutResultScreen({
             <Text style={styles.heroUnit}>层</Text>
           </View>
           <Pressable accessibilityRole="button" style={styles.replayButton} onPress={() => setReplayBuilding(true)}>
-            <Feather name="play-circle" size={20} color={theme.green} />
+            <Feather name="play-circle" size={20} color={theme.brand} />
             <Text style={styles.replayText}>重播盖楼动画</Text>
-            <Feather name="chevron-right" size={18} color={theme.green} />
+            <Feather name="chevron-right" size={18} color={theme.brand} />
           </Pressable>
         </View>
         <Text accessibilityRole="header" style={styles.sectionTitle}>这次训练</Text>
@@ -416,7 +416,7 @@ const makeStyles = (theme: Theme) =>
     },
     heroCopy: { flex: 1 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 10,
       fontWeight: '800',
       letterSpacing: 1.4,
@@ -434,7 +434,7 @@ const makeStyles = (theme: Theme) =>
       paddingVertical: 8,
     },
     heroNumber: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 64,
       lineHeight: 76,
       fontWeight: '700',
@@ -467,7 +467,7 @@ const makeStyles = (theme: Theme) =>
     sectionTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600', paddingTop: 8 },
     detailGroup: { paddingTop: 4, paddingBottom: 16 },
     replayButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, marginTop: 8, paddingTop: 8 },
-    replayText: { flex: 1, color: theme.green, fontSize: 15, lineHeight: 22, fontWeight: '600' },
+    replayText: { flex: 1, color: theme.brand, fontSize: 15, lineHeight: 22, fontWeight: '600' },
     correctionNotice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 16, borderRadius: 14, backgroundColor: theme.amberSoft },
     correctionText: { flex: 1, color: theme.amberInk, fontSize: 14, lineHeight: 21 },
     exportButton: { marginTop: 12 },

@@ -280,7 +280,7 @@ const makeStyles = (theme: Theme) =>
     loadingText: { color: theme.mutedStrong, fontSize: theme.fontBase, lineHeight: 22, marginBottom: 12 },
     hero: { gap: 8 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',    },
     title: {
@@ -313,7 +313,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     progressLabel: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
       fontWeight: '600',

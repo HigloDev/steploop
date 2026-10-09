@@ -606,7 +606,7 @@ export default function ClimbWorkoutScreen({
           </View>
           <Text style={styles.liveRoute}>{activeRouteTpl.name}</Text>
           {workout.phase === 'ascending' && hasKnownRouteEnd(activeRouteTpl) ? <View accessible accessibilityRole="progressbar" accessibilityLabel="本轮楼层进度" accessibilityValue={{ min: 0, max: 100, now: Math.min(100, Math.round(getFloorTransitionCount(activeRouteTpl.startFloor, workout.roundSession.snapshot.currentFloor) / Math.max(1, getFloorTransitionCount(activeRouteTpl.startFloor, activeRouteTpl.endFloor)) * 100)) }} style={styles.liveProgress}>
-            <View style={{ height: 4, backgroundColor: theme.green, borderRadius: 2, width: `${Math.min(100, getFloorTransitionCount(activeRouteTpl.startFloor, workout.roundSession.snapshot.currentFloor) / Math.max(1, getFloorTransitionCount(activeRouteTpl.startFloor, activeRouteTpl.endFloor)) * 100)}%` }} />
+            <View style={{ height: 4, backgroundColor: theme.brand, borderRadius: 2, width: `${Math.min(100, getFloorTransitionCount(activeRouteTpl.startFloor, workout.roundSession.snapshot.currentFloor) / Math.max(1, getFloorTransitionCount(activeRouteTpl.startFloor, activeRouteTpl.endFloor)) * 100)}%` }} />
           </View> : null}
         </View>
         <LiveTrainingMetrics metrics={liveMetrics} />
@@ -615,7 +615,7 @@ export default function ClimbWorkoutScreen({
         <TrackingModeSelector compact value={workout.trackingMode} disabled={savingWorkout} onChange={workout.setTrackingMode} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
           <Text style={{ color: theme.ink, fontSize: 15, fontWeight: '700' }}>语音播报</Text>
-        <Host matchContents seedColor={theme.green} style={{ width: 72, minHeight: 48 }}>
+        <Host matchContents seedColor={theme.brand} style={{ width: 72, minHeight: 48 }}>
           <NativeSwitch value={voiceEnabled} onValueChange={enabled => {
             setVoiceEnabled(enabled); setVoiceError(''); voiceService.setSettings({ enabled });
             if (!enabled) setVoiceMode('off')
@@ -1069,7 +1069,7 @@ const AscendingView = memo(function AscendingView({
       <StaircaseScene floors={buildingFloors} width={stacked ? 190 : Math.min(190, width * 0.46)} climbing />
       </View>
       <Text style={{ color: theme.mutedStrong, fontSize: 17, textAlign: 'center', marginVertical: 16 }}>本轮用时 {formatDuration(snapshot.activeMs)}</Text>
-      {progressPercent !== undefined ? <View accessible accessibilityRole="progressbar" accessibilityLabel="本轮楼层进度" accessibilityValue={{ min: 0, max: 100, now: progressPercent }} style={{ height: 8, borderRadius: 4, backgroundColor: theme.surfaceSoft, marginBottom: 16, overflow: 'hidden' }}><View style={{ width: `${progressPercent}%`, height: 8, backgroundColor: theme.green, borderRadius: 4 }} /></View> : null}
+      {progressPercent !== undefined ? <View accessible accessibilityRole="progressbar" accessibilityLabel="本轮楼层进度" accessibilityValue={{ min: 0, max: 100, now: progressPercent }} style={{ height: 8, borderRadius: 4, backgroundColor: theme.surfaceSoft, marginBottom: 16, overflow: 'hidden' }}><View style={{ width: `${progressPercent}%`, height: 8, backgroundColor: theme.brand, borderRadius: 4 }} /></View> : null}
       {learningRoute ? <Text style={styles.confidenceLabel}>估算楼层 · 到终点后确认实际楼层</Text> : null}
       {snapshot.quality !== 'stable' ? <Notice>{snapshot.quality === 'invalid' ? '识别异常，请检查携带方式；结束时可确认实际楼层。' : '当前识别精度有限，楼层可能需要人工确认。'}</Notice> : null}
       {autoCompletePending ? <Notice>{autoCompleteCountdown} 秒后自动完成本轮；尚未到达时请撤销。</Notice> : null}
@@ -1586,7 +1586,7 @@ function FinishConfirmModal({
             editable={!saving} placeholder={`起点 ${startFloor} 楼`} placeholderTextColor={theme.muted}
             style={[styles.modalInput, { flex: 1 }]} selectTextOnFocus returnKeyType="done" onSubmitEditing={Keyboard.dismiss}
           />
-          <Host matchContents={{ vertical: true }} colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.green} style={{ width: 144, minHeight: 56, marginVertical: 8 }}>
+          <Host matchContents={{ vertical: true }} colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 144, minHeight: 56, marginVertical: 8 }}>
             <Picker testID="confirmed-end-floor" selectedValue={validEndFloor ? endFloor : Math.max(startFloor, automaticFloor)} onValueChange={floor => setEndFloorText(String(floor))} enabled={!saving} appearance="wheel">
               {choices.map(floor => <Picker.Item key={floor} label={`第 ${floor} 楼`} value={floor} />)}
             </Picker>
@@ -1632,7 +1632,7 @@ const makeStyles = (theme: Theme) =>
     liveFloorLabel: { color: theme.mutedStrong, fontSize: 13, lineHeight: 20 },
     liveFloorValue: { color: theme.ink, fontSize: 56, fontWeight: '700', fontVariant: ['tabular-nums'] },
     liveFloorUnit: { color: theme.mutedStrong, fontSize: 18, fontWeight: '400' },
-    liveTarget: { color: theme.greenInk, fontSize: 15, fontWeight: '600', textAlign: 'right' },
+    liveTarget: { color: theme.brandInk, fontSize: 15, fontWeight: '600', textAlign: 'right' },
     liveHint: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'right' },
     liveRoute: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 8 },
     liveProgress: { height: 4, backgroundColor: theme.line, marginTop: 12, borderRadius: 2, overflow: 'hidden' },
@@ -1646,7 +1646,7 @@ const makeStyles = (theme: Theme) =>
     loadingText: { color: theme.muted, fontSize: 14, marginBottom: 12 },
     hero: { marginTop: 8, marginBottom: 16 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
       letterSpacing: 1.5,
@@ -1711,7 +1711,7 @@ const makeStyles = (theme: Theme) =>
     },
     activeText: {
       marginTop: 2,
-      color: theme.green,
+      color: theme.brand,
       fontSize: 12,
       fontWeight: '600',
     },
@@ -1768,13 +1768,13 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.card,
     },
     trackNodeDone: {
-      backgroundColor: theme.green,
-      borderColor: theme.green,
+      backgroundColor: theme.brand,
+      borderColor: theme.brand,
     },
     trackNodeCurrent: {
-      backgroundColor: theme.greenSoft,
-      borderColor: theme.green,
-      shadowColor: theme.green,
+      backgroundColor: theme.brandSoft,
+      borderColor: theme.brand,
+      shadowColor: theme.brand,
       shadowOpacity: 0.4,
       shadowOffset: { width: 0, height: 0 },
       shadowRadius: 6,
@@ -1786,7 +1786,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     trackLabelCurrent: {
-      color: theme.green,
+      color: theme.brand,
     },
     trackSummary: {
       color: theme.muted,
@@ -1842,7 +1842,7 @@ const makeStyles = (theme: Theme) =>
     },
     compareText: {
       marginTop: 10,
-      color: theme.green,
+      color: theme.brand,
       fontSize: 14,
       fontWeight: '700',
       textAlign: 'center',
@@ -1908,12 +1908,12 @@ const makeStyles = (theme: Theme) =>
       borderColor: theme.line,
     },
     floorChipDone: {
-      backgroundColor: theme.greenSoft,
-      borderColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
+      borderColor: theme.brandSoft,
     },
     floorChipCurrent: {
-      backgroundColor: theme.green,
-      borderColor: theme.green,
+      backgroundColor: theme.brand,
+      borderColor: theme.brand,
     },
     floorChipText: {
       color: theme.ink,
@@ -1921,7 +1921,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '700',
     },
     floorChipTextDone: {
-      color: theme.green,
+      color: theme.brand,
     },
     floorChipTextCurrent: {
       color: theme.card,
@@ -1967,12 +1967,12 @@ const makeStyles = (theme: Theme) =>
       marginTop: 20,
     },
     returnIcon: {
-      color: theme.blueInk,
+      color: theme.infoInk,
       fontSize: 36,
       fontWeight: '900',
     },
     returnTime: {
-      color: theme.blueInk,
+      color: theme.infoInk,
       fontSize: 18,
       fontWeight: '700',
     },
@@ -1997,13 +1997,13 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 4,
     },
     barometerValue: {
-      color: theme.blueInk,
+      color: theme.infoInk,
       fontSize: 28,
       fontWeight: '800',
       fontVariant: ['tabular-nums'],
     },
     barometerValueNear: {
-      color: theme.green,
+      color: theme.brand,
     },
     barometerHint: {
       marginTop: 6,
@@ -2025,7 +2025,7 @@ const makeStyles = (theme: Theme) =>
     },
     // 完成过渡
     completeTitle: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 28,
       fontWeight: '900',
       marginBottom: 8,
@@ -2055,8 +2055,8 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.card,
     },
     waveToggleActive: {
-      backgroundColor: theme.greenSoft,
-      borderColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
+      borderColor: theme.brandSoft,
     },
     waveToggleText: {
       color: theme.muted,
@@ -2064,7 +2064,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '700',
     },
     waveToggleTextActive: {
-      color: theme.green,
+      color: theme.brand,
     },
     completePage: {
       flex: 1,
@@ -2091,7 +2091,7 @@ const makeStyles = (theme: Theme) =>
     completeFloorBar: {
       flex: 1,
       borderRadius: 3,
-      backgroundColor: theme.green,
+      backgroundColor: theme.brand,
     },
     completeNumberRow: {
       flexDirection: 'row',
@@ -2099,14 +2099,14 @@ const makeStyles = (theme: Theme) =>
       gap: 6,
     },
     completeNumber: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 64,
       lineHeight: 72,
       fontWeight: '900',
       fontVariant: ['tabular-nums'],
     },
     completeUnit: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 18,
       fontWeight: '800',
     },

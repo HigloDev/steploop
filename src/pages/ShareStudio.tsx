@@ -121,14 +121,14 @@ const SharePoster = React.forwardRef<View, PosterProps>(
           <View style={{ flex: 1, padding: 28 * unit }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * unit }}>
-                <BrandMark size={24 * unit} color={theme.green} onLoad={() => imageLoaded('mark')} />
+                <BrandMark size={24 * unit} color={theme.brand} onLoad={() => imageLoaded('mark')} />
                 <Text allowFontScaling={false} style={{ ...text, fontSize: 18 * unit, fontWeight: '700', letterSpacing: 2 }}>循阶</Text>
               </View>
               <Text allowFontScaling={false} style={{ ...text, color: muted, fontSize: 10 * unit }}>每一步向上</Text>
             </View>
             <View style={{ marginTop: (compact ? 15 : 28) * unit, alignSelf: template === 'editorial' ? 'flex-end' : 'stretch', width: template === 'editorial' ? '80%' : undefined }}>
               <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                <Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={{ color: theme.green, fontSize: (compact ? 64 : 80) * unit, fontWeight: '700', maxWidth: width * 0.72, fontVariant: ['tabular-nums'] }}>{floors}</Text>
+                <Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={{ color: theme.brand, fontSize: (compact ? 64 : 80) * unit, fontWeight: '700', maxWidth: width * 0.72, fontVariant: ['tabular-nums'] }}>{floors}</Text>
                 <Text allowFontScaling={false} style={{ ...text, fontSize: 24 * unit, marginLeft: 6 }}>层</Text>
               </View>
               <Text allowFontScaling={false} style={{ ...text, color: muted }}>{streak ? '本周累计爬升' : workout.floorCounting === 'transitions' ? '实际爬升' : '历史完成层数'}</Text>
@@ -167,9 +167,9 @@ function PosterThumbnail({
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ selected: active }}
       accessibilityLabel={`${TEMPLATE_LABELS[template]}模板`} onPress={onPress}
-      style={{ flexGrow: 1, flexBasis: '45%', minHeight: 104, padding: 16, justifyContent: 'center', borderRadius: 14, backgroundColor: active ? theme.greenSoft : theme.card, borderWidth: 1, borderColor: active ? theme.green : theme.line }}>
+      style={{ flexGrow: 1, flexBasis: '45%', minHeight: 104, padding: 16, justifyContent: 'center', borderRadius: 14, backgroundColor: active ? theme.brandSoft : theme.card, borderWidth: 1, borderColor: active ? theme.brand : theme.line }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <Text style={{ color: active ? theme.green : theme.ink, fontSize: 28, lineHeight: 34, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{floors}<Text style={{ fontSize: 12, fontWeight: '400' }}> 层</Text></Text>
+        <Text style={{ color: active ? theme.brand : theme.ink, fontSize: 28, lineHeight: 34, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{floors}<Text style={{ fontSize: 12, fontWeight: '400' }}> 层</Text></Text>
       </View>
       <Text style={{ color: theme.mutedStrong, fontSize: 14, lineHeight: 21, marginTop: 8 }}>{TEMPLATE_LABELS[template]}</Text>
     </Pressable>
@@ -385,7 +385,7 @@ export default function ShareStudioScreen({
           {loadError ? <>
             <Button title="重新读取" onPress={() => setLoadAttempt(value => value + 1)} />
             <Button title="返回训练总结" style={{ marginTop: 12 }} variant="secondary" onPress={() => navigation.goBack()} />
-          </> : <ActivityIndicator color={theme.green} />}
+          </> : <ActivityIndicator color={theme.brand} />}
         </View>
       </View>
     )
@@ -552,20 +552,20 @@ const makeStyles = (theme: Theme) =>
     sectionTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600', marginTop: 8 },
     editorTabs: { flexDirection: 'row', padding: 4, borderRadius: 14, backgroundColor: theme.card, gap: 4 },
     editorTab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 8 },
-    editorTabActive: { backgroundColor: theme.greenSoft },
+    editorTabActive: { backgroundColor: theme.brandSoft },
     editorTabText: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, fontWeight: '500' },
-    editorTabTextActive: { color: theme.green, fontWeight: '600' },
+    editorTabTextActive: { color: theme.brand, fontWeight: '600' },
     thumbnailRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
     optionList: { gap: 8 },
     option: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
-    optionActive: { borderColor: theme.green, backgroundColor: theme.greenSoft },
+    optionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
     optionText: { flex: 1, color: theme.ink, fontSize: 15, lineHeight: 22 },
-    optionTextActive: { color: theme.green, fontWeight: '600' },
+    optionTextActive: { color: theme.brand, fontWeight: '600' },
     sizeRow: { flexDirection: 'row', gap: 12 },
     sizeOption: { flex: 1, minHeight: 88, alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
-    sizeOptionActive: { borderColor: theme.green, backgroundColor: theme.greenSoft },
+    sizeOptionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
     sizeValue: { color: theme.ink, fontSize: 24, lineHeight: 32, fontWeight: '600', fontVariant: ['tabular-nums'] },
-    sizeValueActive: { color: theme.green },
+    sizeValueActive: { color: theme.brand },
     sizeHint: { marginTop: 4, color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center' },
     copyNote: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, marginBottom: 16 },
     outcomeText: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },

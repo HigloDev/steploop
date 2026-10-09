@@ -14,5 +14,5 @@ export function BrandMark({ size = 24, color, style, accessible = false, accessi
   const theme = useTheme()
   return <Image {...props} source={BRAND_MARK} resizeMode="contain" fadeDuration={0}
     accessible={accessible} accessibilityLabel={accessible ? accessibilityLabel : undefined}
-    style={[{ width: size, height: size, flexShrink: 0, tintColor: color ?? theme.green }, style]} />
+    style={[{ width: size, height: size, flexShrink: 0, tintColor: color ?? theme.brand }, style]} />
 }
