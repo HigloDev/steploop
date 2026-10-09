@@ -433,21 +433,6 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               </Pressable>
             </>
           )}
-          {(__DEV__ || process.env.EXPO_PUBLIC_DIAGNOSTIC_CAPTURE === '1') && (
-            <>
-              <View style={styles.divider} />
-              <Pressable
-                style={styles.row}
-                onPress={() => navigation.navigate('ClimbPreview')}
-              >
-                <View style={styles.rowText}>
-                  <Text style={styles.rowTitle}>开发预览</Text>
-                  <Text style={styles.rowDesc}>多轮训练状态机预览（仅调试）</Text>
-                </View>
-                <Text style={styles.rowAction}>进入</Text>
-              </Pressable>
-            </>
-          )}
         </Disclosure> : null}
 
         <Text style={styles.appFooter}>循阶 · {APP_VERSION}</Text>

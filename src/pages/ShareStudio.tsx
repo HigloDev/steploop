@@ -22,10 +22,10 @@ import { Header } from '../components/Header'
 import { BrandMark } from '../components/brand-mark'
 import { Button } from '../components/ui'
 import {
-  calculateStairCalories,
   DEFAULT_BODY_WEIGHT_KG,
   formatCalories,
 } from '../core/calories'
+import { workoutCalories } from '../core/fusion-workout'
 import { ClimbWorkout, WorkoutSummary } from '../core/types'
 import {
   buildSharePayload,
@@ -392,10 +392,8 @@ export default function ShareStudioScreen({
   }
 
   const posterWidth = Math.min(320, windowWidth - 64)
-  const calories = calculateStairCalories(
-    summary.activeDurationMs,
-    workout.bodyWeightKg ?? bodyWeightKg,
-  )
+  // 热量按爬升机械功 + 活动/休息代谢估算（与结算页同一口径）。
+  const calories = workoutCalories({ ...workout, bodyWeightKg: workout.bodyWeightKg ?? bodyWeightKg })
   // D10：页面不再自己拼分享文案；隐私剔除结果（redacted）由纯函数给出，UI 只负责展示。
   const sharePayload = buildSharePayload({
     workout,

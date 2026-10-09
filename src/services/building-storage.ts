@@ -162,3 +162,40 @@ export async function loadFusionCheckpoint(): Promise<FusionCheckpoint | null> {
 export function __resetBuildingStorageForTests(): void {
   cache = undefined
 }
+
+// ===================== 待保存的标定结果 =====================
+// 标定轮生成的模板先作为“草稿”挂在本次训练上，结算页由用户命名后再正式保存。
+
+const PENDING_TEMPLATE_KEY = 'steploop.pendingTemplate.v1'
+
+export interface PendingTemplate {
+  workoutId: string
+  template: BuildingTemplate
+  warnings: string[]
+  replaceTemplateId?: string
+}
+
+export async function savePendingTemplate(pending: PendingTemplate): Promise<void> {
+  try {
+    await AsyncStorage.setItem(PENDING_TEMPLATE_KEY, JSON.stringify(pending))
+  } catch (error) {
+    console.warn('[building-storage] 标定草稿写入失败', error)
+  }
+}
+
+export async function loadPendingTemplate(workoutId: string): Promise<PendingTemplate | null> {
+  try {
+    const raw = await AsyncStorage.getItem(PENDING_TEMPLATE_KEY)
+    if (!raw) return null
+    const value = JSON.parse(raw) as PendingTemplate
+    if (!value || value.workoutId !== workoutId) return null
+    const template = normalizeBuildingTemplate(value.template)
+    return template ? { ...value, template, warnings: Array.isArray(value.warnings) ? value.warnings : [] } : null
+  } catch {
+    return null
+  }
+}
+
+export async function clearPendingTemplate(): Promise<void> {
+  try { await AsyncStorage.removeItem(PENDING_TEMPLATE_KEY) } catch { /* 草稿丢失不影响成绩 */ }
+}
