@@ -87,13 +87,7 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
     statusTone = 'warn'
   }
   if (w.rounds.some(r => r.completionSource === 'manual' || (r.corrections?.length ?? 0) > 0)) { statusText = '已修正'; statusTone = 'warn' }
-  const pendingCount = w.rounds.filter(round => round.floorConfirmation === 'pending').length
-  if (pendingCount) { statusText = `${pendingCount} 轮楼层待确认`; statusTone = 'warn' }
-  const floorsPerRound =
-    getFloorAchievementCount(
-      w.routeSnapshot.startFloor,
-      w.routeSnapshot.endFloor,
-    ) || w.routeSnapshot.floorsPerRound || 0
+  const floorsPerRound = w.routeSnapshot.floorsPerRound || 0
   const floorsText = summary.totalFloors > 0 ? `${summary.totalFloors} 层` : ''
   const ascentText = `${summary.totalAscentM.toFixed(1)}米`
   const stepsText = `${summary.totalSteps} 步`
@@ -130,7 +124,6 @@ function sessionToCard(s: ClimbSession): BaseCard {
     statusText = '低置信'
     statusTone = 'warn'
   }
-  if (s.floorConfirmation === 'pending') { statusText = '楼层待确认'; statusTone = 'warn' }
   return {
     id: s.id,
     kind: 'legacy_session',
@@ -141,8 +134,8 @@ function sessionToCard(s: ClimbSession): BaseCard {
     statusTone,
     complete: s.complete,
     interrupted,
-    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${s.recognitionVersion === 'motion-v3' ? Math.max(0, s.finalFloor - s.startFloor) : getFloorAchievementCount(s.startFloor, s.finalFloor) || s.floorsCompleted} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
-    ascentM: s.floorConfirmation === 'pending' ? 0 : s.ascentM,
+    metricsLine: `${s.floorsCompleted} 层 · ${formatDuration(s.durationMs ?? 0)}`,
+    ascentM: s.ascentM,
     highlightLine: `用时 ${formatDuration(s.durationMs ?? 0)} · 置信度 ${Math.round(s.confidence * 100)}%`,
     target: { route: 'Result', params: { id: s.id } },
   }

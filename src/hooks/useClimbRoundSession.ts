@@ -8,8 +8,9 @@
 // - 不负责携带方式确认弹窗（由 UI 层处理）
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { RouteRecognizer } from '../core/recognizer'
+import { FreeRecognizer } from '../core/free-recognizer'
 import { LiveFeaturePump } from '../services/live-feature-pump'
-import { RecordedMotionRecognizer } from '../services/recorded-motion-recognizer'
 import { SensorRecorder } from '../services/sensor'
 import {
   RoundRecognitionCoordinator,
@@ -35,7 +36,6 @@ import {
   RecognitionSnapshot,
   RouteTemplate,
   SensorSample,
-  ManualMark,
 } from '../core/types'
 
 function initialSnapshot(startFloor: number): RecognitionSnapshot {
@@ -101,7 +101,6 @@ export interface UseClimbRoundSessionResult {
   finish: (endedAt?: number) => ClimbSession | null
   cancelAutoComplete: () => void
   flushEvidence: () => void
-  markActualFloor: (floor: number) => void
   // 清理（组件卸载或轮次切换时调用）
   cleanup: () => void
 }
@@ -125,8 +124,6 @@ export function useClimbRoundSession(
   const captureOwnerRef = useRef<{ active: boolean; journal?: WorkoutEvidenceJournal } | undefined>(undefined)
   const startRequestRef = useRef(0)
   const retainedSamplesRef = useRef(new RetainedSampleWindow())
-  const manualFloorMarksRef = useRef<ManualMark[]>([])
-  const motionRecognizerRef = useRef<RecordedMotionRecognizer | undefined>(undefined)
   const measuredMotionRef = useRef({ steps: 0, activeMs: 0 })
   const measuredFramesRef = useRef<Array<{ startAt: number; endAt: number; steps: number; activeMs: number }>>([])
   const recognitionSampleAtRef = useRef<number | undefined>(undefined)
@@ -214,7 +211,7 @@ export function useClimbRoundSession(
     const durationMs = Math.min(Math.max(0, end - session.startedAt), Math.max(0, Math.round(activeMs)))
     return { ...session, steps: Math.max(0, steps), durationMs,
       samples: retainedSamplesRef.current.snapshot().filter((sample) => sample.t <= end),
-      evidenceId: evidenceRef.current?.id, manualFloorMarks: [...manualFloorMarksRef.current] }
+      evidenceId: evidenceRef.current?.id }
   }, [])
 
   const updateSnapshot = useCallback((next: RecognitionSnapshot) => {
@@ -344,8 +341,6 @@ export function useClimbRoundSession(
     lastFloorRef.current = template.startFloor
     startedAtRef.current = startOptions?.startedAt
     retainedSamplesRef.current = new RetainedSampleWindow()
-    manualFloorMarksRef.current = []
-    motionRecognizerRef.current = undefined
     measuredMotionRef.current = { steps: 0, activeMs: 0 }
     measuredFramesRef.current = []
     recognitionSampleAtRef.current = undefined
@@ -370,7 +365,7 @@ export function useClimbRoundSession(
     lastVisualizationRenderAtRef.current = 0
     setVisualization(emptySensorVisualization())
 
-    let seedRecognizer: RecordedMotionRecognizer | undefined
+    let seedRecognizer: RouteRecognizer | FreeRecognizer | undefined
     let ownerRecorder: SensorRecorder | undefined
     let ownerRecognitionStartedAt = ownerStartedAt
     const coordinator = new RoundRecognitionCoordinator<RecognitionSnapshot>({
@@ -382,8 +377,9 @@ export function useClimbRoundSession(
         const startedAt = startOptions?.startedAt ?? Date.now()
         ownerRecognitionStartedAt = startedAt
         startedAtRef.current = startedAt
-        seedRecognizer = new RecordedMotionRecognizer(template, startedAt, modeRef.current, owner.journal)
-        motionRecognizerRef.current = seedRecognizer
+        seedRecognizer = modeRef.current === 'free'
+          ? new FreeRecognizer(template, startedAt)
+          : new RouteRecognizer(template, startedAt)
         const recognizer = seedRecognizer
         return {
           pushFrame: (frame) => recognizer.pushFrame(frame),
@@ -401,15 +397,14 @@ export function useClimbRoundSession(
         const motion = visualizationRef.current.snapshot(frameEnd)
         const elevatorDown = motion.verticalSpeedMps < -0.45 && motion.motionLevel < 0.28
         let activeMs = 0
-        if (!elevatorDown && frame.steps > 0 && motion.pressureDirection !== 'down') {
+        if (!elevatorDown && (frame.steps > 0 || frame.energy >= 0.06)) {
           activeMs = Math.max(0, frame.endMs - frame.startMs)
           measuredMotionRef.current.activeMs += activeMs
         }
         measuredFramesRef.current.push({ startAt: frameEnd - (frame.endMs - frame.startMs), endAt: frameEnd, steps: frame.steps, activeMs })
         if (measuredFramesRef.current.length > 1250) measuredFramesRef.current.splice(0, 100)
         recognitionSampleAtRef.current = frameEnd
-        const shift = (pumpOriginRef.current ?? ownerRecognitionStartedAt) - ownerRecognitionStartedAt
-        onFrame({ ...frame, startMs: frame.startMs + shift, endMs: frame.endMs + shift })
+        onFrame(frame)
       }),
       createRecorder: (adapter, emit) => {
         // 事件经 emitter 交给 coordinator；coordinator 已做 generation 校验，
@@ -587,16 +582,6 @@ export function useClimbRoundSession(
     finish,
     cancelAutoComplete,
     flushEvidence: () => { evidenceRef.current?.flush() },
-    markActualFloor: (floor) => {
-      const recognizer = motionRecognizerRef.current
-      if (!isRunning || !recognizer || !Number.isSafeInteger(floor) || floor < template.startFloor) return
-      const atMs = Math.max(0, Date.now() - (startedAtRef.current ?? Date.now()))
-      const mark: ManualMark = { id: `floor-${Date.now()}`, type: 'floor', atMs, floor,
-        estimatedFloor: recognizer.snapshot().currentFloor }
-      manualFloorMarksRef.current.push(mark)
-      evidenceRef.current?.event('actual_floor_mark', Date.now(), mark)
-      setSnapshot(recognizer.confirmFloor(floor, atMs))
-    },
     cleanup,
   }
 }

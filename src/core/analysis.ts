@@ -1,4 +1,3 @@
-import { StairTurnGate } from './turn-gate'
 import {
   CalibrationDraft,
   FeatureFrame,
@@ -11,7 +10,6 @@ import {
   SensorSample,
 } from './types'
 import { clamp, nearestIndex, uid } from './math'
-import { MotionFrameStream, MotionSignalProcessor, TimedMotionSignal } from './motion-signal'
 import {
   BARO_EPS_CALIBRATE,
   BARO_EXP,
@@ -23,24 +21,93 @@ import {
   type FeatureSpace,
 } from './sensor-params'
 
+const FRAME_MS = 500
+const STEP_REFRACTORY_MS = 260
+const STEP_THRESHOLD = 0.13
 const TURN_THRESHOLD_RAD = 0.62
 
-function prepareSignal(samples: SensorSample[]): TimedMotionSignal[] {
-  const processor = new MotionSignalProcessor()
-  const signal: TimedMotionSignal[] = []
-  for (const sample of samples) {
-    const point = processor.push(sample)
-    if (point) signal.push(point)
-  }
-  return signal
+interface TimedSignal {
+  t: number
+  motion: number
+  turn: number
+  headingTurn: number
+  step: boolean
+}
+
+function prepareSignal(samples: SensorSample[]): TimedSignal[] {
+  if (!samples.length) return []
+  let gravity = Math.sqrt(samples[0].ax ** 2 + samples[0].ay ** 2 + samples[0].az ** 2)
+  let smooth = 0
+  let previous = 0
+  let lastStepAt = -Infinity
+  // 在设备坐标系中低通估算重力方向。陀螺仪向量投影到重力轴后，
+  // 得到人绕世界竖直方向的转速，不再依赖手机自身的 Z 轴朝向。
+  let gravityX = samples[0].ax
+  let gravityY = samples[0].ay
+  let gravityZ = samples[0].az
+
+  return samples.map((sample) => {
+    const magnitude = Math.sqrt(sample.ax ** 2 + sample.ay ** 2 + sample.az ** 2)
+    gravity = gravity * 0.985 + magnitude * 0.015
+    const linear = Math.abs(magnitude - gravity)
+    smooth = smooth * 0.72 + linear * 0.28
+    const step =
+      smooth > STEP_THRESHOLD &&
+      previous <= STEP_THRESHOLD &&
+      sample.t - lastStepAt >= STEP_REFRACTORY_MS
+    if (step) lastStepAt = sample.t
+    previous = smooth
+    gravityX = gravityX * 0.97 + sample.ax * 0.03
+    gravityY = gravityY * 0.97 + sample.ay * 0.03
+    gravityZ = gravityZ * 0.97 + sample.az * 0.03
+    const gravityNorm = Math.max(
+      0.001,
+      Math.sqrt(gravityX ** 2 + gravityY ** 2 + gravityZ ** 2),
+    )
+    const headingTurn =
+      (sample.gx * gravityX + sample.gy * gravityY + sample.gz * gravityZ) /
+      gravityNorm
+    return {
+      t: sample.t,
+      motion: smooth,
+      turn: sample.gz,
+      headingTurn,
+      step,
+    }
+  })
 }
 
 export function extractFrames(samples: SensorSample[]): FeatureFrame[] {
   if (samples.length < 2) return []
+  const signal = prepareSignal(samples)
+  const first = samples[0].t
+  const last = samples[samples.length - 1].t
   const frames: FeatureFrame[] = []
-  const stream = new MotionFrameStream(frame => frames.push(frame))
-  for (const sample of samples) stream.push(sample)
-  stream.flush()
+
+  for (let start = first; start < last; start += FRAME_MS) {
+    const end = start + FRAME_MS
+    const points = signal.filter((point) => point.t >= start && point.t < end)
+    if (!points.length) continue
+    const steps = points.filter((point) => point.step).length
+    const energy = points.reduce((sum, point) => sum + point.motion, 0) / points.length
+    let turnRad = 0
+    let headingTurnRad = 0
+    for (let index = 1; index < points.length; index += 1) {
+      const dt = clamp((points[index].t - points[index - 1].t) / 1000, 0, 0.1)
+      turnRad += points[index].turn * dt
+      headingTurnRad += points[index].headingTurn * dt
+    }
+    frames.push({
+      startMs: start - first,
+      endMs: Math.min(end, last) - first,
+      steps,
+      cadence: steps * (60000 / FRAME_MS),
+      energy,
+      turnRad,
+      headingTurnRad,
+      paused: steps === 0 && energy < 0.045 ? 1 : 0,
+    })
+  }
   return frames
 }
 
@@ -209,35 +276,90 @@ export function inferRoute(frames: FeatureFrame[], markers: RouteMarker[]): Infe
 }
 
 export function rebuildDraftBoundaries(
-  draft: Pick<CalibrationDraft, 'frames' | 'samples'> & Partial<Pick<CalibrationDraft, 'manualMarks'>>,
+  draft: Pick<CalibrationDraft, 'frames' | 'samples'>,
   floorCount: number,
-  startFloor = 1,
 ): number[] {
   const duration = draft.frames.at(-1)?.endMs ?? 0
   const count = Math.max(1, Math.round(floorCount))
-  const anchors = [{ index: 0, atMs: 0 }]
-  for (const mark of (draft.manualMarks ?? []).filter(mark => mark.type === 'floor').sort((a,b) => a.atMs-b.atMs)) {
-    const index = (mark.floor ?? startFloor) - startFloor
-    if (index > anchors.at(-1)!.index && index < count && mark.atMs > anchors.at(-1)!.atMs && mark.atMs < duration) {
-      anchors.push({ index, atMs: mark.atMs })
-    }
-  }
-  anchors.push({ index: count, atMs: duration })
+  const pressureBoundaries = confirmedBoundariesByPressure(
+    draft.samples,
+    count,
+    duration,
+  )
+  if (pressureBoundaries) return pressureBoundaries
+
+  // 没有可靠气压时只按整段时间均分。半层转弯只能作为动作特征，
+  // 不再把转弯吸附成整层边界。
+  const minSpacing = Math.min(1000, (duration / count) * 0.3)
   const boundaries = [0]
-  for (let span = 0; span < anchors.length - 1; span += 1) {
-    const left = anchors[span], right = anchors[span + 1]
-    const frames = draft.frames.filter(frame => frame.endMs > left.atMs && frame.endMs <= right.atMs)
-    const steps = frames.reduce((sum,frame) => sum + Math.max(0,frame.steps),0)
-    for (let index = left.index + 1; index < right.index; index += 1) {
-      const fraction = (index - left.index) / (right.index - left.index)
-      let accumulated = 0
-      const crossing = steps > 0 ? frames.find(frame => { accumulated += Math.max(0,frame.steps); return accumulated >= steps * fraction }) : undefined
-      const target = crossing?.endMs ?? left.atMs + (right.atMs - left.atMs) * fraction
-      const spacing = Math.min(500, (right.atMs - left.atMs) / (right.index - left.index) * 0.3)
-      boundaries.push(Math.round(clamp(target, boundaries.at(-1)! + spacing, right.atMs - spacing * (right.index - index))))
-    }
-    boundaries.push(right.atMs)
+  for (let floor = 1; floor < count; floor += 1) {
+    const target = (duration * floor) / count
+    const lower = boundaries.at(-1)! + minSpacing
+    const upper = duration - (count - floor) * minSpacing
+    boundaries.push(Math.round(clamp(target, lower, upper)))
   }
+  boundaries.push(duration)
+  return boundaries
+}
+
+/**
+ * 已知终点后，按整轮总气压下降的等高位置切分真实楼层。
+ * 例如 1F→15F 切 14 个高度段；中途转弯完全不参与边界计算。
+ */
+function confirmedBoundariesByPressure(
+  samples: SensorSample[],
+  count: number,
+  fallbackDuration: number,
+): number[] | null {
+  const baro = samples.filter(
+    (sample) => typeof sample.pressure === 'number' && (sample.pressure ?? 0) > 0,
+  )
+  if (baro.length < 20 || count < 1) return null
+
+  const firstT = baro[0].t
+  const duration = Math.max(1, baro.at(-1)!.t - firstT, fallbackDuration)
+  const smoothed = baro.map((sample, index) => {
+    const window = baro.slice(
+      Math.max(0, index - BARO_SMOOTH_WINDOW + 1),
+      index + 1,
+    )
+    return {
+      t: sample.t - firstT,
+      pressure:
+        window.reduce((sum, point) => sum + (point.pressure ?? 0), 0) /
+        window.length,
+    }
+  })
+  const startPressure =
+    smoothed.slice(0, 5).reduce((sum, point) => sum + point.pressure, 0) / 5
+  const endPressure =
+    smoothed.slice(-5).reduce((sum, point) => sum + point.pressure, 0) / 5
+  const totalDrop = startPressure - endPressure
+  if (totalDrop < 0.2) return null
+
+  const boundaries = [0]
+  let searchFrom = 1
+  for (let index = 1; index < count; index += 1) {
+    const targetDrop = (totalDrop * index) / count
+    let found = -1
+    for (
+      let pointIndex = searchFrom;
+      pointIndex < smoothed.length - 1;
+      pointIndex += 1
+    ) {
+      if (startPressure - smoothed[pointIndex].pressure >= targetDrop) {
+        found = pointIndex
+        break
+      }
+    }
+    if (found < 0) return null
+    const lower = boundaries.at(-1)! + 500
+    const upper = duration - (count - index) * 500
+    if (lower > upper) return null
+    boundaries.push(clamp(Math.round(smoothed[found].t), lower, upper))
+    searchFrom = found + 1
+  }
+  boundaries.push(duration)
   return boundaries
 }
 
@@ -260,7 +382,7 @@ export function vectorizeFrame(
 }
 
 export function buildSegments(
-  draft: Pick<CalibrationDraft, 'frames' | 'boundaries'> & Partial<Pick<CalibrationDraft, 'manualMarks'>>,
+  draft: Pick<CalibrationDraft, 'frames' | 'boundaries'>,
   startFloor: number,
   floorHeights: number[],
 ): RouteSegment[] {
@@ -270,9 +392,6 @@ export function buildSegments(
     const floorFrames = frames.filter(
       (frame) => frame.startMs >= startMs && frame.endMs <= endMs + 1,
     )
-    const gate = new StairTurnGate()
-    floorFrames.forEach(frame => gate.push(frame))
-    gate.push({ startMs: endMs, endMs: endMs + 500, steps: 0, cadence: 0, energy: 0, turnRad: 0, paused: 1 })
     return {
       id: uid('flight'),
       type: 'flight',
@@ -283,8 +402,6 @@ export function buildSegments(
       ascentM: floorHeights[index] ?? 0,
       stepCount: floorFrames.reduce((sum, frame) => sum + frame.steps, 0),
       features: floorFrames.map((frame) => vectorizeFrame(frame)),
-      turnCount: gate.completedTurns,
-      boundaryConfirmed: draft.manualMarks?.some(mark => mark.type === 'floor' && mark.floor === startFloor + index + 1) ?? false,
     }
   })
 }
@@ -300,15 +417,19 @@ export function analyzeCalibration(
   const frames = extractFrames(samples)
   const markers = detectMarkers(frames)
   const inferred = inferRoute(frames, markers)
-  // 楼层边界来自人工记录；其他切分均为待核对的估计
+  // 楼层边界优先级：人工楼层标记 > 气压检测 > 算法估算
   const floorMarks = manualMarks
     .filter((m) => m.type === 'floor')
     .sort((a, b) => a.atMs - b.atMs)
+  const baroBoundaries = detectFloorBoundariesByPressure(samples)
   let boundaries: number[]
   let boundarySource: 'manual' | 'barometer' | 'inferred'
   if (floorMarks.length >= 1) {
     boundaries = buildBoundariesFromManualMarks(floorMarks, samples)
     boundarySource = 'manual'
+  } else if (baroBoundaries.length >= 2) {
+    boundaries = baroBoundaries
+    boundarySource = 'barometer'
   } else {
     boundaries = inferred.floorBoundaries
     boundarySource = 'inferred'
@@ -324,7 +445,7 @@ export function analyzeCalibration(
       confidence: 1,
     }))
   const allMarkers = [...markers, ...manualTurnMarkers].sort((a, b) => a.atMs - b.atMs)
-  // 米数只用于粗略展示，不决定楼层，也不代表实际测量精度。
+  // 垂直爬升估算：气压反算优先（精度 ±0.3m），无气压则步数估算
   const baroAscent = estimateAscentByPressure(samples)
   const stepAscent = estimateVerticalAscent(samples)
   const estimatedAscentM = baroAscent !== null ? baroAscent : stepAscent
@@ -361,11 +482,9 @@ function buildBoundariesFromManualMarks(
   if (!floorMarks.length) return [0, last]
   const boundaries = [0]
   for (const mark of floorMarks) {
-    if (mark.atMs > boundaries.at(-1)! && mark.atMs <= last) boundaries.push(Math.round(mark.atMs))
+    boundaries.push(clamp(Math.round(mark.atMs), boundaries[boundaries.length - 1] + 500, last - 500))
   }
-  // 最后一条楼层标记就是终点；结束采集不应凭空多生成一层。
-  if (boundaries.length > 1) boundaries[boundaries.length - 1] = last
-  else boundaries.push(last)
+  boundaries.push(last)
   return boundaries
 }
 

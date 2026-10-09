@@ -58,8 +58,8 @@ function buildAdequateManifest() {
       platform: 'android',
       routeId,
       bundleVersion: 2,
-      algorithmVersion: 'motion-v3',
-      parameterVersion: 'motion-trend-1',
+      algorithmVersion: 'trusted-v2.1.0',
+      parameterVersion: 'evidence-1',
       routeModelVersion: 3,
     })
   }

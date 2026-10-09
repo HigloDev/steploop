@@ -23,12 +23,14 @@ import { BarometerStatus, ClimbMode, FeatureFrame, SensorSample } from '../core/
 export type Listener<T> = (value: T) => void
 
 export interface AccelerometerPayload {
+  timestamp?: number
   x: number
   y: number
   z: number
 }
 
 export interface GyroscopePayload {
+  timestamp?: number
   x: number
   y: number
   z: number
@@ -44,6 +46,7 @@ export interface DeviceMotionPayload {
 
 export interface BarometerPayload {
   pressure: number
+  timestamp?: number
 }
 
 export interface SensorSubscription {

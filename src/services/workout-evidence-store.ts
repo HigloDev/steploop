@@ -106,7 +106,7 @@ export class WorkoutEvidenceJournal {
 
   private maybeFlush(at: number): void {
     if (at - this.lastFlushAt >= 2000 || this.records.length >= 100) this.flush(at)
-    // Bound the failure buffer by record count, including exact recognition inputs.
+    // Max 2 minutes in the failure buffer. Never consume unbounded memory if disk is full.
     if (this.records.length > 1200) {
       this.lostRecords += this.records.length - 1200
       this.records.splice(0, this.records.length - 1200)

@@ -11,7 +11,7 @@ const selected = [
   'tsconfig.json', 'metro.config.js',
   'docs/USER_GUIDE.md', 'docs/BUILDING.md', 'docs/FIRST_RELEASE.md',
   'docs/RELEASE_1.0.4.md',
-  'docs/RELEASE_1.0.5.md', 'docs/RELEASE_1.0.7.md', 'docs/VOICE_FEEDBACK.md',
+  'docs/RELEASE_1.0.5.md', 'docs/VOICE_FEEDBACK.md',
   'docs/release-notes-draft.md',
 ]
 const files = []

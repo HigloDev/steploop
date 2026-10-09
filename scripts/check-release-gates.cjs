@@ -38,11 +38,11 @@ const crypto = require('node:crypto')
 
 // 冗余声明的源码常量（编译产物读取失败时的回退）。修改 src 常量时必须同步这里。
 const DECLARED_SOURCE_CONSTANTS = Object.freeze({
-  algorithm: 'motion-v3', // src/core/route-model.ts:11
-  diagnosticAlgorithm: 'motion-v3', // src/core/diagnostics.ts:12
+  algorithm: 'trusted-v2.1.0', // src/core/route-model.ts:11
+  diagnosticAlgorithm: 'trusted-v2.0.0', // src/core/diagnostics.ts:12
   bundle: 2, // src/core/diagnostics.ts:11
   routeModel: 3, // src/core/route-model.ts:10
-  parameter: 'motion-trend-1', // src/core/diagnostics.ts:13
+  parameter: 'evidence-1', // src/core/diagnostics.ts:13
 })
 
 // 数值门槛：与旧实现完全一致，只增不减。

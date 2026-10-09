@@ -32,7 +32,6 @@ import { formatDuration, uid } from '../core/math'
 import { ManualMark, RouteSeed, SensorSample, BarometerStatus } from '../core/types'
 import { triggerHaptic } from '../services/preferences'
 import { pressureToAltitude } from '../core/analysis'
-import { PressureTrend, type PressureDirection } from '../core/pressure-trend'
 
 type Phase = 'ready' | 'recording' | 'stopped'
 
@@ -66,7 +65,6 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const { seed } = route.params
-  const routeStartFloor = Number.isSafeInteger(seed.startFloor) ? seed.startFloor! : 1
 
   const recorderRef = useRef<SensorRecorder | undefined>(undefined)
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
@@ -104,7 +102,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
 
   // 人工标记
   const [manualTurnCount, setManualTurnCount] = useState(0)
-  const [currentFloor, setCurrentFloor] = useState(routeStartFloor)
+  const [currentFloor, setCurrentFloor] = useState(1)
   const [floorMarkCount, setFloorMarkCount] = useState(0)
 
   // 实时指标
@@ -117,9 +115,12 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
   const [baroPressure, setBaroPressure] = useState(0)         // 当前气压 hPa
   const [baroRelAltitude, setBaroRelAltitude] = useState(0)   // 相对起点海拔 m
   const baroRelAltitudeRef = useRef(0)                      // 定时器读取最新高度，避免捕获启动时的 state
+  const [baroFloorDetected, setBaroFloorDetected] = useState(0) // 气压自动检测到的楼层数
   const baroStartPressureRef = useRef<number | null>(null)    // 起点气压（首次样本）
-  const pressureTrendRef = useRef(new PressureTrend())
-  const [pressureDirection, setPressureDirection] = useState<PressureDirection>('unknown')
+  const baroFloorCountRef = useRef(0)                         // 气压楼层计数（ref）
+  const baroLastFloorAtRef = useRef(0)                        // 上次楼层检测时间
+  const BARO_FLOOR_THRESHOLD_HPA = 0.3                        // 楼层气压阈值
+  const BARO_FLOOR_COOLDOWN_MS = 2000                         // 楼层检测冷却
 
   // 异常提醒
   const [warnings, setWarnings] = useState<string[]>([])
@@ -188,7 +189,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
     setStepCount(0)
     setTurnCount(0)
     setManualTurnCount(0)
-    setCurrentFloor(routeStartFloor)
+    setCurrentFloor(1)
     setFloorMarkCount(0)
     setCadence(0)
     setAscentM(0)
@@ -203,9 +204,10 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
     setBaroPressure(0)
     setBaroRelAltitude(0)
     baroRelAltitudeRef.current = 0
+    setBaroFloorDetected(0)
     baroStartPressureRef.current = null
-    pressureTrendRef.current = new PressureTrend()
-    setPressureDirection('unknown')
+    baroFloorCountRef.current = 0
+    baroLastFloorAtRef.current = 0
     const recorder = new SensorRecorder({
       retainSamples: true,
       onSample: (sample) => {
@@ -282,8 +284,6 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
       },
       onGap: (gap) => {
         gapsRef.current.push(gap)
-        pressureTrendRef.current.gap()
-        setPressureDirection('unknown')
       },
       onStatus: (status) => {
         setSignal(status.signal)
@@ -296,13 +296,24 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           }
           setBaroAvailable(true)
           setBaroPressure(status.pressure)
-          pressureTrendRef.current.push(status.pressure, status.lastSampleAt || Date.now())
           // 相对海拔 = 当前海拔 - 起点海拔
           const startP = baroStartPressureRef.current
           if (startP !== null) {
             const relAlt = pressureToAltitude(status.pressure) - pressureToAltitude(startP)
             baroRelAltitudeRef.current = Number(relAlt.toFixed(1))
             setBaroRelAltitude(baroRelAltitudeRef.current)
+            // 实时楼层检测：气压下降超阈值且过冷却时间
+            const drop = startP - status.pressure
+            const expectedFloors = Math.floor(drop / BARO_FLOOR_THRESHOLD_HPA)
+            const now = Date.now()
+            if (
+              expectedFloors > baroFloorCountRef.current &&
+              now - baroLastFloorAtRef.current > BARO_FLOOR_COOLDOWN_MS
+            ) {
+              baroFloorCountRef.current = expectedFloors
+              baroLastFloorAtRef.current = now
+              setBaroFloorDetected(expectedFloors)
+            }
           }
         } else {
           // 气压计不可用：仅当状态仍为 null（待定）时才设为 false，
@@ -320,7 +331,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
       saveCalibrateProgress({
         routeName: routeName.trim() || seed.name,
         carryMode,
-        currentFloor: routeStartFloor,
+        currentFloor: 1,
         manualMarks: [],
         startedAt: startedAtRef.current,
         phase: 'recording',
@@ -337,10 +348,8 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           ? Math.round((recentSteps.length / windowMs) * 60000)
           : 0
         setCadence(cpm)
-        const trend = pressureTrendRef.current.snapshot(now)
-        setPressureDirection(trend.reliable ? trend.direction : 'unknown')
-        // 米数仅作粗略显示，楼层只来自用户的实际楼层标记。
-        if (baroStartPressureRef.current !== null) {
+        // 估算垂直爬升：气压计可用时用气压反算（更准），否则按步数估算
+        if (baroFloorCountRef.current > 0 || baroStartPressureRef.current !== null) {
           // onBarometer 同步最新气压爬升到 ref，定时器不读取启动时捕获的旧 state
           setAscentM(baroRelAltitudeRef.current)
         } else {
@@ -533,10 +542,10 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
           ? '设备不支持'
           : '等待信号'
 
-  // 重新记录已有路线时沿用实际起点。
+  // 大楼简笔画：起始楼层固定为 1（Calibrate 内部未提供编辑入口）
   // 拐弯段总数 = 自动拐弯 + 人工拐弯，按已完成楼层均分
   const totalTurnsForBuilding = turnCount + manualTurnCount
-  const buildingFloors = buildRealtimeFloors(routeStartFloor, currentFloor, totalTurnsForBuilding)
+  const buildingFloors = buildRealtimeFloors(1, currentFloor, totalTurnsForBuilding)
 
   return (
     <View style={styles.page}>
@@ -793,7 +802,7 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                 </View>
               </View>
 
-              {/* 气压仅显示参考米数与方向，不能换算楼层。 */}
+              {/* 气压计实时显示：气压 / 相对海拔 / 自动楼层 */}
               <View style={styles.baroRow}>
                 <View style={styles.baroStatusBlock}>
                   <Text
@@ -831,13 +840,13 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
                   >
                     {baroAvailable === true ? `+${baroRelAltitude.toFixed(1)}` : '—'}
                   </Text>
-                  <Text style={styles.baroLabel}>参考米数 · 估计</Text>
+                  <Text style={styles.baroLabel}>相对爬升米数</Text>
                 </View>
                 <View style={styles.baroBlock}>
                   <Text style={[styles.baroValue, { color: theme.amber }]}>
-                    {pressureDirection === 'up' ? '上升' : pressureDirection === 'down' ? '下降' : pressureDirection === 'level' ? '暂时平稳' : '还看不清'}
+                    {baroAvailable === true ? baroFloorDetected : '—'}
                   </Text>
-                  <Text style={styles.baroLabel}>气压走势</Text>
+                  <Text style={styles.baroLabel}>气压楼层</Text>
                 </View>
               </View>
 
@@ -889,12 +898,12 @@ export default function CalibrateScreen({ navigation, route }: RootStackScreen<'
               4. 每到达一个新楼层时点击「到达新楼层」。{'\n'}
               5. 到达终点楼层后点击「停止并分析」。{'\n'}
               {'\n'}
-              气压只帮助观察上升或下降，不能直接数楼层。{'\n'}
-              每层请看楼层标志再标记，到终点后核对记录。
+              可用气压计会辅助检测楼层变化，结果仍受设备与携带方式影响。{'\n'}
+              到达终点后请复核实际楼层和边界。
             </Text>
             <View style={styles.guideAddrBox}>
               <Text style={styles.guideAddrLabel}>地址</Text>
-              <Text style={styles.guideAddrText}>{seed.location?.address || seed.location?.name || '未记录地点，也可以记录路线'}</Text>
+              <Text style={styles.guideAddrText}>{seed.location.address || seed.location.name}</Text>
             </View>
           </View></Disclosure>
         ) : null}

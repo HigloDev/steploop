@@ -149,7 +149,6 @@ export function applyRoundCorrection(
 export function isRoundLearnable(round: WorkoutRound): boolean {
   return (
     round.complete === true &&
-    round.floorConfirmation !== 'pending' &&
     (round.corrections?.length ?? 0) === 0 &&
     (round.userCorrectionCount ?? 0) === 0 &&
     round.trustworthy !== false &&

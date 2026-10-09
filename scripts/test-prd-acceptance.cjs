@@ -10,8 +10,7 @@ const output = path.join(project, 'node_modules', '.cache', 'prd-acceptance')
 const sources = ['src/core/corrections.ts', 'src/core/floors.ts', 'src/core/workout-summary.ts',
   'src/core/workout-machine.ts', 'src/core/training-automation.ts', 'src/core/voice-config.ts',
   'src/core/voice-events.ts', 'src/core/voice-queue.ts', 'src/core/training-progress.ts',
-  'src/core/progress-trends.ts', 'src/services/workout-evidence-store.ts', 'src/services/background-training.ts',
-  'src/services/recorded-motion-recognizer.ts']
+  'src/core/progress-trends.ts', 'src/services/workout-evidence-store.ts', 'src/services/background-training.ts']
 const compiled = spawnSync(process.execPath, [require.resolve('typescript/bin/tsc'), '--ignoreConfig', '--resolveJsonModule',
   '--ignoreDeprecations', '6.0', '--lib', 'es2022,dom', '--rootDir', 'src', '--outDir', output,
   '--module', 'commonjs', '--moduleResolution', 'node', '--target', 'es2022', '--esModuleInterop',
@@ -25,7 +24,6 @@ const { initialVoiceObserverState, observeVoiceEvents } = require(path.join(outp
 const { DEFAULT_VOICE_SETTINGS, buildVoiceSegments, normalizeVoiceSettings } = require(path.join(output, 'core/voice-config.js'))
 const { WorkoutVoiceQueue } = require(path.join(output, 'core/voice-queue.js'))
 const { WorkoutEvidenceJournal } = require(path.join(output, 'services/workout-evidence-store.js'))
-const { RecordedMotionRecognizer } = require(path.join(output, 'services/recorded-motion-recognizer.js'))
 const { deriveTrainingProgress } = require(path.join(output, 'core/training-progress.js'))
 const { computeWeekGoal, auditTrend } = require(path.join(output, 'core/progress-trends.js'))
 
@@ -223,7 +221,7 @@ test('PRD: return arrival and actual next ascent are different, waiting never st
     const result = observe(a, 1000 + i * 500, Math.max(0, 30 - i * 3), 0)
     if (result.action) { assert.equal(returned, undefined); returned = result.action }
   }
-  assert.equal(returned, undefined, 'stopped pressure cannot identify the actual floor')
+  assert.equal(returned.type, 'returned_to_start')
   a.enterPhase('recovering')
   for (let i = 0; i < 16; i++) assert.equal(observe(a, 20000 + i * 500, i % 2 ? 0.06 : 0, 0).action, undefined)
   let began
@@ -400,50 +398,6 @@ test('PRD: evidence preserves original timestamp, pressure, recognition and corr
   assert.equal(records.find(record => record.kind === 'sensor').sample.t, 1100)
   assert.equal(records.find(record => record.kind === 'recognition').snapshot.currentFloor, 12)
   assert.equal(records.find(record => record.name === 'manual_floor_correction').detail.confirmed, 15)
-})
-
-test('exact recognition evidence reproduces the consumed inputs, including pause and human anchors', () => {
-  const { replayExactInputs, replayMotionEvidence } = require('./replay-motion-evidence.cjs')
-  for (const mode of ['formal', 'free']) {
-    const chunks = [], context = { workoutId: 'test-only', roundNumber: 1, phase: 'ascending', startedAt: 100000 }
-    const journal = new WorkoutEvidenceJournal(context, { write: (_name, body) => chunks.push(JSON.parse(body)) })
-    const template = { id: 'test-only-route', version: 1, name: 'test', startFloor: 1, endFloor: 15,
-      carryMode: 'pocket', segments: Array.from({ length: 14 }, (_, index) => ({ floorFrom: index + 1,
-        floorTo: index + 2, stepCount: 24, turnCount: 0, features: [[0, 0, 0, 1]],
-        startMs: index * 6000, endMs: (index + 1) * 6000 })), markers: [] }
-    const recorder = new RecordedMotionRecognizer(template, context.startedAt, mode, journal)
-    template.startFloor = 90
-    assert.equal(recorder.snapshot().currentFloor, 1, 'the running reference is frozen too')
-    for (let i = 0; i < 30; i++) {
-      recorder.pushBarometer(1000 - i * 0.015, i * 500)
-      recorder.pushFrame({ startMs: i * 500, endMs: i * 500 + 500, steps: 2,
-        cadence: 240, energy: 0.12, turnRad: 0, headingTurnRad: 0, paused: 0 })
-      if (i === 14) { recorder.pause(7500); recorder.resume(7500) }
-    }
-    recorder.confirmFloor(5, 15000)
-    const expected = recorder.snapshot()
-    recorder.finish(115000)
-    journal.close(115000)
-    const records = chunks.flatMap(chunk => chunk.records)
-    const replay = replayExactInputs(records)
-    assert.deepEqual(replay.state, expected)
-    assert.equal(replay.matchesSavedSnapshot, true)
-    assert.equal(replay.manualAnchors, 1)
-    assert.equal(replay.frames, 30)
-    const evidence = [{ kind: 'workout', workout: { id: 'test-only', templateId: template.id,
-      rounds: [{ roundNumber: 1, finalFloor: 99 }] } }, ...chunks.slice().reverse().map(chunk => ({ kind: 'evidence_chunk', ...chunk }))]
-    const report = replayMotionEvidence(evidence, template)
-    assert.equal(report.results[0].newEstimatedFloor, 5, 'a later corrected endpoint is never fed to replay')
-    assert.equal(report.results[0].independentOfManualAnchors, false)
-    assert.equal(report.results[0].usesFrozenReference, true)
-    assert.notEqual(report.results[0].unassistedEstimatedFloor, 5, 'independent replay ignores all manual anchors')
-    assert.equal(report.results[0].anchorChecks[0].actualFloor, 5)
-    assert.equal(report.results[0].anchorChecks[0].unassistedEstimatedFloor, report.results[0].unassistedEstimatedFloor)
-    assert.throws(() => replayExactInputs(records.filter(row => !(row.name === 'recognition_input' && row.detail.sequence === 10))), /缺失/)
-    assert.throws(() => replayExactInputs(records.filter(row => row.name !== 'recognition_checkpoint')), /缺失/)
-    assert.throws(() => replayExactInputs(records.filter(row => row.name !== 'phase_end')), /缺失/)
-    assert.throws(() => replayExactInputs([...records, { kind: 'retention_loss', omittedRecords: 1 }]), /缺失/)
-  }
 })
 
 test('native prebuild integration is reproducible, non-exported health service, permissions idempotent', () => {

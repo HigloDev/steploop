@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { preparationDeviceKey, scopePreparationToDevice } from './preparation-device'
 import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
 import { normalizeSession } from '../core/session'
 import { migrateRouteToV3 } from '../core/route-model'
@@ -315,10 +314,7 @@ async function listRoutesUnsafe(): Promise<RouteTemplate[]> {
 
 export async function listRoutes(): Promise<RouteTemplate[]> {
   await ensureRecovered()
-  const routes = await listRoutesUnsafe()
-  if (!routes.some(route => route.preparation)) return routes
-  const deviceKey = await preparationDeviceKey()
-  return routes.map(route => scopePreparationToDevice(route, deviceKey))
+  return listRoutesUnsafe()
 }
 
 export async function getRoute(id: string): Promise<RouteTemplate | undefined> {
@@ -438,7 +434,7 @@ export async function deleteSession(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export interface BackupPayload {
-  version: 1 | 2
+  version: 1 | 2 | 3
   exportedAt: number
   routes: RouteTemplate[]
   sessions: ClimbSession[]
@@ -469,7 +465,7 @@ export async function exportRawData(): Promise<BackupPayload> {
   // 没有这个字段时，换设备恢复会丢掉被容量策略裁剪掉的历史贡献（统计少算，明细也在源设备上）。
   const archiveAggregate = await readHistoryAggregateDoc()
   return {
-    version: 2,
+    version: 3,
     exportedAt: Date.now(),
     routes: await listRoutes(),
     sessions,

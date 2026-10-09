@@ -1,5 +1,7 @@
 // 训练总结页：展示本次核心数据，并进入静态海报分享。
 
+import { WorkoutRoundEditor } from '../components/workout-round-editor'
+import { workoutCalories } from '../core/calories'
 import React, { useEffect, useRef, useState } from 'react'
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Feather } from '@expo/vector-icons'
@@ -112,7 +114,7 @@ export default function WorkoutResultScreen({
       setIsPersonalBest(
         progress.personalBests[stored.templateId]?.workoutId === stored.id,
       )
-      if (storedRoute) {
+      if (storedRoute && stored.recognitionVersion !== 'baro-v1') {
         const learning = summarizeRouteLearning(storedRoute, workouts)
         setLearningLabel(learning.stageLabel)
         setLearningMessage(learning.message)
@@ -158,7 +160,7 @@ export default function WorkoutResultScreen({
         .sort((a, b) => a.durationMs - b.durationMs)[0]
     : undefined
   const hasCompletedRound = summary.completeRounds > 0
-  const calories = calculateStairCalories(summary.activeDurationMs, workout.bodyWeightKg ?? DEFAULT_BODY_WEIGHT_KG)
+  const calories = workoutCalories(workout)
   const hasManualOrInterrupted = workout.rounds.some(round => round.completionReason === 'interrupted' || round.completionSource === 'manual' || (round.corrections?.length ?? 0) > 0)
 
   return (
@@ -172,6 +174,7 @@ export default function WorkoutResultScreen({
           { paddingBottom: 32 },
         ]}
       >
+        {workout.recognitionVersion === 'baro-v1' && <WorkoutRoundEditor workout={workout} onSaved={w => { setWorkout(w); setSummary(calculateWorkoutSummary(w.rounds, w.startedAt, w.endedAt)) }} />}
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
             <View style={styles.heroCopy}>
@@ -231,7 +234,7 @@ export default function WorkoutResultScreen({
         </Card>
         {hasManualOrInterrupted ? <View style={styles.correctionNotice}><Feather name="info" size={18} color={theme.amberInk} /><Text style={styles.correctionText}>含人工确认、修正或中断，可在每轮成绩中查看。</Text></View> : null}
         <Modal visible={replayBuilding} animationType="fade" onRequestClose={() => setReplayBuilding(false)}>
-          {replayBuilding && <WorkoutCompleteCeremony workoutId={workout.id} totalFloors={summary.totalFloors} completeRounds={summary.completeRounds} totalAscentM={summary.totalAscentM} planLines={[]} totalSteps={summary.totalSteps} calories={calculateStairCalories(summary.activeDurationMs, workout.bodyWeightKg ?? DEFAULT_BODY_WEIGHT_KG)} activeMs={summary.activeDurationMs} totalMs={summary.totalElapsedMs} onDone={() => setReplayBuilding(false)} />}
+          {replayBuilding && <WorkoutCompleteCeremony workoutId={workout.id} totalFloors={summary.totalFloors} completeRounds={summary.completeRounds} totalAscentM={summary.totalAscentM} planLines={[]} totalSteps={summary.totalSteps} calories={workoutCalories(workout)} activeMs={summary.activeDurationMs} totalMs={summary.totalElapsedMs} onDone={() => setReplayBuilding(false)} />}
         </Modal>
         <Disclosure title="用时表现">
         <View style={styles.detailGroup}>
@@ -331,9 +334,8 @@ export default function WorkoutResultScreen({
               >
                 <View style={styles.roundIdentity}>
                   <Text style={styles.roundTitle}>第 {round.roundNumber} 轮</Text>
-                  {round.floorConfirmation === 'pending' ? <Button title="确认这一轮的实际楼层" variant="secondary" onPress={() => navigation.navigate('Result', { id: workout.id, roundId: round.id })} /> : null}
                   <Text style={styles.roundSub}>
-                    {round.floorConfirmation === 'pending' ? `楼层待确认（估计 ${round.floorsCompleted} 层）` : `${getRoundAchievementCount(round)} 层`} · {round.steps} 步
+                    {getRoundAchievementCount(round)} 层 · {round.steps} 步
                   </Text>
                   <Text style={styles.roundSub}>{round.startFloor} 楼 → {round.finalFloor} 楼{round.completionSource === 'manual' ? ' · 人工确认' : ''}{(round.corrections?.length ?? 0) > 0 ? ' · 已修正' : ''}{round.completionReason === 'interrupted' ? ' · 中断' : ''}</Text>
                 </View>

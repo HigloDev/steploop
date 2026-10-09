@@ -9,8 +9,8 @@ import {
 } from './types'
 
 export const DIAGNOSTIC_BUNDLE_VERSION = 2 as const
-export const DIAGNOSTIC_ALGORITHM_VERSION = 'motion-v3'
-export const DIAGNOSTIC_PARAMETER_VERSION = 'motion-trend-1'
+export const DIAGNOSTIC_ALGORITHM_VERSION = 'trusted-v2.0.0'
+export const DIAGNOSTIC_PARAMETER_VERSION = 'evidence-1'
 
 export type DiagnosticSampleQuality = 'valid' | 'degraded' | 'invalid'
 

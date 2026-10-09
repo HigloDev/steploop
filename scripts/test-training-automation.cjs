@@ -12,7 +12,7 @@ execFileSync(process.execPath, [require.resolve('typescript/bin/tsc'), '--ignore
   'src/core/route-model.ts', 'src/core/route-learning.ts', 'src/core/route-state.ts', 'src/core/sensor-visualization.ts',
   'src/core/recognizer.ts', 'src/core/free-recognizer.ts', 'src/services/round-coordinator.ts',
   'src/services/live-feature-pump.ts', 'src/services/typed-emitter.ts',
-  'src/services/workout-evidence-store.ts', 'src/services/recorded-motion-recognizer.ts'], { cwd: repo, stdio: 'inherit' })
+  'src/services/workout-evidence-store.ts'], { cwd: repo, stdio: 'inherit' })
 const { TrainingAutomation, resolveTrackingMode, trainingPhasePrompt } = require(path.join(compiled, 'core/training-automation.js'))
 const { applyRoundCorrection } = require(path.join(compiled, 'core/corrections.js'))
 const { RetainedSampleWindow, WorkoutEvidenceJournal } = require(path.join(compiled, 'services/workout-evidence-store.js'))
@@ -107,15 +107,14 @@ test('pressure noise and temporary phone handoff do not finish a round', () => {
   assert.equal(actions(results).length, 0)
 })
 
-test('stable pressure at the old start height still requires human return confirmation', () => {
+test('return arrival needs past ascent and stable start height, separate from next round', () => {
   const engine = new TrainingAutomation('full_auto')
   engine.enterPhase('returning')
   observeSeries(engine, 1000, 4000, () => 40)
   const descending = observeSeries(engine, 5400, 10000, ms => Math.max(0, 40 - ms / 250))
   assert.equal(actions(descending).length, 0)
   const resting = observeSeries(engine, 15800, 12000, () => 0.2)
-  assert.deepEqual(actions(resting), [])
-  assert.match(resting.at(-1).status, /确认返回/)
+  assert.deepEqual(actions(resting).map(action => action.type), ['returned_to_start'])
   engine.enterPhase('recovering')
   assert.equal(actions(observeSeries(engine, 30000, 30000, () => 0.2)).length, 0)
 })
@@ -590,7 +589,7 @@ function singleRoundHarness(hardware) {
     if (name === '../services/sensor-adapter') return { expoSensorAdapter: hardware.adapter }
     if (name === '../services/preferences') return { triggerHapticPattern() {}, triggerSound() {} }
     if (name === '../services/workout-evidence') return { WorkoutEvidenceJournal, RetainedSampleWindow, createWorkoutEvidenceJournal: newJournal }
-    if (name.startsWith('../core/') || name === '../services/round-coordinator' || name === '../services/live-feature-pump' || name === '../services/recorded-motion-recognizer') {
+    if (name.startsWith('../core/') || name === '../services/round-coordinator' || name === '../services/live-feature-pump') {
       return require(path.join(compiled, name.slice(3) + '.js'))
     }
     throw new Error(`Unmocked round-hook boundary: ${name}`)
@@ -1388,25 +1387,4 @@ test('first manual floor confirmation produces a pending template with no valid 
     assert.equal(learning.stage, 'unlearned')
     assert.equal(harness.modelUpdates, 0)
   } finally { harness.cleanup() }
-})
-
-test('actual floor marks preserve the estimate and raw record while keeping this round running', async () => {
-  const hardware = sensorHardware(), harness = singleRoundHarness(hardware)
-  try {
-    await harness.result.start(); await harness.settle()
-    harness.result.markActualFloor(3); harness.render()
-    assert.equal(harness.result.snapshot.currentFloor, 3)
-    assert.equal(harness.result.isRunning, true)
-    const session = harness.result.finish(); await harness.settle()
-    assert.equal(session.manualFloorMarks.length, 1)
-    assert.equal(session.manualFloorMarks[0].floor, 3)
-    assert.equal(session.manualFloorMarks[0].estimatedFloor, 1)
-    assert.equal(session.floorConfirmation, 'pending')
-    assert.ok(harness.chunks.flatMap(chunk => chunk.records).some(record => record.kind === 'event' && record.name === 'actual_floor_mark' && record.detail.estimatedFloor === 1))
-    const { replayExactInputs } = require('./replay-motion-evidence.cjs')
-    const replay = replayExactInputs(harness.chunks.flatMap(chunk => chunk.records))
-    assert.equal(replay.state.currentFloor, 3)
-    assert.equal(replay.matchesSavedSnapshot, true)
-    assert.equal(replay.manualAnchors, 1)
-  } finally { harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })

@@ -16,7 +16,6 @@ import { sensorStartErrorMessage } from '../services/sensor'
 import { useClimbRoundSession } from '../hooks/useClimbRoundSession'
 import { formatDuration } from '../core/math'
 import { RouteTemplate } from '../core/types'
-import { hasCheckedMotionReference, recordMotionCheck } from '../core/route-motion'
 
 // 占位模板，routeTpl 加载前使用（hook 必须无条件调用）
 const DUMMY_TEMPLATE: RouteTemplate = {
@@ -94,7 +93,7 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
     }
   }
 
-  const handleFinish = async (actualEnd?: boolean) => {
+  const handleFinish = async () => {
     const r = routeTpl
     if (!r) return
     // finish() 幂等：自动完成后再调用返回同一 session
@@ -103,21 +102,13 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
       Alert.alert('验证失败', '未能生成验证记录，请重试。')
       return
     }
-    if (actualEnd === undefined) {
-      Alert.alert('核对实际楼层', `应用估计到了 ${session.finalFloor} 楼。请看楼层标志：你实际到了路线终点 ${r.endFloor} 楼吗？`, [
-        { text: '还没有到，保存待确认', onPress: () => { void handleFinish(false) } },
-        { text: '实际已经到达', onPress: () => { void handleFinish(true) } },
-      ], { cancelable: false })
-      return
-    }
     const ok =
       session.finalFloor === r.endFloor &&
       session.floorsCompleted === r.segments.length &&
-      session.interruptions.length === 0 && actualEnd
+      session.interruptions.length === 0
     if (ok) {
-      const checked = recordMotionCheck(r, session, r.endFloor)
-      Object.assign(r, checked)
-      r.status = hasCheckedMotionReference(r) ? 'verified' : 'needs_validation'
+      r.status = 'verified'
+      r.verifiedAt = Date.now()
       r.updatedAt = Date.now()
     }
     try {
@@ -135,7 +126,7 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
     setSuccess(ok)
     setResultText(
       ok
-        ? '本次终点已由你核对。路线仍需多次实测；训练时请记下中途的实际楼层。'
+        ? '模板验证通过，可以用于正式爬楼。'
         : `匹配停在${nextFloor}层附近，请检查该楼层边界或重新标定这一条路线。`,
     )
     setPhase('result')
@@ -264,7 +255,7 @@ export default function ValidateScreen({ navigation, route }: RootStackScreen<'V
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         {phase === 'ready' ? <Button title="开始验证" onPress={handleStart} /> : (
-          <Button title={isCompleted ? '查看验证结果' : '完成验证'} onPress={() => { void handleFinish() }} />
+          <Button title={isCompleted ? '查看验证结果' : '完成验证'} onPress={handleFinish} />
         )}
       </View>
     </View>

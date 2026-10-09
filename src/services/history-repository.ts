@@ -261,8 +261,8 @@ function sessionMetrics(value: HistoryItem): HistoryRecordMetrics {
       : Math.max(0, finiteNumber(session.endedAt, 0) - finiteNumber(session.startedAt, 0))
   return {
     id: value.id,
-    floors: session.floorConfirmation === 'pending' ? 0 : nonNegative(session.floorsCompleted),
-    ascentM: session.floorConfirmation === 'pending' ? 0 : nonNegative(session.ascentM),
+    floors: nonNegative(session.floorsCompleted),
+    ascentM: nonNegative(session.ascentM),
     activeDurationMs: duration,
     atMs: sessionAtMs(session),
   }

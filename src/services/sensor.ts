@@ -134,6 +134,13 @@ export class SensorRecorder {
   private nativeSub?: SensorSubscription
   private nativePoll?: ReturnType<typeof setInterval>
   private lastRetainedAt = 0
+  private sensorClockOffset?: number
+
+  private eventTime(seconds?: number): number | undefined {
+    if (seconds === undefined || !Number.isFinite(seconds)) return undefined
+    this.sensorClockOffset ??= Date.now() - seconds * 1000
+    return this.sensorClockOffset + seconds * 1000
+  }
 
   constructor(options: SensorRecorderOptions = {}) {
     this.options = options
@@ -184,6 +191,7 @@ export class SensorRecorder {
     this.latestPressure = undefined
     this.barometerAvailable = false
     this.barometerLastAt = 0
+    this.sensorClockOffset = undefined
     this.running = true
     this.currentGeneration = generation
 
@@ -205,7 +213,7 @@ export class SensorRecorder {
 
         this.accelSub = this.adapter.subscribeAccelerometer((value) => {
           if (!this.isActiveGeneration(generation)) return
-          const now = Date.now()
+          const now = this.eventTime(value.timestamp) ?? Date.now()
           if (this.gapStartedAt) {
             this.emitGap({
               startMs: this.gapStartedAt - this.startedAt,
@@ -224,8 +232,6 @@ export class SensorRecorder {
             alpha: this.latestMotion.alpha,
             beta: this.latestMotion.beta,
             gamma: this.latestMotion.gamma,
-            // 气压计若可用，把最新气压值附在样本上（可能 undefined）
-            pressure: this.latestPressure,
           }
           this.retainSample(sample)
           this.lastSampleAt = now
@@ -271,10 +277,11 @@ export class SensorRecorder {
         this.baroSub = this.adapter.subscribeBarometer((value) => {
           if (!this.isActiveGeneration(generation)) return
           const pressure = value.pressure
-          if (Number.isFinite(pressure) && pressure > 0) {
+          const at = this.eventTime(value.timestamp)
+          if (at !== undefined && at > this.barometerLastAt && Number.isFinite(pressure) && pressure > 0) {
             this.latestPressure = pressure
             this.barometerAvailable = true
-            this.barometerLastAt = Date.now()
+            this.barometerLastAt = at
             this.emitBarometer({
               available: true,
               running: true,
@@ -340,6 +347,16 @@ export class SensorRecorder {
       if (!this.isActiveGeneration(generation) || sample.sessionId !== sessionId || sample.seq <= lastSequence) return
       lastSequence = sample.seq
       if (sample.t < this.startedAt) return
+      if (sample.sensorKind === 'pressure') {
+        const at = sample.pressureAt
+        if (at !== undefined && at > this.barometerLastAt && sample.pressure !== undefined && sample.pressure > 0) {
+          this.barometerLastAt = at
+          this.barometerAvailable = true
+          this.latestPressure = sample.pressure
+          this.emitBarometer({ available: true, running: true, pressure: sample.pressure, lastSampleAt: at })
+        }
+        return
+      }
       // Native acquisition time, rather than delayed JS delivery, decides whether
       // an interruption is real. Fresh acquisition closes the watchdog's pending
       // marker; only a measured timestamp gap below is retained. Otherwise stop()
@@ -351,12 +368,12 @@ export class SensorRecorder {
       this.lastSampleAt = sample.t
       this.gyroSampleAt = sample.t
       this.latestGyro = { x: sample.gx, y: sample.gy, z: sample.gz }
-      if (sample.pressure !== undefined && sample.pressure > 0 && Number.isFinite(sample.pressure)) {
+      if (sample.pressureAt !== undefined && sample.pressureAt > this.barometerLastAt && sample.pressure !== undefined && sample.pressure > 0 && Number.isFinite(sample.pressure)) {
         this.latestPressure = sample.pressure
         this.barometerAvailable = true
-        if (sample.t - this.barometerLastAt >= BAROMETER_INTERVAL_MS) {
-          this.barometerLastAt = sample.t
-          this.emitBarometer({ available: true, running: true, pressure: sample.pressure, lastSampleAt: sample.t })
+        if (sample.pressureAt > this.barometerLastAt) {
+          this.barometerLastAt = sample.pressureAt
+          this.emitBarometer({ available: true, running: true, pressure: sample.pressure, lastSampleAt: sample.pressureAt })
         }
       }
       this.retainSample(sample)

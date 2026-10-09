@@ -9,6 +9,7 @@ import { BrandMark } from '../components/brand-mark'
 import { useTheme, Theme } from '../theme'
 import { RootStackNavigation, RootStackScreen } from '../navigation/types'
 import { markOnboardingSeen } from '../services/onboarding'
+import { runTrainingSensorSelfTest } from '../services/sensor-self-test'
 
 interface Step {
   key: string
@@ -19,8 +20,9 @@ interface Step {
 }
 
 const STEPS: Step[] = [
+  { key: 'sensors', icon: 'hardware-chip-outline', title: '先检查必需传感器', body: '没有气压计，无法启动锻炼', hint: '训练需要气压计、加速度计和陀螺仪。自检会确认硬件和连续新数据；不支持的设备仍可浏览历史和导出备份。每次开练前都会重新检查。' },
   { key: 'carry', icon: 'phone-portrait-outline', title: '把手机放稳', body: '放进口袋或贴身腰包', hint: '每次保持相同携带方式，手持晃动会影响识别。' },
-  { key: 'first-climb', icon: 'walk-outline', title: '先熟悉，再放心爬', body: '逐层走一走，看楼号点一下', hint: '添加路线后跟着步骤走；也可以导入别人分享的路线，用自己的手机检查后再开始。' },
+  { key: 'first-climb', icon: 'walk-outline', title: '第一轮，每层点一次', body: '电梯下行自动结束本轮', hint: '以后自动开始、逐层计数和播报。只在整次训练结束后统一核对各轮楼层，也可在爬升中纠正当前楼层。' },
   { key: 'foreground', icon: 'shield-checkmark-outline', title: '允许后台训练', body: '锁屏记录需要系统允许', hint: '开始前检查后台与省电权限。系统仍可能中断采样；缺段会记录并提醒，结束时可确认实际楼层。' },
 ]
 
@@ -31,6 +33,8 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
   const navigation = useNavigation<RootStackNavigation>()
   const fromSettings = route.params?.from === 'settings'
   const [stepIndex, setStepIndex] = useState(0)
+  const [checking, setChecking] = useState(false)
+  const [checkResult, setCheckResult] = useState('')
   const step = STEPS[stepIndex]
   const isLast = stepIndex === STEPS.length - 1
 
@@ -91,6 +95,13 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
           <Text style={styles.title}>{step.title}</Text>
           <Text style={styles.bodyText}>{step.body}</Text>
           <Text style={styles.hint}>{step.hint}</Text>
+          {step.key === 'sensors' && <>
+            <Button title="运行传感器自检" loading={checking} disabled={checking} onPress={() => {
+              setChecking(true)
+              void runTrainingSensorSelfTest().then(result => setCheckResult(result.canStart ? '自检通过，可以开始爬楼训练。' : result.problems.join('\n'))).catch(e => setCheckResult(String(e))).finally(() => setChecking(false))
+            }} />
+            {!!checkResult && <Text accessibilityLiveRegion="polite" style={styles.hint}>{checkResult}</Text>}
+          </>}
         </View>
 
         <View style={styles.dots}>

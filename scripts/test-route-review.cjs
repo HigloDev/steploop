@@ -51,10 +51,6 @@ function createEnvironment() {
     modules.set(filename, module)
     const localRequire = name => {
       if (name === '@react-native-async-storage/async-storage') return asyncStorage
-      if (name === 'react-native') return {
-        Platform: { OS: 'android' },
-        NativeModules: { AndroidTrainingSensors: { preparationDeviceKey: async () => 'review-test-device' } },
-      }
       if (name.startsWith('.')) {
         const resolved = path.resolve(path.dirname(filename), name)
         return load(path.relative(compiled, path.extname(resolved) ? resolved : `${resolved}.js`))
@@ -72,7 +68,7 @@ function createEnvironment() {
 function referenceRoute(overrides = {}) {
   return {
     id: 'route-existing', name: 'Stored route', startFloor: 1, endFloor: 3,
-    carryMode: 'pocket', floorHeightM: 3, totalAscentM: 6,
+    carryMode: 'hand', floorHeightM: 3, totalAscentM: 6,
     device: { platform: 'android', model: 'Known test device', system: '35' },
     location: { name: 'Stored local location', address: 'Synthetic fixture', latitude: 30, longitude: 118, accuracy: 10, source: 'map', confirmedAt: 500 },
     segments: [0, 1].map(index => ({ id: `old-flight-${index}`, type: 'flight',
@@ -105,7 +101,6 @@ function trainingWorkout(route) {
 
 function learnedRoute(environment, provenance = true) {
   const base = referenceRoute({ ...(provenance ? { learningProvenance: 'training_rounds' } : {}),
-    motionReference: { version: 1, carryMode: 'pocket', allBoundariesMarked: true, checkedRuns: 5, checkedDays: ['2026-10-07','2026-10-08'], floorAnchors: [{floor:2,atMs:10000},{floor:3,atMs:20000}] },
     featureSpace: 'heading', deviceCapabilities: { barometerAvailable: true, effectiveSamplingHz: 50 },
   })
   const workout = trainingWorkout(base)
@@ -181,7 +176,6 @@ async function mountReview({ environment = createEnvironment(), previous, workou
     '../components/BuildingSketch': { BuildingSketch: 'BuildingSketch', buildPlaybackFloors: () => [] },
     '../components/ui': { Button: 'Button', Card: 'Card', Field: 'Field', Metric: 'Metric', Pill: 'Pill' },
     '../theme': { useTheme: () => ({}) }, '../services/draft': draftService, '../services/storage': storage,
-    '../core/route-motion': environment.load('core/route-motion.js'),
     '../core/analysis': environment.load('core/analysis.js'), '../core/math': environment.load('core/math.js'),
   }
   const source = ts.transpileModule(fs.readFileSync(path.join(repo, 'src/pages/Review.tsx'), 'utf8'), {
@@ -298,7 +292,7 @@ test('real model updater output and its five recorded rounds survive manual reca
   assert.equal(saved.startFloor, 2); assert.equal(saved.endFloor, 4)
   const storedWorkouts = JSON.parse(environment.values.get('palou.workouts.v1'))
   const summary = environment.load('core/route-learning.js').summarizeRouteLearning(saved, storedWorkouts)
-  assert.equal(summary.validCount, 0, 'a changed reference needs new independent checks')
+  assert.equal(summary.validCount, 5)
   assert.equal(summary.samples.some(sample => sample.workoutId.startsWith('legacy-')), false)
   assert.equal(environment.load('core/route-model.js').migrateRouteToV3(saved).learning.sampleCount, 5)
   page.assertProtected()
@@ -311,7 +305,7 @@ test('a legacy route with an existing learned model keeps that model and never g
   const saved = await page.savedRoute()
   assertRetainedModel(saved, previous)
   assert.equal(Object.hasOwn(saved, 'learningProvenance'), false)
-  assert.equal(environment.load('core/route-learning.js').summarizeRouteLearning(saved, [workout]).validCount, 0)
+  assert.equal(environment.load('core/route-learning.js').summarizeRouteLearning(saved, [workout]).validCount, 5)
   page.assertProtected()
 })
 
@@ -325,7 +319,7 @@ test('an unmigrated legacy reference retains its compatibility baseline without 
   assert.equal(saved.learning.sampleCount, 1)
   assert.equal(saved.verifiedAt, previous.verifiedAt)
   assert.deepEqual(saved.device, previous.device)
-  assert.equal(page.environment.load('core/route-learning.js').summarizeRouteLearning(saved, []).validCount, 0)
+  assert.equal(page.environment.load('core/route-learning.js').summarizeRouteLearning(saved, []).validCount, 1)
   page.assertProtected()
 })
 
@@ -358,29 +352,5 @@ test('disk failure preserves the old route and draft; retry saves once with the 
   assert.equal((await page.storage.listRoutes()).filter(route => route.id === previous.id).length, 1)
   assert.equal(page.navigationCalls.filter(([screen]) => screen === 'Validate').length, 1)
   assert.equal(page.draftService.getActiveDraft(), undefined)
-  page.assertProtected()
-})
-
-test('straight stairs retain two human-marked floors even when the old turn estimate says one', async () => {
-  const draft = calibrationDraft()
-  draft.inferred.estimatedFloorCount = 1
-  draft.inferred.turnCount = 0
-  draft.frames = draft.frames.map(frame => ({ ...frame, turnRad: 0, headingTurnRad: 0 }))
-  draft.markers = []
-  draft.manualMarks = [
-    { id: 'actual-2', type: 'floor', atMs: 18000, floor: 2 },
-    { id: 'actual-3', type: 'floor', atMs: 36000, floor: 3 },
-  ]
-  const page = await mountReview({ draft })
-  await page.save()
-  const saved = await page.savedRoute()
-  assert.equal(saved.startFloor, 1)
-  assert.equal(saved.endFloor, 3)
-  assert.equal(saved.segments.length, 2)
-  assert.deepEqual(saved.segments.map(segment => segment.stepCount), [18, 22])
-  assert.deepEqual(saved.segments.map(segment => segment.turnCount), [0, 0])
-  assert.equal(saved.motionReference.allBoundariesMarked, true)
-  assert.equal(saved.motionReference.checkedRuns, 0)
-  assert.ok(saved.segments.every(segment => segment.ascentM > 0))
   page.assertProtected()
 })

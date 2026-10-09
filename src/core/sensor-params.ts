@@ -25,3 +25,24 @@ export const ELEVATOR_MIN_ACTIVE_FRAMES = 4
 
 export type FeatureSpace = 'heading' | 'device'
 export const DEFAULT_FEATURE_SPACE: FeatureSpace = 'heading'
+
+// baro-v1: durations are milliseconds, distances metres, pressure hPa.
+export const BARO_V1 = {
+  staleMs: 2000, medianMs: 1000, averageMs: 3000, velocityMs: 4000,
+  altitudeScale: 44330, altitudeExponent: 0.190263,
+  anchorRadiusMs: 1000, minFloorM: 1.8, maxFloorM: 6,
+  missedFloorRatioMin: 1.65, missedFloorRatioMax: 2.35,
+  plateauMs: 3000, plateauRangeM: 0.18, startRiseM: 0.12, startSteps: 3,
+  advanceHeightMargin: 0.3, advanceStepsRatio: 0.4, fallbackStepsRatio: 0.85,
+  extraFloorRatio: 0.7, elevatorSpeedMps: 0.8, elevatorMs: 2000, elevatorMaxSteps: 2,
+  descentMs: 2000, descentDropM: 0.18, descentSpeedMps: 0.03,
+  recentStepsMs: 4000, learningRounds: 5, historyMs: 16000,
+  defaultFloorM: 3, defaultSteps: 18, defaultTurns: 2,
+  maxWeatherDriftMps: 0.012, gravity: 9.81, efficiency: 0.2, joulesPerKcal: 4184,
+  horizontalMET: 3, calorieReferenceSpeedMps: 0.35,
+  activeEnergy: 0.06,
+  peakToleranceM: 0.02,
+  driftConsistencyMps: 0.001,
+  turningFrameRad: 0.1, completeTurnRad: 1.05, turnGapMs: 900,
+  selfTestMs: 3200, selfTestIntervalMs: 200,
+} as const

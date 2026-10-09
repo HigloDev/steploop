@@ -22,7 +22,6 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { isRoutePrepared } from '../core/route-preparation'
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { Button, Card, EmptyState, Pill } from '../components/ui'
@@ -73,9 +72,9 @@ function routeView(
     id: route.id,
     name: route.name,
     status: route.status,
-    statusText: isRoutePrepared(route) ? '已准备好' : route.preparation ? '熟悉中' : '待熟悉',
+    statusText: learning.stageLabel,
     statusTone:
-      isRoutePrepared(route)
+      learning.stage === 'verified' || learning.stage === 'usable'
         ? 'good'
         : 'warn',
     floorCount: getFloorAchievementCount(route.startFloor, route.endFloor),
@@ -90,15 +89,15 @@ function routeView(
           : `${(distanceM / 1000).toFixed(1)}千米`,
     locationText: route.location?.name || '待补充地点',
     missingLocation: !route.location,
-    learningStage: isRoutePrepared(route) ? 'verified' : 'unlearned',
+    learningStage: learning.stage,
     validLearningCount: learning.validCount,
   }
 }
 
 const FILTERS: Array<{ key: Filter; label: string }> = [
   { key: 'all', label: '全部' },
-  { key: 'verified', label: '已准备好' },
-  { key: 'pending', label: '待熟悉' },
+  { key: 'verified', label: '已验证' },
+  { key: 'pending', label: '待验证' },
 ]
 
 const SWIPE_ACTION_WIDTH = 88
@@ -252,11 +251,14 @@ function SwipeableRouteRow({
                 </Text>
                 <Pill tone={route.statusTone}>{route.statusText}</Pill>
               </View>
-              <Text style={styles.routeSub}>{route.floorCount > 0 ? `${route.startFloor} → ${route.endFloor} 楼` : '先填写楼层，再熟悉路线'}</Text>
+              <Text style={styles.routeSub}>{route.floorCount > 0 ? `${route.startFloor} → ${route.endFloor} 层 · ${route.totalAscentM} 米` : '首次训练后建立路线'}</Text>
               {!batchMode ? (
                 <View style={styles.routeActions}>
+                  <Pressable style={styles.routeAction} accessibilityRole="button" accessibilityLabel={`重命名路线：${route.name}`} onPress={() => onRename(route)}>
+                    <Text style={styles.routeActionText}>改名</Text>
+                  </Pressable>
                   <Pressable style={styles.routeAction} accessibilityRole="button" accessibilityLabel={`管理路线：${route.name}`} onPress={() => onManage(route)}>
-                    <Text style={styles.routeActionText}>更多</Text>
+                    <Text style={styles.routeActionText}>管理</Text>
                   </Pressable>
 
                 </View>
@@ -455,7 +457,9 @@ export default function RouteEditScreen({
   )
 
   const handleManage = (rv: RouteView) => {
-    const actions = ['重命名', '删除路线']
+    const actions = rv.missingLocation
+      ? ['重命名', '补充地点', '删除路线']
+      : ['重命名', '删除路线']
     Alert.alert(rv.name, '选择操作', [
       { text: '取消', style: 'cancel' },
       ...actions.map((action) => ({
@@ -476,7 +480,7 @@ export default function RouteEditScreen({
   return (
     <View style={styles.page}>
       <Header
-        title="我的路线"
+        title="路线管理"
         back
       />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -487,7 +491,7 @@ export default function RouteEditScreen({
       >
         <View style={styles.hero}>
           <Text style={styles.title}>常走的楼梯</Text>
-          <Text style={styles.subtitle}>{loading ? '正在读取路线…' : `${allRoutes.length} 条路线 · 点开继续熟悉或分享`}</Text>
+          <Text style={styles.subtitle}>{loading ? '正在读取路线…' : `${allRoutes.length} 条路线 · 打开档案查看学习进度`}</Text>
         </View>
         {allRoutes.length > 3 ? <TextInput accessibilityLabel="搜索路线" value={query} onChangeText={setQuery} placeholder="搜索名称或地点" placeholderTextColor={theme.mutedStrong} returnKeyType="search" style={styles.searchInput} /> : null}
         <View style={styles.toolbarRow}>
@@ -592,7 +596,7 @@ export default function RouteEditScreen({
             subtitle={
               allRoutes.length
                 ? '试试切换筛选条件'
-                : '添加或导入一条路线，带手机熟悉常爬的楼梯。'
+                : '添加一条路线，或回到训练页直接开始。'
             }
           />
         ) : (
@@ -614,7 +618,7 @@ export default function RouteEditScreen({
         )}
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-        <Button title="添加路线" onPress={() => navigation.navigate('AddRoute')} />
+        <Button title="开始爬楼" onPress={() => navigation.navigate('QuickStart')} />
       </View>
       </KeyboardAvoidingView>
       <Modal visible={!!renaming} transparent animationType="fade" onRequestClose={() => { if (!renameBusy) setRenaming(null) }}>

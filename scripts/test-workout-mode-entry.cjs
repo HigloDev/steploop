@@ -16,8 +16,7 @@ const routeTemplate = {
   startFloor: 1, endFloor: 3, floorHeightM: 3, totalAscentM: 6, status: 'needs_validation',
   learningProvenance: 'training_rounds', createdAt: 1, updatedAt: 2,
   device: { platform: 'android', model: 'synthetic', system: '36' }, markers: [],
-  segments: [1, 2].map(f => ({ id: 's'+f, type: 'flight', floorFrom: f, floorTo: f+1, startMs: 0, endMs: 18000, ascentM: 3, stepCount: 20, boundaryConfirmed: true, features: [[0.5, 0.5, 0, 0]] })),
-  preparation: { version: 1, deviceKey: 'synthetic-local', elevator: 'absent', referenceRevision: 1, runs: ['teach_first','teach_again','check_floors','check_end','walk','rest'].map(step => ({step, passed: true})) },
+  segments: [{ id: 's', type: 'flight', floorFrom: 1, floorTo: 3, startMs: 0, endMs: 36000, ascentM: 6, stepCount: 40, features: [[0.5, 0.5, 0, 0]] }],
 }
 const savedSetup = {
   routeId: routeTemplate.id, routeVersion: routeTemplate.version, carryMode: routeTemplate.carryMode,
@@ -133,13 +132,13 @@ async function mountPage(pageName, env, params = {}) {
   }
 }
 
-test('Home keeps mode controls in Setup and carries the saved choice into Adjust', async () => {
-  const env = environment({ globalMode: 'full_auto', deferSaves: true })
+test('Home Adjust carries its current full_auto mode even while global persistence is pending', async () => {
+  const env = environment({ deferSaves: true })
   const home = await mountPage('TrainHome', env)
-  assert.equal(home.selector(), undefined, 'Home has no duplicate mode selector'); home.adjust()
+  home.selectMode('full_auto'); home.adjust()
   const [screen, params] = home.navigationCalls.at(-1)
   assert.equal(screen, 'WorkoutSetup'); assert.equal(params.trackingMode, 'full_auto')
-  assert.equal(env.prefs.trackingMode, 'full_auto')
+  assert.equal(env.prefs.trackingMode, 'automatic', 'the write is still pending, so navigation must carry current state')
   const setup = await mountPage('WorkoutSetup', environment(), params)
   assert.equal(setup.selector().props.value, 'full_auto', 'explicit entry must beat both old global and saved setup')
 })

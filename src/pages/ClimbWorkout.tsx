@@ -26,7 +26,6 @@ import {
   deactivateKeepAwake,
 } from 'expo-keep-awake'
 
-import { isRoutePrepared } from '../core/route-preparation'
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { StaircaseScene } from '../components/StaircaseScene'
@@ -130,7 +129,7 @@ export default function ClimbWorkoutScreen({
   const [savingWorkout, setSavingWorkout] = useState(false)
   const mutationLock = useRef(false)
   const [confirmMode, setConfirmMode] = useState<
-    'finish_workout' | 'finish_round' | 'learning_endpoint' | 'floor_anchor' | null
+    'finish_workout' | 'finish_round' | 'learning_endpoint' | null
   >(null)
 
   // 加载路线
@@ -204,7 +203,7 @@ export default function ClimbWorkoutScreen({
       calories: calculateStairCalories(savedWorkout.activeDurationMs, savedWorkout.bodyWeightKg ?? bodyWeightKg),
       cumulativeFloors: savedWorkout.totalFloorsCompleted, cumulativeSteps: savedWorkout.totalSteps,
       startFloor: savedWorkout.routeSnapshot.startFloor, restElapsedMs: 0,
-      completedRounds: savedWorkout.rounds.filter(round => round.floorConfirmation !== 'pending').map(round => ({
+      completedRounds: savedWorkout.rounds.map(round => ({
         id: round.id, roundNumber: round.roundNumber, floorsCompleted: round.floorsCompleted,
         confirmedTopFloor: round.finalFloor, correctionRevision: round.corrections?.length ?? round.userCorrectionCount ?? 0,
         returnedToStartAt: round.returnedToStartAt,
@@ -267,16 +266,16 @@ export default function ClimbWorkoutScreen({
     voiceService.observe({
       workoutId: w.id, mode: workout.trackingMode, phase: workout.phase,
       currentRoundNumber: workout.currentRoundNumber, elapsedMs: liveMetrics.totalMs,
-      calories: liveMetrics.calories, cumulativeFloors: liveMetrics.confirmedFloors,
+      calories: liveMetrics.calories, cumulativeFloors: liveMetrics.floors,
       cumulativeSteps: liveMetrics.steps, restElapsedMs: workout.timer.phaseElapsedMs,
       startFloor: activeRouteTpl.startFloor, elevatorDescending: workout.elevatorDescending,
-      completedRounds: w.rounds.filter(round => round.floorConfirmation !== 'pending').map(round => ({
+      completedRounds: w.rounds.map(round => ({
         id: round.id, roundNumber: round.roundNumber, floorsCompleted: round.floorsCompleted,
         confirmedTopFloor: round.finalFloor, correctionRevision: round.corrections?.length ?? round.userCorrectionCount ?? 0,
         returnedToStartAt: round.returnedToStartAt,
       })),
     })
-  }, [workout.workout, workout.phase, workout.trackingMode, workout.currentRoundNumber, workout.elevatorDescending, liveMetrics.totalMs, liveMetrics.calories, liveMetrics.confirmedFloors, liveMetrics.steps, workout.timer.phaseElapsedMs, preferencesReady, voiceService, activeRouteTpl.startFloor])
+  }, [workout.workout, workout.phase, workout.trackingMode, workout.currentRoundNumber, workout.elevatorDescending, liveMetrics.totalMs, liveMetrics.calories, liveMetrics.floors, liveMetrics.steps, workout.timer.phaseElapsedMs, preferencesReady, voiceService, activeRouteTpl.startFloor])
   const latestVoiceWorkout = useRef(workout.workout)
   latestVoiceWorkout.current = workout.workout
   const latestVoicePhase = useRef(workout.phase)
@@ -314,7 +313,6 @@ export default function ClimbWorkoutScreen({
         return
       }
 
-      if (!isRoutePrepared(routeTpl)) { navigation.replace('Familiarize', { id }); return }
       workout.startWorkout()
     }
 
@@ -424,11 +422,6 @@ export default function ClimbWorkoutScreen({
       const mode = confirmMode
       if (mutationLock.current) return
       if (action === 'cancel') { setConfirmMode(null); return }
-      if (mode === 'floor_anchor' && action === 'save' && confirmedEndFloor !== undefined) {
-        workout.roundSession.markActualFloor(confirmedEndFloor)
-        setConfirmMode(null)
-        return
-      }
       await runWorkoutMutation(async () => {
       if (
         (mode === 'learning_endpoint' || mode === 'finish_round') &&
@@ -596,7 +589,7 @@ export default function ClimbWorkoutScreen({
           <View style={styles.liveHeroTop}><Pill>第 {workout.currentRoundNumber} 轮</Pill><Text style={styles.goalHint}>{describeGoal(effectiveGoal)}</Text></View>
           <View style={styles.liveFloorRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.liveFloorLabel}>{workout.phase === 'ascending' ? '当前楼层 · 估计' : workout.phase === 'round_complete' ? (workout.currentRound?.floorConfirmation === 'pending' ? '估计到达 · 待确认' : '本轮到达') : workout.phase === 'returning' || workout.phase === 'start_confirmation' ? '返回起点' : '准备下一轮'}</Text>
+              <Text style={styles.liveFloorLabel}>{workout.phase === 'ascending' ? (workout.firstRoundCalibration || workout.roundSession.snapshot.quality !== 'stable' ? '当前楼层 · 估算' : '当前楼层') : workout.phase === 'round_complete' ? '本轮到达' : workout.phase === 'returning' || workout.phase === 'start_confirmation' ? '返回起点' : '准备下一轮'}</Text>
               <Text style={styles.liveFloorValue}>{workout.phase === 'ascending' ? workout.roundSession.snapshot.currentFloor : workout.phase === 'round_complete' ? workout.currentRound?.finalFloor ?? activeRouteTpl.startFloor : activeRouteTpl.startFloor}<Text style={styles.liveFloorUnit}> 楼</Text></Text>
             </View>
             <View style={{ flex: 1, alignItems: 'flex-end', gap: 6 }}>
@@ -611,7 +604,7 @@ export default function ClimbWorkoutScreen({
         </View>
         <LiveTrainingMetrics metrics={liveMetrics} />
         {workout.automationStatus ? <Text accessibilityLiveRegion="polite" style={styles.liveAutomation}>{workout.automationStatus}</Text> : null}
-        <Disclosure title="记录与语音" summary={`${({ manual: '手动', automatic: '自动', full_auto: '自动衔接' })[workout.trackingMode]}记录 · ${({ concise: '精简播报', standard: '标准播报', coach: '教练播报', off: '语音关闭' })[voiceMode]}`}>
+        <Disclosure title="记录与语音" summary={`${({ manual: '手动', automatic: '自动', full_auto: '全自动' })[workout.trackingMode]}记录 · ${({ concise: '精简播报', standard: '标准播报', coach: '教练播报', off: '语音关闭' })[voiceMode]}`}>
         <TrackingModeSelector compact value={workout.trackingMode} disabled={savingWorkout} onChange={workout.setTrackingMode} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
           <Text style={{ color: theme.ink, fontSize: 15, fontWeight: '700' }}>语音播报</Text>
@@ -737,7 +730,6 @@ export default function ClimbWorkoutScreen({
             onFinish={handleFinishWorkout}
           />
         )}
-        {workout.phase === 'ascending' ? <Disclosure title="楼层不对？"><Button title="修正当前楼层" variant="secondary" onPress={() => setConfirmMode('floor_anchor')} /></Disclosure> : null}
 
         {workout.phase === 'returning' && (
           <ReturningView
@@ -860,7 +852,7 @@ export default function ClimbWorkoutScreen({
         visible={confirmMode !== null}
         roundNumber={workout.currentRoundNumber}
         firstRoute={confirmMode === 'learning_endpoint'}
-        purpose={confirmMode === 'floor_anchor' ? 'anchor' : confirmMode === 'finish_workout' ? 'workout' : 'round'}
+        purpose={confirmMode === 'finish_workout' ? 'workout' : 'round'}
         startFloor={activeRouteTpl.startFloor}
         automaticFloor={workout.roundSession.snapshot.currentFloor}
         targetFloor={activeRouteTpl.endFloor}
@@ -1043,8 +1035,8 @@ const AscendingView = memo(function AscendingView({
       : snapshot.statusReason === 'confirming_next_floor'
         ? '正在确认'
         : snapshot.quality === 'stable'
-          ? '正在对照路线'
-          : '暂时拿不准'
+          ? '识别稳定'
+          : '降级识别'
   return (
     <>
       <Disclosure title="本轮楼层与识别详情">
@@ -1056,14 +1048,14 @@ const AscendingView = memo(function AscendingView({
         style={[styles.floorHero, { flex: 1, alignItems: 'flex-start' }]}
       >
         <Text style={styles.floorHeroLabel}>
-          当前楼层 · 估计
+          {learningRoute || snapshot.quality !== 'stable' ? '当前楼层 · 估算' : '当前楼层'}
         </Text>
         <View style={styles.floorHeroValueRow}>
           <Text style={styles.floorHeroValue}>{snapshot.currentFloor}</Text>
           <Text style={styles.floorHeroUnit}>层</Text>
         </View>
         <Text style={styles.floorHeroStatus}>{recognitionLabel}</Text>
-        <Text style={styles.floorHeroStatus}>从 {routeTpl.startFloor} 楼出发 · 估计爬升 {achievedFloors} 层</Text>
+        <Text style={styles.floorHeroStatus}>从 {routeTpl.startFloor} 楼出发 · 已爬升 {achievedFloors} 层</Text>
       </View>
 
       <StaircaseScene floors={buildingFloors} width={stacked ? 190 : Math.min(190, width * 0.46)} climbing />
@@ -1134,7 +1126,7 @@ const AscendingView = memo(function AscendingView({
           {learningRoute
             ? `这里只显示传感器估算；到达真实终点后，由你确认实际楼层。`
             : snapshot.candidateFloor !== undefined
-              ? `正在对照这条楼梯的脚步和转身 ${snapshot.candidateFloor} 层`
+              ? `正在结合步态、转弯和高度确认 ${snapshot.candidateFloor} 层`
               : `${recognitionLabel} · 爬升 ${snapshot.ascentM.toFixed(1)}米`}
         </Text>
       </Card>
@@ -1206,7 +1198,7 @@ const RoundCompleteView = memo(function RoundCompleteView({
   onBeginReturn,
   onFinish,
 }: {
-  round: { roundNumber: number; durationMs: number; steps: number; ascentM: number; complete: boolean; floorsCompleted: number; floorConfirmation?: 'manual' | 'automatic' | 'pending' } | null
+  round: { roundNumber: number; durationMs: number; steps: number; ascentM: number; complete: boolean; floorsCompleted: number } | null
   previousRound: { durationMs: number } | null
   routeTpl: RouteTemplate
   onBeginReturn: () => void
@@ -1220,20 +1212,20 @@ const RoundCompleteView = memo(function RoundCompleteView({
     <>
       <Card raised style={styles.phaseCard}>
         <Text style={styles.phaseTitle}>
-          第 {round.roundNumber} 轮{round.floorConfirmation === 'pending' ? '已保存，楼层待确认' : '完成'}
+          第 {round.roundNumber} 轮完成
         </Text>
         <Text style={styles.phaseSubtitle}>
           {hasKnownRouteEnd(routeTpl)
             ? `${routeTpl.startFloor}层 → ${routeTpl.endFloor}层`
             : '本轮数据不足，路线终点仍待确认'}
         </Text>
-        <Text style={styles.phaseSubtitle}>{round.floorConfirmation === 'pending' ? '估计 ' : ''}{round.floorsCompleted} 层 · {formatDuration(round.durationMs)}</Text>
+        <Text style={styles.phaseSubtitle}>{round.floorsCompleted} 层 · {formatDuration(round.durationMs)}</Text>
         <Disclosure title="本轮成绩详情">
         <View style={styles.roundResultGrid}>
           <Metric label="本轮用时" value={formatDuration(round.durationMs)} style={styles.metric} />
           <Metric label="本轮步数" value={round.steps} style={styles.metric} />
-          <Metric label="估计爬升" value={`${round.ascentM.toFixed(1)}米`} style={styles.metric} />
-          <Metric label={round.floorConfirmation === 'pending' ? '估计楼层 · 待确认' : '本轮楼层'} value={`${round.floorsCompleted} 层`} style={styles.metric} />
+          <Metric label="本轮爬升" value={`${round.ascentM.toFixed(1)}米`} style={styles.metric} />
+          <Metric label="本轮楼层" value={`${round.floorsCompleted} 层`} style={styles.metric} />
         </View>
         </Disclosure>
         {previousRound ? (
@@ -1245,7 +1237,7 @@ const RoundCompleteView = memo(function RoundCompleteView({
                 : '与上一轮用时相同'}
           </Text>
         ) : (
-          <Text style={styles.compareText}>{round.floorConfirmation === 'pending' ? '首轮记录已保存，确认楼层后计入成绩' : '首轮成绩已记录'}</Text>
+          <Text style={styles.compareText}>首轮成绩已记录</Text>
         )}
       </Card>
 
@@ -1270,7 +1262,7 @@ const ReturningView = memo(function ReturningView({
   routeTpl: RouteTemplate
   returnElapsedMs: number
   returnConfirmationMode: 'manual' | 'assisted'
-  // 气压走势（不能判断当前楼层）（米）。正值=高于起点，0=回到起点。undefined=无气压计或未建立基线
+  // 相对起点高度（米）。正值=高于起点，0=回到起点。undefined=无气压计或未建立基线
   relativeHeightM: number | undefined
   // 返回阶段气压计是否可用
   barometerAvailable: boolean
@@ -1282,7 +1274,16 @@ const ReturningView = memo(function ReturningView({
 }) {
   const theme = useTheme()
   const styles = makeStyles(theme)
-  const estimatedFloor = routeTpl.startFloor
+  // 每层高度：优先用路线模板的实际值，无采集数据时按典型 3 米兜底
+  const floorHeightM = routeTpl.floorHeightM > 0 ? routeTpl.floorHeightM : 3
+  const rawEstimatedFloor =
+    routeTpl.startFloor + Math.round((relativeHeightM ?? 0) / floorHeightM)
+  const estimatedFloor = hasKnownRouteEnd(routeTpl)
+    ? Math.max(
+        routeTpl.startFloor,
+        Math.min(routeTpl.endFloor, rawEstimatedFloor),
+      )
+    : Math.max(routeTpl.startFloor, rawEstimatedFloor)
   return (
     <>
 
@@ -1321,7 +1322,8 @@ const ReturningView = memo(function ReturningView({
               相对起点高度
             </Text>
             <Text style={[styles.barometerValue, nearStart && styles.barometerValueNear]}>
-              {visualization.pressureDirection === 'down' ? '总体向下' : visualization.pressureDirection === 'up' ? '总体向上' : visualization.pressureDirection === 'level' ? '暂时平稳' : '还拿不准'}
+              {relativeHeightM > 0 ? '+' : ''}
+              {relativeHeightM.toFixed(1)}米
             </Text>
             {nearStart && (
               <Text style={styles.barometerHint}>
@@ -1330,14 +1332,14 @@ const ReturningView = memo(function ReturningView({
             )}
             {returnConfirmationMode === 'assisted' && !nearStart && (
               <Text style={styles.barometerHint}>
-                到了 {routeTpl.startFloor} 楼，请点“确认返回”
+                接近 {routeTpl.startFloor} 层时将自动提示
               </Text>
             )}
           </View>
         ) : (
           <Text style={styles.returnHint}>
             {barometerAvailable
-              ? '正在观察气压变化…'
+              ? '正在建立气压基线…'
               : `气压计不可用，请到达 ${routeTpl.startFloor} 层后手动确认`}
           </Text>
         )}
@@ -1549,7 +1551,7 @@ function FinishConfirmModal({
   startFloor: number
   automaticFloor: number
   targetFloor: number
-  purpose: 'round' | 'workout' | 'anchor'
+  purpose: 'round' | 'workout'
   saving: boolean
   onAction: (
     action: 'save' | 'abnormal' | 'discard' | 'cancel',
@@ -1575,9 +1577,9 @@ function FinishConfirmModal({
         <View style={[styles.modalCard, { maxHeight: '95%', paddingBottom: Math.max(16, insets.bottom + 8) }]}>
         <ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }}>
           <Text style={styles.modalTitle}>
-            {purpose === 'anchor' ? '记下当前实际楼层' : purpose === 'round' ? `结束第 ${roundNumber} 轮` : '结束本次训练'}
+            {purpose === 'round' ? `结束第 ${roundNumber} 轮` : '结束本次训练'}
           </Text>
-          <Text style={styles.modalBody}>应用估计在第 {automaticFloor} 楼。请看楼层标志，填入实际楼层。{purpose === 'anchor' ? '记好后继续爬，本轮不会结束。' : '以你确认的实际楼层保存。'}</Text>
+          <Text style={styles.modalBody}>自动识别到第 {automaticFloor} 楼。以你确认的实际楼层保存。</Text>
           <Text style={styles.modalFieldLabel}>实际到达楼层</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TextInput
@@ -1595,7 +1597,7 @@ function FinishConfirmModal({
           <Text style={[styles.modalBody, { marginTop: 10 }]}>{validEndFloor ? `从 ${startFloor} 楼到 ${endFloor} 楼 · 本轮爬升 ${getFloorTransitionCount(startFloor, endFloor)} 层` : `请输入不低于起点 ${startFloor} 楼的整数楼层。`}</Text>
         </ScrollView>
           <View style={styles.modalActionsVertical}>
-            <Button title={saving ? '正在保存…' : purpose === 'anchor' ? '记下楼层，继续爬' : purpose === 'round' ? '确认楼层，结束本轮' : '确认楼层，保存并结束训练'} disabled={!validEndFloor || saving} onPress={() => { Keyboard.dismiss(); onAction('save', endFloor) }} />
+            <Button title={saving ? '正在保存…' : purpose === 'round' ? '确认楼层，结束本轮' : '确认楼层，保存并结束训练'} disabled={!validEndFloor || saving} onPress={() => { Keyboard.dismiss(); onAction('save', endFloor) }} />
             <Button
               title="继续爬"
               variant="secondary"

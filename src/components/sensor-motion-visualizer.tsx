@@ -28,9 +28,6 @@ const ACTIVITY_LABEL: Record<SensorMotionActivity, string> = {
   turning_right: '正在右转',
   descending_stairs: '正在下楼',
   elevator_down: '电梯下降',
-  elevator_up: '可能正在乘电梯上行',
-  walking: '在走动，暂未看出上楼',
-  uncertain: '在走动，上下方向还拿不准',
 }
 
 // 波形显示（纯 View 柱状图实现）。
@@ -136,7 +133,7 @@ function WaveformPanel({
   const chartSummary = latest
     ? `传感器波形图：动作幅度 ${latest.motion.toFixed(2)}，转向 ${latest.turn.toFixed(
         2,
-      )}，气压估计变化 ${
+      )}，相对高度 ${
         barometerAvailable ? `${visualization.relativeHeightM.toFixed(1)} 米` : '不可用'
       }。${reducedMotion ? '已按系统「减少动画」降级，波形每 10 秒更新一次。' : '波形约每 0.4 秒更新一次。'}`
     : '传感器波形图：还没有采样数据。'
@@ -242,9 +239,9 @@ export const SensorMotionVisualizer = memo(function SensorMotionVisualizer({
     visualization.waves,
     reducedMotion ? REDUCED_MOTION_REFRESH_MS : 0,
   )
-  const floorText = journey === 'returning'
-    ? '返回途中，楼层请看标志'
-    : `估计在 ${currentFloor} 楼`
+  const floorText = routeLearning
+    ? `${currentFloor}层附近`
+    : `${currentFloor}层`
   const activityText = ACTIVITY_LABEL[visualization.activity]
 
   return (
@@ -252,12 +249,12 @@ export const SensorMotionVisualizer = memo(function SensorMotionVisualizer({
       <View style={styles.headingRow}>
         <View>
           <Text accessibilityRole="header" style={styles.title}>
-            手机记录曲线
+            传感器实时波形
           </Text>
           <Text style={styles.subtitle}>
             {journey === 'returning'
               ? '正在监测返回过程'
-              : '脚步、转身和气压变化'}
+              : '动作、转向与高度同步采样'}
           </Text>
         </View>
         <View

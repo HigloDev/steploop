@@ -15,9 +15,8 @@ export function deriveLiveWorkoutMetrics(input: {
   const floors = input.rounds.reduce((sum, round) => sum + getRoundAchievementCount(round), 0)
     + (climbing ? getFloorTransitionCount(input.startFloor, input.snapshot.currentFloor) : 0)
   const totalMs = Math.max(0, input.totalElapsedMs)
-  const confirmedFloors = input.rounds.reduce((sum, round) => sum + getRoundAchievementCount(round), 0)
   return {
-    activeMs, steps, floors, confirmedFloors, totalMs,
+    activeMs, steps, floors, totalMs,
     currentRoundActiveMs: climbing ? Math.max(0, input.snapshot.activeMs)
       : input.phase === 'round_ready' || input.phase === 'setup' ? 0 : (input.rounds.at(-1)?.durationMs ?? 0),
     nonClimbingMs: Math.max(0, totalMs - activeMs),

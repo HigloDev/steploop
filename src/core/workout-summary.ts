@@ -11,7 +11,6 @@ import {
 } from './types'
 import {
   getFloorAchievementCount,
-  getFloorTransitionCount,
   getRoundAchievementCount,
 } from './floors'
 
@@ -80,13 +79,13 @@ export function calculateWorkoutSummary(
   endedAt?: number,
   extras?: WorkoutSummaryExtras,
 ): WorkoutSummary {
-  const completeRounds = rounds.filter((r) => r.complete && r.floorConfirmation !== 'pending')
+  const completeRounds = rounds.filter((r) => r.complete)
   const totalRounds = rounds.length
   const totalFloors = rounds.reduce(
     (sum, round) => sum + getRoundAchievementCount(round),
     0,
   )
-  const totalAscentM = rounds.reduce((sum, r) => sum + (r.floorConfirmation === 'pending' ? 0 : r.ascentM), 0)
+  const totalAscentM = rounds.reduce((sum, r) => sum + r.ascentM, 0)
   const totalSteps = rounds.reduce((sum, r) => sum + r.steps, 0)
   const activeDurationMs = rounds.reduce((sum, r) => sum + r.durationMs, 0)
   const returnDurationMs = rounds.reduce(
@@ -204,17 +203,11 @@ export function buildWorkoutFromSession(session: ClimbSession): ClimbWorkout {
     startFloor,
     targetFloor: endFloor,
     finalFloor: session.finalFloor,
-    floorsCompleted:
-      (session.recognitionVersion === 'motion-v3' ? getFloorTransitionCount : getFloorAchievementCount)(startFloor, session.finalFloor) ||
-      session.floorsCompleted,
+    floorsCompleted: session.floorsCompleted,
     ascentM: session.ascentM,
     steps: session.steps,
     confidence: session.confidence,
     complete: session.complete,
-    floorConfirmation: session.floorConfirmation,
-    recognitionVersion: session.recognitionVersion,
-    manualFloorMarks: session.manualFloorMarks,
-    floorCounting: session.recognitionVersion === 'motion-v3' ? 'transitions' : undefined,
     completionReason: session.complete ? 'route_complete' : 'manual_finish',
     floorSplits: session.floorSplits.map((split, index, arr) => ({
       floorFrom: index === 0 ? startFloor : arr[index - 1].floor,
@@ -248,9 +241,8 @@ export function buildWorkoutFromSession(session: ClimbSession): ClimbWorkout {
     rounds: [round],
     currentRoundNumber: 1,
     totalRoundsCompleted: session.complete ? 1 : 0,
-    totalFloorsCompleted: getRoundAchievementCount(round),
-    floorCounting: session.recognitionVersion === 'motion-v3' ? 'transitions' : undefined,
-    totalAscentM: session.floorConfirmation === 'pending' ? 0 : session.ascentM,
+    totalFloorsCompleted: session.floorsCompleted,
+    totalAscentM: session.ascentM,
     totalSteps: session.steps,
     activeDurationMs: durationMs,
     returnDurationMs: 0,
@@ -321,7 +313,7 @@ export function roundFromSession(
 ): WorkoutRound {
   const startFloor = session.startFloor
   const achievementFloors =
-    (session.recognitionVersion === 'motion-v3' ? getFloorTransitionCount : getFloorAchievementCount)(startFloor, session.finalFloor) ||
+    getFloorAchievementCount(startFloor, session.finalFloor) ||
     session.floorsCompleted
   return {
     id: uid('round'),
@@ -350,9 +342,6 @@ export function roundFromSession(
     averageFloorMs: session.averageFloorMs,
     bestFloorSplitMs: session.bestFloorSplitMs,
     recognitionEndState: session.recognitionEndState,
-    floorConfirmation: session.floorConfirmation,
-    recognitionVersion: session.recognitionVersion,
-    manualFloorMarks: session.manualFloorMarks,
     userCorrectionCount: 0,
     completionSource:
       completionReason === 'route_complete' ? 'automatic' : 'manual',

@@ -1,7 +1,8 @@
 import { ClimbSession, ClimbWorkout, RouteTemplate, WorkoutRound } from './types'
+import { isBuildingTemplate } from './building-model'
 
 export interface BackupPayloadLike {
-  version: 1 | 2
+  version: 1 | 2 | 3
   exportedAt: number
   routes: RouteTemplate[]
   sessions: ClimbSession[]
@@ -251,11 +252,14 @@ export function validateBackupPayload(
     return { ok: false, error: '备份内容格式无效' }
   }
   const payload = value as Partial<BackupPayloadLike>
-  if (payload.version !== 1 && payload.version !== 2) {
+  if (payload.version !== 1 && payload.version !== 2 && payload.version !== 3) {
     return { ok: false, error: `不支持的备份版本：${String(payload.version)}` }
   }
   if (!Array.isArray(payload.routes) || !Array.isArray(payload.sessions)) {
     return { ok: false, error: '备份内容缺少 routes 或 sessions 字段' }
+  }
+  if (payload.routes.some(route => route?.building !== undefined && !isBuildingTemplate(route.building))) {
+    return { ok: false, error: '备份中的楼宇模板格式无效，请保留原文件并检查数据。' }
   }
   const workouts = Array.isArray(payload.workouts) ? payload.workouts : []
   const payloadWithoutArchive: BackupPayloadLike = {

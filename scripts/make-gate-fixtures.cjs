@@ -21,11 +21,11 @@ const crypto = require('node:crypto')
 // 与 src/core/diagnostics.ts:11-13、src/core/route-model.ts:10-11 一致的冗余声明；
 // 仅用于生成夹具，门禁脚本会自行从编译产物/冗余声明校验。
 const SOURCE_CONSTANTS = Object.freeze({
-  algorithm: 'motion-v3',
-  diagnosticAlgorithm: 'motion-v3',
+  algorithm: 'trusted-v2.1.0',
+  diagnosticAlgorithm: 'trusted-v2.0.0',
   bundle: 2,
   routeModel: 3,
-  parameter: 'motion-trend-1',
+  parameter: 'evidence-1',
 })
 
 const ROUTE_STRUCTURES = ['standard', 'switchback', 'long_landing']
@@ -617,7 +617,7 @@ function fixtureCases() {
       name: 'uniform-wrong-algorithm-version',
       expectExit: 1,
       stderrIncludes: [
-        'datasetManifest.files[*].algorithmVersion: "trusted-v1.0.0" ≠ 源码 "motion-v3"',
+        'datasetManifest.files[*].algorithmVersion: "trusted-v1.0.0" ≠ 源码 "trusted-v2.1.0"',
       ],
       mutateManifest: (manifest) => {
         manifest.files.forEach((entry) => {

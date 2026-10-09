@@ -344,13 +344,36 @@ test('D03 气压样本：可用时推进识别器并透传状态', async () => {
   emitReadySample(adapterState)
   await started
 
-  adapterState.emitBaro({ pressure: 1013.2 })
+  adapterState.emitBaro({ pressure: 1013.2, timestamp: Date.now() / 1000 })
   const recognizer = coordinator.getRecognizer()
   assert.equal(recognizer.barometers.length, 1, '气压应推入识别器一次')
   assert.equal(recognizer.barometers[0], 1013.2)
   assert.equal(barometerReports.length, 1)
   assert.equal(barometerReports[0].available, true)
   await coordinator.stop()
+})
+
+test('baro-v1 recorder: repeated motion never synthesizes pressure; duplicate event time rejected', async () => {
+  const { coordinator, adapterState } = createHarness()
+  const reports = []
+  coordinator.setHandlers({ onBarometer: s => reports.push(s) })
+  const started = coordinator.start()
+  await waitForSubscriptions(adapterState, 1)
+  emitReadySample(adapterState)
+  await started
+  try {
+    const timestamp = Date.now() / 1000
+    adapterState.emitBaro({ pressure: 1013.2, timestamp })
+    for (let i = 0; i < 40; i++) emitReadySample(adapterState)
+    adapterState.emitBaro({ pressure: 1013.1, timestamp })
+    adapterState.emitBaro({ pressure: 1013.1 })
+    assert.equal(reports.length, 1)
+    assert.equal(coordinator.getRecognizer().barometers.length, 1)
+    assert.ok(coordinator.getRecorder().getSamples().every(s => s.pressure === undefined))
+    adapterState.emitBaro({ pressure: 1013.1, timestamp: timestamp + 0.2 })
+    assert.equal(reports.length, 2)
+    assert.ok(Math.abs(reports[1].lastSampleAt - reports[0].lastSampleAt - 200) < 0.01)
+  } finally { await coordinator.stop() }
 })
 
 test('D03 移除失败：一个监听器移除抛错不影响其余监听器清理', async () => {

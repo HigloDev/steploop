@@ -7,7 +7,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { isRoutePrepared } from '../core/route-preparation'
 import { Header } from '../components/Header'
 import { Button, Notice } from '../components/ui'
 import { Disclosure } from '../components/disclosure'
@@ -112,9 +111,12 @@ export default function WorkoutSetupScreen({
         }
         // 地点是可选的（D05）：没有建筑起点位置也能训练，只是不记录地点、
         // 不进入地图统计。页面用 Notice 说明，并保留「补充地点」入口。
-        if (!isRoutePrepared(r)) { navigation.replace('Familiarize', { id: r.id }); return }
         setRouteTpl(r)
-        setRouteVerified(isRoutePrepared(r))
+        listWorkouts()
+          .then((workouts) => {
+            setRouteVerified(summarizeRouteLearning(r, workouts).stage === 'verified')
+          })
+          .catch(() => undefined)
         // 只有已经完成采集的路线，才允许根据真实楼层预填目标。
         const floorsPerRound = getKnownFloorsPerRound(r)
         if (floorsPerRound !== undefined) {
@@ -204,7 +206,6 @@ export default function WorkoutSetupScreen({
         Alert.alert('还有未完成训练', '请先在训练首页继续、保存或放弃上次训练。')
         return
       }
-      if (!isRoutePrepared(routeTpl)) { navigation.replace('Familiarize', { id: routeTpl.id }); return }
       if (!(await confirmBackgroundRecording())) return
     const goalValue: WorkoutGoal =
       routeTpl && hasKnownRouteEnd(routeTpl) ? buildGoal() : { type: 'open' }
@@ -382,7 +383,7 @@ export default function WorkoutSetupScreen({
 
         </Disclosure>
 
-        <Disclosure title="更多记录方式" summary="平常保持默认即可"><TrackingModeSelector value={trackingMode} onChange={setTrackingMode} disabled={busy} /></Disclosure>
+        <View style={styles.controlCard}><TrackingModeSelector value={trackingMode} onChange={setTrackingMode} disabled={busy} /></View>
 
         {/* D07b：训练结构（阶段序列）——热身/上爬/返回/恢复，热身与恢复可跳过 */}
         <Disclosure title="热身与休息" summary={planEnabled ? '已启用训练计划' : '按需设置'}>
@@ -427,11 +428,11 @@ export default function WorkoutSetupScreen({
         <Disclosure title="训练说明">
           <Text style={styles.paramHint}>按所选记录模式识别爬楼与返回，也可随时确认实际楼层。目标达成后可结束，或继续加练。</Text>
           {!routeTpl.location ? <Text style={styles.paramHint}>这次不记录地点，训练成绩照常保存。</Text> : null}
-          {routeVerified ? <Text style={styles.paramHint}>这条路线已经在本机检查过；如果楼层不对，锻炼时仍可以修正。</Text> : null}
+          {routeVerified ? <Text style={styles.paramHint}>这条路线已通过本地学习验证；每轮仍会核对实时运动证据。</Text> : null}
         </Disclosure>
 
       </ScrollView>
-      <View style={[styles.dock, { paddingBottom: insets.bottom + 12 }]}><Button title={routeTpl && !isRoutePrepared(routeTpl) ? '先熟悉路线' : '开始爬楼'} onPress={() => { void handleStart() }} loading={busy} disabled={!preflight.canStart} /></View>
+      <View style={[styles.dock, { paddingBottom: insets.bottom + 12 }]}><Button title="开始爬楼" onPress={() => { void handleStart() }} loading={busy} disabled={!preflight.canStart} /></View>
     </View>
   )
 }

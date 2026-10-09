@@ -13,7 +13,6 @@ import { RootStackScreen } from '../navigation/types'
 import { clearActiveDraft, getActiveDraft } from '../services/draft'
 import { listRoutes, saveRoute } from '../services/storage'
 import { buildFloorSplits, buildRouteDiagram, buildSegments, rebuildDraftBoundaries } from '../core/analysis'
-import { createMotionReference } from '../core/route-motion'
 import { clamp, formatDuration, uid } from '../core/math'
 import { CalibrationDraft, FloorSplit, RouteMarker, RouteTemplate } from '../core/types'
 import { Platform } from 'react-native'
@@ -81,21 +80,20 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
       }).catch(() => setRouteError('无法读取原路线，请返回后重试。'))
         .finally(() => setRouteLoading(false))
     }
-    const count = draft.boundarySource === 'manual'
-      ? Math.max(1, draft.boundaries.length - 1) : draft.inferred.estimatedFloorCount
-    const averageHeight = (draft.estimatedAscentM ?? draft.inferred.estimatedAscentM) / Math.max(1, count)
+    const count = draft.inferred.estimatedFloorCount
+    const averageHeight = draft.inferred.estimatedAscentM / Math.max(1, count)
     floorHeightsRef.current = Array.from({ length: count }, () =>
       Number(averageHeight.toFixed(1)),
     )
     setFloorCountInput(String(count))
     setEstimatedSteps(draft.inferred.estimatedStepCount)
-    // 爬升米数仅为估计，不代表实测精度。
+    // 爬升优先用气压反算（精度 ±0.3m），无气压则用步数估算
     const ascent = draft.estimatedAscentM ?? draft.inferred.estimatedAscentM
     setEstimatedAscentM(ascent)
     setEstimatedFloorCount(count)
     setFloorConfidence(Math.round(draft.inferred.confidence.floors * 100))
-    // 气压不提供楼层或高度准确率证明。
-    const heightConf = draft.inferred.confidence.height * 100
+    // 气压反算爬升时高度置信度更高（±0.3m），否则保持算法估算的低位
+    const heightConf = draft.ascentSource === 'barometer' ? 92 : draft.inferred.confidence.height * 100
     setHeightConfidence(Math.round(heightConf))
     setLoaded(true)
     // 统计人工标记
@@ -129,9 +127,8 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
     const typeMap = TYPE_TEXT
     const markers = draft.markers
     const warns: string[] = []
-    if (!markers.some((marker) => marker.type === 'turn' || marker.type === 'manual_turn') &&
-        !draft.manualMarks.some((mark) => mark.type === 'floor')) {
-      warns.push('没有楼层标记或拐弯记录，请看楼层标志补记这条路线。')
+    if (!markers.some((marker) => marker.type === 'turn' || marker.type === 'manual_turn')) {
+      warns.push('没有识别到任何拐弯（自动或人工），建议重新标定或人工补标记。')
     }
     if (draft.gaps.length) {
       warns.push(`记录中有 ${draft.gaps.length} 段传感器中断，建议重新标定。`)
@@ -157,7 +154,7 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
       setFloorCountInput(String(draft.boundaries.length - 1))
       return
     }
-    draft.boundaries = rebuildDraftBoundaries(draft, count, Number(startFloor))
+    draft.boundaries = rebuildDraftBoundaries(draft, count)
     const averageHeight = draft.inferred.estimatedAscentM / count
     floorHeightsRef.current = Array.from(
       { length: count },
@@ -233,8 +230,6 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
           system: Platform.Version?.toString() || 'unknown',
         },
         segments,
-        ...(previous?.featureSpace === 'device' ? { featureSpace: 'heading' as const } : {}),
-        motionReference: createMotionReference(draft.seed.carryMode, startFloorNum, startFloorNum + segments.length, draft.manualMarks),
         markers: draft.markers,
         createdAt: previous?.createdAt ?? now,
         updatedAt: now,
@@ -309,15 +304,15 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
 
         <View style={styles.metricGrid}>
           <Metric
-            label="参考层数"
+            label="估算楼层"
             value={estimatedFloorCount}
-            hint="请按楼层标志核对"
+            hint={`置信度 ${floorConfidence}%`}
             style={styles.metric}
           />
           <Metric
             label="估算爬升"
             value={`${estimatedAscentM}米`}
-            hint="米数只是估计，请以楼层标志为准"
+            hint={`置信度 ${heightConfidence}%`}
             style={styles.metric}
           />
         </View>
@@ -438,7 +433,7 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
                 {draftRef.current?.boundarySource === 'manual' ? (
                   <Pill tone="good">人工楼层 ×{manualMarkCount.floor}</Pill>
                 ) : draftRef.current?.boundarySource === 'barometer' ? (
-                  <Pill tone="good">未人工核对的分层估计</Pill>
+                  <Pill tone="good">气压自动分层</Pill>
                 ) : (
                   <Pill tone="warn">算法估算分层</Pill>
                 )}
@@ -446,7 +441,7 @@ export default function ReviewScreen({ navigation }: RootStackScreen<'Review'>) 
                   人工拐弯 ×{manualMarkCount.turn}
                 </Pill>
                 {draftRef.current?.ascentSource === 'barometer' ? (
-                  <Pill tone="good">气压粗估</Pill>
+                  <Pill tone="good">气压爬升</Pill>
                 ) : null}
               </View>
             </View>

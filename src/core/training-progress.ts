@@ -19,7 +19,6 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000
  * 缺失或为 0 时回落到起止楼层派生，保证旧记录（无 corrections 字段）同样可读。
  */
 function roundFloors(round: WorkoutRound): number {
-  if (round.floorConfirmation === 'pending') return 0
   return round.floorsCompleted > 0
     ? round.floorsCompleted
     : getRoundAchievementCount(round)
@@ -36,9 +35,9 @@ function workoutTotals(workout: ClimbWorkout): {
 } {
   return workout.rounds.reduce(
     (totals, round) => ({
-      floors: totals.floors + (round.floorConfirmation === 'pending' ? 0 : workout.floorCounting === 'transitions'
+      floors: totals.floors + (workout.floorCounting === 'transitions'
         ? getFloorTransitionCount(round.startFloor, round.finalFloor) : roundFloors(round)),
-      ascentM: totals.ascentM + (round.floorConfirmation === 'pending' ? 0 : workout.floorCounting === 'transitions'
+      ascentM: totals.ascentM + (workout.floorCounting === 'transitions'
         ? Number.isFinite(round.ascentM) ? Math.max(0, round.ascentM) : 0 : round.ascentM),
       activeDurationMs: totals.activeDurationMs + (workout.floorCounting === 'transitions'
         ? Number.isFinite(round.durationMs) ? Math.max(0, round.durationMs) : 0 : round.durationMs),

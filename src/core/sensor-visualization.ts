@@ -1,5 +1,5 @@
 import { clamp } from './math'
-import { PressureTrend } from './pressure-trend'
+import { METERS_PER_HPA } from './sensor-params'
 import { SensorSample } from './types'
 
 export type SensorMotionActivity =
@@ -10,9 +10,6 @@ export type SensorMotionActivity =
   | 'turning_right'
   | 'descending_stairs'
   | 'elevator_down'
-  | 'elevator_up'
-  | 'walking'
-  | 'uncertain'
 
 export interface SensorWavePoint {
   t: number
@@ -28,8 +25,6 @@ export interface SensorVisualizationState {
   turnRate: number
   relativeHeightM: number
   verticalSpeedMps: number
-  pressureReliable?: boolean
-  pressureDirection?: 'up' | 'down' | 'level' | 'unknown'
   stepPulse: number
   waves: SensorWavePoint[]
 }
@@ -77,7 +72,7 @@ export class SensorMotionInterpreter {
   private previousMotion = 0
   private lastStepAt = -Infinity
   private stepPulse = 0
-  private pressure = new PressureTrend()
+  private baselinePressure: number | undefined
   private relativeHeightM = 0
   private points: MotionPoint[] = []
   private displayPoints: SensorWavePoint[] = []
@@ -91,7 +86,7 @@ export class SensorMotionInterpreter {
     this.previousMotion = 0
     this.lastStepAt = -Infinity
     this.stepPulse = 0
-    this.pressure = new PressureTrend()
+    this.baselinePressure = undefined
     this.relativeHeightM = 0
     this.points = []
     this.displayPoints = []
@@ -118,7 +113,11 @@ export class SensorMotionInterpreter {
     this.previousMotion = this.smoothMotion
 
     if (sample.pressure !== undefined && sample.pressure > 0) {
-      this.relativeHeightM = this.pressure.push(sample.pressure, sample.t).relativeHeightM
+      if (this.baselinePressure === undefined) {
+        this.baselinePressure = sample.pressure
+      }
+      this.relativeHeightM =
+        (this.baselinePressure - sample.pressure) * METERS_PER_HPA
     }
 
     const point: MotionPoint = {
@@ -158,7 +157,9 @@ export class SensorMotionInterpreter {
 
   snapshot(now = Date.now()): SensorVisualizationState {
     const recent = this.points.filter((point) => point.t >= now - 1100)
-    const pressure = this.pressure.snapshot(now)
+    const heightWindow = this.points.filter(
+      (point) => point.t >= now - 2800,
+    )
     const motionLevel = recent.length
       ? recent.reduce((sum, point) => sum + point.motion, 0) / recent.length
       : 0
@@ -167,7 +168,13 @@ export class SensorMotionInterpreter {
       : 0
     const recentSteps = recent.filter((point) => point.step).length
 
-    const verticalSpeedMps = pressure.reliable ? pressure.speedMps : 0
+    let verticalSpeedMps = 0
+    if (heightWindow.length >= 2) {
+      const first = heightWindow[0]
+      const last = heightWindow[heightWindow.length - 1]
+      const seconds = Math.max(0.25, (last.t - first.t) / 1000)
+      verticalSpeedMps = (last.height - first.height) / seconds
+    }
 
     let activity: SensorMotionActivity = 'waiting'
     let confidence = 0
@@ -183,7 +190,7 @@ export class SensorMotionInterpreter {
         recentSteps > 0
       const unexpectedDescent =
         this.movementPhase === 'ascending' && verticalSpeedMps < -0.12
-      const turning = recentSteps > 0 && Math.abs(turnRate) > 0.16
+      const turning = Math.abs(turnRate) > 0.16
       if (elevatorDown) {
         activity = 'elevator_down'
         confidence = clamp(
@@ -207,17 +214,16 @@ export class SensorMotionInterpreter {
         // 不允许画面出现“上楼/下楼”来回跳变。
         activity = 'still'
         confidence = 0.55
-      } else if (recentSteps > 0) {
-        activity = !pressure.reliable ? 'uncertain' : pressure.direction === 'level' ? 'walking'
-          : pressure.direction === 'down' ? 'descending_stairs' : 'climbing'
+      } else if (recentSteps > 0 || motionLevel > 0.2) {
+        activity =
+          this.movementPhase === 'returning'
+            ? 'descending_stairs'
+            : 'climbing'
         confidence = clamp(
           0.48 + recentSteps * 0.12 + motionLevel * 0.5,
           0.5,
           0.97,
         )
-      } else if (pressure.reliable && pressure.speedMps > 0.48 && motionLevel < 0.28) {
-        activity = 'elevator_up'
-        confidence = 0.65
       } else {
         activity = 'still'
         confidence = clamp(0.82 - motionLevel, 0.55, 0.9)
@@ -231,8 +237,6 @@ export class SensorMotionInterpreter {
       turnRate,
       relativeHeightM: this.relativeHeightM,
       verticalSpeedMps,
-      pressureReliable: pressure.reliable,
-      pressureDirection: pressure.direction,
       stepPulse: this.stepPulse,
       waves: [...this.displayPoints],
     }

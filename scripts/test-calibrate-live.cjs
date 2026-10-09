@@ -27,7 +27,7 @@ function core(name) {
 }
 const analysis = core('analysis')
 
-async function mount(seedOverrides = {}) {
+async function mount() {
   const slots = [], intervals = new Map(), recorders = [], navigationCalls = [], drafts = []
   let cursor = 0, effects = [], dirty = false, tree, now = 1791120000000, nextTimer = 1
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]))
@@ -84,7 +84,7 @@ async function mount(seedOverrides = {}) {
   function render() {
     for (let attempt = 0; attempt < 20; attempt++) {
       dirty = false; cursor = 0
-      tree = module.exports.default({ navigation: { replace: (...args) => navigationCalls.push(args), navigate() {} }, route: { params: { seed: { name: 'Synthetic calibration', carryMode: 'pocket', location: { name: 'Synthetic location', address: 'Synthetic only', latitude: 0, longitude: 0, source: 'map', confirmedAt: 1 }, ...seedOverrides } } } })
+      tree = module.exports.default({ navigation: { replace: (...args) => navigationCalls.push(args), navigate() {} }, route: { params: { seed: { name: 'Synthetic calibration', carryMode: 'pocket', location: { name: 'Synthetic location', address: 'Synthetic only', latitude: 0, longitude: 0, source: 'map', confirmedAt: 1 } } } } })
       const pending = effects; effects = []; pending.forEach(effect => effect())
       if (!dirty) return
     }
@@ -117,11 +117,6 @@ async function mount(seedOverrides = {}) {
   }
   render(); await Promise.resolve(); render()
   return { press, feed, tick, drafts, recorders, intervals, navigationCalls,
-    texts: () => nodes().filter(node => node.type === 'Text').map(node => text(node.props.children)),
-    async markNextFloor() {
-      const button = nodes().find(node => node.type === 'Pressable' && /^确认到达 \d+ 层$/.test(node.props.accessibilityLabel ?? ''))
-      assert.ok(button); await button.props.onPress(); render()
-    },
     steps: () => metric(/^(\d+) 步$/), ascent: () => metric(/^爬升 (-?[\d.]+) 米$/),
     barometer(pressure) { recorders.at(-1).options.onBarometer({ available: true, running: true, pressure, lastSampleAt: now }); render() },
   }
@@ -176,31 +171,4 @@ test('a new recording clears the previous pressure height and retains the existi
   page.feed(4500, elapsed => ({ az: elapsed % 900 < 150 ? 14.7 / gravity : 1 }))
   assert.ok(page.steps() > 0)
   assert.equal(page.ascent(), Number((page.steps() * 0.17).toFixed(1)))
-})
-
-test('recording a route shows pressure direction while the floor changes only from a human floor mark', async () => {
-  const page = await mount(); await page.press('开始采集')
-  page.feed(10000, elapsed => ({ pressure: 1013.25 - elapsed / 1000 * 0.06 }))
-  assert.equal(page.steps(), 0)
-  assert.ok(page.texts().includes('上升'))
-  assert.ok(page.texts().includes('当前楼层 1层 · 已标记 0 个新楼层'))
-  assert.ok(!page.texts().includes('气压楼层'))
-  await page.markNextFloor()
-  assert.ok(page.texts().includes('当前楼层 2层 · 已标记 1 个新楼层'))
-  page.feed(3000)
-  assert.ok(page.texts().includes('还看不清'), 'Old pressure direction must expire when no new values arrive')
-})
-
-test('rerecording without a location preserves an existing non-first-floor start and saves its actual floor mark', async () => {
-  const page = await mount({ routeId: 'existing-route', location: undefined, startFloor: 3 })
-  assert.ok(page.texts().includes('未记录地点，也可以记录路线'))
-  await page.press('开始采集')
-  assert.ok(page.texts().includes('当前楼层 3层 · 已标记 0 个新楼层'))
-  page.feed(2000)
-  await page.markNextFloor()
-  page.feed(1000)
-  await page.press('停止并分析')
-  assert.equal(page.drafts[0].seed.routeId, 'existing-route')
-  assert.equal(page.drafts[0].seed.location, undefined)
-  assert.equal(page.drafts[0].manualMarks[0].floor, 4)
 })

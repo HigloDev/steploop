@@ -212,7 +212,7 @@ export function isEligiblePersonalBestWorkout(workout: ClimbWorkout): boolean {
 function hasRecordedClimb(workout: ClimbWorkout): boolean {
   const rounds = roundsOf(workout)
   return rounds.every((round) => !!round && isFiniteNumber(round.startFloor) && isFiniteNumber(round.finalFloor)) &&
-    rounds.some((round) => round.floorConfirmation !== 'pending' && getFloorTransitionCount(round.startFloor, round.finalFloor) > 0)
+    rounds.some((round) => getFloorTransitionCount(round.startFloor, round.finalFloor) > 0)
 }
 
 /** Ordinary progress trusts the user's saved floor confirmation, independently of PB/model trust. */

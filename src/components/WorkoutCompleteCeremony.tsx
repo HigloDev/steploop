@@ -52,12 +52,6 @@ export function WorkoutCompleteCeremony({ totalFloors, completeRounds, totalAsce
     return () => { clearInterval(counter) }
   }, [totalFloors, reduced, replay, logAnimation])
 
-  useEffect(() => {
-    if (!animationDone) return
-    const timer = setTimeout(finish, reduced ? 0 : 650)
-    return () => clearTimeout(timer)
-  }, [animationDone, reduced, finish])
-
   const building = buildingProgress(displayFloors, 0, true)
   const floorHeight = Math.min(18, 280 / Math.max(1, Math.min(80, totalFloors)))
   const drawingHeight = Math.max(50, Math.min(80, totalFloors) * floorHeight + 24)
@@ -96,6 +90,7 @@ export function WorkoutCompleteCeremony({ totalFloors, completeRounds, totalAsce
         {eventSaveError ? <Text style={{ color: theme.amberInk, fontSize: 13, marginTop: 12 }}>{eventSaveError}</Text> : null}
       </ScrollView>
       <View style={{ backgroundColor: theme.card, paddingHorizontal: theme.pagePaddingH, paddingTop: 8, paddingBottom: insets.bottom + 12, borderTopWidth: 0.5, borderTopColor: theme.lineSoft }}>
+        {animationDone && !reduced && <Button title="重播盖楼动画" variant="secondary" onPress={() => setReplay(value => value + 1)} />}
         <Button title={animationDone || reduced ? '查看训练结果' : '跳过动画，查看结果'} accessibilityLabel={animationDone || reduced ? '查看训练结果' : '跳过完成动画'} onPress={finish} />
       </View>
     </View>

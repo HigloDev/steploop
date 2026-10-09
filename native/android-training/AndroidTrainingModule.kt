@@ -39,23 +39,6 @@ class AndroidTrainingModule(context: ReactApplicationContext) : ReactContextBase
 
   override fun getName() = "AndroidTrainingSensors"
 
-  /** Local random acceptance scope is deliberately excluded from Android backup and transfer. */
-  @ReactMethod fun preparationDeviceKey(promise: Promise) {
-    io.execute {
-      try {
-        val file = java.io.File(reactApplicationContext.noBackupFilesDir, "palou-route-device-v1")
-        val existing = if (file.exists()) file.readText().trim() else ""
-        val key = if (existing.isNotBlank()) existing else java.util.UUID.randomUUID().toString().also {
-          file.parentFile?.mkdirs()
-          file.writeText(it)
-        }
-        promise.resolve(key)
-      } catch (error: Exception) {
-        promise.reject("route_device_storage_failed", "无法保存本机的路线检查记录，请重试。", error)
-      }
-    }
-  }
-
   @ReactMethod fun start(options: ReadableMap, promise: Promise) {
     val id = if (options.hasKey("sessionId")) options.getString("sessionId") else null
     if (id.isNullOrBlank()) { promise.reject("missing_session_id", "A user workout id is required"); return }

@@ -19,15 +19,9 @@ import {
   summarizeCorrectionChain,
   CorrectionChainSummary,
 } from '../core/corrections'
-import { buildWorkoutFromSession, calculateWorkoutSummary } from '../core/workout-summary'
+import { buildWorkoutFromSession } from '../core/workout-summary'
 import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
 import { getFloorAchievementCount } from '../core/floors'
-
-function sessionFloorCount(session: ClimbSession): number {
-  if (session.floorConfirmation === 'pending') return 0
-  return session.recognitionVersion === 'motion-v3' ? Math.max(0, session.finalFloor - session.startFloor)
-    : getFloorAchievementCount(session.startFloor, session.finalFloor) || session.floorsCompleted
-}
 
 function dateText(timestamp: number): string {
   const date = new Date(timestamp)
@@ -39,8 +33,8 @@ function dateText(timestamp: number): string {
  * 把多轮训练记录的最后一轮映射回单轮视图，供本页复用既有渲染。
  * 修正后重新进入本页时（旧单轮会话已升级为训练记录）仍能看到修正后的成绩。
  */
-function sessionViewFromWorkout(workout: ClimbWorkout, roundId?: string): ClimbSession {
-  const round = workout.rounds.find(round => round.id === roundId) ?? workout.rounds[workout.rounds.length - 1]
+function sessionViewFromWorkout(workout: ClimbWorkout): ClimbSession {
+  const round = workout.rounds[workout.rounds.length - 1]
   return {
     id: workout.id,
     templateId: workout.templateId,
@@ -54,8 +48,6 @@ function sessionViewFromWorkout(workout: ClimbWorkout, roundId?: string): ClimbS
     steps: round.steps,
     confidence: round.confidence,
     complete: round.complete,
-    floorConfirmation: round.floorConfirmation,
-    recognitionVersion: round.recognitionVersion,
     events: round.events,
     floorSplits: round.floorSplits.map((split) => ({
       floor: split.floorTo,
@@ -132,7 +124,6 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         text = '路线未完整匹配，系统保持最后确认楼层，没有补猜。'
       }
       setStatusTitle(title)
-      if (normalized.floorConfirmation === 'pending') { title = '楼层待确认'; text = '脚步和时间已经保存，楼层还是估计值。请在下面确认实际到达楼层，确认后再计入成绩。'; setStatusTitle(title) }
       setStatusText(text)
       setFloorSplits(
         normalized.floorSplits.map((split, index) => ({
@@ -143,7 +134,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         })),
       )
       const lastRound =
-        options.target.rounds.find(round => round.id === route.params.roundId) ?? options.target.rounds[options.target.rounds.length - 1]
+        options.target.rounds[options.target.rounds.length - 1]
       setChain(lastRound ? summarizeCorrectionChain(lastRound) : null)
       setManualCount(lastRound?.userCorrectionCount ?? 0)
       setFloorInput(String(normalized.finalFloor))
@@ -161,7 +152,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
           () => undefined,
         )
         if (!mounted) return
-        applyView(sessionViewFromWorkout(storedWorkout, route.params.roundId), {
+        applyView(sessionViewFromWorkout(storedWorkout), {
           route: storedRoute,
           routeName:
             storedWorkout.routeSnapshot.locationName ||
@@ -214,23 +205,21 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
       Alert.alert('楼层无效', '请输入有效的楼层数字。')
       return
     }
-    const selectedIndex = correctionTarget.rounds.findIndex(round => round.id === route.params.roundId)
-    const lastIndex = selectedIndex >= 0 ? selectedIndex : correctionTarget.rounds.length - 1
+    const lastIndex = correctionTarget.rounds.length - 1
     const lastRound = correctionTarget.rounds[lastIndex]
-    let correctedRound = applyRoundCorrection(
+    const correctedRound = applyRoundCorrection(
       lastRound,
-      { finalFloor: parsed, ...(lastRound.floorConfirmation === 'pending' ? { complete: parsed > lastRound.startFloor } : {}) },
+      { finalFloor: parsed },
       { reason: '结果页人工修正最终楼层' },
     )
     // 幂等：重复提交同一楼层不追加记录，也不改写成绩来源/可信状态。
-    if (correctedRound === lastRound && lastRound.floorConfirmation !== 'pending') {
+    if (correctedRound === lastRound) {
       Alert.alert(
         '无需修正',
         `本轮最终楼层已经是 ${parsed} 层，没有新增修正记录。`,
       )
       return
     }
-    correctedRound = { ...correctedRound, floorConfirmation: 'manual', completionSource: 'manual', trustworthy: false }
     const rounds = correctionTarget.rounds.map((round, index) =>
       index === lastIndex ? correctedRound : round,
     )
@@ -238,12 +227,12 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
     const nextWorkout: ClimbWorkout = {
       ...correctionTarget,
       rounds,
-      totalFloorsCompleted: calculateWorkoutSummary(rounds, correctionTarget.startedAt, correctionTarget.endedAt).totalFloors,
-      totalRoundsCompleted: calculateWorkoutSummary(rounds, correctionTarget.startedAt, correctionTarget.endedAt).completeRounds,
-      bestRoundMs: calculateWorkoutSummary(rounds, correctionTarget.startedAt, correctionTarget.endedAt).bestRoundMs,
-      averageRoundMs: calculateWorkoutSummary(rounds, correctionTarget.startedAt, correctionTarget.endedAt).averageRoundMs,
+      totalFloorsCompleted: rounds.reduce(
+        (sum, round) => sum + round.floorsCompleted,
+        0,
+      ),
       totalAscentM: Number(
-        rounds.reduce((sum, round) => sum + (round.floorConfirmation === 'pending' ? 0 : round.ascentM), 0).toFixed(1),
+        rounds.reduce((sum, round) => sum + round.ascentM, 0).toFixed(1),
       ),
       totalSteps: rounds.reduce((sum, round) => sum + round.steps, 0),
       activeDurationMs: rounds.reduce((sum, round) => sum + round.durationMs, 0),
@@ -269,7 +258,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         }
       }
       const correctedChain = summarizeCorrectionChain(correctedRound)
-      applyView(sessionViewFromWorkout(nextWorkout, route.params.roundId), {
+      applyView(sessionViewFromWorkout(nextWorkout), {
         routeName:
           nextWorkout.routeSnapshot.locationName ||
           nextWorkout.routeSnapshot.name ||
@@ -279,7 +268,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
       })
       Alert.alert(
         '修正已保存',
-        `已确认到达 ${correctedRound.finalFloor} 楼。原来的估计值仍然保留。`,
+        `原值已保留在修正链中：${correctedChain.originalFinalFloor} 层 → ${correctedChain.latestFinalFloor} 层。该轮不再参与算法学习。`,
       )
     } catch (error) {
       console.warn('[steploop] save round correction failed', error)
@@ -346,7 +335,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         <View style={styles.achievement}>
           <Text style={styles.achievementLabel}>本次完成</Text>
           <View style={styles.achievementLine}>
-            <Text selectable style={styles.achievementValue}>{sessionFloorCount(session)}</Text>
+            <Text selectable style={styles.achievementValue}>{session.floorsCompleted}</Text>
             <Text style={styles.achievementUnit}>层</Text>
           </View>
           <Text selectable style={styles.achievementDuration}>用时 {formatDuration(session.durationMs ?? 0)}</Text>
@@ -354,14 +343,14 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         <Disclosure title="详细成绩">
         <View style={styles.metricGrid}>
           <Metric
-            label={session.floorConfirmation === 'pending' ? '楼层待确认' : '完成楼层'}
+            label="完成楼层"
             value={`${
-              sessionFloorCount(session)
+              session.floorsCompleted
             } 层`}
             style={styles.metric}
           />
           <Metric
-            label="估计爬升"
+            label="累计爬升"
             value={`${session.ascentM}米`}
             style={styles.metric}
           />

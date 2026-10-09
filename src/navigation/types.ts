@@ -47,8 +47,7 @@ export interface CalibrateSeed {
   routeId?: string
   name: string
   carryMode?: 'pocket' | 'waist'
-  startFloor?: number
-  location?: RouteLocation
+  location: RouteLocation
 }
 
 export type MainTabParamList = {
@@ -58,8 +57,6 @@ export type MainTabParamList = {
 }
 
 export type RootStackParamList = {
-  AddRoute: { manual?: boolean } | undefined
-  Familiarize: { id: string }
   Privacy: { from?: string } | undefined
   Onboarding: { from?: string } | undefined
   Main: NavigatorScreenParams<MainTabParamList> | undefined
@@ -79,7 +76,7 @@ export type RootStackParamList = {
   }
   WorkoutResult: { id: string }
   ShareStudio: { id: string }
-  Result: { id: string; roundId?: string }
+  Result: { id: string }
   DiagnosticCapture: undefined
   ClimbPreview: undefined
   /** D05：无地点/无既有模板的快速开练入口 */

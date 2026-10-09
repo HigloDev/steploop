@@ -5,8 +5,6 @@ export interface TrainingAutomationObservation {
   t: number
   relativeHeightM?: number
   barometerAvailable: boolean
-  pressureReliable?: boolean
-  pressureDirection?: 'up' | 'down' | 'level' | 'unknown'
   /** Cumulative steps within the current sensor owner. */
   steps: number
   targetReached?: boolean
@@ -114,8 +112,6 @@ export class TrainingAutomation {
   /** A sensor discontinuity invalidates all holds and motion evidence. */
   gap(): void {
     this.resetWindow()
-    this.sawAway = false
-    this.peakAt = 0
   }
 
   private resetWindow(): void {
@@ -147,24 +143,19 @@ export class TrainingAutomation {
     if (this.lastT && input.t - this.lastT > this.maxSampleGapMs) this.gap()
     this.lastT = input.t
     const h = input.relativeHeightM
-    const newSteps = input.steps > (this.points.at(-1)?.steps ?? input.steps)
     this.points.push({ t: input.t, h, steps: Math.max(0, input.steps) })
     this.points = this.points.filter((point) => point.t >= input.t - 4500)
+    if (h > this.floorHeightM * 0.6) this.sawAway = true
+    if (h > this.peakHeight) {
+      this.peakHeight = h
+      this.peakAt = input.t
+    }
     const first = this.points[0]
     const dt = input.t - first.t
     const rise = h - first.h
     const speed = dt > 0 ? rise / (dt / 1000) : 0
     const steps = Math.max(0, input.steps - first.steps)
     const hasWindow = dt >= 2200
-    const reliable = hasWindow && input.pressureReliable !== false
-    const up = reliable && (input.pressureDirection === 'up' ||
-      (input.pressureDirection === undefined && speed >= 0.1))
-    const down = reliable && (input.pressureDirection === 'down' ||
-      (input.pressureDirection === undefined && speed < -0.45))
-    if (up && steps >= 3) {
-      this.sawAway = true
-      if (newSteps) this.peakAt = input.t
-    }
     const recent = this.points.filter((point) => point.t >= input.t - 1200)
     const recentFirst = recent[0]
     const recentSpeed = recentFirst && input.t > recentFirst.t
@@ -172,7 +163,8 @@ export class TrainingAutomation {
       : 0
 
     if (this.phase === 'ascending') {
-      const elevatorDown = down && this.sawAway && speed < -0.45 && steps <= 2
+      const elevatorDown = hasWindow && this.sawAway && speed < -0.45 &&
+        rise <= -Math.max(1.8, this.floorHeightM * 0.65) && steps <= 2
       this.elevatorSince = elevatorDown
         ? (this.elevatorSince ?? input.t)
         : undefined
@@ -180,12 +172,12 @@ export class TrainingAutomation {
         if (this.mode === 'full_auto' && !this.emitted) {
           this.emitted = true
           return {
-            status: '可能正在乘电梯下行，本轮已保存，请确认实际楼层',
+            status: '识别到电梯下行，本轮爬升已结束',
             elevatorDescending: true,
             action: { type: 'finish_round', at: this.peakAt || input.t, cause: 'elevator_down' },
           }
         }
-        return { status: '可能正在乘电梯下行，请确认实际楼层并结束本轮', elevatorDescending: true }
+        return { status: '识别到电梯下行，请确认实际楼层并结束本轮', elevatorDescending: true }
       }
       return { status: this.mode === 'full_auto'
         ? '自动记录爬升，持续识别终点和电梯下行'
@@ -193,18 +185,30 @@ export class TrainingAutomation {
     }
 
     if (this.phase === 'returning' || this.phase === 'start_confirmation') {
-      // 气压停止变化只说明停下了，不能证明已经到了哪一层。
-      if (reliable && Math.abs(recentSpeed) < 0.22) {
-        return { status: '已经停稳；到了起点请点“确认返回”' }
+      // Arrival needs a previous ascent and stable pressure, not a passing floor.
+      const near = Math.abs(h) <= Math.max(1.1, this.floorHeightM * 0.36)
+      const stable = hasWindow && Math.abs(recentSpeed) < 0.22
+      if (this.sawAway && near && stable) {
+        this.nearSince ??= input.t
+      } else {
+        this.nearSince = undefined
       }
-      return { elevatorDescending: down && speed < -0.45 && steps <= 2,
-        status: down && speed < -0.45 && steps <= 2
+      if (this.nearSince !== undefined && input.t - this.nearSince >= this.returnHoldMs) {
+        if (this.mode === 'full_auto' && !this.emitted) {
+          this.emitted = true
+          return { status: '已回到起点，等待实际开始下一轮爬升',
+            action: { type: 'returned_to_start', at: input.t } }
+        }
+        return { status: '识别已接近起点，请确认返回' }
+      }
+      return { elevatorDescending: hasWindow && speed < -0.45 && steps <= 2,
+        status: speed < -0.45 && steps <= 2
         ? '正在乘电梯下行，电梯不计入爬升'
         : '返回监测中，可手动确认已到起点' }
     }
 
     if (this.phase === 'recovering' || this.phase === 'round_ready') {
-      const actualClimb = up &&
+      const actualClimb = hasWindow && rise >= Math.max(0.7, this.floorHeightM * 0.22) &&
         speed >= 0.1 && speed <= 1.4 && steps >= 4
       if (actualClimb) {
         if (this.mode === 'full_auto' && !this.emitted) {

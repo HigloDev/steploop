@@ -29,7 +29,6 @@ class AndroidTrainingService : Service(), SensorEventListener {
   private var wakeLock: PowerManager.WakeLock? = null
   private var gyro = floatArrayOf(0f, 0f, 0f)
   private var orientation = floatArrayOf(0f, 0f, 0f)
-  private var pressure: Float? = null
   private var steps: Float? = null
   private var lastAccelNanos = 0L
   private var intervalMs = 20L
@@ -102,7 +101,12 @@ class AndroidTrainingService : Service(), SensorEventListener {
     if (!running) return
     when (event.sensor.type) {
       Sensor.TYPE_GYROSCOPE -> gyro = event.values.copyOf(3)
-      Sensor.TYPE_PRESSURE -> pressure = event.values.firstOrNull()?.takeIf { it.isFinite() && it > 0 }
+      Sensor.TYPE_PRESSURE -> {
+        val pressure = event.values.firstOrNull()?.takeIf { it.isFinite() && it > 0 } ?: return
+        val t = clockOffsetMs + event.timestamp / 1_000_000L
+        publish(JSONObject().put("t", t).put("pressureAt", t)
+          .put("sensorKind", "pressure").put("pressure", pressure))
+      }
       Sensor.TYPE_STEP_COUNTER -> steps = event.values.firstOrNull()
       Sensor.TYPE_ROTATION_VECTOR -> {
         val rotation = FloatArray(9)
@@ -119,20 +123,23 @@ class AndroidTrainingService : Service(), SensorEventListener {
           .put("az", event.values[2] / SensorManager.GRAVITY_EARTH)
           .put("gx", gyro[0]).put("gy", gyro[1]).put("gz", gyro[2])
           .put("alpha", orientation[0]).put("beta", orientation[1]).put("gamma", orientation[2])
-        pressure?.let { frame.put("pressure", it) }
         steps?.let { frame.put("steps", it) }
-        try {
-          journal!!.append(frame)
-          listeners.forEach { listener -> try { listener(frame) } catch (_: Exception) { } }
-        } catch (error: Exception) {
-          lastError = "journal_write_failed: ${error.message}"
-          stopSelf()
-        }
+        publish(frame)
       }
     }
   }
 
   override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+  private fun publish(frame: JSONObject) {
+    try {
+      journal!!.append(frame)
+      listeners.forEach { listener -> try { listener(frame) } catch (_: Exception) { } }
+    } catch (error: Exception) {
+      lastError = "journal_write_failed: ${error.message}"
+      stopSelf()
+    }
+  }
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onDestroy() {

@@ -94,7 +94,6 @@ import {
 } from '../core/sensor-visualization'
 import { hasKnownRouteEnd } from '../core/route-state'
 import { isLearningEligibleRound, updateRouteModelFromWorkouts } from '../core/route-model'
-import { createMotionReference, recordMotionCheck } from '../core/route-motion'
 
 // 气压转高度系数：近海平面 1 hPa ≈ 8.3 m。
 // 用线性近似已足够判断"是否回到起点"，无需引入完整气压公式。
@@ -256,7 +255,7 @@ function buildRouteSnapshot(template: RouteTemplate): ClimbWorkout['routeSnapsho
 
 /** A user's confirmed accomplishment contributes to ordinary statistics regardless of model trust. */
 function ordinaryWeeklyContribution(rounds: WorkoutRound[]): NonNullable<ClimbWorkout['weeklyContribution']> {
-  const contributing = rounds.filter((round) => round.floorConfirmation !== 'pending' && (round.floorCounting === 'transitions' || round.trustworthy))
+  const contributing = rounds.filter((round) => round.floorCounting === 'transitions' || round.trustworthy)
   return {
     workouts: contributing.some((round) => round.trustworthy || round.floorsCompleted > 0 || round.steps > 0 || round.durationMs > 0) ? 1 : 0,
     floors: contributing.reduce((sum, round) => sum + round.floorsCompleted, 0),
@@ -642,7 +641,7 @@ export function useClimbWorkout(
       // 没有地点时模板照常可用于训练，只是不会进入地图统计。
       if (!session.samples || session.samples.length < 50) return
       const endFloor = confirmedEndFloor ?? session.finalFloor ?? t.endFloor
-      if (!Number.isFinite(endFloor) || endFloor <= session.startFloor || confirmedEndFloor === undefined) return
+      if (!Number.isFinite(endFloor) || endFloor <= session.startFloor || session.floorsCompleted <= 0) return
       // 模板和本次运动均按真实高度差：1F→15F 是14层爬升。
       const floorCount = Math.max(
         1,
@@ -660,10 +659,9 @@ export function useClimbWorkout(
         session.startedAt,
         session.endedAt,
         session.interruptions,
-        session.manualFloorMarks,
       )
       // 强制重建为用户设定的楼层数，避免气压估算与设定不一致
-      draft.boundaries = rebuildDraftBoundaries(draft, floorCount, t.startFloor)
+      draft.boundaries = rebuildDraftBoundaries(draft, floorCount)
       // 每层高度：优先用气压反算的总爬升均摊，否则用 template.floorHeightM
       const totalAscent =
         draft.estimatedAscentM && draft.estimatedAscentM > 0
@@ -679,9 +677,7 @@ export function useClimbWorkout(
         endFloor,
         floorHeightM: averageHeight,
         segments,
-        ...(t.featureSpace === 'device' ? { featureSpace: 'heading' as const } : {}),
         learningProvenance: 'training_rounds',
-        motionReference: createMotionReference(t.carryMode, t.startFloor, endFloor, session.manualFloorMarks ?? []),
         status: 'needs_validation',
         verifiedAt: undefined,
         totalAscentM: Number(
@@ -722,7 +718,9 @@ export function useClimbWorkout(
       if (confirmedEndFloor !== undefined) {
         const transitions = getFloorTransitionCount(session.startFloor, confirmedFloor!)
         const originalTransitions = getFloorTransitionCount(session.startFloor, session.finalFloor)
-        const perFloorM = effectiveTemplate.floorHeightM || 3
+        const perFloorM = originalTransitions > 0 && session.ascentM > 0
+          ? session.ascentM / originalTransitions
+          : effectiveTemplate.floorHeightM || 3
         round = applyRoundCorrection(originalRound, {
           finalFloor: confirmedFloor,
           floorsCompleted: transitions,
@@ -731,23 +729,12 @@ export function useClimbWorkout(
         }, { at: Date.now(), reason: '用户确认实际到达楼层', excludeFromLearning: true })
         round.completionSource = 'manual'
         round.trustworthy = false
-        round.floorConfirmation = 'manual'
       }
       if (excludeFromLearning) round.trustworthy = false
       round.averageFloorMs = round.floorsCompleted > 0 ? Math.round(round.durationMs / round.floorsCompleted) : undefined
       const confirmedSession: ClimbSession = {
         ...session, finalFloor: round.finalFloor, floorsCompleted: round.floorsCompleted,
         ascentM: round.ascentM, complete: round.complete,
-        manualFloorMarks: [...(session.manualFloorMarks ?? []), ...(confirmedFloor !== undefined
-          ? [{ id: `endpoint-${session.id}`, type: 'floor' as const, atMs: session.endedAt - session.startedAt,
-              floor: confirmedFloor, estimatedFloor: session.finalFloor }] : [])],
-      }
-      if (confirmedFloor !== undefined && !firstRoundCalibrationRef.current) {
-        const checkedRoute = recordMotionCheck(templateRef.current, { ...session, manualFloorMarks: confirmedSession.manualFloorMarks }, confirmedFloor)
-        if (checkedRoute !== templateRef.current) {
-          try { await saveRoute(checkedRoute); setEffectiveTemplate(checkedRoute) }
-          catch { setEvidenceSaveError('这次楼层核对未写入路线，训练记录仍会保存，请稍后重试。') }
-        }
       }
       recordWorkoutEvidenceEvent({ workoutId: w.id, roundNumber, phase: 'ascending', startedAt: session.startedAt },
         'round_saved', Date.now(), { original: { finalFloor: session.finalFloor, floorsCompleted: session.floorsCompleted,
@@ -775,8 +762,8 @@ export function useClimbWorkout(
           round.complete
             ? w.totalRoundsCompleted + 1
             : w.totalRoundsCompleted,
-        totalFloorsCompleted: w.totalFloorsCompleted + (round.floorConfirmation === 'pending' ? 0 : round.floorsCompleted),
-        totalAscentM: w.totalAscentM + (round.floorConfirmation === 'pending' ? 0 : round.ascentM),
+        totalFloorsCompleted: w.totalFloorsCompleted + round.floorsCompleted,
+        totalAscentM: w.totalAscentM + round.ascentM,
         totalSteps: w.totalSteps + round.steps,
         activeDurationMs: w.activeDurationMs + round.durationMs,
         latestRoundMs: round.durationMs,
@@ -843,9 +830,9 @@ export function useClimbWorkout(
     onObservation: (sample, motion) => {
       const snapshot = roundObservationRef.current
       processAutomationObservation({ t: sample.t,
-        relativeHeightM: sample.pressure !== undefined ? motion.relativeHeightM : undefined,
+        relativeHeightM: sample.pressure !== undefined && baselinePressureRef.current !== undefined
+          ? (baselinePressureRef.current - sample.pressure) * METERS_PER_HPA : undefined,
         barometerAvailable: sample.pressure !== undefined,
-        pressureReliable: motion.pressureReliable, pressureDirection: motion.pressureDirection,
         steps: Math.max(snapshot?.steps ?? 0, motion.stepPulse),
         targetReached: snapshot?.status === 'complete', reliableTarget: snapshot?.canAutoComplete })
     },
@@ -1055,8 +1042,7 @@ export function useClimbWorkout(
               const height = sample.pressure !== undefined && baselinePressureRef.current !== undefined
                 ? (baselinePressureRef.current - sample.pressure) * METERS_PER_HPA : undefined
               setReturnVisualization({ ...next, relativeHeightM: height ?? next.relativeHeightM })
-              processAutomationObservation({ t: sample.t, relativeHeightM: next.relativeHeightM,
-                pressureReliable: next.pressureReliable, pressureDirection: next.pressureDirection,
+              processAutomationObservation({ t: sample.t, relativeHeightM: height,
                 barometerAvailable: sample.pressure !== undefined, steps: next.stepPulse })
             }
           },
@@ -1085,7 +1071,7 @@ export function useClimbWorkout(
                 const heightM = (baselinePressureRef.current - status.pressure) * METERS_PER_HPA
                 returnAbsoluteHeightRef.current = heightM
                 setRelativeHeightM(heightM)
-                setNearStart(false)
+                setNearStart(Math.abs(heightM) <= Math.max(1.1, effectiveTemplate.floorHeightM * 0.36))
               }
             }
           },
@@ -1227,7 +1213,7 @@ export function useClimbWorkout(
         routeSnapshot: { name: effectiveTemplate.name, locationName: effectiveTemplate.location?.name ?? effectiveTemplate.name,
           startFloor, endFloor: effectiveTemplate.endFloor, totalAscentM: effectiveTemplate.totalAscentM } }
     }
-    await handleRoundComplete(session, 'manual_finish', finishOptions?.confirmedEndFloor,
+    await handleRoundComplete(session, 'manual_finish', finishOptions?.confirmedEndFloor ?? session.finalFloor,
       finishOptions?.excludeFromLearning)
     return true
   }, [handleRoundComplete, effectiveTemplate, roundMode])
@@ -1560,11 +1546,11 @@ export function useClimbWorkout(
           (r) => r.complete,
         ).length,
         totalFloorsCompleted: checkpoint.completedRounds.reduce(
-          (sum, r) => sum + (r.floorConfirmation === 'pending' ? 0 : r.floorsCompleted),
+          (sum, r) => sum + r.floorsCompleted,
           0,
         ),
         totalAscentM: checkpoint.completedRounds.reduce(
-          (sum, r) => sum + (r.floorConfirmation === 'pending' ? 0 : r.ascentM),
+          (sum, r) => sum + r.ascentM,
           0,
         ),
         totalSteps: checkpoint.completedRounds.reduce(

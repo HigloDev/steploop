@@ -1,15 +1,15 @@
 {
   "name": "steploop",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "main": "index.ts",
   "dependencies": {
-    "@expo/ui": "~57.0.21",
+    "@expo/ui": "~57.0.22",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.18.18",
     "@react-navigation/native": "^7.3.14",
     "@react-navigation/native-stack": "^7.18.6",
-    "expo": "~57.0.26",
+    "expo": "~57.0.27",
     "expo-clipboard": "~57.0.2",
     "expo-document-picker": "~57.0.3",
     "expo-file-system": "~57.0.7",
@@ -44,9 +44,9 @@
     "check": "tsc --noEmit && npx expo-doctor",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:core": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --outDir node_modules/.cache/steploop-core --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule src/core/floors.ts src/core/recognizer.ts src/core/analysis.ts src/core/turn-gate.ts src/core/math.ts src/core/dtw.ts src/core/route-state.ts src/core/types.ts src/core/workout-machine.ts src/core/workout-plan.ts src/core/workout-summary.ts src/core/calories.ts src/core/free-recognizer.ts src/core/route-learning.ts src/core/route-model.ts src/core/training-progress.ts src/core/progress-trends.ts src/core/sensor-visualization.ts src/core/session.ts src/core/location.ts src/core/corrections.ts src/core/preflight.ts src/core/diagnostics.ts src/core/export-csv.ts src/core/share-payload.ts src/core/backup-payload.ts src/core/route-file.ts src/core/elevator-gate.ts",
+    "build:core": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --outDir node_modules/.cache/steploop-core --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule src/core/floors.ts src/core/recognizer.ts src/core/analysis.ts src/core/turn-gate.ts src/core/math.ts src/core/dtw.ts src/core/route-state.ts src/core/types.ts src/core/workout-machine.ts src/core/workout-plan.ts src/core/workout-summary.ts src/core/calories.ts src/core/free-recognizer.ts src/core/route-learning.ts src/core/route-model.ts src/core/training-progress.ts src/core/progress-trends.ts src/core/sensor-visualization.ts src/core/session.ts src/core/location.ts src/core/corrections.ts src/core/preflight.ts src/core/diagnostics.ts src/core/export-csv.ts src/core/share-payload.ts src/core/backup-payload.ts src/core/building-model.ts src/core/auto-round-recognizer.ts src/core/baro-workout.ts src/core/sensor-self-test.ts",
     "build:services-test": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --rootDir src --outDir node_modules/.cache/steploop-services --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule src/services/storage-journal.ts src/services/preferences.ts src/services/storage.ts src/services/diagnostics.ts src/services/draft.ts src/services/workout-storage.ts src/services/sensor.ts src/services/round-coordinator.ts src/services/typed-emitter.ts src/services/sensor-adapter.ts src/services/checkpoint-completion.ts",
-    "test:core": "npm run build:core && node --test scripts/test-core.cjs scripts/test-motion-recognition.cjs scripts/test-route-preparation.cjs && node scripts/verify-floor-model.cjs",
+    "test:core": "npm run build:core && node --test scripts/test-core.cjs scripts/test-baro-v1.cjs && node scripts/verify-floor-model.cjs",
     "test:data": "npm run build:services-test && node --test scripts/test-data.cjs",
     "test:d03": "npm run build:services-test && node --test scripts/test-d03-lifecycle.cjs",
     "diagnostics:replay": "npm run build:core && node scripts/replay-diagnostics.cjs",
@@ -70,8 +70,7 @@
     "test:training-automation": "node --test scripts/test-training-automation.cjs",
     "test:voice": "node --test scripts/test-voice.cjs scripts/test-voice-assets.cjs",
     "test:prd": "node --test scripts/test-prd-acceptance.cjs scripts/test-prd-metrics.cjs scripts/test-prd-progress.cjs scripts/test-workout-evidence-analysis.cjs scripts/test-local-download-export.cjs scripts/test-location-picker.cjs scripts/test-route-review.cjs scripts/test-workout-mode-entry.cjs scripts/test-calibrate-live.cjs",
-    "evidence:analyze": "node scripts/analyze-workout-evidence.cjs",
-    "evidence:replay-motion": "npm run build:core && node scripts/replay-motion-evidence.cjs"
+    "evidence:analyze": "node scripts/analyze-workout-evidence.cjs"
   },
   "private": true
 }

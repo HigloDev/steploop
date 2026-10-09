@@ -1,7 +1,7 @@
 // 地图选点页：WebView 嵌入高德 JS API 2.0（原生高德地图）+ 高德逆地理编码。
 // 使用高德官方 JS API key + 安全密钥，地图样式、控件、大头针均为高德原生。
 // 两种模式：
-//   - 新建路线（无 routeId）：确认后创建 draft 路线；地图不可用时可进入无地点手动填写路线。
+//   - 新建路线（无 routeId）：确认后创建 draft 路线；地图不可用时可进入无地点快速开练。
 //   - 补充旧路线地点（有 routeId）：确认后调用 updateRouteLocation 写回路线。
 
 import React, { useEffect, useRef, useState } from 'react'
@@ -581,7 +581,7 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
           learningProvenance: 'training_rounds',
         }
         await saveRoute(template)
-        if (mountedRef.current) navigation.replace('Familiarize', { id: template.id })
+        if (mountedRef.current) navigation.replace('RouteProfile', { id: template.id })
       }
     } catch (error) {
       if (mountedRef.current) setRequestError(error instanceof Error ? error.message : '保存失败，请重试。')
@@ -601,7 +601,7 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
     if (savingRef.current) return
     Keyboard.dismiss()
     if (routeId) navigation.replace('RouteProfile', { id: routeId })
-    else navigation.replace('AddRoute', { manual: true })
+    else navigation.replace('QuickStart')
   }
   const searchDisabled = !mapReady || Boolean(mapError) || searching || locating || saving
   const confirmDisabled = searchDisabled || resolving || !placeMatchesMap
@@ -645,7 +645,7 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
             <Text style={styles.sheetTitle}>楼梯从哪里开始</Text>
             <Text style={styles.sheetHint}>{mapError ? '输入已保留。可重试地图，或继续不记录地点。' : resolving ? '正在匹配地图上的地点…' :
               placeMatchesMap ? '地点已匹配，确认后保存这处起点。' : mapReady ? '移动地图选点，或输入地点搜索。' : '地图准备好后可以搜索地点。'}</Text>
-            {mapError ? <Button title={routeId ? '返回原路线' : '不记录地点，手动填写路线'} variant="secondary" onPress={handleWithoutLocation} /> : null}
+            {mapError ? <Button title={routeId ? '返回原路线' : '不记录地点，快速开练'} variant="secondary" onPress={handleWithoutLocation} /> : null}
             {mapError && keyboardOpen ? <Button title="重新加载地图" variant="secondary" onPress={retryMap} /> : null}
             <TextInput accessibilityLabel="输入地点名称或地址" style={styles.input} value={placeText} editable={!saving}
               onChangeText={handleDraftChange} placeholder="地点名称或地址" placeholderTextColor={theme.mutedStrong}
@@ -658,7 +658,7 @@ export default function LocationPickerScreen({ navigation, route }: RootStackScr
             <Button title="搜索地点" onPress={handleAddressSearch} loading={searching} disabled={searchDisabled} style={styles.action} />
             <Button title="取消" variant="secondary" onPress={handleCancel} disabled={saving} style={styles.action} />
           </View>
-          <Button title={isSupplementMode ? '保存地点' : '确认地点，下一步'} onPress={handleConfirm} loading={saving} disabled={confirmDisabled} />
+          <Button title={isSupplementMode ? '保存地点' : '确认并建路线'} onPress={handleConfirm} loading={saving} disabled={confirmDisabled} />
         </View>
       </KeyboardAvoidingView>
     </View>

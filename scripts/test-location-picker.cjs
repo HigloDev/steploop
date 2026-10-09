@@ -91,9 +91,9 @@ test('retry isolates the old ready callback and timer from the new WebView gener
   assert.equal(page.find(node => node.type === 'Button' && /搜索地点/.test(node.props.title)).props.disabled, true)
   page.ready(); page.advance(15000); assert.equal(page.button(/重新加载地图/), undefined)
 })
-test('new-route failure offers manual AddRoute without creating or recording a location', () => {
-  const page = mountPicker(); page.advance(15000); page.button(/手动填写路线/).props.onPress()
-  assert.deepEqual(JSON.parse(JSON.stringify(page.calls)), [['AddRoute', { manual: true }]]); assert.equal(page.saved.length, 0); assert.equal(page.updated.length, 0)
+test('new-route failure offers QuickStart without creating or recording a location', () => {
+  const page = mountPicker(); page.advance(15000); page.button(/快速开练/).props.onPress()
+  assert.deepEqual(page.calls, [['QuickStart']]); assert.equal(page.saved.length, 0); assert.equal(page.updated.length, 0)
 })
 test('supplement failure returns to the existing route without changing its location', () => {
   const page = mountPicker({ routeId: 'existing-route' }); page.advance(15000); page.button(/返回原路线/).props.onPress()

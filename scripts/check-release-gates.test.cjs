@@ -144,11 +144,11 @@ test('算法版本常量：编译产物 + 源码文本 + 冗余声明三方一�
   assert.deepEqual(loaded.failures, [])
   assert.deepEqual(loaded.constants, fixtures.SOURCE_CONSTANTS)
   assert.deepEqual(loaded.constants, {
-    algorithm: 'motion-v3',
-    diagnosticAlgorithm: 'motion-v3',
+    algorithm: 'trusted-v2.1.0',
+    diagnosticAlgorithm: 'trusted-v2.0.0',
     bundle: 2,
     routeModel: 3,
-    parameter: 'motion-trend-1',
+    parameter: 'evidence-1',
   })
   assert.ok(
     loaded.notes.some((note) => note.includes('编译产物')),

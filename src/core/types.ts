@@ -34,11 +34,13 @@ export interface ManualMark {
   type: 'turn' | 'floor'
   atMs: number          // 相对采集开始的毫秒时间戳
   floor?: number        // type='floor' 时为该标记对应的楼层
-  estimatedFloor?: number // 标记之前的估计值，供独立核对，不被人工值覆盖。
   note?: string
 }
 
 export interface SensorSample {
+  /** Only present on a real pressure event; milliseconds on the acquisition clock. */
+  pressureAt?: number
+  sensorKind?: 'motion' | 'pressure'
   t: number
   ax: number
   ay: number
@@ -93,8 +95,6 @@ export interface RouteSegment {
   ascentM: number
   stepCount: number
   features: number[][]
-  turnCount?: number
-  boundaryConfirmed?: boolean
 }
 
 export interface DeviceFingerprint {
@@ -129,7 +129,9 @@ export interface InferredRoute {
 }
 
 export interface RouteTemplate {
-  preparation?: import('./route-preparation').RoutePreparation
+  recognitionVersion?: 'motion-v3' | 'baro-v1'
+  building?: BuildingTemplate
+  floorHeights?: number[]
   id: string
   name: string
   startFloor: number
@@ -154,15 +156,6 @@ export interface RouteTemplate {
   // 新训练生成的模板只按合格轮次统计学习；缺省保留旧模板的初始学习基线。
   learningProvenance?: 'training_rounds'
   learning?: RouteLearningModel
-  motionReference?: {
-    version: 1
-    carryMode: CarryMode
-    allBoundariesMarked: boolean
-    checkedRuns: number
-    checkedDays: string[]
-    checkedSessionIds?: string[]
-    floorAnchors: Array<{ floor: number; atMs: number }>
-  }
   deviceCapabilities?: {
     barometerAvailable: boolean | 'unknown'
     effectiveSamplingHz: number | null
@@ -252,9 +245,6 @@ export interface RecognitionEndState {
 }
 
 export interface ClimbSession {
-  floorConfirmation?: 'automatic' | 'manual' | 'pending'
-  recognitionVersion?: 'motion-v3'
-  manualFloorMarks?: ManualMark[]
   id: string
   evidenceId?: string
   templateId: string
@@ -305,10 +295,6 @@ export interface RecognitionSnapshot {
   candidateFloor?: number
   canAutoComplete: boolean
   activeSensorSources: RecognitionEvidenceSource[]
-  floorStatus?: 'estimated' | 'needs_confirmation'
-  pressureDirection?: 'up' | 'down' | 'level' | 'unknown'
-  pressureReliable?: boolean
-  motionActivity?: 'stairs_up' | 'stairs_down' | 'walking' | 'elevator' | 'waiting' | 'uncertain'
 }
 
 // 爬楼路线图：基于人工楼层标记分段后的单层数据
@@ -391,9 +377,10 @@ export interface RoundCorrection {
 }
 
 export interface WorkoutRound {
-  floorConfirmation?: 'automatic' | 'manual' | 'pending'
-  recognitionVersion?: 'motion-v3'
-  manualFloorMarks?: ManualMark[]
+  recognitionVersion?: 'motion-v3' | 'baro-v1'
+  estimated?: boolean
+  buildingAnchors?: BuildingAnchor[]
+  descentDetectedAt?: number
   id: string
   /** 新训练按实际楼层差计算；未标记的历史记录保留原成绩口径。 */
   floorCounting?: 'transitions'
@@ -439,6 +426,7 @@ export interface WorkoutRound {
 }
 
 export interface ClimbWorkout {
+  recognitionVersion?: 'motion-v3' | 'baro-v1'
   id: string
   trackingMode?: TrackingMode
   floorCounting?: 'transitions'
@@ -535,6 +523,8 @@ export interface WorkoutSummary {
 }
 
 export interface ActiveWorkoutCheckpoint {
+  recognitionVersion?: 'motion-v3' | 'baro-v1'
+  baroWorkout?: ClimbWorkout
   workoutId: string
   trackingMode?: TrackingMode
   floorCounting?: 'transitions'
@@ -610,4 +600,35 @@ export interface PlanProgress {
   skippedPhases: PlanPhaseKind[]
   /** 剩余轮数；轮数由目标决定时为 'unknown'。 */
   remainingRounds: number | 'unknown'
+}
+
+/** baro-v1 uses floor transitions, never the numeric difference across floor zero. */
+export interface BuildingAnchor {
+  floor: number
+  at: number
+  heightM?: number
+  steps: number
+  turns: number
+  durationMs: number
+  estimated?: boolean
+  corrected?: boolean
+}
+export interface BuildingFloor {
+  floor: number
+  cumulativeHeightM?: number
+  heightM?: number
+  steps: number
+  turns: number
+  durationMs: number
+  estimated: boolean
+  heightHistory: number[]
+}
+export interface BuildingTemplate {
+  schemaVersion: 1
+  recognitionVersion: 'baro-v1'
+  startFloor: number
+  floors: BuildingFloor[]
+  calibratedAt: number
+  updatedAt: number
+  source: 'calibration' | 'legacy'
 }

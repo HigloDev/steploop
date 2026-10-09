@@ -85,14 +85,12 @@ async function analyzeWorkoutEvidence(inputPath, outputDirectory) {
   const workout = header.workout
   const rounds = workout.rounds.map(round => {
     const firstCorrection = round.corrections?.[0]
-    const actualClimb = round.floorConfirmation === 'pending' ? 0 : round.floorCounting === 'transitions'
+    const actualClimb = round.floorCounting === 'transitions'
       ? Math.max(0, round.finalFloor - round.startFloor) : round.floorsCompleted
     return {
       roundNumber: round.roundNumber, startFloor: round.startFloor,
       detectedFloor: firstCorrection?.before?.finalFloor ?? phases.get(`${round.roundNumber}:ascending`)?.detectedFloor ?? round.finalFloor,
-      confirmedFloor: round.floorConfirmation === 'pending' ? undefined : round.finalFloor,
-      floorConfirmation: round.floorConfirmation, manualFloorMarks: round.manualFloorMarks ?? [],
-      floors: actualClimb, steps: round.steps,
+      confirmedFloor: round.finalFloor, floors: actualClimb, steps: round.steps,
       climbingMs: round.durationMs, confidence: round.confidence,
       corrections: round.corrections ?? [],
     }
@@ -118,7 +116,7 @@ async function analyzeWorkoutEvidence(inputPath, outputDirectory) {
     `缺段 ${gaps.length} 项；留存丢失 ${losses.length} 项。${header.missingEvidenceReason ?? ''}`, '',
     '| 轮次 | 起点 | 自动识别 | 确认终点 | 爬升层数 | 净爬楼毫秒 | 修正次数 |',
     '|---|---|---|---|---|---|---|',
-    ...rounds.map(round => `| ${round.roundNumber} | ${round.startFloor} | ${round.detectedFloor ?? '未知'} | ${round.confirmedFloor ?? '待确认'} | ${round.floors} | ${round.climbingMs} | ${round.corrections.length} |`), '',
+    ...rounds.map(round => `| ${round.roundNumber} | ${round.startFloor} | ${round.detectedFloor ?? '未知'} | ${round.confirmedFloor} | ${round.floors} | ${round.climbingMs} | ${round.corrections.length} |`), '',
     '传感器时间线见 sensor-timeline.csv；原始识别、人工修正、语音结果与缺段详见 analysis.json。',
     '本报告整理已记录的证据，不把气压估算或模拟样本当作真实楼层准确率验收。', '',
   ].join('\n')

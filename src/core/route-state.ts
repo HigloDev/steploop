@@ -1,5 +1,5 @@
 import { RouteTemplate } from './types'
-import { getFloorAchievementCount } from './floors'
+import { getFloorAchievementCount, getFloorTransitionCount } from './floors'
 
 /**
  * 新建路线只有地点信息，终点楼层必须由真实采集确认。
@@ -7,9 +7,9 @@ import { getFloorAchievementCount } from './floors'
  */
 export function hasKnownRouteEnd(route: RouteTemplate): boolean {
   return (
-    route.segments.length > 0 &&
+    (route.segments.length > 0 || (route.building?.floors.length ?? 0) > 0) &&
     route.endFloor > route.startFloor &&
-    (route.totalAscentM > 0 || Boolean(route.preparation))
+    route.totalAscentM > 0
   )
 }
 
@@ -17,5 +17,5 @@ export function getKnownFloorsPerRound(
   route: RouteTemplate,
 ): number | undefined {
   if (!hasKnownRouteEnd(route)) return undefined
-  return getFloorAchievementCount(route.startFloor, route.endFloor)
+  return (route.recognitionVersion === 'baro-v1' ? getFloorTransitionCount : getFloorAchievementCount)(route.startFloor, route.endFloor)
 }

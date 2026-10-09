@@ -14,7 +14,7 @@ import { NativeChoice } from '../components/native-choice'
 import { BackgroundTrainingReadiness } from '../components/background-training-readiness'
 import { voiceModeChoice, voiceModePreferences } from '../services/workout-voice-settings'
 import { Header } from '../components/Header'
-import { Card } from '../components/ui'
+import { Card, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import {
@@ -33,8 +33,32 @@ import {
 import { exportWorkoutCsv } from '../services/export-csv'
 import { isLocalDownloadExportAvailable } from '../services/local-download-export'
 import { isBackgroundTrainingSupported } from '../services/background-training'
+import { listRoutes } from '../services/storage'
+import { listWorkouts } from '../services/workout-storage'
+import {
+  RouteLearningStage,
+  summarizeRouteLearning,
+} from '../core/route-learning'
 
 const APP_VERSION = appConfig.expo.version
+
+interface RouteTrustRow {
+  id: string
+  name: string
+  stage: RouteLearningStage
+  stageLabel: string
+  validCount: number
+  remainingCount: number
+}
+
+function trustPillTone(
+  stage: RouteLearningStage,
+): 'default' | 'good' | 'warn' | 'danger' {
+  if (stage === 'verified' || stage === 'usable') return 'good'
+  if (stage === 'needs_review') return 'danger'
+  if (stage === 'learning') return 'warn'
+  return 'default'
+}
 
 export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>) {
   const theme = useTheme()
@@ -47,6 +71,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   const [exportMessage, setExportMessage] = useState('')
   const [importMessage, setImportMessage] = useState('')
   const [prefsWriteError, setPrefsWriteError] = useState('')
+  const [routeTrust, setRouteTrust] = useState<RouteTrustRow[]>([])
 
   useEffect(() => {
     let mounted = true
@@ -58,6 +83,30 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     return () => { mounted = false; unsubscribe() }
   }, [navigation])
 
+  useEffect(() => {
+    const loadTrust = () => {
+      Promise.all([listRoutes(), listWorkouts()])
+        .then(([routes, workouts]) => {
+          setRouteTrust(
+            routes.map((route) => {
+              const learning = summarizeRouteLearning(route, workouts)
+              return {
+                id: route.id,
+                name: route.name,
+                stage: learning.stage,
+                stageLabel: learning.stageLabel,
+                validCount: learning.validCount,
+                remainingCount: learning.remainingCount,
+              }
+            }),
+          )
+        })
+        .catch(() => undefined)
+    }
+    loadTrust()
+    const unsubscribe = navigation.addListener('focus', loadTrust)
+    return unsubscribe
+  }, [navigation])
 
   const update = async (patch: Partial<Prefs>) => {
     const next = await savePreferences(patch)
@@ -313,12 +362,49 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             <Pressable accessibilityRole="button" accessibilityLabel="体重加一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(1)}><Text style={styles.weightButtonText}>＋</Text></Pressable>
           </View>
           <View style={styles.divider} />
+          <Pressable accessibilityRole="button" style={styles.row} onPress={() => navigation.navigate('Routes')}>
+            <View style={styles.rowText}><Text style={styles.rowTitle}>我的路线</Text><Text style={styles.rowDesc}>选择、改名和管理训练路线</Text></View>
+            <Feather name="chevron-right" size={20} color={theme.mutedStrong} />
+          </Pressable>
         </Card>
 
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>锁屏与后台</Text></View>
         <Card style={styles.group}><BackgroundTrainingReadiness /></Card>
 
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>数据与帮助</Text></View>
+        <Disclosure title="路线学习" summary={`${routeTrust.length} 条路线`}>
+        <View style={styles.detailGroup}>
+          <View style={styles.rowText}>
+            <Text style={styles.rowDesc}>人工确认的实际成果会保留；路线学习只采用可验证的训练数据。</Text>
+          </View>
+          <View style={styles.divider} />
+          {routeTrust.length === 0 ? (
+            <Text style={styles.messageText}>
+              还没有路线。完成首次采集后，这里会显示每条路线的学习进度。
+            </Text>
+          ) : (
+            routeTrust.map((item) => (
+              <View key={item.id} style={styles.row}>
+                <View style={styles.rowText}>
+                  <Text style={styles.rowTitle}>{item.name}</Text>
+                  <Text style={styles.rowDesc}>
+                    {item.stage === 'verified'
+                      ? '已验证 · 多次可信数据一致'
+                      : item.remainingCount > 0
+                        ? `还差 ${item.remainingCount} 次可信训练可验证 · ${item.validCount}/5`
+                        : item.stageLabel}
+                  </Text>
+                </View>
+                <Pill tone={trustPillTone(item.stage)}>{item.stageLabel}</Pill>
+              </View>
+            ))
+          )}
+          <Text style={styles.messageText}>
+            学习进度代表本地数据积累，识别准确率还需真实楼梯验证。
+          </Text>
+        </View>
+
+        </Disclosure>
         <Disclosure title="备份与导出">
         <View style={styles.detailGroup}>
           <Pressable accessibilityRole="button" style={styles.row} onPress={() => { void handleExport() }} disabled={exporting}>
@@ -344,7 +430,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           <View style={styles.divider} />
           <Pressable accessibilityRole="button" style={styles.row} onPress={handleExportCsv} disabled={exportingCsv}>
             <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>导出成绩表</Text>
+              <Text style={styles.rowTitle}>导出 CSV</Text>
               <Text style={styles.rowDesc}>训练记录表格，可用 Excel 打开</Text>
             </View>
             <Text style={styles.rowAction}>{exportingCsv ? '导出中…' : '导出'}</Text>
@@ -399,11 +485,11 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             onPress={() =>
               Alert.alert(
                 '如何判断爬楼',
-                '先带手机逐层熟悉路线，再检查它能不能认对。平时参考这段楼梯的脚步和转弯；气压只帮助判断上楼、下楼等变化，不按固定高度直接换算楼层。\n\n' +
+                '手机结合脚步、转弯和气压变化推算楼层。气压用于估算上升高度，路线学习后会参考这条路线的动作与高度。\n\n' +
                   '当前算法每层还要求识别到两次完整转弯；不同楼梯或携带方式可能导致报层延迟，正在用真实采样核对。缺少气压时，估算精度会下降。\n\n' +
                   '当前楼层与爬升层数不同：从 1 楼到 2 楼，爬升 1 层。新训练从 1 到 15 楼记为爬升 14 层；未标新口径的旧成绩保留原值。\n\n' +
                   (isBackgroundTrainingSupported()
-                    ? '正式锻炼时，这个 Android 版本可以在锁屏后继续记录，并显示通知。系统强制关闭或权限改变仍可能打断记录；结束时可以确认实际楼层。熟悉路线时，请保持页面打开。\n\n'
+                    ? '当前 Android 完整版本可在锁屏和后台继续采样，训练期间会显示持续通知。系统强制停止或撤销权限可能中断采集；数据缺段会保留，结束时始终可以确认实际楼层。\n\n'
                     : '训练中请保持屏幕点亮。锁屏或切到其它应用时，系统会暂停传感器，这段时间的楼层不会被记录。返回后会提示后台缺段，结束时可手动修正最终楼层。\n\n') +
                   '携带方式变化可能影响识别，你可以随时确认实际楼层和结束本轮。',
                 [{ text: '知道了' }],

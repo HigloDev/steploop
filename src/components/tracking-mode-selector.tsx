@@ -7,7 +7,7 @@ import { useTheme } from '../theme'
 export const TRACKING_MODES: Array<{ value: TrackingMode; label: string; description: string }> = [
   { value: 'manual', label: '手动', description: '由你结束本轮、确认返回和开始下一轮。' },
   { value: 'automatic', label: '自动', description: '自动识别进度，在结束本轮、返回和下一轮时由你确认。' },
-  { value: 'full_auto', label: '自动衔接', description: '尝试自动结束并接着记录；返回起点仍由你确认，拿不准的楼层留待确认。' },
+  { value: 'full_auto', label: '全自动', description: '根据爬楼和电梯证据衔接轮次；识别不准时随时手动接管。' },
 ]
 
 export function TrackingModeSelector({ value, onChange, disabled = false, compact = false }: {

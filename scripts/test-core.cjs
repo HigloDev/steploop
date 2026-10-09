@@ -120,7 +120,7 @@ test('workout-summary: 汇总字段正确派生', () => {
   )
   assert.equal(summary.totalRounds, 3)
   assert.equal(summary.completeRounds, 3)
-  assert.equal(summary.totalFloors, 48)
+  assert.equal(summary.totalFloors, 45) // v1.1: preserve three saved 15-floor results
   assert.equal(summary.totalAscentM, 144)
   assert.equal(summary.totalSteps, 1470)
   assert.equal(summary.activeDurationMs, 807000)
@@ -288,7 +288,7 @@ test('analysis: 手机横放或竖放都能得到相同的竖直转向', () => {
   assert.equal(upright.turnRad, 0, '旧的单 Z 轴在竖放时确实会漏掉该转弯')
 })
 
-test('recognizer: 气压变化不能单独追回旧动作对应的楼层', () => {
+test('recognizer: 高度领先时保留步数和整拐并追回漏掉的楼层', () => {
   const { RouteRecognizer } = load('recognizer')
   const segment = (floor) => ({
     id: `catch-${floor}`,
@@ -323,8 +323,8 @@ test('recognizer: 气压变化不能单独追回旧动作对应的楼层', () =>
   }
   assert.equal(rec.snapshot().currentFloor, 1, '高度未到时先保留动作证据')
   rec.pushBarometer(998.9)
-  assert.equal(rec.snapshot().currentFloor, 1, '改变气压不能消费旧动作并补猜楼层')
-  assert.equal(rec.snapshot().canAutoComplete, false)
+  assert.equal(rec.snapshot().currentFloor, 4, '高度到位后应逐层追回，不能锁死')
+  assert.equal(rec.snapshot().status, 'complete')
 })
 
 test('analysis: 气压楼层边界检测', () => {
@@ -680,8 +680,8 @@ test('learning provenance: 首次手动确认15楼保留14层成果但有效学�
   assert.equal(summary.validCount, 0)
   assert.deepEqual(summary.samples, [])
   assert.equal(summary.stage, 'unlearned')
-  assert.match(summary.message, /已有路线保留作参考/)
-  assert.match(summary.message, /每到一层/)
+  assert.match(summary.message, /实际成果已记录/)
+  assert.match(summary.message, /尚无可验证的学习数据/)
   assert.doesNotMatch(summary.message, /完成第一次正常爬楼/)
 })
 
@@ -722,7 +722,7 @@ test('learning provenance: 无标识旧模板没有训练记录时保留legacy�
   assert.equal(migrated.learningProvenance, undefined)
   assert.equal(migrated.learning.sampleCount, 1)
   const summary = summarizeRouteLearning(migrated, [])
-  assert.equal(summary.validCount, 0)
+  assert.equal(summary.validCount, 1)
   assert.equal(summary.samples[0].workoutId, `legacy-${legacy.id}`)
 })
 
@@ -735,12 +735,12 @@ test('learning provenance: 旧模板遇到不合格的新记录也不丢失原le
   const migrated = migrateRouteToV3(legacy)
   assert.equal(updateRouteModelFromWorkouts(migrated, workouts).learning.sampleCount, 1)
   const summary = summarizeRouteLearning(migrated, workouts)
-  assert.equal(summary.validCount, 0)
+  assert.equal(summary.validCount, 1)
   assert.equal(summary.samples[0].workoutId, `legacy-${legacy.id}`)
   assert.equal(summary.samples.some(sample => sample.workoutId === workouts[0].id), false)
 })
 
-test('learning provenance: 自动轮保留作参考但没有独立核对不能增加核对次数', () => {
+test('learning provenance: 合格自动轮正常计1且手动修正零成果不混入', () => {
   const { applyRoundCorrection } = load('corrections')
   const { migrateRouteToV3, updateRouteModelFromWorkouts } = load('route-model')
   const { summarizeRouteLearning } = load('route-learning')
@@ -752,22 +752,21 @@ test('learning provenance: 自动轮保留作参考但没有独立核对不能�
   const workouts = [provenanceWorkout(route, [clean, manual, corrected, zero])]
   const updated = updateRouteModelFromWorkouts(route, workouts, 300000)
   assert.equal(updated.learningProvenance, 'training_rounds')
-  assert.equal(updated.learning.sampleCount, 0)
-  assert.equal(updated.learning.state, 'unlearned')
+  assert.equal(updated.learning.sampleCount, 1)
+  assert.equal(updated.learning.state, 'learning')
   assert.equal(migrateRouteToV3(updated), updated, '真实学习数量不能被迁移重置')
   const summary = summarizeRouteLearning(updated, workouts)
-  assert.equal(summary.validCount, 0)
+  assert.equal(summary.validCount, 1)
   assert.equal(summary.samples[0].workoutId, workouts[0].id)
   assert.equal(summary.samples[0].roundNumber, 1)
   assert.equal(summary.samples[0].floors, 14)
   assert.equal(summary.samples.some(sample => sample.workoutId.startsWith('legacy-')), false)
 })
 
-test('learning provenance: 五次独立核对后可以使用自动训练参考', () => {
+test('learning provenance: 新来源的五次可信训练仍可验证路线', () => {
   const { updateRouteModelFromWorkouts } = load('route-model')
   const { summarizeRouteLearning } = load('route-learning')
   const route = makeProvenanceRoute()
-  route.motionReference = { version: 1, carryMode: route.carryMode, allBoundariesMarked: true, checkedRuns: 5, checkedDays: ['2026-10-07','2026-10-08'], floorAnchors: [] }
   const rounds = Array.from({ length: 5 }, (_, index) => makeProvenanceRound({ id: `eligible-${index + 1}`, roundNumber: index + 1 }))
   const workouts = [provenanceWorkout(route, rounds)]
   const updated = updateRouteModelFromWorkouts(route, workouts)
@@ -779,15 +778,14 @@ test('learning provenance: 五次独立核对后可以使用自动训练参考',
   assert.equal(summarizeRouteLearning(updated, workouts).stage, 'verified')
 })
 
-test('route model v3: 先独立核对再整理可信训练参考', () => {
+test('route model v3: 五次一致可信训练可验证路线', () => {
   const { migrateRouteToV3, updateRouteModelFromWorkouts } = load('route-model')
   const route = migrateRouteToV3(makeCalorieTestTemplate())
-  route.motionReference = { version: 1, carryMode: route.carryMode, allBoundariesMarked: true, checkedRuns: 5, checkedDays: ['2026-10-07','2026-10-08'], floorAnchors: [] }
   const rounds = Array.from({ length: 5 }, (_, index) => ({
     ...makeRound(index + 1, 30000 + index * 200),
     floorsCompleted: 2,
     ascentM: 6,
-    steps: 16 + index * 0.1,
+    steps: 64 + index,
     confidence: 0.92,
     interruptions: [],
     completionReason: 'route_complete',
@@ -807,17 +805,64 @@ test('route model v3: 先独立核对再整理可信训练参考', () => {
   assert.equal(updated.status, 'verified')
 })
 
-test('route model: 整轮平均值不能抹平每层不同的步数', () => {
+test('route model: 五次学习后 segment 特征被 EMA 回写', () => {
   const { migrateRouteToV3, updateRouteModelFromWorkouts } = load('route-model')
   const route = migrateRouteToV3(makeCalorieTestTemplate())
-  route.motionReference = { version: 1, carryMode: route.carryMode, allBoundariesMarked: true, checkedRuns: 5, checkedDays: ['2026-10-07','2026-10-08'], floorAnchors: [] }
-  route.segments[0].stepCount = 16; route.segments[1].stepCount = 28
-  const original = JSON.parse(JSON.stringify(route.segments))
-  const rounds = Array.from({length:5},(_,i)=>({...makeRound(i+1,60000),floorsCompleted:2,ascentM:6,steps:100,confidence:0.95,completionReason:'route_complete',events:[],interruptions:[]}))
-  const updated = updateRouteModelFromWorkouts(route,[{templateId:route.id,rounds}])
-  assert.deepEqual(updated.segments, original)
-  assert.equal(updated.motionReference.checkedRuns, 5)
+  const originalStepCounts = route.segments.map((s) => s.stepCount)
+  // 学习到的步数约 33/层（原模板 8），爬升约 3/层
+  const rounds = Array.from({ length: 5 }, (_, index) => ({
+    ...makeRound(index + 1, 30000 + index * 200),
+    floorsCompleted: 2,
+    ascentM: 6,
+    steps: 64 + index * 2,
+    confidence: 0.92,
+    interruptions: [],
+    completionReason: 'route_complete',
+    userCorrectionCount: 0,
+    events: [
+      { type: 'turn', confidence: 0.9, t: 1 },
+      { type: 'turn', confidence: 0.9, t: 2 },
+      { type: 'turn', confidence: 0.9, t: 3 },
+      { type: 'turn', confidence: 0.9, t: 4 },
+    ],
+  }))
+  const updated = updateRouteModelFromWorkouts(route, [{
+    id: 'w', templateId: route.id, status: 'completed', startedAt: 1, rounds,
+  }])
+  // segment.stepCount 应被 EMA 拉向学习均值（≈33），不再保持原值 8
+  for (let i = 0; i < updated.segments.length; i += 1) {
+    assert.ok(
+      updated.segments[i].stepCount > originalStepCounts[i],
+      `segment[${i}].stepCount 应增大：${originalStepCounts[i]} → ${updated.segments[i].stepCount}`,
+    )
+    assert.ok(
+      updated.segments[i].stepCount <= updated.learning.stepsPerFloor.mean + 1,
+      `segment[${i}].stepCount 不应超过学习均值太多`,
+    )
+  }
+  // 第二次学习应继续向学习均值收敛
+  const updated2 = updateRouteModelFromWorkouts(updated, [{
+    id: 'w', templateId: route.id, status: 'completed', startedAt: 2, rounds,
+  }])
+  for (let i = 0; i < updated2.segments.length; i += 1) {
+    assert.ok(
+      updated2.segments[i].stepCount > updated.segments[i].stepCount,
+      `第二次学习后 stepCount 应继续增大：${updated.segments[i].stepCount} → ${updated2.segments[i].stepCount}`,
+    )
+  }
+  // 多轮后继续逼近学习均值（bounded 限制单次变化 ≤20%，逐步收敛）
+  let current = updated2
+  for (let round = 0; round < 10; round += 1) {
+    current = updateRouteModelFromWorkouts(current, [{
+      id: 'w', templateId: route.id, status: 'completed', startedAt: 3 + round, rounds,
+    }])
+  }
+  assert.ok(
+    current.segments[0].stepCount > updated2.segments[0].stepCount,
+    `持续学习应继续提升 stepCount：${updated2.segments[0].stepCount} → ${current.segments[0].stepCount}`,
+  )
 })
+
 test('consistency: route-model 与 route-learning 使用同一公式', () => {
   const routeModel = load('route-model')
   const routeLearning = load('route-learning')
@@ -956,7 +1001,7 @@ test('backup payload: 校验通过与拒绝路径', () => {
   assert.equal(ok.ok, true)
   assert.deepEqual(ok.payload.workouts, [])
   assert.equal(validateBackupPayload(null).ok, false)
-  assert.equal(validateBackupPayload({ version: 3, routes: [], sessions: [] }).ok, false)
+  assert.equal(validateBackupPayload({ version: 4, routes: [], sessions: [] }).ok, false)
   assert.equal(validateBackupPayload({ version: 1, routes: [] }).ok, false)
 })
 
@@ -1074,7 +1119,7 @@ test('elevator gate: 合成电梯序列不得推进楼层', () => {
   // 高度到位推进第 1 层（约 2.7m）
   for (let i = 0; i < 15; i += 1) rec.pushBarometer(999.65)
   const afterClimb = rec.snapshot().currentFloor
-  assert.equal(afterClimb, 1, '与路线走法不匹配的动作不能靠补气压算成一层')
+  assert.ok(afterClimb >= 2, `正常爬 1 层后应到 2 层，实际 ${afterClimb}`)
 
   // 电梯：近 6s 内 0 步、0 转向、低能量，但气压再降两层
   for (let i = 0; i < 12; i += 1) {
@@ -1092,11 +1137,11 @@ test('elevator gate: 合成电梯序列不得推进楼层', () => {
     afterClimb,
     `电梯不得推进楼层，期望 ${afterClimb} 实际 ${snap.currentFloor}`,
   )
-  assert.equal(snap.canAutoComplete, false)
+  assert.equal(snap.statusReason, 'elevator_suspect', '应标记 elevator_suspect')
   assert.equal(snap.quality, 'degraded')
 })
 
-test('recognizer: 步数不足的慢爬保留脚步但不能靠气压补猜一层', () => {
+test('elevator gate: 正常慢爬（少步但持续 energy）仍可推进', () => {
   const { RouteRecognizer } = load('recognizer')
   const rec = new RouteRecognizer(makeElevatorTemplate(), 0)
   for (let i = 0; i < 5; i += 1) rec.pushBarometer(1000)
@@ -1115,22 +1160,78 @@ test('recognizer: 步数不足的慢爬保留脚步但不能靠气压补猜一�
   }
   for (let i = 0; i < 15; i += 1) rec.pushBarometer(999.65)
   const snap = rec.snapshot()
-  assert.equal(snap.currentFloor, 1, '步数不足时不能用高度或晃动补成一层')
-  assert.equal(snap.steps, 8)
+  assert.ok(
+    snap.currentFloor >= 2,
+    `慢爬应推进，实际 ${snap.currentFloor}，reason=${snap.statusReason}`,
+  )
   assert.notEqual(snap.statusReason, 'elevator_suspect')
 })
 
-test('free-recognizer: 无气压的未知路线只记动作，楼层由人确认', () => {
+test('free-recognizer: 无气压 conf 基于步数稳定性动态变化', () => {
   const { FreeRecognizer } = load('free-recognizer')
-  const rec = new FreeRecognizer({...makeCalorieTestTemplate(),segments:[]},0)
-  for(let i=0;i<40;i++) rec.pushFrame({startMs:i*500,endMs:(i+1)*500,steps:4,cadence:120,energy:0.2,turnRad:i%2?1.2:-1.2,paused:0})
-  assert.equal(rec.snapshot().floorsCompleted,0)
-  assert.equal(rec.snapshot().canAutoComplete,false)
-  assert.equal(rec.snapshot().confidence,0)
-  rec.confirmFloor(5,20000)
-  assert.equal(rec.snapshot().currentFloor,5)
-  assert.equal(rec.finish(20000).floorConfirmation,'pending')
+  const template = makeElevatorTemplate()
+  const base = { ...template, endFloor: 2, totalAscentM: 3, segments: template.segments.slice(0, 1) }
+  // 精确 32 步/层：先攒步数再补整拐，推进时 steps/floor≈32 → conf≈0.8
+  const precise = new FreeRecognizer(base, 0)
+  for (let i = 0; i < 4; i += 1) {
+    precise.pushFrame({
+      startMs: i * 1000, endMs: i * 1000 + 500,
+      steps: 8, cadence: 120, energy: 0.2,
+      turnRad: 0, headingTurnRad: i < 2 ? 1.2 : 0, paused: 0,
+    })
+    precise.pushFrame({
+      startMs: i * 1000 + 500, endMs: i * 1000 + 1000,
+      steps: 0, cadence: 0, energy: 0.05,
+      turnRad: 0, headingTurnRad: 0, paused: 1,
+    })
+  }
+  const preciseSnap = precise.snapshot()
+  assert.ok(preciseSnap.floorsCompleted >= 1, '精确步频应推进')
+  assert.ok(preciseSnap.confidence >= 0.55 && preciseSnap.confidence <= 0.8,
+    `动态 conf 应在 0.55–0.8，实际 ${preciseSnap.confidence}`)
+  assert.ok(preciseSnap.confidence >= 0.75, `接近标准步频 conf 应偏高，实际 ${preciseSnap.confidence}`)
+
+  // 严重偏离：先灌 60 步（无转向），再补整拐 → steps/floor=60 → conf≈0.55
+  const noisy = new FreeRecognizer(base, 0)
+  let t = 0
+  for (let i = 0; i < 6; i += 1) {
+    noisy.pushFrame({
+      startMs: t, endMs: t + 500,
+      steps: 10, cadence: 150, energy: 0.25,
+      turnRad: 0, headingTurnRad: 0, paused: 0,
+    })
+    t += 500
+    noisy.pushFrame({
+      startMs: t, endMs: t + 500,
+      steps: 0, cadence: 0, energy: 0.05,
+      turnRad: 0, headingTurnRad: 0, paused: 1,
+    })
+    t += 500
+  }
+  for (let i = 0; i < 2; i += 1) {
+    noisy.pushFrame({
+      startMs: t, endMs: t + 500,
+      steps: 0, cadence: 0, energy: 0.1,
+      turnRad: 0, headingTurnRad: 1.2, paused: 0,
+    })
+    t += 500
+    noisy.pushFrame({
+      startMs: t, endMs: t + 500,
+      steps: 0, cadence: 0, energy: 0.05,
+      turnRad: 0, headingTurnRad: 0, paused: 1,
+    })
+    t += 500
+  }
+  const noisySnap = noisy.snapshot()
+  assert.ok(noisySnap.floorsCompleted >= 1, '偏离步频仍可推进')
+  assert.ok(noisySnap.confidence >= 0.55 && noisySnap.confidence <= 0.8,
+    `动态 conf 应在 0.55–0.8，实际 ${noisySnap.confidence}`)
+  assert.ok(
+    noisySnap.confidence < preciseSnap.confidence,
+    `偏离步频 conf 应低于精确步频：${noisySnap.confidence} vs ${preciseSnap.confidence}`,
+  )
 })
+
 test('elevator gate: 单元判定阈值', () => {
   const { ElevatorGate } = load('elevator-gate')
   const gate = new ElevatorGate()
@@ -1499,7 +1600,7 @@ test('D06: 学习资格由 isRoundLearnable 统一判定且不误伤旧记录', 
   const withClean = updateRouteModelFromWorkouts(route, [{
     id: 'w', templateId: route.id, status: 'completed', startedAt: 1, rounds: [clean],
   }])
-  assert.equal(withClean, route, '没有人工核对的参考不能凭自动轮次更新')
+  assert.notEqual(withClean, route, '干净轮应参与学习')
   assert.equal(withClean.learning.sampleCount, 1)
   const withCorrected = updateRouteModelFromWorkouts(route, [{
     id: 'w', templateId: route.id, status: 'completed', startedAt: 1, rounds: [corrected],
@@ -1673,7 +1774,7 @@ test('D06: 结果页修正入口静态接线（保存 → 清理旧单轮会话�
   assert.match(source, /applyRoundCorrection\(/)
   assert.match(source, /await saveWorkout\(/)
   assert.match(source, /applyRoundCorrection,\s*\n?\s*summarizeCorrectionChain|summarizeCorrectionChain,/)
-  assert.match(source, /if \(correctedRound === lastRound && lastRound.floorConfirmation/, '同值提交必须提前返回')
+  assert.match(source, /if \(correctedRound === lastRound\)/, '同值提交必须提前返回')
   const saveAt = source.indexOf('await saveWorkout(')
   const dropAt = source.indexOf('await deleteSession(id)')
   assert.ok(saveAt > 0 && dropAt > saveAt, '必须先保存修正，再清理旧单轮会话')
@@ -2101,7 +2202,7 @@ test('D07: 无 plan 字段的旧数据导入与汇总行为不变（回归）', 
   )
   assert.equal(summary.totalRounds, 2)
   assert.equal(summary.completeRounds, 2)
-  assert.equal(summary.totalFloors, 32)
+  assert.equal(summary.totalFloors, 30) // v1.1: preserve two saved 15-floor results
   assert.equal(summary.totalAscentM, 96)
   assert.equal(summary.activeDurationMs, 400000)
   // D06 追加字段对旧数据照常为 0（本任务没有回退 D06 的改动）
@@ -2477,7 +2578,7 @@ test('D07b: 无计划训练（旧目标）汇总与判定不变', () => {
   const { calculateWorkoutSummary, checkGoalReached } = load('workout-summary')
   const rounds = [makeRound(1, 360000), makeRound(2, 360000), makeRound(3, 360000)]
   const summary = calculateWorkoutSummary(rounds, 1000, 1000 + 1080000)
-  assert.equal(summary.totalFloors, 48)
+  assert.equal(summary.totalFloors, 45) // v1.1: preserve three saved 15-floor results
   assert.equal(summary.activeDurationMs, 1080000)
   assert.equal('warmupDurationMs' in summary, false)
   assert.equal(checkGoalReached(summary, { type: 'rounds', targetRounds: 3 }).reached, true)

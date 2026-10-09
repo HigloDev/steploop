@@ -2105,17 +2105,21 @@ test('D11-C 后台暂停提示：偏好默认未看过、写入后持久化', as
   assert.equal(after.bodyWeightKg, before.bodyWeightKg)
 })
 
-test('D11-C 开始前说明按偏好显示，统一开始入口与帮助可用', () => {
+test('D11-C 旧入口保留说明，新训练在页面内提示后台限制与统一修改', () => {
   const fs = require('node:fs')
   const source = fs.readFileSync(path.join(__dirname, '..', 'src/services/workout-entry.ts'), 'utf8')
   assert.match(source, /backgroundPauseHintSeen === true/)
   assert.match(source, /savePreferences\(\{ backgroundPauseHintSeen: true \}\)/)
   assert.match(source, /后台缺段/)
   assert.match(source, /手动修正最终楼层/)
-  for (const page of ['TrainHome', 'WorkoutSetup']) {
+  for (const page of ['WorkoutSetup']) {
     const content = fs.readFileSync(path.join(__dirname, '..', `src/pages/${page}.tsx`), 'utf8')
     assert.match(content, /await confirmBackgroundRecording\(\)/)
   }
+  const training = fs.readFileSync(path.join(__dirname, '..', 'src/pages/BuildingWorkout.tsx'), 'utf8')
+  assert.match(training, /isBackgroundTrainingSupported/)
+  assert.match(training, /后台缺段/)
+  assert.match(training, /训练结束后统一修改楼层/)
   const settings = fs.readFileSync(path.join(__dirname, '..', 'src/pages/Settings.tsx'), 'utf8')
   assert.match(settings, /训练记录说明/)
   assert.match(settings, /锁屏或切到其它应用时，系统会暂停传感器/)
@@ -2405,25 +2409,4 @@ test('恢复服务生命周期：保存存储失败时不先停止采集，也�
   assert.equal(trainingStatus.running, true)
   assert.equal(checkpointLifecycleEvents.includes('stop'), false)
   assert.equal(checkpointLifecycleEvents.includes('clear'), false)
-})
-
-test('新路线检查绑定本机，来自另一部手机的检查不直接继承', async () => {
-  const device = loadService(path.join('services', 'preparation-device.js'))
-  const route = makeRoute('prepared-scope', '保留这条真实路线')
-  route.preparation = { version: 1, deviceKey: 'other-device', elevator: 'present', referenceRevision: 100,
-    runs: [{ id: 'teach', step: 'teach_first', passed: true }, { id: 'check', step: 'check_floors', passed: true }] }
-  const before = JSON.stringify(route)
-  const scoped = device.scopePreparationToDevice(route, 'this-device')
-  assert.equal(scoped.preparation.localChecksRequired, true)
-  assert.equal(scoped.preparation.runs[0].passed, true)
-  assert.equal(scoped.preparation.runs[1].passed, false)
-  assert.equal(JSON.stringify(route), before, 'read-time scoping must not mutate stored source')
-  assert.deepEqual(scoped.segments, route.segments)
-  assert.equal(device.scopePreparationToDevice(route, 'other-device'), route)
-})
-
-test('旧路线没有新检查字段时读取不改写旧记录', () => {
-  const device = loadService(path.join('services', 'preparation-device.js'))
-  const old = makeRoute('old-real-route', '旧路线仍然保留')
-  assert.equal(device.scopePreparationToDevice(old, 'local'), old)
 })

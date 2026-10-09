@@ -1,4 +1,5 @@
 import { ActiveWorkoutCheckpoint, ClimbWorkout } from '../core/types'
+import { aggregateBaroWorkout } from '../core/baro-workout'
 import { calculateWorkoutSummary, buildInterruptedRound } from '../core/workout-summary'
 import { hasKnownRouteEnd } from '../core/route-state'
 import { getFloorAchievementCount, getFloorTransitionCount } from '../core/floors'
@@ -88,6 +89,11 @@ export async function saveCheckpointAsCompleted(
     }
     // A failed stop/clear must not regenerate interrupted rounds or change the saved end time.
     return finishSavedCheckpoint(cp, alreadySaved)
+  }
+  if (cp.recognitionVersion === 'baro-v1' && cp.baroWorkout) {
+    const workout = aggregateBaroWorkout(cp.baroWorkout, cp.completedRounds, Date.now(), true)
+    await saveWorkout(workout)
+    return finishSavedCheckpoint(cp, workout)
   }
   const route = await getRoute(cp.templateId)
   if (!route) throw new Error('路线已不存在，请先保留这次未完成记录，再决定是否放弃。')

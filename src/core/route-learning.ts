@@ -1,7 +1,6 @@
 import { ClimbWorkout, RouteTemplate, WorkoutRound } from './types'
 import { isRoundLearnable } from './corrections'
 import { getFloorAchievementCount, getRoundAchievementCount } from './floors'
-import { hasCheckedMotionReference } from './route-motion'
 import {
   isLearningEligibleRound,
   variationScore,
@@ -102,7 +101,8 @@ export function summarizeRouteLearning(
     values.length
       ? values.reduce((sum, value) => sum + value, 0) / values.length
       : 0
-  const durationScore = variationScore(samples.map((sample) => sample.durationMs))
+  const floorScore = variationScore(samples.map((sample) => sample.floors))
+  const ascentScore = variationScore(samples.map((sample) => sample.ascentM))
   const stepScore = variationScore(samples.map((sample) => sample.steps))
   const consistency =
     validCount < 2
@@ -110,36 +110,50 @@ export function summarizeRouteLearning(
         ? 0.55
         : 0
       : weightedConsistency([
-          { score: durationScore, weight: 0.3 },
-          { score: stepScore, weight: 0.7 },
+          { score: floorScore, weight: 0.4 },
+          { score: ascentScore, weight: 0.4 },
+          { score: stepScore, weight: 0.2 },
         ])
 
-  const checked = route.motionReference?.checkedRuns ?? 0
-  const stage: RouteLearningStage = hasCheckedMotionReference(route) ? 'verified' : checked >= 3 ? 'usable'
-    : checked > 0 || (route.learningProvenance !== 'training_rounds' && route.segments.length) ? 'learning' : 'unlearned'
+  let stage: RouteLearningStage = 'unlearned'
+  if (validCount > 0 && validCount < 3) stage = 'learning'
+  if (validCount >= 3 && consistency >= 0.68) stage = 'usable'
+  if (validCount >= 5 && consistency >= 0.8) stage = 'verified'
+  if (validCount >= 3 && consistency < 0.55) stage = 'needs_review'
 
   const stageLabel: Record<RouteLearningStage, string> = {
-    unlearned: '尚未核对',
+    unlearned: '尚未学习',
     learning: '学习中',
-    usable: '仍在核对',
-    verified: '已多次核对',
+    usable: '基本可用',
+    verified: '路线已验证',
     needs_review: '需要继续确认',
+  }
+
+  const message: Record<RouteLearningStage, string> = {
+    unlearned: route.learningProvenance === 'training_rounds' && route.segments.length > 0
+      ? '实际成果已记录，路线尚无可验证的学习数据，请继续采集验证。'
+      : '完成第一次正常爬楼后，生成这条路线的初步数据。',
+    learning: `已有 ${validCount} 次有效数据，再积累 ${Math.max(
+      1,
+      3 - validCount,
+    )} 次可进行初步判断。`,
+    usable: '多次结果已经接近，可以正常训练；继续积累到约 5 次会更稳。',
+    verified: '多次爬楼结果稳定，这条路线已经形成可靠的参考。',
+    needs_review: '最近几次差异较大，应用会继续学习，不会强行确定路线。',
   }
 
   return {
     stage,
-    stageLabel: stage === 'learning' ? '还需核对' : stageLabel[stage],
-    validCount: checked,
-    targetCount: stage === 'verified' ? checked : 5,
-    remainingCount: Math.max(0, 5 - checked),
+    stageLabel: stageLabel[stage],
+    validCount,
+    targetCount: stage === 'verified' ? validCount : 5,
+    remainingCount: Math.max(0, 5 - validCount),
     consistency,
     averageFloors: average(samples.map((sample) => sample.floors)),
     averageAscentM: average(samples.map((sample) => sample.ascentM)),
     averageSteps: average(samples.map((sample) => sample.steps)),
     averageDurationMs: average(samples.map((sample) => sample.durationMs)),
     samples: samples.slice().reverse(),
-    message: !route.segments.length ? '完成第一次正常爬楼后，请确认实际楼层，并记下中途楼层。' : !route.motionReference?.allBoundariesMarked
-      ? '已有路线保留作参考。重新记录一次，每到一层点一下楼层标记，才能知道每层各自的走法。'
-      : `已由你核对 ${checked} 次，需要至少 5 次、跨 2 天；过程中请记下至少两个实际楼层。`,
+    message: message[stage],
   }
 }

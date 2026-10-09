@@ -25,10 +25,8 @@ import ResultScreen from './src/pages/Result'
 import PrivacyScreen from './src/pages/Privacy'
 import OnboardingScreen from './src/pages/Onboarding'
 import RouteProfileScreen from './src/pages/RouteProfile'
-import AddRouteScreen from './src/pages/AddRoute'
-import FamiliarizeScreen from './src/pages/Familiarize'
 import WorkoutSetupScreen from './src/pages/WorkoutSetup'
-import ClimbWorkoutScreen from './src/pages/ClimbWorkout'
+import ClimbWorkoutScreen from './src/pages/BuildingWorkout'
 import WorkoutResultScreen from './src/pages/WorkoutResult'
 import ShareStudioScreen from './src/pages/ShareStudio'
 import ClimbPreviewScreen from './src/pages/ClimbPreview'
@@ -121,8 +119,6 @@ export default function App() {
           <Stack.Screen name="Validate" component={ValidateScreen} />
           <Stack.Screen name="Result" component={ResultScreen} />
           <Stack.Screen name="RouteProfile" component={RouteProfileScreen} />
-          <Stack.Screen name="AddRoute" component={AddRouteScreen} />
-          <Stack.Screen name="Familiarize" component={FamiliarizeScreen} />
           <Stack.Screen name="WorkoutSetup" component={WorkoutSetupScreen} />
           <Stack.Screen name="ClimbWorkout" component={ClimbWorkoutScreen} />
           <Stack.Screen name="WorkoutResult" component={WorkoutResultScreen} />

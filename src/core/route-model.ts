@@ -1,16 +1,18 @@
 import { isRoundLearnable } from './corrections'
-import { hasCheckedMotionReference } from './route-motion'
 import {
   ClimbWorkout,
   DistributionSummary,
   RouteLearningModel,
+  RouteSegment,
   RouteTemplate,
   WorkoutRound,
 } from './types'
 
 export const ROUTE_MODEL_VERSION = 3 as const
-export const ROUTE_ALGORITHM_VERSION = 'motion-v3'
+export const ROUTE_ALGORITHM_VERSION = 'trusted-v2.1.0'
 
+// EMA 回写系数：学习均值向 segment 特征融合的步长。
+const FEATURE_EMA_ALPHA = 0.35
 
 function distribution(values: number[]): DistributionSummary {
   const safe = values.filter((value) => Number.isFinite(value) && value >= 0)
@@ -135,8 +137,6 @@ export function updateRouteModelFromWorkouts(
   atMs = Date.now(),
 ): RouteTemplate {
   const route = migrateRouteToV3(routeInput)
-  // 旧模型留作参考；不能靠自己预测的结果给自己增加“已核对”次数。
-  if (!hasCheckedMotionReference(route)) return route
   const rounds = workouts
     .filter((workout) => workout.templateId === route.id)
     .flatMap((workout) => workout.rounds)
@@ -156,15 +156,16 @@ export function updateRouteModelFromWorkouts(
   const durationDistribution = distribution(durations)
   const turnDistribution = distribution(turns)
   const stability = weightedConsistency([
-    { score: distributionVariationScore(stepDistribution), weight: 0.6 },
-    { score: distributionVariationScore(durationDistribution), weight: 0.3 },
-    { score: distributionVariationScore(turnDistribution), weight: 0.1 },
+    { score: distributionVariationScore(heightDistribution), weight: 0.4 },
+    { score: distributionVariationScore(stepDistribution), weight: 0.35 },
+    { score: distributionVariationScore(durationDistribution), weight: 0.2 },
+    { score: distributionVariationScore(turnDistribution), weight: 0.05 },
   ])
   const previous = route.learning
   const conflict =
-    Boolean(previous?.stepsPerFloor.mean) &&
-    Math.abs(stepDistribution.mean - previous!.stepsPerFloor.mean) /
-      previous!.stepsPerFloor.mean >
+    Boolean(previous?.floorHeightM.mean) &&
+    Math.abs(heightDistribution.mean - previous!.floorHeightM.mean) /
+      previous!.floorHeightM.mean >
       0.25
   const sampleCount = rounds.length
   const state: RouteLearningModel['state'] = conflict
@@ -189,10 +190,32 @@ export function updateRouteModelFromWorkouts(
     mean: bounded(next.mean, prior?.mean ?? 0),
   })
 
+  const learnedStepsPerFloor = boundedDistribution(
+    stepDistribution,
+    previous?.stepsPerFloor,
+  ).mean
+  const learnedAscentPerFloor = boundedDistribution(
+    heightDistribution,
+    previous?.floorHeightM,
+  ).mean
+  const updatedSegments: RouteSegment[] = route.segments.map((segment) => ({
+    ...segment,
+    stepCount: Math.max(
+      1,
+      Math.round(
+        segment.stepCount * (1 - FEATURE_EMA_ALPHA) +
+          learnedStepsPerFloor * FEATURE_EMA_ALPHA,
+      ),
+    ),
+    ascentM:
+      segment.ascentM * (1 - FEATURE_EMA_ALPHA) +
+      learnedAscentPerFloor * FEATURE_EMA_ALPHA,
+  }))
+
   return {
     ...route,
     algorithmVersion: ROUTE_ALGORITHM_VERSION,
-    segments: route.segments,
+    segments: updatedSegments,
     status:
       state === 'verified'
         ? 'verified'

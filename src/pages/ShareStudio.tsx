@@ -1,3 +1,4 @@
+import { workoutCalories } from '../core/calories'
 import { Feather } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
@@ -392,10 +393,7 @@ export default function ShareStudioScreen({
   }
 
   const posterWidth = Math.min(320, windowWidth - 64)
-  const calories = calculateStairCalories(
-    summary.activeDurationMs,
-    workout.bodyWeightKg ?? bodyWeightKg,
-  )
+  const calories = workoutCalories(workout)
   // D10：页面不再自己拼分享文案；隐私剔除结果（redacted）由纯函数给出，UI 只负责展示。
   const sharePayload = buildSharePayload({
     workout,
