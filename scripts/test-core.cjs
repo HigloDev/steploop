@@ -15,10 +15,10 @@ function load(module) {
 }
 
 // === floors：楼层口径 ===
-test('floors: 1层到15层为14段真实爬升、15层成绩', () => {
+test('floors: 1层到15层为14段真实爬升、统一按爬升段数（fusion-v1 起旧“到达口径”废弃）', () => {
   const { getFloorTransitionCount, getFloorAchievementCount } = load('floors')
   assert.equal(getFloorTransitionCount(1, 15), 14)
-  assert.equal(getFloorAchievementCount(1, 15), 15)
+  assert.equal(getFloorAchievementCount(1, 15), 14)
   assert.equal(getFloorTransitionCount(5, 5), 0)
   assert.equal(getFloorAchievementCount(5, 5), 0)
 })
@@ -120,7 +120,7 @@ test('workout-summary: 汇总字段正确派生', () => {
   )
   assert.equal(summary.totalRounds, 3)
   assert.equal(summary.completeRounds, 3)
-  assert.equal(summary.totalFloors, 48)
+  assert.equal(summary.totalFloors, 45)
   assert.equal(summary.totalAscentM, 144)
   assert.equal(summary.totalSteps, 1470)
   assert.equal(summary.activeDurationMs, 807000)
@@ -1333,15 +1333,15 @@ test('preflight: 腰包携带给出固定建议且不阻塞', () => {
 })
 
 // === D06：人工修正链 / 成绩来源 / 学习资格 ===
-// 复用的轮次夹具：1 层出发到达 12 层 = 12 层成绩，每层 3 米。
+// 复用的轮次夹具：1 层出发到达 12 层 = 爬升 11 层（统一口径），每层 3 米。
 function makeCorrectableRound(overrides = {}) {
   return {
     ...makeRound(1, 200000),
     startFloor: 1,
     targetFloor: 12,
     finalFloor: 12,
-    floorsCompleted: 12,
-    ascentM: 36,
+    floorsCompleted: 11,
+    ascentM: 33,
     confidence: 0.9,
     complete: true,
     completionReason: 'route_complete',
@@ -1371,11 +1371,11 @@ test('D06: 修正最终楼层保留原值、同步楼层与爬升、标记人工
   assert.equal(next.corrections[0].before.finalFloor, 12)
   assert.equal(next.corrections[0].after.finalFloor, 13)
   assert.equal(next.finalFloor, 13)
-  // floorsCompleted 用与展示同一口径（getFloorAchievementCount），ascentM 按每层爬升等比缩放
-  assert.equal(next.floorsCompleted, 13)
-  assert.equal(next.corrections[0].after.floorsCompleted, 13)
-  assert.equal(next.ascentM, 39, '每层 3 米 × 13 层')
-  assert.equal(next.corrections[0].after.ascentM, 39)
+  // floorsCompleted 用与展示同一口径（爬升段数），ascentM 按每层爬升重新计算
+  assert.equal(next.floorsCompleted, 12)
+  assert.equal(next.corrections[0].after.floorsCompleted, 12)
+  assert.equal(next.ascentM, 36, '每层 3 米 × 12 层')
+  assert.equal(next.corrections[0].after.ascentM, 36)
   assert.equal(next.trustworthy, false)
   assert.equal(next.completionSource, 'manual')
   assert.equal(next.userCorrectionCount, 1)
@@ -1443,8 +1443,8 @@ test('D06: 链式修正保留每一步原值', () => {
   assert.equal(twice.corrections[1].before.finalFloor, 13, '第二次修正的 before 是第一次的结果')
   assert.equal(twice.corrections[1].after.finalFloor, 14)
   assert.equal(twice.finalFloor, 14)
-  assert.equal(twice.floorsCompleted, 14)
-  assert.equal(twice.ascentM, 42)
+  assert.equal(twice.floorsCompleted, 13)
+  assert.equal(twice.ascentM, 39)
   assert.equal(twice.userCorrectionCount, 2)
   const chain = summarizeCorrectionChain(twice)
   assert.equal(chain.count, 2)
@@ -2101,7 +2101,7 @@ test('D07: 无 plan 字段的旧数据导入与汇总行为不变（回归）', 
   )
   assert.equal(summary.totalRounds, 2)
   assert.equal(summary.completeRounds, 2)
-  assert.equal(summary.totalFloors, 32)
+  assert.equal(summary.totalFloors, 30)
   assert.equal(summary.totalAscentM, 96)
   assert.equal(summary.activeDurationMs, 400000)
   // D06 追加字段对旧数据照常为 0（本任务没有回退 D06 的改动）
@@ -2477,7 +2477,7 @@ test('D07b: 无计划训练（旧目标）汇总与判定不变', () => {
   const { calculateWorkoutSummary, checkGoalReached } = load('workout-summary')
   const rounds = [makeRound(1, 360000), makeRound(2, 360000), makeRound(3, 360000)]
   const summary = calculateWorkoutSummary(rounds, 1000, 1000 + 1080000)
-  assert.equal(summary.totalFloors, 48)
+  assert.equal(summary.totalFloors, 45)
   assert.equal(summary.activeDurationMs, 1080000)
   assert.equal('warmupDurationMs' in summary, false)
   assert.equal(checkGoalReached(summary, { type: 'rounds', targetRounds: 3 }).reached, true)

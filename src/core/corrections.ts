@@ -4,7 +4,8 @@
 // 都只在这里实现，route-model / route-learning / training-progress / export-csv /
 // 结果页统一调用，避免各处重复的 `userCorrectionCount === 0` 判断产生口径漂移。
 
-import { getFloorAchievementCount, getFloorTransitionCount } from './floors'
+import { getFloorTransitionCount } from './floors'
+import { DEFAULT_FLOOR_HEIGHT_M } from './sensor-params'
 import { uid } from './math'
 import { RoundCorrection, RoundCorrectionSnapshot, WorkoutRound } from './types'
 
@@ -17,6 +18,11 @@ export interface ApplyRoundCorrectionOptions {
   excludeFromLearning?: boolean
   /** 修正记录 id（默认生成）。 */
   id?: string
+  /**
+   * 按层数计算爬升高度（米）。fusion-v1 传入楼栋模板的逐层层高；
+   * 未传时按原有每层爬升等比缩放，原值为 0 时按 3 米/层兜底。
+   */
+  ascentForFloors?: (floors: number) => number
 }
 
 /** 修正链摘要，供结果页与汇总展示。 */
@@ -48,13 +54,14 @@ function snapshotOf(round: WorkoutRound): RoundCorrectionSnapshot {
 
 /**
  * 由当前轮次 + patch 解析出「修正后」的快照。
- * - finalFloor 变化时按 `getFloorAchievementCount` 同一口径同步 floorsCompleted，
+ * - finalFloor 变化时按 `getFloorTransitionCount`（爬升段数）同一口径同步 floorsCompleted，
  *   并按原有「每层爬升」等比缩放 ascentM，避免成绩自相矛盾。
  * - confidence 只降不升：高于原值时夹到原值。
  */
 function resolveAfter(
   round: WorkoutRound,
   patch: Partial<RoundCorrectionSnapshot>,
+  ascentForFloors?: (floors: number) => number,
 ): RoundCorrectionSnapshot {
   const before = snapshotOf(round)
   const patchedFinalFloor = isFiniteNumber(patch.finalFloor)
@@ -66,7 +73,7 @@ function resolveAfter(
   const floorsCompleted = isFiniteNumber(patch.floorsCompleted)
     ? Math.max(0, Math.round(patch.floorsCompleted))
     : finalChanged
-      ? (round.floorCounting === 'transitions' ? getFloorTransitionCount : getFloorAchievementCount)(round.startFloor, finalFloor)
+      ? getFloorTransitionCount(round.startFloor, finalFloor)
       : before.floorsCompleted
   const floorsChanged = floorsCompleted !== before.floorsCompleted
 
@@ -74,10 +81,13 @@ function resolveAfter(
     before.floorsCompleted > 0 && before.ascentM > 0
       ? before.ascentM / before.floorsCompleted
       : 0
+  // 修正楼层后爬升高度必须重新计算：优先用模板逐层层高；旧实现在原值为 0 层/0 米时不更新。
   const ascentM = isFiniteNumber(patch.ascentM)
     ? Math.max(0, patch.ascentM)
-    : floorsChanged && perFloorAscent > 0
-      ? Math.round(perFloorAscent * floorsCompleted * 10) / 10
+    : floorsChanged
+      ? ascentForFloors
+        ? Math.round(ascentForFloors(floorsCompleted) * 10) / 10
+        : Math.round((perFloorAscent > 0 ? perFloorAscent : DEFAULT_FLOOR_HEIGHT_M) * floorsCompleted * 10) / 10
       : before.ascentM
 
   const confidence = isFiniteNumber(patch.confidence)
@@ -114,7 +124,7 @@ export function applyRoundCorrection(
   options: ApplyRoundCorrectionOptions = {},
 ): WorkoutRound {
   const before = snapshotOf(round)
-  const after = resolveAfter(round, patch)
+  const after = resolveAfter(round, patch, options.ascentForFloors)
 
   // 幂等：patch 没有改变任何字段时，不追加记录、不改写可信状态，直接返回原对象。
   if (sameSnapshot(before, after)) return round

@@ -1,5 +1,6 @@
 import { clamp } from './math'
 import { FeatureFrame, SensorSample } from './types'
+import { AdaptiveStepDetector } from './step-detector'
 
 export interface TimedMotionSignal {
   t: number
@@ -17,7 +18,8 @@ export class MotionSignalProcessor {
   private gravityY = 0
   private gravityZ = 0
   private smooth = 0
-  private lastStepAt = -Infinity
+  // 自适应阈值 + 迟滞计步（替代旧的固定 0.13g 阈值）。
+  readonly steps = new AdaptiveStepDetector()
 
   push(sample: SensorSample): TimedMotionSignal | undefined {
     if (![sample.t, sample.ax, sample.ay, sample.az].every(Number.isFinite) ||
@@ -29,7 +31,7 @@ export class MotionSignalProcessor {
       this.gravityY = sample.ay
       this.gravityZ = sample.az
       this.smooth = 0
-      this.lastStepAt = -Infinity
+      this.steps.reset()
     }
     // The original coefficients describe 20 ms input. Preserve their time span
     // when measured samples arrive more slowly; do not invent missing samples.
@@ -39,10 +41,8 @@ export class MotionSignalProcessor {
     const motionWeight = Math.pow(0.72, scale)
     const directionWeight = Math.pow(0.97, scale)
     this.gravity = this.gravity * gravityWeight + magnitude * (1 - gravityWeight)
-    const previous = this.smooth
     this.smooth = this.smooth * motionWeight + Math.abs(magnitude - this.gravity) * (1 - motionWeight)
-    const step = this.smooth > 0.13 && previous <= 0.13 && sample.t - this.lastStepAt >= 260
-    if (step) this.lastStepAt = sample.t
+    const step = this.steps.push(sample.t, this.smooth)
     this.gravityX = this.gravityX * directionWeight + sample.ax * (1 - directionWeight)
     this.gravityY = this.gravityY * directionWeight + sample.ay * (1 - directionWeight)
     this.gravityZ = this.gravityZ * directionWeight + sample.az * (1 - directionWeight)
@@ -91,11 +91,13 @@ export class MotionFrameStream {
     this.points = []
     if (!points.length || this.origin === undefined) return
     const steps = points.filter(point => point.step).length
+    // 步频来自真实步间隔（步/分钟），不再用 500ms 帧内步数 × 120 这种粗粒度换算。
+    const cadence = Math.round(this.signal.steps.cadenceAt(end))
     const energy = points.reduce((sum, point) => sum + point.motion, 0) / points.length
     const turnRad = points.reduce((sum, point) => sum + point.turnDelta, 0)
     const headingTurnRad = points.reduce((sum, point) => sum + point.headingDelta, 0)
     this.onFrame({ startMs: this.frameStart - this.origin, endMs: end - this.origin,
-      steps, cadence: steps * 120, energy, turnRad, headingTurnRad,
+      steps, cadence, energy, turnRad, headingTurnRad,
       paused: steps === 0 && energy < 0.045 ? 1 : 0 })
   }
 }
