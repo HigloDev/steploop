@@ -338,3 +338,18 @@ test('旧数据兼容：motion-v3 记录与旧路线可读，不崩溃', () => {
   const { rounds } = autoRun([{ type: 'climb', floors: 5, floorHeight: 3, speedMps: 0.25 }, ...DOWN(-15)], { seed: 19 }, { template: building })
   assert.equal(rounds[0].floors, 5)
 })
+
+test('锁屏后台回放：墙钟已超前、样本按原生时间戳补送，仍正常计层与切轮', () => {
+  const data = synthesize([{ type: 'stand', durMs: 6000 }, { type: 'walk', durMs: 4000 },
+    { type: 'climb', floors: 14, floorHeight: 3, speedMps: 0.25 }, ...DOWN()], { seed: 22 })
+  const engine = new engineModule.FusionWorkoutEngine({ startedAt: data.start, template: calibratedTemplate() })
+  // 前 30s 正常送达，之后 JS 被挂起；恢复时墙钟已到训练结束之后，剩余样本一次性回放
+  const cut = data.start + 30000
+  for (const sample of data.samples) if (sample.t <= cut) engine.pushSample(sample)
+  engine.tick(data.end + 60000)
+  for (const sample of data.samples) if (sample.t > cut) engine.pushSample(sample)
+  const rounds = engine.finish(data.end + 60000)
+  assert.equal(rounds.length, 1)
+  assert.equal(rounds[0].floors, 14)
+  assert.equal(rounds[0].endReason, 'elevator_down')
+})

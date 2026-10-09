@@ -306,7 +306,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text></View>
         <Card style={styles.group}>
           <Text style={styles.rowTitle}>体重</Text>
-          <Text style={styles.rowDesc}>用于估算消耗。历史成绩保留训练时的体重。</Text>
+          <Text style={styles.rowDesc}>热量按“爬升高度 × 体重”的机械功加活动代谢估算。历史成绩保留训练时的体重。</Text>
           <View style={styles.weightControl}>
             <Pressable accessibilityRole="button" accessibilityLabel="体重减一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(-1)}><Text style={styles.weightButtonText}>−</Text></Pressable>
             <Text style={styles.weightValue}>{Math.round(prefs?.bodyWeightKg ?? 65)}<Text style={styles.weightUnit}> 千克</Text></Text>

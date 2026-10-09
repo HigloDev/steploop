@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
+import { loadFusionCheckpoint } from '../services/building-storage'
 import { Button, Card, EmptyState, Notice, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
@@ -20,7 +21,7 @@ import {
 } from '../services/workout-storage'
 import { discardCheckpointAsAbandoned } from '../services/checkpoint-completion'
 import { calculateWorkoutSummary } from '../core/workout-summary'
-import { getFloorAchievementCount } from '../core/floors'
+import { getFloorTransitionCount } from '../core/floors'
 import {
   ActiveWorkoutCheckpoint,
   ClimbSession,
@@ -89,8 +90,11 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
   if (w.rounds.some(r => r.completionSource === 'manual' || (r.corrections?.length ?? 0) > 0)) { statusText = '已修正'; statusTone = 'warn' }
   const pendingCount = w.rounds.filter(round => round.floorConfirmation === 'pending').length
   if (pendingCount) { statusText = `${pendingCount} 轮楼层待确认`; statusTone = 'warn' }
+  // fusion-v1：证据冲突或不足的轮次标“估算”，提醒用户在结算页核对。
+  const estimatedCount = w.rounds.filter(round => round.estimated === true && !(round.corrections?.length)).length
+  if (estimatedCount) { statusText = `${estimatedCount} 轮估算`; statusTone = 'warn' }
   const floorsPerRound =
-    getFloorAchievementCount(
+    getFloorTransitionCount(
       w.routeSnapshot.startFloor,
       w.routeSnapshot.endFloor,
     ) || w.routeSnapshot.floorsPerRound || 0
@@ -107,7 +111,7 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
     statusTone,
     complete,
     interrupted,
-    metricsLine: `${summary.totalFloors} 层 · ${formatDuration(summary.activeDurationMs)} · ${summary.completeRounds} 轮`,
+    metricsLine: `${Math.round(summary.totalAscentM)} 米 · ${summary.totalFloors} 层 · ${summary.completeRounds} 轮`,
     ascentM: summary.totalAscentM,
     highlightLine: `净爬楼 ${formatDuration(summary.activeDurationMs)} · 总历时 ${formatDuration(summary.totalElapsedMs)}${
       summary.bestRoundMs ? ` · 最快 ${formatDuration(summary.bestRoundMs)}` : ''
@@ -141,7 +145,7 @@ function sessionToCard(s: ClimbSession): BaseCard {
     statusTone,
     complete: s.complete,
     interrupted,
-    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${s.recognitionVersion === 'motion-v3' ? Math.max(0, s.finalFloor - s.startFloor) : getFloorAchievementCount(s.startFloor, s.finalFloor) || s.floorsCompleted} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
+    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${getFloorTransitionCount(s.startFloor, s.finalFloor) || s.floorsCompleted} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
     ascentM: s.floorConfirmation === 'pending' ? 0 : s.ascentM,
     highlightLine: `用时 ${formatDuration(s.durationMs ?? 0)} · 置信度 ${Math.round(s.confidence * 100)}%`,
     target: { route: 'Result', params: { id: s.id } },
@@ -198,6 +202,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [checkpoint, setCheckpoint] = useState<ActiveWorkoutCheckpoint | null>(null)
+  const [fusionPending, setFusionPending] = useState(false)
   const [workouts, setWorkouts] = useState<ClimbWorkout[]>([])
   const [trendBucket, setTrendBucket] = useState<TrendBucket>('week')
   const [trendPoints, setTrendPoints] = useState<TrendPoint[]>([])
@@ -208,11 +213,12 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const [nextWorkouts, sessions, cp, summary] = await Promise.all([
+      const [nextWorkouts, sessions, cp, summary, fusionCp] = await Promise.all([
         listWorkouts(),
         listSessions(),
         loadActiveCheckpoint(),
         historyRepository.summarize(),
+        loadFusionCheckpoint(),
       ])
       const items: BaseCard[] = [
         ...nextWorkouts.map(workoutToCard),
@@ -234,6 +240,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         consecutiveWeeks: progress.consecutiveWeeks,
       })
       setCheckpoint(cp)
+      setFusionPending(!!fusionCp)
       setWorkouts(nextWorkouts)
       setArchiveNotice(describeArchiveNotice(summary))
       setRouteBests(computeRoutePersonalBests(nextWorkouts))
@@ -293,7 +300,12 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         refreshing={loading && cards.length > 0}
         onRefresh={() => { void refresh() }}
         ListHeaderComponent={<>
-        <Text style={styles.intro}>每一步向上，都留在这里。</Text>
+        <Text style={styles.intro}>每一步向上，都留在这里。点任意一次训练可以查看、修改各轮层数。</Text>
+        {fusionPending && !checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
+          <Feather name="pause-circle" size={20} color={theme.amberInk} />
+          <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>回到首页继续或放弃</Text></View>
+          <Feather name="chevron-right" size={20} color={theme.amberInk} />
+        </Pressable> : null}
         {checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
           <Feather name="pause-circle" size={20} color={theme.amberInk} />
           <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>{PHASE_LABEL[checkpoint.phase]} · 返回训练页继续处理</Text></View>
@@ -441,7 +453,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
                   </Text>
                   <Pill tone={card.statusTone}>{card.statusText}</Pill>
                 </View>
-                <Text style={styles.cardDate}>{dateText(card.sortAt).split(' ')[1] || '未知时间'} · {card.kind === 'workout' ? '多轮训练' : '单轮记录'}</Text>
+                <Text style={styles.cardDate}>{dateText(card.sortAt).split(' ')[1] || '未知时间'} · {card.kind === 'workout' ? '训练' : '旧版单轮记录'}</Text>
                 <Text style={styles.cardMetrics}>{card.metricsLine}</Text>
                 <Text style={styles.cardHighlight}>{card.highlightLine}</Text>
               </Card>
@@ -628,12 +640,11 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     cardMetrics: {
+      ...theme.numeric,
       color: theme.ink,
-      fontSize: 17,
-      lineHeight: 24,
-      fontWeight: '600',
-      fontVariant: ['tabular-nums'],
-      marginTop: 16,
+      fontSize: 20,
+      lineHeight: 26,
+      marginTop: 12,
     },
     cardHighlight: {
       color: theme.mutedStrong,

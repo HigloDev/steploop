@@ -309,6 +309,9 @@ export class FusionWorkoutEngine {
   /** 定时调用（UI 计时器）：推进时钟，处理停更与无气压的空闲结束。 */
   tick(now: number): void {
     this.advanceClock(now)
+    // 样本落后于墙钟（锁屏后原生日志正在回放）时只推进时钟，不做“空闲结束”等判定，
+    // 等回放的样本按各自时间戳送达后再判断。
+    if (this.lastSampleAt !== undefined && now - this.lastSampleAt > 1500) return
     this.evaluateMotion(now)
   }
 
@@ -495,9 +498,10 @@ export class FusionWorkoutEngine {
     }
   }
 
-  private relativeHeight(round: RoundTracker): number | undefined {
+  /** at：判定停更所用的时刻。气压事件驱动时传事件自身时间戳（原生端后台回放时墙钟已超前）。 */
+  private relativeHeight(round: RoundTracker, at = this.now): number | undefined {
     const latest = this.baro.latest()
-    if (!latest || round.baselineAlt === undefined || this.baro.isStale(this.now)) return undefined
+    if (!latest || round.baselineAlt === undefined || this.baro.isStale(at)) return undefined
     return latest.altM - round.baselineAlt - round.driftOffset
   }
 
@@ -582,7 +586,7 @@ export class FusionWorkoutEngine {
 
   private isDescending(round: RoundTracker, t: number, speed: number | undefined): boolean {
     if (this.lastTransit === 'elevator_down') return true
-    const rel = this.relativeHeight(round)
+    const rel = this.relativeHeight(round, t)
     if (rel === undefined || speed === undefined) return false
     const floorH = this.template ? medianFloorHeightM(this.template) : DEFAULT_FLOOR_HEIGHT_M
     return rel < round.maxRelH - Math.max(STAIRS_DOWN_MIN_M, 0.8 * floorH) &&
@@ -593,7 +597,7 @@ export class FusionWorkoutEngine {
   private evaluateBaroFloors(round: RoundTracker, t: number): void {
     const template = this.template
     if (!template || !this.templateHasHeights()) return
-    const rel = this.relativeHeight(round)
+    const rel = this.relativeHeight(round, t)
     if (rel === undefined) return
     const k = round.floors.length
     const threshold = cumulativeHeightAt(template, k) - FLOOR_REACH_RATIO * floorHeightAt(template, k)
@@ -726,7 +730,7 @@ export class FusionWorkoutEngine {
     const turnsOk = tmplTurns === 0 || turnsSince >= tmplTurns
     if ((enoughSteps && turnsOk) || stepsSince >= MOTION_FLOOR_STEP_RATIO_NO_TURN * tmplSteps) {
       round.usedFallback = true
-      this.advance(round, t, 1, 'motion', this.relativeHeight(round))
+      this.advance(round, t, 1, 'motion', this.relativeHeight(round, t))
     }
   }
 
