@@ -1,0 +1,135 @@
+{
+  "version": "1.1.2",
+  "created": "2026-10-10",
+  "kind": "visual-mockups-not-implementation",
+  "pageCount": 10,
+  "frameCount": 23,
+  "references": [
+    "<workspace>\\.expo-export-check\\phone-deploy-20261009\\home-final.png",
+    "<workspace>\\docs\\qa\\fusion-flow-20261009\\workout.png",
+    "<workspace>\\docs\\qa\\fusion-flow-20261009\\home.png"
+  ],
+  "pages": [
+    [
+      "首页",
+      "Main / Train",
+      "Home.tsx",
+      1,
+      "开始、周累计、楼栋列表；弹窗见06"
+    ],
+    [
+      "记录",
+      "Main / History",
+      "History.tsx",
+      1,
+      "周成果、筛选、记录；趋势入口"
+    ],
+    [
+      "设置",
+      "Main / Profile",
+      "Settings.tsx",
+      1,
+      "播报、声音、体重；下半页见07"
+    ],
+    [
+      "训练",
+      "ClimbWorkout",
+      "Workout.tsx",
+      2,
+      "自动计层；四种阶段见05、保存失败见07"
+    ],
+    [
+      "结算 / 详情",
+      "WorkoutResult",
+      "Summary.tsx",
+      2,
+      "总爬升、各轮层数、分享；模板见07、修改见06"
+    ],
+    [
+      "分享工作室",
+      "ShareStudio",
+      "ShareStudio.tsx",
+      2,
+      "海报预览、样式、保存和分享"
+    ],
+    [
+      "新手引导",
+      "Onboarding",
+      "Onboarding.tsx",
+      3,
+      "全部三步"
+    ],
+    [
+      "隐私协议",
+      "Privacy",
+      "Privacy.tsx",
+      4,
+      "视觉摘要示意；不替代完整协议正文"
+    ],
+    [
+      "旧版单轮成绩",
+      "Result",
+      "Result.tsx",
+      4,
+      "兼容页、详细成绩与修正入口"
+    ],
+    [
+      "传感器诊断",
+      "DiagnosticCapture",
+      "DiagnosticCapture.tsx",
+      4,
+      "条件开放的内部页；采集与真值标记"
+    ]
+  ],
+  "boards": [
+    {
+      "file": "01-main-tabs.png",
+      "title": "首页 · 记录 · 设置",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-7826df06-9254-43b0-9fa9-b30bbd46961e.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nCreate one precisely aligned UI design board with THREE separate complete mobile screens side by side, identical size390x844 logical, thin warm-gray gutters, total aspect about 1.42:1. This overrides single-screen output. No outside labels. Preserve the screenshots' spacious plain functional design, avoid overcrowding.\nLEFT screen HOME: orange stairs brand mark + 循阶. Dominant orange rounded hero with black stairs icon, big 开始爬楼 and 新楼栋 · 第一轮每到一层点一下. Below 从1楼出发 ›. Weekly dark rounded card 本周累计, large150米 and50层, secondary≈3座黄鹤楼, separated streak3连续天数. 我的楼栋, two cards 城市花园·A座 / 1楼起 ·15层 ·45米 and 运动中心 /1楼起 ·10层 ·30米, each orange flat building icon, ellipsis, circular play. Bottom tabs 爬楼 selected /记录/设置.\nMIDDLE screen HISTORY: 记录 header, 每一步向上，都留在这里。 Weekly card 本周成果, large50层爬升, 训练4次 /上升高度150米 /连续训练2周. Collapsible row 趋势与最佳成绩 with chevron. Section训练记录; filters全部 selected/完成/中断. Today 10月10日, card城市花园·A座,已完成 badge,30层 ·90米 ·09:20. Yesterday10月9日,运动中心,已完成,20层 ·60米 ·07:48. Quiet helper 点任意一次训练可以查看、修改各轮层数. Bottom tabs记录 selected.\nRIGHT screen SETTINGS first viewport: 设置 and 按你的习惯，调整每一次训练. Group运动播报: 播报模式 segmented精简/标准 selected/教练/关闭, short graydescription关键状态加时间、卡路里反馈. 音量65% segmented45/65/85/100. 语速稍慢/正常 selected/稍快. Group声音与提醒:震动反馈 orange switch on; expandable播报内容 row 里程碑与鼓励. Group训练偏好:体重 minus 65千克 plus, smallnote用于估算本次训练热量. Bottom tabs设置 selected. Enough vertical whitespace and readable Chinese.\nAll numeric content synthetic. Each screen must look like same real app, high quality restrained typography and exact aligned baselines.",
+      "revisionPrompt": "Edit the attached three-screen UI board very conservatively. Preserve all layout, Chinesecopy, allthreeframes and theirwidths. On RIGHT settings screen only, 播报模式 currentlyorangehighlights 精简 but the description describes 标准. Move the orange selected segment to 标准, make 精简 dark unselected, leaving 教练 and关闭 unchanged. Keep volume65% and正常speed selected. Also flatten ALL building icons in home/history to simple single-colororange outlineglyphs, remove metallic/shinybeveleffect. Primaryorangebuttons should be uniform solidorange, notgradients. Everythingelse remains unchanged."
+    },
+    {
+      "file": "02-workout-summary-share.png",
+      "title": "训练 · 结算 · 分享",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-48cfb016-8adb-4d78-8328-0f7847961fcb.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nCreate THREE full-height mobile UI screens side by side with narrow dividers, total aspect1.42:1, overrides single-screen. Clean flat uniform colors, NO surface texture or3D icons. Same orange-dark family as references.\nLEFT live training: blackbackground,topdownchevron,smallstatuspill 正在向上 · 自动计层, green dot 气压正常. Huge whitespace and center orange 第1轮, extremely large white9楼, caption本轮已爬8层. Small quiet vertical stair gauge to left. Bottommetrics 用时03:12 /累计层数8 /轮次第1轮. Fullwidth outlined bottompill 长按结束训练. No pause or extra CTA.\nMIDDLE completion: header训练完成 and right完成. small10月10日 ·城市花园·A座. Big groupedhero 总爬升90米, fourmetrics总层数30/轮数2/用时09:20/千卡32 with tiny估算. Section各轮层数, helper点任意一轮可修改层数. Two equal orange bars labeled15层,第1轮/第2轮. Quiet note成绩已保存. Orangefullwidthbutton生成分享卡片. No building-save section for existing building.\nRIGHT share editor: backarrow分享成绩; small成果预览 and4:5. Cream poster inside darkscreen, orangebrand循阶 at top, headline每一步向上, massiveorange30层, secondary实际爬升90米, baseline净爬楼06:24 ·完成2轮, date2026.10.10. Poster is flat typography only. Below privacyicon地点已隐藏 ·不含身份信息. Section海报样式 tabs模板 selected/文案/尺寸, three small poster thumbnail choices using cream and orange. Bottomtwoactions保存图片 outlined/立即分享 orange. Crisp readable Chinese, properbigspacing.",
+      "revisionPrompt": null
+    },
+    {
+      "file": "03-onboarding.png",
+      "title": "新手引导（三步）",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-14edf23b-c0e3-4b29-b17b-49af4021fa1c.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nCreate THREE same-size mobile screens side by side, total aspect1.42:1, narrow dividers. These are all three steps of ONE onboarding flow; override single-screen output. Very spare visual style, same typography and component positions across3screens. Flat simpleorange line icons only, no extra art, identical dark background.\nEachscreen top has leftbackchevron whereapplicable,right跳过. Eyebrow开始之前 ·1/3 (or2/3,3/3). Center upperlarge simple icon. Centerheadingbold but comfortably fitsChinese. Text should NOT be tiny. Much quietspace. Bottom3progressdots with properactiveorange, fullwidthorangeprimary.\nLEFT step1: orange outline phone icon; title把手机放稳; subheading放进口袋或贴身腰包; grayhelper 每次保持相同携带方式，手持晃动会影响识别。 Bottom下一步.\nMIDDLE step2: orangeflatpersonclimbingstairsicon; title第一轮，认识这栋楼; subheading每到一层，点一下“到了一层”; grayhelper 首页直接开始爬楼，到顶点“到顶了”。结束训练后保存楼栋，下次选它就能自动计层。 Bottom下一步.\nRIGHT step3: orangeshieldcheckicon; title结束后，核对每一轮; subheading发现层数不对，可以修改; grayhelper 训练中长按结束，结算页点任意一轮修改层数。锁屏前在设置中检查后台权限；估算和采样中断仍需核对。 Bottom开始使用.\nNo tabs on onboarding. AllChineseexact, no extraEnglish.",
+      "revisionPrompt": null
+    },
+    {
+      "file": "04-support-pages.png",
+      "title": "隐私 · 旧版成绩 · 诊断",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-b627abaa-b574-4657-8107-72242d36ae28.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nThree complete mobile screens side by side,narrowdividers, total aspect1.42:1 overrides single-screen. Refined consistent orange-black app. This board covers less-frequently-used EXISTING pages. Icons flat. Don't invent features.\nLEFT PRIVACY page: backarrow 隐私协议; largeheading你的记录，留在本机; helper了解运动数据如何收集、保存、导出与删除. Readable scrolling content visually presented as clean numbered prose sections:\n01 信息收集 /训练期间使用运动传感器数据，辅助判断爬楼状态。\n02 信息存储 /运动记录保存在本机，可由你主动导出。\n03 信息使用 /用于计层、成绩展示和训练诊断。\n04 信息共享 /不会自动向第三方上传运动记录。\n05 信息删除 /可在应用内删除相应记录。\n06 技术边界 /楼层估算会受携带方式和后台采样影响。\n07 联系方式 /详见协议正文。\neffective2026-10-10. Bottomorange同意并开始,secondary不同意. This is visual summary mock not replacement legaltext.\nMIDDLE LEGACY RESULT: back 成绩, smallbadge旧版单轮记录. synthetic城市花园·A座 /2026年10月9日 /已完成. Roundedhero本次完成 big15层,用时03:12. Group详细成绩 expanded, rows上升高度45米/步数268步/平均单层12.8秒/最快单层10秒. Collapsedrows修正最终楼层 and单层用时 withchevrons. Bottomprimary完成. Keepclearhierarchy andwhitespace.\nRIGHT DIAGNOSTIC: header传感器诊断,right关闭. eyebrow本机诊断, title记录一段真实动作. Group本次采集设置 expanded:真实动作向上爬楼 chevron,手机位置裤子口袋 chevron,匿名设备组测试设备A,采集者化名测试者01 (notperson). Group采集状态,orange dot采集中,huge00:32,threevalues样本320/气压计有/频率10Hz. Group人工真值标注 buttons到达下一层 +1,secondary标记转弯. Bottomorange结束并导出. No bottomtabs onthese3screens.",
+      "revisionPrompt": null
+    },
+    {
+      "file": "05-workout-states.png",
+      "title": "训练阶段",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-e8fec14a-b5fe-4c41-8340-b2ac1a434b44.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nProduce FOUR consistent complete tall phone app screens side by side, equally sized, narrowdividers,totalaspect1.9:1 overriding single-screen. Workout state board, actualpagecontentonly,nooutsidecaptions. Pureblack,whitebigfloor,orangeaccents,simpleleftverticalstairsindicator. Alignheader,mainnumber,bottomstatsacrossallframes. Calmspacioussameasactualworkoutreference. Allfour topdownchevron and氣pressurelabel spelled气压正常 withgreendot. Eachbottom3metrics 用时 /累计层数 /轮次 plusoutlinedpill长按结束训练.\nFrame1 calibration: topstatus标定中 · 每到一层点一下; centereyebrow标定轮,huge5楼,caption已标定4层. Belowmain bigorangepill到了一层 withsmaller记为下一层楼号. Secondarytwoactions撤销 and到顶了. bottom用时01:32/累计层数4/轮次第1轮.\nFrame2 calibrationat top: topstatus标定完成; centereyebrow已到顶,huge16楼,caption标定完成 · 共15层. Spaciouslowerprimary 已到楼下 · 开始下一轮. bottom03:12/15/第1轮.\nFrame3 descending: topstatus下行中 · 到楼下自动开始下一轮; centereyebrow第2轮完成,smallorangedownarrowabovehuge15层,caption下行中 · 请注意脚下. Nootherprimarybesidesfinish. bottom08:20/30/第2轮.\nFrame4 waiting: topstatus在楼下准备 · 开始爬就自动计层; centereyebrow准备第3轮,huge1楼,caption开始爬就自动计层. Nootherprimarybesidesfinish. bottom09:20/30/第3轮.\nNo pausebuttons,noroundgoalchooser,noblueneon,noperspective.",
+      "revisionPrompt": null
+    },
+    {
+      "file": "06-sheets.png",
+      "title": "楼栋与层数弹窗",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-7a8cac2b-112c-4ac4-b6a8-6b2b52363571.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nFOUR fullheight equalmobile screens side by side,totalaspect1.9:1,narrowdividers,overrides single-screen. Show FOUR actual modal states, all at same bottomsheet height approximately bottom45%. Behind each is very darkdimmed recognizablehome orsummary asappropriate, notblurredbrightart. Bottomsheetwarmcharcoal#24211e,large rounded topcorners24px,smallcenterhandle, comfortablemargins. FlatconsistentUI, noextrafeatures.\n1 backgroundhome; sheettitle从几楼出发？,hint楼层编号没有0楼，地下室选负数. Center horizontalcircleminus HUGE1 circleplus. Bottomwideorange好.\n2 backgroundhome; sheettitle城市花园·A座,subtitle1楼起 ·15层 ·45米. Fourroomyrows withsimpleicons:重命名 chevron,重新标定 chevron,删除楼栋模板 mutedredtrash, bottomoutline完成.\n3 backgroundhome; sheettitle重命名楼栋; label楼栋名称; focusedoutlinedtextinput 城市花园·A座 withorangecaret, count8/24 small. Hint给常用楼栋起一个好记的名字. Bottomtwoequallywidebuttons取消gray/保存orange. Nokeyboardnecessary thisispretypingstate.\n4 backgroundsummary90米; sheettitle第1轮 · 修改层数; helper从1楼爬到16楼，共爬升15层. Centercircleminus HUGE15 circleplus. Graynote修改后会保留修正记录. Bottom取消gray/保存orange.\nNo externalcaptions, eachpanelselfidentifiedbytitle, no phonechrome.",
+      "revisionPrompt": "Edit attached FIRST image, a four-screen modal board. Keep the first three screens, their layout, typography, colors, and modal controls unchanged. Correct ONLY the fourth screen BACKGROUND above its modal: replace the live workout background (准备第1轮,1楼,stairs gauge) with the COMPLETED WORKOUT SUMMARY from the middle screen of second attachment. Visible background should show topheader训练完成/right完成 and a summary card总爬升90米, metrics总层数30/轮数2/用时09:20/千卡32. Darken this background with modal scrim. Keep fourth bottomsheet第1轮·修改层数 andminus15plus,取消/保存 exactly where it is. The layer edit modal belongs to summary, never live workout. Preserve entireboardformatandnooutsidecaption."
+    },
+    {
+      "file": "07-additional-states.png",
+      "title": "设置下半页 · 保存模板 · 保存失败",
+      "source": "C:\\Users\\zxn\\.codex\\generated_images\\01a12099-f2bd-7503-b4ef-f666905b1801\\exec-0f5461a5-031a-434b-aae9-fe32ea1f6e3f.png",
+      "prompt": "Create a production-quality visual redraw for the existing Chinese stair-climbing Android app 循阶 version 1.1.2. The attached real screenshots are the AUTHORITATIVE existing visual language the user loves. Preserve that sporty functional minimalism, bold clear Chinese sans-serif typography, solid orange large primary controls, warm charcoal background, restrained rounded grouped surfaces, flat clean icons, strong whitespace and oversized tabular numerals. Improve coherence, hierarchy and spacing without changing identity. No realistic architectural pictures, no blue neon, no gradients/glass/metallic effects, no ornamental illustration, no invented product features. Dark palette: background #121110, grouped surface #1c1a18, text #f5f0ea, secondary warm gray #a6a099, accent #ff7a2e, dark text on filled orange. Workout is #0b0b0c with #ff6b1a. Font visually matches the reference's heavy Android Chinese sans-serif. Native buildable components, comfortable 20px horizontal margins, radius20 for grouped cards and28 for primary hero. All supplied copy must render correct legible Simplified Chinese. Date anchor today Saturday 2026-10-10; use illustrative data, not copied private location names. Output app-owned content only, absolutely NO phone body, status bar, clock, network or battery symbols, home indicator, bezel, outside captions, perspective or device shadows. Single-screen target390x844 logical pixels, render crisp at780x1688 or proportionately higher. Maintain natural aspect. Don't fill whitespace with extra elements.\nCreate THREE fullheight mobile screens side by side,thin dividers,totalaspect1.42:1 overriding single-screen. Warmcharcoalandorangeexistingapp,flatuniformsurfaces.\nLEFT SETTINGS SCROLLED LOWER: header设置. Group锁屏与后台, rows运动权限已允许 greencheck/通知权限已允许 greencheck/电池优化待检查 orangechevron. Grayhelper权限就绪不代表后台采样一定连续. Group数据与帮助, expanded备份与导出 rows导出备份/保存备份到下载/导出成绩表 Excel/导入备份, mutednote普通备份暂不包含新楼栋模板. Group帮助与关于 expanded rows隐私协议查看/新手引导重看/如何判断爬楼查看. footer循阶 ·1.1.2. Bottomtabs爬楼/记录/设置selected.\nMIDDLE SUMMARY SCROLLED LOWER withnewbuilding: header训练完成,right完成. Compactresultsstrip45米 /15层 /1轮 /03:12. 各轮层数 withoneorangebar15层 andlabel第1轮. Roundedcard保存为楼栋模板,subtitle下次直接选用，跳过标定. nameinput城市花园·A座,orange保存模板. Belowoutlined生成分享卡片. Sparelegiblespacing.\nRIGHT SAVE ERROR: header训练结束, centeredorangeoutlinedcircleexclamationicon. Bigheading成绩还没有保存完成. Grayparagraph本次训练仍保留在本机，请重试保存。 Whitecompactresultscard本次训练 /30层 ·90米 ·2轮. Orangeprimary重试保存; secondaryoutlined稍后再存 · 返回首页. tinygraynote重试不会重复计入成绩. No tabs onthisscreen.\nNo fakecharts,nopermissionsguarantees,nocloudfeatures.",
+      "revisionPrompt": null
+    }
+  ]
+}

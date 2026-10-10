@@ -51,4 +51,8 @@ async function main() {
   }
   console.log('Packaged approved master into launcher, adaptive, monochrome, splash, favicon, app and notification assets.')
 }
-main().catch(error => { console.error(error); process.exitCode = 1 })
+if (process.argv.includes('--legacy')) {
+  main().catch(error => { console.error(error); process.exitCode = 1 })
+} else {
+  require('./package-audit-assets.cjs')
+}

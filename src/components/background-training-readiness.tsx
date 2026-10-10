@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AppState, Text, View } from 'react-native'
+import { AppState, Linking, Pressable, Text, View } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Button } from './ui'
 import { useTheme } from '../theme'
 import {
@@ -11,8 +12,9 @@ import {
 import { recordWorkoutEvidenceEvent, WorkoutEvidenceContext } from '../services/workout-evidence'
 
 /** System exemption is readiness information; only measured samples prove continuity. */
-export function BackgroundTrainingReadiness({ compact = false, evidenceContext }: {
+export function BackgroundTrainingReadiness({ compact = false, grouped = false, evidenceContext }: {
   compact?: boolean
+  grouped?: boolean
   evidenceContext?: WorkoutEvidenceContext
 }) {
   const theme = useTheme()
@@ -75,6 +77,26 @@ export function BackgroundTrainingReadiness({ compact = false, evidenceContext }
   )
   if (compact && status?.batteryOptimizationIgnored && !error) return null
   if (!status && !error) return null
+
+  if (grouped) return <View>
+    {([
+      ['运动权限', 'run', status?.activityPermissionGranted, '检查运动权限'],
+      ['通知权限', 'bell', status?.notificationsAllowed, '检查通知权限'],
+      ['电池优化', 'battery-charging', status?.batteryOptimizationIgnored, '检查电池优化'],
+    ] as const).map(([label, icon, allowed, accessibilityLabel], index) => <Pressable key={label}
+      accessibilityRole="button" accessibilityLabel={accessibilityLabel} disabled={opening}
+      onPress={() => { if (index === 2) void open(!status?.batteryOptimizationIgnored); else void Linking.openSettings().catch(() => setError('无法打开系统页面，请在手机设置中检查循阶的权限。')) }}
+      style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 16,
+        borderTopWidth: index ? 0.5 : 0, borderTopColor: theme.line }}>
+      <MaterialCommunityIcons name={icon} size={24} color={theme.ink} />
+      <View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 16, lineHeight: 22, fontWeight: '800' }}>{label}</Text>
+        <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 16 }}>{allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}</Text></View>
+      <MaterialCommunityIcons name={index === 2 ? 'chevron-right' : allowed ? 'check-circle' : 'alert-circle-outline'}
+        size={24} color={index === 2 ? theme.brand : allowed ? theme.success : theme.amberInk} />
+    </Pressable>)}
+    <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 8 }}>权限就绪不代表后台采样一定连续。</Text>
+    {error ? <Text accessibilityRole="alert" style={{ color: theme.amberInk, fontSize: 13, lineHeight: 20 }}>{error}</Text> : null}
+  </View>
 
   return (
     <View style={{ marginVertical: 8, gap: 8 }}>

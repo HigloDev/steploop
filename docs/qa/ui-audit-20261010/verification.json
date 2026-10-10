@@ -1,0 +1,26 @@
+{
+  "sealedAt": "2026-10-10T02:40:50.452438+00:00",
+  "primaryPages": 10,
+  "primaryStates": 23,
+  "latestInteractionCases": 24,
+  "latestInteractionPasses": 24,
+  "historicalFailuresRetained": 5,
+  "closedFindings": 16,
+  "unresolvedFindings": 0,
+  "typescript": true,
+  "gitDiffCheck": true,
+  "qaIsolationTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "profiles": [
+    "390x844 dark",
+    "400x817 font125 dark",
+    "320x568 font130 dark",
+    "390x844 light"
+  ],
+  "standaloneApk": true,
+  "realClimbingAccuracyTested": false,
+  "talkBackManualTested": false,
+  "phoneInstalled": false
+}

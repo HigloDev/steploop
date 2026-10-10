@@ -36,6 +36,7 @@ export type RootStackParamList = {
   /** 结算页；fresh=true 表示刚结束的训练。 */
   WorkoutResult: { id: string; fresh?: boolean }
   ShareStudio: { id: string }
+  WeeklyShare: undefined
   /** 旧版单轮会话记录（只读）。 */
   Result: { id: string; roundId?: string }
   DiagnosticCapture: undefined

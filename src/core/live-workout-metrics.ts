@@ -1,8 +1,10 @@
+import { calculateStairCalories, estimateClimbCalories } from './calories'
 import { getFloorTransitionCount, getRoundAchievementCount } from './floors'
-import { calculateStairCalories } from './calories'
-import { RecognitionSnapshot, WorkoutPhase, WorkoutRound } from './types'
+import type { RecognitionSnapshot, WorkoutPhase, WorkoutRound } from './types'
+import type { FusionRoundResult, FusionSnapshot } from './fusion-engine'
+import { DEFAULT_FLOOR_HEIGHT_M } from './sensor-params'
 
-/** 展示与播报共用实时统计；当前轮仅在上爬阶段计入，结算后不能重复相加。 */
+/** 旧版记录与工具的统计接口继续保留。 */
 export function deriveLiveWorkoutMetrics(input: {
   rounds: WorkoutRound[]; phase: WorkoutPhase; snapshot: RecognitionSnapshot;
   startFloor: number; totalElapsedMs: number; bodyWeightKg: number;
@@ -23,5 +25,18 @@ export function deriveLiveWorkoutMetrics(input: {
     nonClimbingMs: Math.max(0, totalMs - activeMs),
     calories: calculateStairCalories(activeMs, input.bodyWeightKg),
     floorsPerMinute: activeMs > 0 ? floors / (activeMs / 60000) : 0,
+  }
+}
+
+export function liveWorkoutMetrics(snapshot: FusionSnapshot, rounds: FusionRoundResult[], bodyWeightKg?: number) {
+  const climbing = snapshot.phase === 'climbing' || snapshot.phase === 'calibrating'
+  const ascentM = Math.max(0, snapshot.ascentM ?? (rounds.reduce((sum, round) => sum + round.ascentM, 0) +
+    (climbing ? snapshot.roundFloors * DEFAULT_FLOOR_HEIGHT_M : 0)))
+  const ascentMs = Math.max(0, snapshot.ascentMs ?? snapshot.activeMs)
+  return {
+    steps: Math.max(0, Math.round(snapshot.steps)),
+    ascentM,
+    floorsPerMinute: ascentMs >= 1000 ? snapshot.totalFloors * 60000 / ascentMs : 0,
+    calories: estimateClimbCalories({ ascentM, activeMs: snapshot.activeMs, bodyWeightKg }),
   }
 }

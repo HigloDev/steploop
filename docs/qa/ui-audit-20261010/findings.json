@@ -1,0 +1,372 @@
+{
+  "product": "循阶 1.1.2",
+  "scope": "Android 原生界面，对照用户批准的 1.1.2 黑橙视觉稿；屏幕适配、触控与操作回归",
+  "reference": "../../visual-redraw-1.1.2-20261010/index.html",
+  "evidence": "本轮全新原生截图；隔离 QA 包 com.zxn.palou.uiqa；所有训练与记录均为合成数据",
+  "limits": [
+    "截图不证明真实爬楼识别准确率",
+    "未完成 TalkBack 人工审查与全部 OEM 机型验证",
+    "物理手机当前离线，不能将模拟器结果写成真机验收"
+  ],
+  "findings": [
+    {
+      "id": "A01",
+      "priority": "P2",
+      "problem": "桌面图标、启动资源仍为旧蓝色，品牌与黑橙页面不统一",
+      "before": [
+        "00-launcher-before"
+      ],
+      "fix": "生成新爬楼人物 Logo，统一 App、海报、桌面、自适应、单色、启动与通知资产；重建原生安装包",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "release/actual/release-launcher.png",
+        "release/launch-frames/cold-start-1.png",
+        "logo-preview.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/raw/00-launcher-before.png"
+      ]
+    },
+    {
+      "id": "A02",
+      "priority": "P2",
+      "problem": "首页、记录和模板页的楼栋图标变成窗格楼房，缺少批准稿的屋顶与三层横线",
+      "before": [
+        "home",
+        "history",
+        "template"
+      ],
+      "fix": "从批准稿生成统一透明楼栋资产，所有相关页面使用同一 BuildingThumb",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/home.png",
+        "after/actual/history.png",
+        "after/actual/template.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/home.png",
+        "before/actual/history.png",
+        "before/actual/template.png"
+      ]
+    },
+    {
+      "id": "A03",
+      "priority": "P2",
+      "problem": "记录卡片缺少视觉稿的更多操作入口",
+      "before": [
+        "history"
+      ],
+      "fix": "补齐 48dp 更多按钮和原生菜单，连接已有详情修改与分享流程，长名称可换行",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/history.png",
+        "after/actual/history-more.png",
+        "after/actual/history-more-detail.png",
+        "after/actual/history-more-share.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/history.png"
+      ]
+    },
+    {
+      "id": "A04",
+      "priority": "P3",
+      "problem": "训练刻度过窄、统计分隔线缺失，下行箭头形态偏离批准稿",
+      "before": [
+        "climbing",
+        "calibrating",
+        "descending",
+        "waiting"
+      ],
+      "fix": "统一刻度宽度、增加指标分隔线、采用三角下行图标；保留用户要求的常驻保存与放弃按钮",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/climbing.png",
+        "after/actual/descending.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/climbing.png",
+        "before/actual/calibrating.png",
+        "before/actual/descending.png",
+        "before/actual/waiting.png"
+      ]
+    },
+    {
+      "id": "A05",
+      "priority": "P2",
+      "problem": "普通结算缺少层/轮单位、指标分隔线和修改提示图标，图表圆角过大",
+      "before": [
+        "summary"
+      ],
+      "fix": "恢复单位、分隔线、信息图标及柱形比例；普通主按钮采用批准稿的文字样式",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/summary.png",
+        "after/actual/round-corrected.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/summary.png"
+      ]
+    },
+    {
+      "id": "A06",
+      "priority": "P2",
+      "problem": "保存模板的楼栋名称输入框缺少清空按钮",
+      "before": [
+        "template"
+      ],
+      "fix": "增加有标签的 48dp 清空按钮，保持校验、长度限制与保存逻辑",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/template.png",
+        "after/actual/template-cleared.png",
+        "after/actual/template-saved-home.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/template.png"
+      ]
+    },
+    {
+      "id": "A07",
+      "priority": "P3",
+      "problem": "引导手机、盾牌、失败提示与趋势图标存在形态差异，结束文案落后于当前按钮",
+      "before": [
+        "onboarding-1",
+        "onboarding-3",
+        "save-failed",
+        "history"
+      ],
+      "fix": "使用最接近批准稿的现有图标库字形，统一结束并保存的引导文案",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/onboarding-1.png",
+        "after/actual/onboarding-3.png",
+        "after/actual/save-failed.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/onboarding-1.png",
+        "before/actual/onboarding-3.png",
+        "before/actual/save-failed.png",
+        "before/actual/history.png"
+      ]
+    },
+    {
+      "id": "A08",
+      "priority": "P2",
+      "problem": "设置单选、体重与数据操作、首页更多、记录筛选、海报编辑标签、协议底部及训练次级操作部分触控尺寸低于 48dp",
+      "before": [
+        "home",
+        "history",
+        "settings",
+        "settings-lower",
+        "share",
+        "privacy",
+        "climbing"
+      ],
+      "fix": "扩大实际点击区域，长楼栋名称允许两行；复查小屏和大字体滚动及底部操作",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/settings.png",
+        "after/actual/settings-help-end.png",
+        "after/actual/font125-settings.png",
+        "after/actual/small130-settings.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/home.png",
+        "before/actual/history.png",
+        "before/actual/settings.png",
+        "before/actual/settings-lower.png",
+        "before/actual/share.png",
+        "before/actual/privacy.png",
+        "before/actual/climbing.png"
+      ]
+    },
+    {
+      "id": "A09",
+      "priority": "P1",
+      "problem": "首次拒绝协议后点击退出应用却进入首页，动作与文案不一致",
+      "before": [
+        "privacy-reject-before",
+        "privacy-exit-before"
+      ],
+      "fix": "统一原生确认层；首次 Android 拒绝后退出 Activity，不写入同意记录；从设置查看则明确返回上一页",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/privacy-reject.png",
+        "after/actual/privacy-exited.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/privacy-reject-before.png",
+        "before/actual/privacy-exit-before.png"
+      ]
+    },
+    {
+      "id": "A10",
+      "priority": "P2",
+      "problem": "手机 125% 字体时训练数字被提前缩小，中间留白过大",
+      "before": [
+        "font125-climbing",
+        "font125-calibrating"
+      ],
+      "fix": "增加高屏紧凑布局分支，按可用高度恢复主要数字与刻度；小屏保持可滚动操作",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/font125-climbing.png",
+        "after/actual/font125-calibrating.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/font125-climbing.png",
+        "before/actual/font125-calibrating.png"
+      ]
+    },
+    {
+      "id": "A11",
+      "priority": "P3",
+      "problem": "后台电池图标缺少闪电，Excel 导出使用四宫格图标，数据库、帮助及分享锁图标的填充不一致",
+      "before": [
+        "settings-lower",
+        "share"
+      ],
+      "fix": "改用内嵌闪电电池、表格、实心数据库/帮助/锁图标，保持原有导出和权限操作",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/settings-lower.png",
+        "after/actual/share.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/settings-lower.png",
+        "before/actual/share.png"
+      ]
+    },
+    {
+      "id": "A12",
+      "priority": "P2",
+      "problem": "复审发现准备阶段刻度显示 2F 而主数字为 1 楼；读屏的已完成层数遗漏当前层，超过模板高度时刻度范围不足",
+      "before": [
+        "waiting",
+        "climbing"
+      ],
+      "fix": "零完成层数显示真实起始楼层、已完成含当前刻度、范围包含所有实际已完成层数；复查五阶段与三位数楼层",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/waiting.png",
+        "after/actual/normal-climbing-101.png",
+        "after/actual/small130-climbing-101.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "before/actual/waiting.png",
+        "before/actual/climbing.png"
+      ]
+    },
+    {
+      "id": "A13",
+      "priority": "P2",
+      "problem": "复审发现小屏引导的装饰尺寸和留白过大，主要说明被推到首屏下方；设置在 130% 字体时因浮点阈值未切换到预期分行布局",
+      "before": [
+        "../review/actual/small130-onboarding-before",
+        "../review/actual/small130-settings-before"
+      ],
+      "fix": "小屏和大字体引导缩减装饰、间距及底部留白；设置按字体与宽度分行，仍可滚动读取完整内容",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "after/actual/small130-onboarding.png",
+        "after/actual/small130-onboarding-3.png",
+        "after/actual/small130-settings.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "review/actual/small130-onboarding-before.png",
+        "review/actual/small130-settings-before.png"
+      ]
+    },
+    {
+      "id": "A14",
+      "priority": "P2",
+      "problem": "复审的三位数边界测试发现小屏修改 150 层时，加减按钮被数字挤出屏幕",
+      "before": [
+        "../review/actual/small130-edit-150-before"
+      ],
+      "fix": "计数输入保留完整数字语义，允许按可用宽度缩放；减小横向间距，保持加减按钮 72dp 与保存/取消完整可见",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "review/actual/small130-edit-150-before.png",
+        "after/actual/small130-edit-150.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "review/actual/small130-edit-150-before.png"
+      ]
+    },
+    {
+      "id": "A15",
+      "priority": "P3",
+      "problem": "浅色复审发现结算页透明指标区继承了卡片阴影，出现额外矩形框",
+      "before": [
+        "../review/actual/light-summary-before"
+      ],
+      "fix": "移除指标区阴影，只保留上方和各项之间的分隔线；重新核验浅色、深色和两档大字体",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "review/actual/light-summary-before.png",
+        "after/actual/light-summary.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "review/actual/light-summary-before.png"
+      ]
+    },
+    {
+      "id": "A16",
+      "priority": "P3",
+      "problem": "旧版记录缺少单层明细时，展开单层用时只显示空卡片，无法区分无数据和未响应",
+      "before": [
+        "../review/actual/legacy-splits-before"
+      ],
+      "fix": "补充没有单层用时明细的空状态说明，不补造旧记录的采样或用时数据；重新核验兼容页与展开状态",
+      "status": "closed",
+      "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+      "after": [
+        "review/actual/legacy-splits-before.png",
+        "after/actual/legacy-splits.png"
+      ],
+      "verification": "Fresh screenshots reviewed; relevant final interaction checks passed",
+      "beforeEvidence": [
+        "review/actual/legacy-splits-before.png"
+      ]
+    }
+  ],
+  "finalReview": {
+    "closed": 16,
+    "unresolved": 0,
+    "reviewedAt": "2026-10-10T02:40:50.452438+00:00",
+    "notAnAllFutureBugsGuarantee": true,
+    "physicalPhoneInstalled": false
+  }
+}

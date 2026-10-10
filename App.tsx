@@ -1,6 +1,6 @@
 // 应用入口：SafeAreaProvider + NavigationContainer + NativeStack。
 // 启动时检查隐私协议，未同意则初始路由为 Privacy；首次使用展示引导。
-// fusion-v1 流程：首页 → 训练（全屏深色）→ 结算；另有记录、设置两个标签页。
+// fusion-v1 流程：首页 → 全屏训练 → 结算；所有页面跟随系统深浅主题。
 
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, View, useColorScheme } from 'react-native'
@@ -13,7 +13,7 @@ import { RootStackParamList } from './src/navigation/types'
 import { isPrivacyAgreed } from './src/services/privacy'
 import { hasSeenOnboarding } from './src/services/onboarding'
 import MainTabs from './src/navigation/MainTabs'
-import { useTheme, workoutPalette } from './src/theme'
+import { useTheme, useWorkoutPalette } from './src/theme'
 
 import ResultScreen from './src/pages/Result'
 import PrivacyScreen from './src/pages/Privacy'
@@ -21,6 +21,7 @@ import OnboardingScreen from './src/pages/Onboarding'
 import WorkoutScreen from './src/pages/Workout'
 import SummaryScreen from './src/pages/Summary'
 import ShareStudioScreen from './src/pages/ShareStudio'
+import WeeklyShareScreen from './src/pages/WeeklyShare'
 import DiagnosticCaptureScreen from './src/pages/DiagnosticCapture'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -28,6 +29,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>()
 export default function App() {
   const scheme = useColorScheme()
   const theme = useTheme()
+  const workoutPalette = useWorkoutPalette()
   const [ready, setReady] = useState(false)
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Main')
 
@@ -101,6 +103,7 @@ export default function App() {
           />
           <Stack.Screen name="WorkoutResult" component={SummaryScreen} />
           <Stack.Screen name="ShareStudio" component={ShareStudioScreen} />
+          <Stack.Screen name="WeeklyShare" component={WeeklyShareScreen} />
           <Stack.Screen name="Result" component={ResultScreen} />
           <Stack.Screen name="DiagnosticCapture" component={DiagnosticCaptureScreen} />
         </Stack.Navigator>

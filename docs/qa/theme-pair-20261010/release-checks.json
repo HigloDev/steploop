@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-10T18:02:51+0800",
+  "package": "com.zxn.palou",
+  "version": "1.1.2",
+  "versionCode": 11,
+  "device": "emulator-5582",
+  "standaloneWithoutQaMetro": true,
+  "qaFixturesExcluded": true,
+  "sameCertificate": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c",
+  "savedKeysPreservedByteForByte": 9,
+  "savedDataUnchanged": true,
+  "realWorkoutSwitchesAppearanceInPlace": true,
+  "markedFloorRetainedAcrossThemes": true,
+  "checkpointIdentityRetained": true,
+  "restartPreservesData": true,
+  "apkSha256": "a776d2d192187d7b3aefff3000fabcd216e18ae98203cc648eac6db322c86243",
+  "installedApkSha256": "a776d2d192187d7b3aefff3000fabcd216e18ae98203cc648eac6db322c86243",
+  "apkBytes": 75875022,
+  "phoneInstalled": false,
+  "runtimeErrors": 0
+}

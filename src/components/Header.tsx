@@ -2,7 +2,7 @@
 // RN 版用 useSafeAreaInsets 处理状态栏高度，用 Pressable 调 navigation.goBack()。
 
 import React from 'react'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -18,17 +18,21 @@ interface HeaderProps {
   rightLabel?: string
   /** 右侧按钮点击回调。 */
   onRightPress?: () => void
+  rightContent?: React.ReactNode
+  align?: 'center' | 'left'
+  onBackPress?: () => void
   /** 透传样式。 */
   style?: ViewStyle
 }
 
-export function Header({ title, back = true, large = false, rightLabel, onRightPress, style }: HeaderProps) {
+export function Header({ title, back = true, large = false, rightLabel, onRightPress, rightContent, align = 'center', onBackPress, style }: HeaderProps) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const navigation = useNavigation<RootStackNavigation>()
 
   const handleBack = () => {
+    if (onBackPress) { onBackPress(); return }
     if (navigation.canGoBack()) {
       navigation.goBack()
     } else {
@@ -41,21 +45,21 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
       <View style={[styles.bar, large && styles.largeBar]}>
         {back ? (
           <Pressable accessibilityRole="button" accessibilityLabel="返回" style={({ pressed }) => [styles.backAction, pressed && { backgroundColor: theme.surfaceSoft }]} onPress={handleBack} hitSlop={4}>
-            <Feather name="arrow-left" size={23} color={theme.ink} />
+            <Feather name="chevron-left" size={26} color={theme.ink} />
           </Pressable>
         ) : (
-          large ? null : <View style={styles.backPlaceholder} />
+          large ? <MaterialCommunityIcons name={title === '记录' ? 'history' : title === '设置' ? 'cog' : 'stairs-up'} size={32} color={theme.brand} style={{ marginRight: 12 }} /> : <View style={styles.backPlaceholder} />
         )}
-        <Text accessibilityRole="header" style={[styles.title, large && styles.largeTitle]}>
+        <Text accessibilityRole="header" style={[styles.title, large && styles.largeTitle, align === 'left' && { textAlign: 'left' }]}>
           {title}
         </Text>
-        {rightLabel && onRightPress ? (
+        {rightContent ?? (rightLabel && onRightPress ? (
           <Pressable accessibilityRole="button" accessibilityLabel={rightLabel} style={({ pressed }) => [styles.rightAction, pressed && { backgroundColor: theme.surfaceSoft }]} onPress={onRightPress} hitSlop={4}>
             <Text style={styles.rightText}>{rightLabel}</Text>
           </Pressable>
         ) : (
           large ? null : <View style={styles.rightPlaceholder} />
-        )}
+        ))}
       </View>
     </View>
   )
@@ -75,8 +79,8 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       paddingHorizontal: 12,
     },
-    largeBar: { minHeight: 64, paddingHorizontal: theme.pagePaddingH, paddingTop: 8, paddingBottom: 12 },
-    largeTitle: { textAlign: 'left', fontSize: theme.fontTitle, lineHeight: 34, fontWeight: '700', marginHorizontal: 0 },
+    largeBar: { minHeight: 76, paddingHorizontal: theme.pagePaddingH, paddingTop: 32, paddingBottom: 4,},
+    largeTitle: { textAlign: 'left', fontSize: 30, lineHeight: 38, fontWeight: '900', marginHorizontal: 0 },
     backAction: {
       minWidth: 48,
       minHeight: 48,
@@ -95,8 +99,8 @@ const makeStyles = (theme: Theme) =>
     title: {
       flex: 1,
       color: theme.ink,
-      fontSize: 17,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: '900',
       textAlign: 'center',
       marginHorizontal: 8,
     },
@@ -110,8 +114,8 @@ const makeStyles = (theme: Theme) =>
     },
     rightText: {
       color: theme.brand,
-      fontSize: 14,
-      fontWeight: '600',
+      fontSize: 16,
+      fontWeight: '800',
     },
     rightPlaceholder: {
       minWidth: 48,
