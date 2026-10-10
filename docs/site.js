@@ -1,6 +1,6 @@
 'use strict';
 
-// These reference values use the same definitions as the 1.1.2 App.
+// These reference values use the same definitions as the 1.1.3 App.
 const landmarks = {
   elizabeth: { name: '伦敦钟塔', height: '96', note: '伊丽莎白塔通高' },
   eiffel: { name: '埃菲尔铁塔', height: '330', note: '含天线高度' },

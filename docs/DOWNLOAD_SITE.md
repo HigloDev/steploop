@@ -2,7 +2,7 @@
 
 公开地址：<https://higlodev.github.io/steploop/>
 
-GitHub Pages 使用 `main` 分支的 `/docs` 目录。网站是静态 HTML、CSS 和 JavaScript，不需要构建、账户、第三方字体或分析服务。网站更新独立于 App 源码合并；1.1.2 App 对应 `v1.1.2-preview.1` 标签。
+GitHub Pages 使用 `main` 分支的 `/docs` 目录。网站是静态 HTML、CSS 和 JavaScript，不需要构建、账户、第三方字体或分析服务。网站更新独立于 App 源码合并；1.1.3 App 对应 `v1.1.3-preview.1` 标签。
 
 - `index.html`：介绍、真实界面预览、下载按钮和安装/升级说明。
 - `site.css`：黑橙与暖白版式、320px 起的响应式布局、键盘焦点和减少动画设置。
@@ -18,4 +18,4 @@ GitHub Pages 使用 `main` 分支的 `/docs` 目录。网站是静态 HTML、CSS
 5. 本地预览可运行 `python -m http.server 8794 --bind 127.0.0.1 --directory docs`。检查 320、360、768、1440px 布局和互动，以及所有静态资源与 APK 链接。
 6. 推送后等待 Pages 构建成功，再从匿名网络访问公开页面，确认版本标记、资源和下载链接，不能仅凭推送成功声称上线。
 
-2026-10-10 页面指向 Android 1.1.2（versionCode 11）公开试用版。APK：75,874,070 bytes；SHA-256：`6983ef2df5e8e0eb627c4c8c8ed2805e66146b0677d0c11a2680c86ec183d084`。网站图片均为原生界面演示数据，网页里的地标插图仅作高度参照示意。
+2026-10-10 页面指向 Android 1.1.3（versionCode 12）公开试用版。APK：79,641,049 bytes；SHA-256：`956621e11b59fd88700650392d938d19b1dc3f6176cf6adb8f759decc42ca018`。网站图片均为原生界面演示数据，网页里的地标插图仅作高度参照示意。

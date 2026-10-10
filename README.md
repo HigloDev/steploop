@@ -1,5 +1,7 @@
 # 循阶 · 每一步向上，每一层都算数
 
+> 2026-10-10 最新公开试用版为 [Android 1.1.3](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)。[完整 App 源码](https://github.com/HigloDev/steploop/tree/v1.1.3-preview.1) · [下载网页](https://higlodev.github.io/steploop/) · [本次原生对照图册](https://higlodev.github.io/steploop/qa/xiaomi14-improvements-20261010/) · [源码更新 PR #2](https://github.com/HigloDev/steploop/pull/2)。下方保留旧版项目说明。
+
 我把每天爬的楼，做成了一个 APP。
 
 它叫「循阶」：一轮轮记录爬楼，停稳后确认实际楼层，训练中有语音反馈，结束后把成果“盖成楼”，还能回看记录、生成成绩海报。想让普通的一次爬楼，也留下看得见的进步。
