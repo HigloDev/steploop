@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Haptics from 'expo-haptics'
-import { Platform } from 'react-native'
+import { Platform, Vibration } from 'react-native'
 import { SavedWorkoutSetup } from '../core/workout-setup'
 import { TrackingMode } from '../core/types'
 import { VoiceSpeaker, normalizeVoiceSpeaker } from '../core/voice-speaker'
@@ -12,6 +12,8 @@ export interface Preferences {
   hapticFeedback: boolean
   /** 声音反馈：仅在结束时短促提示，避免爬楼过程中打扰他人。默认关闭。 */
   soundFeedback: boolean
+  /** 训练保存成功后的盖楼结算音效，与语音播报独立。 */
+  completionSound: boolean
   /** 开始标定/正式爬楼前提示确认携带方式。默认开启。 */
   carryReminder: boolean
   /** 上次使用的携带方式，用于在设置/确认时回显。 */
@@ -42,6 +44,7 @@ export interface Preferences {
 const DEFAULTS: Preferences = {
   hapticFeedback: true,
   soundFeedback: false,
+  completionSound: true,
   carryReminder: true,
   bodyWeightKg: 65,
   trackingMode: 'automatic',
@@ -105,12 +108,20 @@ const HAPTIC_MAP: Record<'light' | 'medium' | 'heavy', Haptics.ImpactFeedbackSty
 }
 
 /** 触发一次震动反馈；如已关闭则不执行。 */
-export async function triggerHaptic(style: 'light' | 'medium' | 'heavy' = 'light'): Promise<void> {
+export async function triggerHaptic(style: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'error' = 'light'): Promise<void> {
   const prefs = await readPrefs()
   if (!prefs.hapticFeedback) return
   try {
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      await Haptics.impactAsync(HAPTIC_MAP[style])
+    if (Platform.OS === 'android') {
+      await Haptics.performAndroidHapticsAsync(style === 'selection' ? Haptics.AndroidHaptics.Segment_Tick
+        : style === 'error' ? Haptics.AndroidHaptics.Reject
+        : style === 'success' || style === 'heavy' ? Haptics.AndroidHaptics.Confirm
+        : style === 'medium' ? Haptics.AndroidHaptics.Context_Click : Haptics.AndroidHaptics.Virtual_Key)
+    } else if (Platform.OS === 'ios') {
+      if (style === 'selection') await Haptics.selectionAsync()
+      else if (style === 'success' || style === 'error') await Haptics.notificationAsync(style === 'success'
+        ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error)
+      else await Haptics.impactAsync(HAPTIC_MAP[style])
     }
   } catch {
     // 部分真机不支持震动，忽略错误。
@@ -128,47 +139,26 @@ export async function triggerHapticPattern(pattern: HapticPattern): Promise<void
   const prefs = await readPrefs()
   if (!prefs.hapticFeedback) return
   try {
-    const impact = (style: Haptics.ImpactFeedbackStyle) =>
-      Haptics.impactAsync(style)
-    if (pattern === 'floor') {
-      await impact(Haptics.ImpactFeedbackStyle.Light)
-      return
+    // 里程碑在口袋里也需要能辨认；使用系统振动服务，不依赖屏幕控件的触感开关。
+    if (Platform.OS === 'android') {
+      Vibration.vibrate(pattern === 'floor' ? [0, 65, 80, 65]
+        : pattern === 'round_complete' ? [0, 100, 90, 140]
+        : pattern === 'goal_complete' ? [0, 70, 70, 70, 90, 160] : [0, 120])
+    } else if (Platform.OS === 'ios') {
+      await Haptics.notificationAsync(pattern === 'recognition_warning'
+        ? Haptics.NotificationFeedbackType.Warning : Haptics.NotificationFeedbackType.Success)
     }
-    if (pattern === 'recognition_warning') {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-      return
-    }
-    await impact(
-      pattern === 'goal_complete'
-        ? Haptics.ImpactFeedbackStyle.Heavy
-        : Haptics.ImpactFeedbackStyle.Medium,
-    )
-    await new Promise<void>((resolve) => setTimeout(resolve, 140))
-    await impact(
-      pattern === 'goal_complete'
-        ? Haptics.ImpactFeedbackStyle.Heavy
-        : Haptics.ImpactFeedbackStyle.Medium,
-    )
   } catch {
     // 触感反馈不阻塞训练状态机。
   }
 }
 
-/**
- * 触发一次声音反馈：用震动通知 style=Heavy 模拟"结束提示"。
- * RN 没有等价于 wx.showToast 内置音效，统一用震动替代。
- */
+/** 旧调用兼容；新的结算页直接管理真实音效与播放生命周期。 */
 export async function triggerSound(result: 'success' | 'fail'): Promise<void> {
   const prefs = await readPrefs()
   if (!prefs.soundFeedback) return
   try {
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      await Haptics.notificationAsync(
-        result === 'success'
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      )
-    }
+    if (result === 'success') await (await import('./completion-sound')).playCompletionSound()
   } catch {
     // 忽略：声音反馈是次要体验，不应阻塞主流程。
   }

@@ -1,7 +1,7 @@
 import { DEFAULT_FLOOR_HEIGHT_M, DEFAULT_STEPS_PER_FLOOR } from './sensor-params'
 import type { RouteLocation, RouteTemplate } from './types'
 import { uid } from './math'
-import { floorAfter, getFloorTransitionCount } from './floors'
+import { floorAfter, getFloorTransitionCount, normalizeFloorNumber } from './floors'
 
 /**
  * 楼栋模板中的一层（从 floorFrom 爬到 floorTo 的一段）。
@@ -156,7 +156,7 @@ export function normalizeBuildingTemplate(value: unknown): BuildingTemplate | un
   if (!value || typeof value !== 'object') return undefined
   const raw = value as Partial<BuildingTemplate>
   if (typeof raw.id !== 'string' || !Array.isArray(raw.floors)) return undefined
-  const startFloor = Number.isFinite(raw.startFloor) ? Math.round(raw.startFloor as number) : 1
+  const startFloor = normalizeFloorNumber(raw.startFloor ?? 1)
   const floors = raw.floors
     .filter((floor): floor is BuildingFloorProfile => !!floor && typeof floor === 'object')
     .map((floor, index) => ({

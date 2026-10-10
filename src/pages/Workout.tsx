@@ -1,5 +1,5 @@
 // 训练页（fusion-v1）：按阶段切换的全屏视图，小屏和大字体可滚动查看操作。
-// 原则：爬楼时满头大汗也能一眼看懂——巨大楼层数字 + 竖向楼梯刻度 + 一条状态栏 + 三个小指标。
+// 楼层为主，步数、爬楼节奏、累计高度与热量在上行过程中实时可见。
 // 结束、放弃固定显示在页面底部，需长按（或读屏双击）确认，防误触。
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
@@ -15,7 +15,7 @@ import { formatDuration } from '../core/math'
 import type { FusionSnapshot } from '../core/fusion-engine'
 import { useFusionWorkout } from '../hooks/useFusionWorkout'
 import type { RootStackScreen } from '../navigation/types'
-import { workoutPalette as P } from '../theme'
+import { useWorkoutPalette, WorkoutPalette } from '../theme'
 
 function baroLabel(baro: FusionSnapshot['baro']): string {
   switch (baro) {
@@ -36,10 +36,11 @@ export function WorkoutContent({ navigation, session }: {
   navigation: RootStackScreen<'ClimbWorkout'>['navigation']
   session: ReturnType<typeof useFusionWorkout>
 }) {
+  const P = useWorkoutPalette()
+  const styles = useMemo(() => makeStyles(P), [P])
   const insets = useSafeAreaInsets()
   const { height, fontScale } = useWindowDimensions()
   const compact = height / fontScale < 740
-  const roomyCompact = compact && height >= 800
   const { snapshot, status } = session
   const finishingRef = useRef(false)
   const [showExitHint, setShowExitHint] = useState(false)
@@ -98,7 +99,7 @@ export function WorkoutContent({ navigation, session }: {
     const retainedMessage = session.canSaveLater ? '本次训练仍保留在本机，请重试保存。' : '轮次仍在当前页面，请重试保存后再退出。'
     return (
       <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar style="light" />
+        <StatusBar style={P.isDark ? 'light' : 'dark'} />
         <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           {status === 'save_failed' ? <Pressable accessibilityRole="button" accessibilityLabel="返回，查看成绩保存操作" onPress={showLeaveActions} style={styles.iconButton}><MaterialCommunityIcons name="chevron-left" size={30} color={P.ink} /></Pressable> : null}
           <Text style={{ color: P.ink, fontSize: 24, fontWeight: '900' }}>训练结束</Text>
@@ -140,7 +141,7 @@ export function WorkoutContent({ navigation, session }: {
     if (status === 'error') {
       return (
         <View style={[styles.root, styles.center, { paddingTop: insets.top }]}>
-          <StatusBar style="light" />
+          <StatusBar style={P.isDark ? 'light' : 'dark'} />
           <MaterialCommunityIcons name="alert-circle-outline" size={48} color={P.warn} />
           <Text style={styles.errorTitle}>暂时无法开始训练</Text>
           <Text style={styles.errorText}>{session.error}</Text>
@@ -155,7 +156,7 @@ export function WorkoutContent({ navigation, session }: {
     }
     return (
       <View style={[styles.root, styles.center]}>
-        <StatusBar style="light" />
+        <StatusBar style={P.isDark ? 'light' : 'dark'} />
         <ActivityIndicator size="large" color={P.brand} />
         <Text style={styles.loading}>正在启动传感器…</Text>
       </View>
@@ -193,10 +194,20 @@ export function WorkoutContent({ navigation, session }: {
   }
 
   const showManualNext = (phase === 'calibration_top' || (phase === 'climbing' && snapshot.baro !== 'ok'))
+  const heroHeight = compact ? 180 : Math.min(310, Math.max(220, height * 0.29))
+  const climbingMinutes = (snapshot.ascentMs ?? snapshot.activeMs) / 60000
+  const frequency = climbingMinutes > 0 ? snapshot.totalFloors / climbingMinutes : 0
+  const ascent = snapshot.ascentM ?? snapshot.totalFloors * 3
+  const metrics = [
+    { label: '当前步数', value: String(snapshot.steps), unit: '步', icon: 'shoe-print' as const },
+    { label: '平均爬楼频率', value: frequency.toFixed(1), unit: '层/分钟', icon: 'speedometer' as const },
+    { label: '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
+    { label: '累计爬升', value: Math.round(ascent).toString(), unit: '米', icon: 'stairs-up' as const },
+  ]
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + (compact ? 16 : 40), paddingBottom: insets.bottom + (compact ? 16 : 48) }]}>
-      <StatusBar style="light" />
+    <View style={[styles.root, { paddingTop: insets.top + (compact ? 12 : 20), paddingBottom: insets.bottom + 8 }]}>
+      <StatusBar style={P.isDark ? 'light' : 'dark'} />
       <View style={styles.topRow}>
         <View style={{ flex: 1 }}>
           <PhaseStatusBar tone={snapshot.status.tone} text={snapshot.status.text} extra={baroLabel(snapshot.baro)} />
@@ -204,18 +215,31 @@ export function WorkoutContent({ navigation, session }: {
       </View>
       {session.warning ? <Text style={styles.warning} numberOfLines={2}>{session.warning}</Text> : null}
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-      <View style={[styles.hero, calibrating && { flex: 0, minHeight: compact ? roomyCompact ? 240 : 160 : Math.max(250, height * 0.32) }, phase === 'calibration_top' && { flex: 0, minHeight: compact ? roomyCompact ? 260 : 180 : height * 0.35 }]}>
-        <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? roomyCompact ? 200 : 120 : phase === 'climbing' ? 230 : calibrating ? 240 : 260} maxVisible={compact || phase === 'climbing' ? 10 : 12} style={styles.gauge} />
-        <View style={[styles.heroCenter, !compact && { transform: [{ translateY: phase === 'climbing' ? 36 : phase === 'waiting' ? -24 : 0 }] }]}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.liveContent, { gap: compact ? 10 : 16 }]} showsVerticalScrollIndicator={false}>
+      <View style={[styles.hero, { minHeight: heroHeight }]}>
+        <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 150 : Math.min(240, heroHeight - 12)} maxVisible={10} style={styles.gauge} />
+        <View style={styles.heroCenter}>
           <Text style={[styles.eyebrow, compact && { fontSize: 16 }]}>{eyebrow}</Text>
           {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brand} style={{ marginTop: 12 }} /> : null}
           <View style={styles.bigRow}>
-            <FlipNumber value={bigValue} size={compact ? roomyCompact ? 128 : 76 : phase === 'climbing' ? 176 : 160} accessibilityLabel={`${bigValue} ${unit}`} />
-            <Text style={[styles.unit, compact && { fontSize: 26, marginBottom: 14 }]}>{unit}</Text>
+            <FlipNumber value={bigValue} size={compact ? 102 : 144} accessibilityLabel={`${bigValue} ${unit}`} />
+            <Text style={[styles.unit, compact && { fontSize: 26, marginBottom: 16 }]}>{unit}</Text>
           </View>
-          <Text style={[styles.caption, compact && { fontSize: 18, lineHeight: 24, marginTop: 4 }, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
+          <Text style={[styles.caption, compact && { fontSize: 16, lineHeight: 22, marginTop: 4 }, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
         </View>
+      </View>
+
+      <View>
+        <View style={styles.liveMetrics}>
+          {metrics.map(metric => <View key={metric.label} style={[styles.liveMetric, compact && { minHeight: 68, paddingVertical: 10 }]} accessible
+            accessibilityLabel={`${metric.label} ${metric.value} ${metric.unit}`}>
+            <View style={styles.liveMetricTitle}><MaterialCommunityIcons name={metric.icon} size={16} color={P.brandInk} accessible={false} />
+              <Text style={styles.liveMetricLabel}>{metric.label}</Text></View>
+            <View style={styles.liveMetricNumber}><Text style={[styles.liveMetricValue, compact && { fontSize: 24 }]} numberOfLines={1} adjustsFontSizeToFit>{metric.value}</Text>
+              <Text style={styles.liveMetricUnit}>{metric.unit}</Text></View>
+          </View>)}
+        </View>
+        <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
       </View>
 
       {calibrating ? (
@@ -224,10 +248,10 @@ export function WorkoutContent({ navigation, session }: {
             accessibilityRole="button"
             accessibilityLabel={`到了一层，记为 ${nextFloor} 楼`}
             onPress={session.markFloor}
-            style={({ pressed }) => [styles.bigButton, { minHeight: compact ? 64 : 88 }, pressed && styles.bigButtonPressed]}
+            style={({ pressed }) => [styles.bigButton, { minHeight: compact ? 64 : 76 }, pressed && styles.bigButtonPressed]}
           >
             <Text style={[styles.bigButtonText, compact && { fontSize: 22 }]} numberOfLines={1} adjustsFontSizeToFit>到了一层</Text>
-            <Text style={[styles.bigButtonSub, compact && { fontSize: 12, marginTop: 2 }]}>记为下一层楼号</Text>
+            <Text style={[styles.bigButtonSub, compact && { fontSize: 12, marginTop: 2 }]}>记为 {nextFloor} 楼</Text>
           </Pressable>
           <View style={styles.calRow}>
             <Pressable accessibilityRole="button" accessibilityLabel="撤销上一次" disabled={!snapshot.canUndo}
@@ -236,24 +260,25 @@ export function WorkoutContent({ navigation, session }: {
               <Text style={styles.secondaryText}>撤销</Text>
             </Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="到顶了，结束标定爬楼" onPress={session.markTop} style={[styles.secondary, styles.topButton]}>
-              <MaterialCommunityIcons name="flag-checkered" size={20} color={P.brand} />
-              <Text style={[styles.secondaryText, { color: P.brand }]}>到顶了</Text>
+              <MaterialCommunityIcons name="flag-checkered" size={20} color={P.brandInk} />
+              <Text style={[styles.secondaryText, { color: P.brandInk }]}>到顶了</Text>
             </Pressable>
           </View>
         </View>
-      ) : (
-        <View style={styles.flexSpacer}>
-          {showManualNext ? (
+      ) : showManualNext ? (
+        <View>
             <Pressable accessibilityRole="button" accessibilityLabel="已回到楼下，开始下一轮" onPress={session.nextRound} style={[styles.nextButton, compact && { minHeight: 52 }]}>
-              <MaterialCommunityIcons name="replay" size={20} color={P.ink} />
+              <MaterialCommunityIcons name="replay" size={20} color={P.onBrand} />
               <Text style={[styles.nextText, compact && { fontSize: 18 }]} numberOfLines={1} adjustsFontSizeToFit>{phase === 'calibration_top' ? '已到楼下 · 开始下一轮' : '结束本轮'}</Text>
             </Pressable>
-          ) : null}
         </View>
-      )}
+      ) : <View style={styles.phaseHint}>
+        <MaterialCommunityIcons name={phase === 'descending' ? 'elevator-down' : phase === 'waiting' ? 'play-circle-outline' : 'vibrate'} size={20} color={P.brandInk} accessible={false} />
+        <Text style={styles.phaseHintText}>{phase === 'descending' ? '下行不累计楼层与热量' : phase === 'waiting' ? '开始上行即可继续，休息不计入爬楼频率' : '每完成一层，楼层数字与震动同步提醒'}</Text>
+      </View>}
       </ScrollView>
 
-      <View style={[styles.stats, compact && { paddingVertical: 10 }]}>
+      <View style={styles.stats}>
         <MiniStat label="用时" value={formatDuration(snapshot.elapsedMs)} compact={compact} />
         <MiniStat label="累计层数" value={String(snapshot.totalFloors)} accent compact={compact} divider />
         <MiniStat label="轮次" value={`第 ${snapshot.roundNumber} 轮`} compact={compact} divider />
@@ -267,36 +292,47 @@ export function WorkoutContent({ navigation, session }: {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: P.bg, paddingHorizontal: 20,},
   center: { alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 32 },
-  failureCard: { padding: 18, backgroundColor: '#1c1a18', borderRadius: 20, gap: 6, alignSelf: 'stretch', marginVertical: 12 },
+  failureCard: { padding: 18, backgroundColor: P.failureSurface, borderRadius: 20, gap: 6, alignSelf: 'stretch', marginVertical: 12 },
   failureValue: { color: P.ink, fontSize: 22, fontWeight: '900', textAlign: 'center' },
   loading: { color: P.inkSoft, fontSize: 16, fontWeight: '700' },
   errorTitle: { color: P.ink, fontSize: 22, fontWeight: '900' },
   errorText: { color: P.inkSoft, fontSize: 15, lineHeight: 22, textAlign: 'center' },
   primarySmall: { minHeight: 56, minWidth: 180, borderRadius: 26, backgroundColor: P.brand, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch',},
   primarySmallText: { color: P.onBrand, fontSize: 17, fontWeight: '900' },
-  ghost: { minHeight: 56, justifyContent: 'center', borderWidth: 1, borderColor: P.brand, borderRadius: 28, paddingHorizontal: 20,},
-  ghostText: { color: P.brand, fontSize: 15, fontWeight: '700' },
+  ghost: { minHeight: 56, justifyContent: 'center', borderWidth: 1, borderColor: P.brandInk, borderRadius: 28, paddingHorizontal: 20,},
+  ghostText: { color: P.brandInk, fontSize: 15, fontWeight: '700' },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   warning: { color: P.warn, fontSize: 13, fontWeight: '700', marginTop: 8, marginHorizontal: 4 },
-  hero: { flex: 1, flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  liveContent: { flexGrow: 1, justifyContent: 'space-evenly', paddingVertical: 12 },
+  hero: { flexDirection: 'row', alignItems: 'center' },
+  liveMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  liveMetric: { width: '48%', flexGrow: 1, minHeight: 82, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: P.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: P.line },
+  liveMetricTitle: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  liveMetricLabel: { color: P.inkSoft, fontSize: 12, fontWeight: '700', flexShrink: 1 },
+  liveMetricNumber: { flexDirection: 'row', alignItems: 'baseline', gap: 5, marginTop: 4 },
+  liveMetricValue: { color: P.ink, fontSize: 30, fontWeight: '900', fontVariant: ['tabular-nums'], flexShrink: 1 },
+  liveMetricUnit: { color: P.muted, fontSize: 11, fontWeight: '700' },
+  metricHint: { color: P.muted, fontSize: 11, lineHeight: 16, marginTop: 8, textAlign: 'center' },
+  phaseHint: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 14, borderRadius: 16, backgroundColor: P.surface },
+  phaseHintText: { flex: 1, color: P.inkSoft, fontSize: 13, lineHeight: 20 },
   gauge: { width: 60,},
   heroCenter: { flex: 1, alignItems: 'center', paddingRight: 0,},
-  eyebrow: { color: P.brand, fontSize: 20, fontWeight: '900', letterSpacing: 1 },
+  eyebrow: { color: P.brandInk, fontSize: 20, fontWeight: '900', letterSpacing: 1 },
   bigRow: { flexDirection: 'row', alignItems: 'flex-end', maxWidth: '100%' },
   unit: { color: P.inkSoft, fontSize: 34, fontWeight: '900', marginBottom: 26, marginLeft: 4 },
-  caption: { color: P.inkSoft, fontSize: 22, lineHeight: 30, fontWeight: '700', marginTop: 8, textAlign: 'center' },
+  caption: { color: P.inkSoft, fontSize: 18, lineHeight: 26, fontWeight: '700', marginTop: 6, textAlign: 'center' },
   calArea: { flex: 0, justifyContent: 'flex-end', gap: 12, marginTop: 0,},
   bigButton: {
     flex: 0, minHeight: 76, borderRadius: 24, backgroundColor: P.brand,
     alignItems: 'center', justifyContent: 'center',
   },
-  bigButtonPressed: { backgroundColor: P.brandDeep, transform: [{ scale: 0.985 }] },
+  bigButtonPressed: { backgroundColor: P.brandPressed, transform: [{ scale: 0.985 }] },
   bigButtonText: { color: P.onBrand, fontSize: 30, fontWeight: '900', letterSpacing: 0,},
-  bigButtonSub: { color: P.onBrand, fontSize: 14, fontWeight: '800', opacity: 0.75, marginTop: 4, fontVariant: ['tabular-nums'] },
+  bigButtonSub: { color: P.onBrand, fontSize: 14, fontWeight: '800', marginTop: 4, fontVariant: ['tabular-nums'] },
   calRow: { flexDirection: 'row', gap: 12 },
   secondary: {
     flex: 1, minHeight: 48, borderRadius: 24, backgroundColor: 'transparent', flexDirection: 'row',
@@ -304,13 +340,12 @@ const styles = StyleSheet.create({
    borderWidth: 1, borderColor: P.muted,},
   topButton: { borderWidth: 1.5, borderColor: P.muted,},
   secondaryText: { color: P.inkSoft, fontSize: 18, fontWeight: '900' },
-  flexSpacer: { minHeight: 100, justifyContent: 'flex-start',},
   nextButton: {
     minHeight: 72, borderRadius: 24, backgroundColor: P.brand, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   nextText: { color: P.onBrand, fontSize: 23, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
-  stats: { flexDirection: 'row', paddingVertical: 24, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P.line, marginTop: 8,},
+  stats: { flexDirection: 'row', paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P.line, marginTop: 4 },
   exitActions: { gap: 6, marginTop: 4 },
   exitHint: { color: P.inkSoft, fontSize: 13, lineHeight: 18, textAlign: 'center', paddingHorizontal: 8 },
   discard: { minHeight: 48, borderWidth: 0, borderRadius: 24 },

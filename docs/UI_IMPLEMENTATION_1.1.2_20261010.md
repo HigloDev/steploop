@@ -8,8 +8,8 @@
 
 - [原生界面与视觉稿对照图册](qa/ui-redraw-20261010/index.html)，本机浏览地址：<http://127.0.0.1:8792/docs/qa/ui-redraw-20261010/index.html>。
 - [最终视觉验收报告](../design-qa.md)：`final result: passed`；记录每轮修正、剩余P3和验收边界。
-- [Android独立内部APK](https://github.com/HigloDev/steploop/releases/tag/v1.1.2-preview.1)。不需要电脑上的Metro服务。
-- [交付清单](https://github.com/HigloDev/steploop/releases/tag/v1.1.2-preview.1)、[原生操作结果](qa/ui-redraw-20261010/runtime-checks.json)、[安装和数据保留结果](qa/ui-redraw-20261010/release-checks.json)、[源码一致性](qa/ui-redraw-20261010/source-integrity.json)。
+- [Android独立内部APK](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)。不需要电脑上的Metro服务。
+- [交付清单](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)、[原生操作结果](qa/ui-redraw-20261010/runtime-checks.json)、[安装和数据保留结果](qa/ui-redraw-20261010/release-checks.json)、[源码一致性](qa/ui-redraw-20261010/source-integrity.json)。
 
 APK：`com.zxn.palou`，1.1.2 / versionCode11，最低Android24，targetSDK36，arm64-v8a / x86_64，75,568,635字节。SHA-256：
 

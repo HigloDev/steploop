@@ -31,7 +31,7 @@ import {
 } from './building-template'
 import { ElevatorDetector, VerticalTransit } from './elevator-gate'
 import { buildTemplateFromCalibration } from './fusion-calibration'
-import { floorAfter } from './floors'
+import { floorAfter, normalizeFloorNumber } from './floors'
 import { clamp, uid } from './math'
 import { MotionSignalProcessor } from './motion-signal'
 import {
@@ -128,6 +128,10 @@ export interface FusionSnapshot {
   elapsedMs: number
   activeMs: number
   steps: number
+  /** 累计上行高度，包含尚未结束的这一轮；下行与等候不增加。 */
+  ascentM?: number
+  /** 累计上行用时，包含上行时的短暂停留，不包含轮间等候与下行。 */
+  ascentMs?: number
   /** 本轮相对起点高度（米），无气压时 undefined。 */
   heightM?: number
   baro: 'ok' | 'stale' | 'none' | 'pending'
@@ -232,7 +236,12 @@ export class FusionWorkoutEngine {
     this.startedAt = options.startedAt
     this.now = options.startedAt
     this.template = options.template
-    this.startFloor = options.template?.startFloor ?? options.startFloor ?? 1
+    this.startFloor = normalizeFloorNumber(options.template?.startFloor ?? options.startFloor ?? 1)
+    if (this.template && this.template.startFloor !== this.startFloor) {
+      this.template = { ...this.template, startFloor: this.startFloor,
+        floors: this.template.floors.map((floor, index) => ({ ...floor,
+          floorFrom: floorAfter(this.startFloor, index), floorTo: floorAfter(this.startFloor, index + 1) })) }
+    }
     this.rounds = [...(options.resumeRounds ?? [])]
     this.templateName = options.templateName
     if (this.template && this.template.floors.length > 0) {
@@ -395,10 +404,11 @@ export class FusionWorkoutEngine {
       ? (now - this.startedAt < 4000 ? 'pending' : 'none')
       : this.baro.isStale(now) ? 'stale' : 'ok'
     const rel = round ? this.relativeHeight(round) : undefined
+    const ascentEndAt = round?.topAt ?? now
     const active = this.rounds.reduce((sum, r) => sum + r.activeMs, 0) +
-      (round && this.phase !== 'calibration_top' ? Math.max(0, this.activeTotal - round.activeAtStart) : 0)
+      (round ? Math.max(0, this.activeAt(ascentEndAt) - round.activeAtStart) : 0)
     const steps = this.rounds.reduce((sum, r) => sum + r.steps, 0) +
-      (round ? Math.max(0, this.stepsTotal - round.stepsAtStart) : 0)
+      (round ? Math.max(0, this.stepsAt(ascentEndAt) - round.stepsAtStart) : 0)
     const roundNumber = round ? round.number : this.rounds.length + 1
     const kind: FusionRoundKind = round?.kind ?? (this.template ? 'auto' : 'calibration')
     return {
@@ -416,6 +426,14 @@ export class FusionWorkoutEngine {
       elapsedMs: Math.max(0, now - this.startedAt),
       activeMs: active,
       steps,
+      ascentM: this.rounds.reduce((sum, result) => sum + result.ascentM, 0) +
+        (round ? round.kind === 'calibration'
+          ? (this.phase === 'calibration_top' && round.baselineAlt !== undefined
+            ? Math.max(0, (this.baro.altitudeCentered(ascentEndAt, MARK_HEIGHT_WINDOW_MS) ?? round.baselineAlt) - round.baselineAlt)
+            : baroState === 'ok' && rel !== undefined ? Math.max(0, rel) : roundFloors * DEFAULT_FLOOR_HEIGHT_M)
+          : this.ascentFor(roundFloors) : 0),
+      ascentMs: this.rounds.reduce((sum, result) => sum + result.durationMs, 0) +
+        (round ? Math.max(0, ascentEndAt - round.startedAt) : 0),
       heightM: rel !== undefined ? Number(rel.toFixed(1)) : undefined,
       baro: baroState,
       estimated: round ? (round.usedFallback || round.floors.some(f => f.estimated)) : false,

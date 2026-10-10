@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { MainTabParamList } from './types'
 import { useTheme } from '../theme'
+import { triggerHaptic } from '../services/preferences'
 import { BrandMark } from '../components/brand-mark'
 import TrainHomeScreen from '../pages/Home'
 import HistoryScreen from '../pages/History'
@@ -23,6 +24,7 @@ export default function MainTabs() {
   return (
     <Tab.Navigator
       initialRouteName="Train"
+      screenListeners={{ tabPress: () => { void triggerHaptic('selection') } }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: theme.brand,

@@ -52,7 +52,7 @@ function hookRuntime() {
 
 async function sessionHarness(options = {}) {
   const runtime = hookRuntime()
-  const state = { checkpoint: options.checkpoint ?? null, workouts: new Map(), pending: null, starts: 0, saves: 0, clears: 0 }
+  const state = { checkpoint: options.checkpoint ?? null, workouts: new Map(), pending: null, starts: 0, saves: 0, clears: 0, feedback: [] }
   let now = 100000, interval, saveFailures = options.saveFailures ?? 0,
     pendingFailures = options.pendingFailures ?? 0, clearFailures = options.clearFailures ?? 0,
     completedCheckpointFailures = options.completedCheckpointFailures ?? 0
@@ -79,7 +79,7 @@ async function sessionHarness(options = {}) {
     'expo-keep-awake': { activateKeepAwakeAsync: async () => {}, deactivateKeepAwake() {} },
     '../services/building-storage': buildings,
     '../services/background-training': { isBackgroundTrainingSupported: () => false },
-    '../services/preferences': { getPreferences: async () => ({ bodyWeightKg: 65 }), triggerHaptic: async () => {} },
+    '../services/preferences': { getPreferences: async () => ({ bodyWeightKg: 65 }), triggerHaptic: async () => {}, triggerHapticPattern: async pattern => { state.feedback.push(pattern) } },
     '../services/sensor': { SensorRecorder: Recorder, sensorStartErrorMessage: e => e.message },
     '../services/voice-feedback': { createWorkoutVoiceService: () => ({ observe() {}, finish: async () => {}, dispose: async () => {} }) },
     '../services/workout-voice-settings': { workoutVoiceSettings: () => ({}) },
@@ -98,8 +98,30 @@ async function sessionHarness(options = {}) {
   const render = () => api = runtime.render(() => exports.useFusionWorkout(options.params ?? {}))
   const settle = async () => { await new Promise(resolve => setImmediate(resolve)); return render() }
   render(); await settle(); interval?.(); render()
-  return { state, get api() { return api }, render, settle, advance(ms) { now += ms }, mark() { now += 3000; api.markFloor(); render() } }
+  return { state, get api() { return api }, render, settle, advance(ms) { now += ms }, tick() { interval?.(); render() }, mark() { now += 3000; api.markFloor(); render() } }
 }
+
+test('a marked floor vibrates immediately once; repeated timer snapshots do not repeat it', async () => {
+  const h = await sessionHarness()
+  h.mark()
+  assert.deepEqual(h.state.feedback, ['floor'])
+  h.tick(); h.tick()
+  assert.deepEqual(h.state.feedback, ['floor'])
+  h.api.undoMark(); h.render(); h.mark()
+  assert.deepEqual(h.state.feedback, ['floor', 'floor'])
+})
+
+test('live calories include the current unfinished calibration round and remain visible at the top', async () => {
+  const h = await sessionHarness()
+  h.mark(); h.mark()
+  assert.equal(h.api.rounds.length, 0)
+  assert.equal(h.api.snapshot.ascentM, 6)
+  assert.ok(h.api.calories > 0)
+  const climbingMs = h.api.snapshot.ascentMs
+  h.api.markTop(); h.render(); h.advance(60000); h.tick()
+  assert.equal(h.api.snapshot.ascentMs, climbingMs)
+  assert.equal(h.api.snapshot.ascentM, 6)
+})
 
 test('failed workout save retains completed rounds and retries without duplicate results or elapsed time', async () => {
   const h = await sessionHarness({ saveFailures: 1 })

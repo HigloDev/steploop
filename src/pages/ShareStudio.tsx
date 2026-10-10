@@ -400,6 +400,7 @@ export default function ShareStudioScreen({
         </View>
         <View style={styles.previewWrap}>
           <SharePoster
+            key={theme.isDark ? 'dark' : 'light'}
             ref={posterRef}
             onImageReady={() => setReadyTheme(theme.isDark)}
             workout={workout}

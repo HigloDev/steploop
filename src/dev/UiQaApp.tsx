@@ -15,6 +15,7 @@ import Onboarding from '../pages/Onboarding'
 import Result from '../pages/Result'
 import DiagnosticCapture from '../pages/DiagnosticCapture'
 import Workout, { WorkoutContent } from '../pages/Workout'
+import WeeklyShare from '../pages/WeeklyShare'
 import { useTheme } from '../theme'
 import { FusionWorkoutApi } from '../hooks/useFusionWorkout'
 import { FusionPhase, FusionRoundResult, FusionSnapshot } from '../core/fusion-engine'
@@ -60,7 +61,12 @@ async function seed(state: string) {
     await AsyncStorage.removeItem('palou.privacy.agreed.v1')
     await AsyncStorage.removeItem('palou.onboarding.v1')
   }
-  if (state === 'empty') return
+  if (state === 'empty' || state === 'weekly-empty') {
+    // Older lab sessions may have their own IDs. Use a separate empty week
+    // rather than deleting records that this fixture did not create.
+    clock = NOW + 60 * 86400000
+    return
+  }
   await saveBuilding({ ...building, id: 'uiqa-building-b', name: '运动中心', floors: building.floors.slice(0, 10), updatedAt: START - 86400000 })
   await saveBuilding(building)
   for (const [id, floors, count, day, duration] of [
@@ -123,10 +129,15 @@ async function seed(state: string) {
   liveAt = performance.now()
 }
 
+const WORKOUT_STATES = ['calibrating', 'calibration_top', 'climbing', 'climbing-long', 'climbing-estimated',
+  'descending', 'waiting', 'save-failed', 'save-failed-no-recovery', 'starting', 'start-error', 'finishing']
+
 function WorkoutFixture({ navigation, state }: { navigation: any; state: string }) {
-  const [phase, setPhase] = useState<FusionPhase>(state.startsWith('save-failed') || state === 'climbing-long' ? 'climbing' : state as FusionPhase)
+  const [phase, setPhase] = useState<FusionPhase>(state.startsWith('save-failed') || state.startsWith('climbing-') || ['starting', 'start-error', 'finishing'].includes(state) ? 'climbing' : state as FusionPhase)
   const [floors, setFloors] = useState(state === 'climbing-long' ? 100 : phase === 'calibrating' ? 4 : phase === 'climbing' ? 8 : phase === 'waiting' ? 0 : 15)
   const [saveFailed, setSaveFailed] = useState(state.startsWith('save-failed'))
+  const [status, setStatus] = useState<FusionWorkoutApi['status']>(state === 'start-error' ? 'error' : state === 'starting' ? 'starting' : state === 'finishing' ? 'finishing' : 'running')
+  const estimated = state === 'climbing-estimated'
   const labels = { calibrating: '标定中 · 每到一层点一下', calibration_top: '标定完成', climbing: '正在向上 · 自动计层',
     descending: '下行中 · 到楼下自动开始下一轮', waiting: '在楼下准备 · 开始爬就自动计层', finished: '已结束' }
   const snapshot: FusionSnapshot = { phase, roundNumber: phase === 'waiting' ? 3 : phase === 'descending' ? 2 : 1,
@@ -134,13 +145,16 @@ function WorkoutFixture({ navigation, state }: { navigation: any; state: string 
     currentFloor: floors + 1, roundFloors: floors, totalFloors: phase === 'waiting' || phase === 'descending' ? 30 : floors,
     completedRounds: phase === 'waiting' || phase === 'descending' ? 2 : 0, templateFloors: phase === 'calibrating' ? undefined : 15,
     elapsedMs: phase === 'waiting' ? 560000 : phase === 'descending' ? 500000 : phase === 'calibrating' ? 92000 : 192000,
-    activeMs: 192000, steps: floors * 18, baro: 'ok', estimated: false, canUndo: floors > 0, canMarkTop: floors > 0,
-    status: { text: labels[phase], tone: 'good' } }
-  const api = { snapshot, status: saveFailed ? 'save_failed' : 'running', error: saveFailed ? '本次训练仍保留在本机，请重试保存。' : undefined,
-    rounds: [round(15, 1), round(15, 2)], canSaveLater: state !== 'save-failed-no-recovery',
+    activeMs: 192000, ascentMs: 192000, ascentM: (phase === 'waiting' || phase === 'descending' ? 30 : floors) * 3,
+    steps: (phase === 'waiting' || phase === 'descending' ? 30 : floors) * 18, baro: estimated ? 'none' : 'ok', estimated, canUndo: floors > 0, canMarkTop: floors > 0,
+    status: { text: estimated ? '正在向上 · 按步数估算' : labels[phase], tone: estimated ? 'warn' : 'good' } }
+  const api = { snapshot: status === 'starting' || status === 'error' ? null : snapshot, status: saveFailed ? 'save_failed' : status,
+    error: saveFailed ? '本次训练仍保留在本机，请重试保存。' : status === 'error' ? '传感器暂时未连接，请检查权限后重试。' : undefined,
+    warning: estimated ? '此设备无气压计，楼层为步数估算。' : undefined,
+    calories: 12 + floors * 0.46, workoutId: 'uiqa-live', rounds: [round(15, 1), round(15, 2)], canSaveLater: state !== 'save-failed-no-recovery',
     markFloor: () => setFloors(f => f + 1), undoMark: () => setFloors(f => Math.max(0, f - 1)),
     markTop: () => setPhase('calibration_top'), nextRound: () => { setFloors(0); setPhase('waiting') },
-    finish: async () => { setSaveFailed(false); return 'uiqa-summary' }, discard: async () => {}, retry: () => setSaveFailed(false),
+    finish: async () => { setSaveFailed(false); return 'uiqa-summary' }, discard: async () => {}, retry: () => { setSaveFailed(false); setStatus('running') },
   } as FusionWorkoutApi
   return <WorkoutContent navigation={navigation} session={api} />
 }
@@ -156,7 +170,7 @@ export default function UiQaApp() {
   if (!state) return <View style={{ flex: 1, backgroundColor: theme.paper, justifyContent: 'center' }}><ActivityIndicator color={theme.brand} /></View>
   const target = state.startsWith('summary') || state === 'template' ? 'WorkoutResult' : state === 'share' ? 'ShareStudio'
     : state === 'onboarding' ? 'Onboarding' : state.startsWith('privacy') ? 'Privacy' : state === 'legacy' ? 'Result'
-    : state === 'diagnostic' ? 'DiagnosticCapture' : ['calibrating', 'calibration_top', 'climbing', 'climbing-long', 'descending', 'waiting', 'save-failed', 'save-failed-no-recovery'].includes(state) ? 'ClimbWorkout' : 'Main'
+    : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
   const targetParams = target === 'WorkoutResult' ? { id: state === 'template' ? 'uiqa-template' : 'uiqa-summary', fresh: true }
     : target === 'ShareStudio' ? { id: 'uiqa-summary' } : target === 'Result' ? { id: 'uiqa-legacy' }
     : target === 'Onboarding' ? { from: 'settings' } : undefined
@@ -170,10 +184,11 @@ export default function UiQaApp() {
       <Stack.Screen name="Main" component={MainTabs} initialParams={{ screen: mainScreen }} />
       <Stack.Screen name="WorkoutResult" component={Summary} initialParams={{ id: state === 'template' ? 'uiqa-template' : 'uiqa-summary' }} />
       <Stack.Screen name="ShareStudio" component={ShareStudio} initialParams={{ id: 'uiqa-summary' }} />
+      <Stack.Screen name="WeeklyShare" component={WeeklyShare} />
       <Stack.Screen name="Privacy" component={Privacy} /><Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen name="Result" component={Result} initialParams={{ id: 'uiqa-legacy' }} />
       <Stack.Screen name="DiagnosticCapture" component={DiagnosticCapture} />
-      <Stack.Screen name="ClimbWorkout">{props => ['calibrating', 'calibration_top', 'climbing', 'climbing-long', 'descending', 'waiting', 'save-failed', 'save-failed-no-recovery'].includes(state)
+      <Stack.Screen name="ClimbWorkout">{props => WORKOUT_STATES.includes(state)
         ? <WorkoutFixture navigation={props.navigation} state={state} /> : <Workout {...props} />}</Stack.Screen>
     </Stack.Navigator>
   </NavigationContainer><StatusBar style={theme.isDark ? 'light' : 'dark'} /></SafeAreaProvider>

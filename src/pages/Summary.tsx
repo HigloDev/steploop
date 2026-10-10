@@ -13,6 +13,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Header } from '../components/Header'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { FlowSheet } from '../components/flow-sheet'
+import { CompletionCelebration } from '../components/completion-celebration'
 import { BuildingTemplate, floorCount } from '../core/building-template'
 import { formatCalories } from '../core/calories'
 import { floorAfter, getRoundAchievementCount } from '../core/floors'
@@ -56,6 +57,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
   const [busy, setBusy] = useState(false)
   const [loadAttempt, setLoadAttempt] = useState(0)
   const savingRef = useRef(false)
+  const [celebrationDone, setCelebrationDone] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -183,6 +185,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
 
   return (
     <View style={styles.page}>
+      {route.params.fresh && !celebrationDone && totals.floors > 0 ? <CompletionCelebration floors={totals.floors} ascentM={totals.ascent} onDone={() => setCelebrationDone(true)} /> : null}
       <Header title={route.params.fresh ? '训练完成' : '训练详情'} align={pending || savedTemplate ? 'left' : 'center'} back rightLabel="完成" onRightPress={() => navigation.navigate('Main', { screen: 'Train' })} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         {pending || savedTemplate ? <View style={styles.compactMetrics}>

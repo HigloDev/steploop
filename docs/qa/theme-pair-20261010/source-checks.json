@@ -1,0 +1,46 @@
+{
+  "changedFilesMatchNativeBuild": true,
+  "changedSourceSha256": [
+    {
+      "path": "src/theme.ts",
+      "sha256": "1bea3e66882b1539648630686f2beb3c80d1a7cd46292c199f394dbf8e761450"
+    },
+    {
+      "path": "src/components/background-training-readiness.tsx",
+      "sha256": "03e61d26afe73377e2bf40596e341292a46490c5c25cefd11414284b0d0e323e"
+    },
+    {
+      "path": "src/components/theme-switch.tsx",
+      "sha256": "2df4b95b0088a47651155253fc877794e25e10fb4a66616e1af8897616349c03"
+    },
+    {
+      "path": "src/components/workout-ui.tsx",
+      "sha256": "3fadbebb5877ca2449e88d0486cd47e956f78bb12f5c5ccb89740071579c0553"
+    },
+    {
+      "path": "src/dev/UiQaApp.tsx",
+      "sha256": "c1f62e5703b6d5a01f44346091e63f04aa0a5de16ca74c272a2573e32dba80b3"
+    },
+    {
+      "path": "src/pages/Workout.tsx",
+      "sha256": "c8c98fbbe63761706cad9afda5ec5d6b8a60e17701c45695acb9c590ddba25fb"
+    },
+    {
+      "path": "App.tsx",
+      "sha256": "1c7d0a9f808f0043e670db706e8599c73e342ed494cf3667420b3f7d3419b1c6"
+    },
+    {
+      "path": "package.json",
+      "sha256": "ddb3e9b7ff5eb3da439922234717b13684a35718f44c4f9de12f4c0dd245252a"
+    },
+    {
+      "path": "src/pages/ShareStudio.tsx",
+      "sha256": "871c873703ae43c7c7e870767d5253968cc5a569ec814d259cea15213a35919d"
+    }
+  ],
+  "apkSha256": "a776d2d192187d7b3aefff3000fabcd216e18ae98203cc648eac6db322c86243",
+  "typescriptPassed": true,
+  "testPass": 509,
+  "testFail": 0,
+  "testSkipped": 33
+}

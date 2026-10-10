@@ -1,0 +1,12 @@
+{
+  "cleanNpmCi": "passed",
+  "typescript": "passed",
+  "npmTest": {
+    "tests": 551,
+    "pass": 518,
+    "fail": 0,
+    "skipped": 33,
+    "cancelled": 0
+  },
+  "dependenciesInstalled": 583
+}

@@ -13,10 +13,11 @@ import { BuildingThumb } from '../components/BuildingThumb'
 import { AscentReferences } from '../components/ascent-references'
 import { FlowSheet } from '../components/flow-sheet'
 import { BuildingTemplate, floorCount, templateTotalAscentM } from '../core/building-template'
-import { getRoundAchievementCount, normalizeFloorNumber } from '../core/floors'
-import { LANDMARKS, describeAscent, localDayKey, trainingStreakDays } from '../core/landmarks'
+import { getRoundAchievementCount, normalizeFloorNumber, shiftFloorNumber } from '../core/floors'
+import { describeAscent } from '../core/landmarks'
+import { buildWeeklyAchievement } from '../core/weekly-achievement'
+import { triggerHaptic } from '../services/preferences'
 import { formatDuration, uid } from '../core/math'
-import { startOfLocalWeek } from '../core/progress-trends'
 import type { ActiveWorkoutCheckpoint, ClimbWorkout } from '../core/types'
 import { calculateWorkoutSummary } from '../core/workout-summary'
 import type { ClimbWorkoutParams, MainTabScreen } from '../navigation/types'
@@ -39,21 +40,7 @@ import { Theme, useTheme } from '../theme'
 interface WeekStats { ascentM: number; floors: number; workouts: number; streak: number }
 
 function computeWeek(workouts: ClimbWorkout[]): WeekStats {
-  const weekStart = startOfLocalWeek(Date.now())
-  const valid = workouts.filter(workout => workout.status !== 'cancelled' && workout.rounds?.length)
-  let ascentM = 0
-  let floors = 0
-  let count = 0
-  for (const workout of valid) {
-    if (workout.startedAt < weekStart) continue
-    count += 1
-    for (const round of workout.rounds) {
-      floors += getRoundAchievementCount(round)
-      if (round.floorConfirmation !== 'pending') ascentM += round.ascentM || 0
-    }
-  }
-  const streak = trainingStreakDays(valid.map(workout => localDayKey(workout.startedAt)))
-  return { ascentM, floors, workouts: count, streak }
+  return buildWeeklyAchievement(workouts)
 }
 
 /** 旧版训练（motion-v3 流程）留下的未结束检查点：把已完成轮次结算保存，不丢成绩。 */
@@ -133,7 +120,8 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
         ])
       return
     }
-    navigation.navigate('ClimbWorkout', params)
+    void triggerHaptic('medium')
+    navigation.navigate('ClimbWorkout', { ...params, ...(params.startFloor !== undefined ? { startFloor: normalizeFloorNumber(params.startFloor) } : {}) })
   }
 
   const startNew = () => enterWorkout({ startFloor })
@@ -189,12 +177,9 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
     finally { setBusy(false) }
   }
 
-  const shiftFloor = (delta: number) => {
-    setStartFloor(value => {
-      let next = value + delta
-      if (next === 0) next += delta
-      return Math.max(-5, Math.min(60, normalizeFloorNumber(next)))
-    })
+  const shiftFloor = (delta: -1 | 1) => {
+    void triggerHaptic('selection')
+    setStartFloor(value => Math.max(-5, Math.min(60, shiftFloorNumber(value, delta))))
   }
 
   return (
@@ -252,15 +237,17 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
           <Text style={styles.startText} numberOfLines={1} adjustsFontSizeToFit>开始爬楼</Text>
           <Text style={styles.startSub}>新楼栋 · 第一轮每到一层点一下</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={`起始楼层 ${startFloor} 楼，点按修改`} onPress={() => setFloorPicker(true)} style={styles.floorChip}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`起始楼层 ${startFloor} 楼，点按修改`} onPress={() => { void triggerHaptic('light'); setFloorPicker(true) }} style={styles.floorChip}>
           <Text style={styles.floorChipText}>从 {startFloor} 楼出发</Text>
           <MaterialCommunityIcons name="chevron-right" size={18} color={theme.mutedStrong} />
         </Pressable>
 
         <View style={styles.weekCard}>
-          <View style={styles.weekTop} accessible accessibilityLabel={`本周累计爬升 ${week.ascentM.toFixed(1)} 米，${week.floors} 层，连续训练 ${week.streak} 天，${describeAscent(week.ascentM)}`}>
+          <Pressable style={styles.weekTop} accessibilityRole="button" accessibilityLabel={`本周累计爬升 ${week.ascentM.toFixed(1)} 米，${week.floors} 层，查看高度完成情况`}
+            accessibilityHint="查看已达到的高度参照与下一站进度" disabled={loading || !!loadError}
+            onPress={() => { void triggerHaptic('light'); setReferencesOpen(true) }}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.weekLabel}>本周累计</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Text style={styles.weekLabel}>本周累计</Text><MaterialCommunityIcons name="chevron-right" size={20} color={theme.mutedStrong} accessible={false} /></View>
             <View style={styles.weekRow}>
               <View style={styles.weekMetric}><Text style={styles.weekValue} numberOfLines={1} adjustsFontSizeToFit>{Math.round(week.ascentM)}</Text><Text style={styles.weekUnit}>米</Text></View>
               <View style={styles.weekMetric}><Text style={[styles.weekValue, styles.weekValueSmall]} numberOfLines={1} adjustsFontSizeToFit>{week.floors}</Text><Text style={styles.weekUnit}>层</Text></View>
@@ -272,9 +259,11 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
             <Text style={styles.streakValue}>{week.streak}</Text>
             <Text style={styles.streakLabel}>连续天数</Text>
           </View>
-          </View>
-          <Pressable accessibilityRole="button" accessibilityLabel={`查看全部 ${LANDMARKS.length} 种高度参照`} onPress={() => setReferencesOpen(true)} style={styles.referencesButton}>
-            <Text style={styles.referencesText}>查看 {LANDMARKS.length} 种高度参照</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="分享本周成果" disabled={loading || !!loadError}
+            onPress={() => { void triggerHaptic('light'); navigation.navigate('WeeklyShare') }} style={styles.referencesButton}>
+            <MaterialCommunityIcons name="share-variant-outline" size={18} color={theme.brandInk} accessible={false} />
+            <Text style={[styles.referencesText, { color: theme.brandInk }]}>分享本周成果</Text>
             <MaterialCommunityIcons name="chevron-right" size={18} color={theme.brand} accessible={false} />
           </Pressable>
         </View>

@@ -17,6 +17,7 @@ import {
   PressableProps,
 } from 'react-native'
 import { useTheme, Theme } from '../theme'
+import { triggerHaptic } from '../services/preferences'
 
 type Variant = 'primary' | 'secondary' | 'danger'
 
@@ -95,6 +96,7 @@ export function Button({
       ]}
       disabled={disabled || loading}
       {...rest}
+      onPress={event => { void triggerHaptic(variant === 'danger' ? 'medium' : 'light'); rest.onPress?.(event) }}
     >
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? theme.onBrand : theme.brand} />

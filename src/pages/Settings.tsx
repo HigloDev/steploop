@@ -16,6 +16,7 @@ import { BackgroundTrainingReadiness } from '../components/background-training-r
 import { voiceModeChoice, voiceModePreferences } from '../services/workout-voice-settings'
 import { Header } from '../components/Header'
 import { Card } from '../components/ui'
+import { CompletionCelebration } from '../components/completion-celebration'
 import { useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import {
@@ -23,6 +24,7 @@ import {
   savePreferences,
   didPreferencesWriteFail,
   triggerHaptic,
+  triggerHapticPattern,
   Preferences as Prefs,
 } from '../services/preferences'
 import {
@@ -48,6 +50,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   const [exportMessage, setExportMessage] = useState('')
   const [importMessage, setImportMessage] = useState('')
   const [prefsWriteError, setPrefsWriteError] = useState('')
+  const [previewCompletion, setPreviewCompletion] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -70,9 +73,9 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     }
   }
 
-  const toggleHaptic = (value: boolean) => {
-    update({ hapticFeedback: value })
-    if (value) triggerHaptic('light')
+  const toggleHaptic = async (value: boolean) => {
+    await update({ hapticFeedback: value })
+    if (value) void triggerHapticPattern('floor')
   }
 
   const adjustWeight = (delta: number) => {
@@ -211,6 +214,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
 
   return (
     <View style={styles.page}>
+      {previewCompletion ? <CompletionCelebration preview floors={30} ascentM={90} onDone={() => setPreviewCompletion(false)} /> : null}
       <Header title="设置" back={false} large />
       <ScrollView
         style={styles.flex}
@@ -252,12 +256,26 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           <View style={styles.row}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>震动反馈</Text>
-
+              <Text style={styles.rowDesc}>每上一层提示，操作轻触反馈</Text>
             </View>
             <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
               <Switch label="震动反馈" disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
             </Host>
           </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="试一下楼层震动" disabled={!prefs?.hapticFeedback}
+            onPress={() => void triggerHapticPattern('floor')} style={{ minHeight: 48, justifyContent: 'center', opacity: prefs?.hapticFeedback ? 1 : 0.45 }}>
+            <Text style={{ color: theme.brandInk, fontSize: 14, fontWeight: '700' }}>试一下楼层震动</Text>
+          </Pressable>
+          <View style={[styles.divider, { marginVertical: 0 }]} />
+          <View style={styles.row}>
+            <View style={styles.rowText}><Text style={styles.rowTitle}>结算音效</Text><Text style={styles.rowDesc}>盖楼完成时播放柔和铃声</Text></View>
+            <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+              <Switch label="结算音效" disabled={!prefs} value={Boolean(prefs?.completionSound)} onValueChange={value => { void update({ completionSound: value }) }} />
+            </Host>
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="预览盖楼结算" disabled={!prefs} onPress={() => setPreviewCompletion(true)} style={{ minHeight: 48, justifyContent: 'center' }}>
+            <Text style={{ color: theme.brandInk, fontSize: 14, fontWeight: '700' }}>预览盖楼动画与音效</Text>
+          </Pressable>
           <View style={[styles.divider, { marginVertical: 0 }]} />
           <Disclosure title="播报内容" summary="里程碑与鼓励" compact>
             <Text style={styles.rowDesc}>识别楼层、转向与结束时轻触提醒</Text>

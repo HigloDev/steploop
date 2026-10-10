@@ -162,7 +162,7 @@
 
 ## 安装包
 
-[循阶 1.1.2 审计内部 APK](https://github.com/HigloDev/steploop/releases/tag/v1.1.2-preview.1)
+[循阶 1.1.2 审计内部 APK](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)
 
 SHA-256：`7cfe25ba4c2c4aa2baeaa460ab7b8dbfb29fbf563a4d9343469836559626b94b`。大小 75,724,634 字节，arm64-v8a / x86_64。沿用原 Android Debug 内部证书，未作为商店公开发行包。
 

@@ -15,16 +15,23 @@ export function getFloorTransitionCount(startFloor: number, endFloor: number): n
 
 /** 从 startFloor 往上爬 transitions 层后到达的楼层号（跳过 0 楼）。 */
 export function floorAfter(startFloor: number, transitions: number): number {
-  const start = Math.round(startFloor)
-  const count = Math.max(0, Math.round(transitions))
+  const start = normalizeFloorNumber(startFloor)
+  const count = Number.isFinite(transitions) ? Math.max(0, Math.round(transitions)) : 0
   const raw = start + count
   return start < 0 && raw >= 0 ? raw + 1 : raw
 }
 
 /** 可选的起始楼层（跳过 0）。 */
 export function normalizeFloorNumber(floor: number): number {
+  if (!Number.isFinite(floor)) return 1
   const value = Math.round(floor)
-  return value === 0 ? 1 : value
+  return value === 0 ? (floor < 0 ? -1 : 1) : value
+}
+
+/** 楼层选择器前后移动，地下 1 楼与地上 1 楼直接相邻。 */
+export function shiftFloorNumber(floor: number, direction: -1 | 1): number {
+  const next = normalizeFloorNumber(floor) + direction
+  return next === 0 ? direction : next
 }
 
 /**

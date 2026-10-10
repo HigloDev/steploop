@@ -12,10 +12,11 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
 import { AppState } from 'react-native'
 
 import { BuildingTemplate } from '../core/building-template'
-import { estimateClimbCalories } from '../core/calories'
 import { FusionRoundResult, FusionSnapshot, FusionWorkoutEngine } from '../core/fusion-engine'
 import { buildFusionWorkout, fusionRoundToWorkoutRound } from '../core/fusion-workout'
 import { uid } from '../core/math'
+import { liveWorkoutMetrics } from '../core/live-workout-metrics'
+import { WorkoutFeedbackTracker } from '../core/workout-feedback'
 import type { VoiceObservation } from '../core/voice-events'
 import {
   getBuilding,
@@ -29,7 +30,7 @@ import {
   startBackgroundTraining,
   stopBackgroundTraining,
 } from '../services/background-training'
-import { getPreferences, Preferences, triggerHaptic } from '../services/preferences'
+import { getPreferences, Preferences, triggerHaptic, triggerHapticPattern } from '../services/preferences'
 import { SensorRecorder, sensorStartErrorMessage } from '../services/sensor'
 import { createWorkoutVoiceService, WorkoutVoiceService } from '../services/voice-feedback'
 import { workoutVoiceSettings } from '../services/workout-voice-settings'
@@ -107,7 +108,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const voiceRef = useRef<WorkoutVoiceService | undefined>(undefined)
   const prefsRef = useRef<Preferences | undefined>(undefined)
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
-  const lastFloorsRef = useRef(0)
+  const feedbackRef = useRef<WorkoutFeedbackTracker | undefined>(undefined)
   const calibratedRef = useRef(false)
   const closedRef = useRef(false)
   const replaceTemplateIdRef = useRef(params.recalibrateTemplateId)
@@ -193,7 +194,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         engineRef.current = engine
         setTemplate(engine.getTemplate())
         setRounds(engine.getRounds())
-        lastFloorsRef.current = engine.snapshot().totalFloors
+        feedbackRef.current = new WorkoutFeedbackTracker(engine.snapshot())
         if (pendingEndAt !== undefined) {
           endedAtRef.current = pendingEndAt
           engine.finish(pendingEndAt)
@@ -206,7 +207,6 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         engine.onRound(() => {
           setRounds(engine.getRounds())
           setTemplate(engine.getTemplate())
-          void triggerHaptic('heavy')
           void persistCheckpoint()
         })
 
@@ -232,6 +232,12 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           keepRunningInBackground: isBackgroundTrainingSupported(),
           onSample: sample => {
             engine.pushSample(sample)
+            const next = engine.snapshot(sample.t)
+            const feedback = feedbackRef.current?.observe(next)
+            if (feedback) {
+              setSnapshot(next)
+              void triggerHapticPattern(feedback)
+            }
             evidence.pushSample(sample)
           },
           onGap: gap => {
@@ -244,25 +250,24 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         if (cancelled) return
         void persistCheckpoint()
         setStatus('running')
+        void triggerHaptic('success')
 
         timerRef.current = setInterval(() => {
           const now = Date.now()
           engine.tick(now)
           const next = engine.snapshot(now)
           setSnapshot(next)
-          if (next.totalFloors > lastFloorsRef.current && prefsRef.current?.hapticFeedback !== false) {
-            void triggerHaptic('medium')
-          }
-          lastFloorsRef.current = next.totalFloors
+          const feedback = feedbackRef.current?.observe(next)
+          if (feedback) void triggerHapticPattern(feedback)
           const done = engine.getRounds()
-          const ascent = done.reduce((sum, r) => sum + r.ascentM, 0)
+          const metrics = liveWorkoutMetrics(next, done, prefsRef.current?.bodyWeightKg)
           const observation: VoiceObservation = {
             workoutId: workoutIdRef.current,
             mode: 'full_auto',
             phase: voicePhase(next.phase),
             currentRoundNumber: next.roundNumber,
             elapsedMs: next.elapsedMs,
-            calories: estimateClimbCalories({ ascentM: ascent, activeMs: next.activeMs, bodyWeightKg: prefsRef.current?.bodyWeightKg }),
+            calories: metrics.calories,
             cumulativeFloors: next.totalFloors,
             cumulativeSteps: next.steps,
             startFloor: next.startFloor,
@@ -300,22 +305,25 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
 
   const refresh = () => {
     const engine = engineRef.current
-    if (engine) setSnapshot(engine.snapshot(Date.now()))
+    if (engine) {
+      const next = engine.snapshot(Date.now())
+      setSnapshot(next)
+      const feedback = feedbackRef.current?.observe(next)
+      if (feedback) void triggerHapticPattern(feedback)
+    }
   }
 
   const markFloor = useCallback(() => {
     engineRef.current?.markFloor(Date.now())
-    if (prefsRef.current?.hapticFeedback !== false) void triggerHaptic('heavy')
     refresh()
   }, [])
   const undoMark = useCallback(() => {
     engineRef.current?.undoMark()
-    void triggerHaptic('light')
+    void triggerHaptic('selection')
     refresh()
   }, [])
   const markTop = useCallback(() => {
     engineRef.current?.markTop(Date.now())
-    void triggerHaptic('heavy')
     refresh()
     void persistCheckpoint()
   }, [persistCheckpoint])
@@ -343,7 +351,11 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       await stopSensors()
       const voice = voiceRef.current
       voiceRef.current = undefined
-      void voice?.finish(workoutIdRef.current).catch(() => undefined)
+      if (prefsRef.current?.completionSound) {
+        // 结算铃声开始前结束播报，避免语音与铃声重叠。
+        await voice?.dispose().catch(() => undefined)
+        await voice?.flushJournal?.(workoutIdRef.current).catch(() => undefined)
+      } else void voice?.finish(workoutIdRef.current).catch(() => undefined)
       let id: string | undefined
       if (finalRounds.length) {
         const finalTemplate = engine.getTemplate()
@@ -374,6 +386,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     })().catch(e => {
       setError(e instanceof Error ? e.message : String(e))
       setStatus('save_failed')
+      void triggerHaptic('error')
       throw e
     }).finally(() => { finishPromiseRef.current = undefined })
     finishPromiseRef.current = task
@@ -407,11 +420,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
 
   const retry = useCallback(() => setAttempt(value => value + 1), [])
 
-  const doneRounds = rounds
-  const ascent = doneRounds.reduce((sum, r) => sum + r.ascentM, 0)
-  const calories = estimateClimbCalories({
-    ascentM: ascent, activeMs: snapshot?.activeMs ?? 0, bodyWeightKg: prefsRef.current?.bodyWeightKg,
-  })
+  const calories = snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
 
   return {
     status, error, warning: evidenceWarning || warning, snapshot, rounds, template, calories, workoutId: workoutIdRef.current, canSaveLater,

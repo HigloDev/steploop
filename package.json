@@ -1,6 +1,6 @@
 {
   "name": "steploop",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "main": "index.ts",
   "dependencies": {
     "@expo/ui": "~57.0.22",
@@ -10,6 +10,7 @@
     "@react-navigation/native": "^7.3.14",
     "@react-navigation/native-stack": "^7.18.6",
     "expo": "~57.0.27",
+    "expo-audio": "~57.0.5",
     "expo-clipboard": "~57.0.2",
     "expo-document-picker": "~57.0.3",
     "expo-file-system": "~57.0.7",
@@ -44,7 +45,7 @@
     "check": "tsc --noEmit && npx expo-doctor",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:core": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --outDir node_modules/.cache/steploop-core --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule src/core/floors.ts src/core/recognizer.ts src/core/analysis.ts src/core/turn-gate.ts src/core/math.ts src/core/dtw.ts src/core/route-state.ts src/core/types.ts src/core/workout-machine.ts src/core/workout-plan.ts src/core/workout-summary.ts src/core/calories.ts src/core/free-recognizer.ts src/core/route-learning.ts src/core/route-model.ts src/core/training-progress.ts src/core/progress-trends.ts src/core/sensor-visualization.ts src/core/session.ts src/core/location.ts src/core/corrections.ts src/core/preflight.ts src/core/diagnostics.ts src/core/export-csv.ts src/core/share-payload.ts src/core/backup-payload.ts src/core/route-file.ts src/core/elevator-gate.ts src/core/step-detector.ts src/core/baro-altimeter.ts src/core/building-template.ts src/core/fusion-calibration.ts src/core/fusion-engine.ts src/core/fusion-workout.ts",
+    "build:core": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --outDir node_modules/.cache/steploop-core --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule src/core/floors.ts src/core/recognizer.ts src/core/analysis.ts src/core/turn-gate.ts src/core/math.ts src/core/dtw.ts src/core/route-state.ts src/core/types.ts src/core/workout-machine.ts src/core/workout-plan.ts src/core/workout-summary.ts src/core/calories.ts src/core/free-recognizer.ts src/core/route-learning.ts src/core/route-model.ts src/core/training-progress.ts src/core/progress-trends.ts src/core/sensor-visualization.ts src/core/session.ts src/core/location.ts src/core/corrections.ts src/core/preflight.ts src/core/diagnostics.ts src/core/export-csv.ts src/core/share-payload.ts src/core/backup-payload.ts src/core/route-file.ts src/core/elevator-gate.ts src/core/step-detector.ts src/core/baro-altimeter.ts src/core/building-template.ts src/core/fusion-calibration.ts src/core/fusion-engine.ts src/core/fusion-workout.ts src/core/live-workout-metrics.ts src/core/workout-feedback.ts src/core/weekly-achievement.ts",
     "build:services-test": "tsc --ignoreConfig --ignoreDeprecations 6.0 --lib es2022 --rootDir src --outDir node_modules/.cache/steploop-services --module commonjs --moduleResolution node --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule src/services/storage-journal.ts src/services/preferences.ts src/services/storage.ts src/services/diagnostics.ts src/services/draft.ts src/services/workout-storage.ts src/services/sensor.ts src/services/round-coordinator.ts src/services/typed-emitter.ts src/services/sensor-adapter.ts src/services/checkpoint-completion.ts",
     "test:core": "npm run build:core && node --test scripts/test-core.cjs scripts/test-motion-recognition.cjs scripts/test-route-preparation.cjs scripts/test-fusion.cjs && node scripts/verify-floor-model.cjs",
     "test:data": "npm run build:services-test && node --test scripts/test-data.cjs",
@@ -54,7 +55,7 @@
     "diagnostics:smoke": "npm run build:core && node scripts/make-synthetic-diagnostics.cjs .diagnostics-synthetic && node scripts/replay-diagnostics.cjs --out .diagnostics-synthetic-report.json .diagnostics-synthetic",
     "release:check": "node scripts/release-check.cjs",
     "smoke:android": "powershell -ExecutionPolicy Bypass -File scripts/android-smoke.ps1",
-    "test": "npm run test:core && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:legacy-ui",
+    "test": "npm run test:core && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:theme && npm run test:legacy-ui && npm run test:xiaomi14",
     "test:gates": "node scripts/check-release-gates.test.cjs",
     "test:progress": "node --test scripts/test-progress.cjs",
     "test:fusion-flow": "npm run build:core && node --test scripts/test-fusion-flow.cjs",
@@ -75,7 +76,9 @@
     "evidence:replay-motion": "npm run build:core && node scripts/replay-motion-evidence.cjs",
     "test:height-references": "node --test scripts/test-height-references.cjs",
     "test:uiqa-isolation": "node --test scripts/uiqa-native-isolation.test.cjs",
-    "test:legacy-ui": "node --test scripts/test-legacy-ui.cjs"
+    "test:theme": "node --test scripts/theme-palette.test.cjs",
+    "test:legacy-ui": "node --test scripts/test-legacy-ui.cjs",
+    "test:xiaomi14": "node --test scripts/xiaomi14-improvements.test.cjs"
   },
   "private": true
 }
