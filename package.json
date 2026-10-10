@@ -1,6 +1,6 @@
 {
   "name": "steploop",
-  "version": "1.0.7",
+  "version": "1.1.2",
   "main": "index.ts",
   "dependencies": {
     "@expo/ui": "~57.0.22",
@@ -54,9 +54,10 @@
     "diagnostics:smoke": "npm run build:core && node scripts/make-synthetic-diagnostics.cjs .diagnostics-synthetic && node scripts/replay-diagnostics.cjs --out .diagnostics-synthetic-report.json .diagnostics-synthetic",
     "release:check": "node scripts/release-check.cjs",
     "smoke:android": "powershell -ExecutionPolicy Bypass -File scripts/android-smoke.ps1",
-    "test": "npm run test:core && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd",
+    "test": "npm run test:core && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:legacy-ui",
     "test:gates": "node scripts/check-release-gates.test.cjs",
     "test:progress": "node --test scripts/test-progress.cjs",
+    "test:fusion-flow": "npm run build:core && node --test scripts/test-fusion-flow.cjs",
     "test:kit": "node --test scripts/dataset-kit.test.cjs",
     "dataset:kit": "node scripts/dataset-kit.cjs",
     "test:matrix": "node --test scripts/device-matrix.test.cjs",
@@ -69,9 +70,12 @@
     "test:signing": "node --test scripts/release-signing.test.cjs",
     "test:training-automation": "node --test scripts/test-training-automation.cjs",
     "test:voice": "node --test scripts/test-voice.cjs scripts/test-voice-assets.cjs",
-    "test:prd": "node --test scripts/test-prd-acceptance.cjs scripts/test-prd-metrics.cjs scripts/test-prd-progress.cjs scripts/test-workout-evidence-analysis.cjs scripts/test-local-download-export.cjs scripts/test-location-picker.cjs scripts/test-route-review.cjs scripts/test-workout-mode-entry.cjs scripts/test-calibrate-live.cjs",
+    "test:prd": "node --test scripts/test-prd-acceptance.cjs scripts/test-prd-metrics.cjs scripts/test-prd-progress.cjs scripts/test-workout-evidence-analysis.cjs scripts/test-local-download-export.cjs",
     "evidence:analyze": "node scripts/analyze-workout-evidence.cjs",
-    "evidence:replay-motion": "npm run build:core && node scripts/replay-motion-evidence.cjs"
+    "evidence:replay-motion": "npm run build:core && node scripts/replay-motion-evidence.cjs",
+    "test:height-references": "node --test scripts/test-height-references.cjs",
+    "test:uiqa-isolation": "node --test scripts/uiqa-native-isolation.test.cjs",
+    "test:legacy-ui": "node --test scripts/test-legacy-ui.cjs"
   },
   "private": true
 }

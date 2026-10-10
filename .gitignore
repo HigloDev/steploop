@@ -83,3 +83,6 @@ signing.properties
 .trae/documents/trae-paimon-desktop-pet-plan.md
 .trae/documents/_fix_*.py
 .trae/documents/_verify_*.py
+
+# Local Python caches from native UI verification scripts.
+__pycache__/

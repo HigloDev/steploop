@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import appConfig from '../../app.json'
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { Feather } from '@expo/vector-icons'
-import { Host, Switch } from '@expo/ui'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Host } from '@expo/ui'
+import { ThemeSwitch as Switch } from '../components/theme-switch'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Disclosure } from '../components/disclosure'
@@ -216,33 +217,23 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <Text style={styles.intro}>按你的习惯，调整每一次训练。</Text>
-        <View style={[styles.sectionHead, { marginTop: 0 }]}>
-          <View style={styles.sectionHeading}>
-            <Feather name="volume-2" size={20} color={theme.brand} />
-            <Text accessibilityRole="header" style={styles.sectionTitle}>运动播报</Text>
-          </View>
-          <Text style={styles.statusText}>
-            {!prefs ? '读取中' : voiceModeChoice(prefs) === 'off' ? '已关闭' : '已开启'}
-          </Text>
-        </View>
         <Card style={styles.group}>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>运动播报</Text>
           {!prefs ? <ActivityIndicator color={theme.brand} accessibilityLabel="正在读取设置" /> : null}
           <VoiceModeSelector
             value={voiceModeChoice(prefs ?? {})}
             disabled={!prefs}
             onChange={value => { void update(voiceModePreferences(value)) }}
           />
-          <View style={styles.divider} />
           <View style={styles.voiceControl}>
-            <Text style={styles.rowTitle}>音量（%）</Text>
+            <Text style={styles.rowTitle}>音量 {Math.round((prefs?.voiceVolume ?? 0.85) * 100)}%</Text>
             <NativeChoice
               disabled={!prefs}
               value={String(prefs?.voiceVolume ?? 0.85)}
-              options={[0.45, 0.65, 0.85, 1].map(value => ({ value: String(value), label: String(Math.round(value * 100)) }))}
+              options={[0.45, 0.65, 0.85, 1].map(value => ({ value: String(value), label: `${Math.round(value * 100)}%` }))}
               onChange={value => { void update({ voiceVolume: Number(value) }) }}
             />
           </View>
-          <View style={styles.divider} />
           <View style={styles.voiceControl}>
             <Text style={styles.rowTitle}>语速</Text>
             <NativeChoice
@@ -252,39 +243,40 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               onChange={value => { void update({ voiceRate: Number(value) }) }}
             />
           </View>
-          <View style={styles.divider} />
-          <VoiceSpeakerSelector prefs={prefs} onChange={voiceSpeaker => { void update({ voiceSpeaker }) }} />
+
         </Card>
         {prefsWriteError ? <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.amberInk }]}>{prefsWriteError}</Text> : null}
 
-        <View style={styles.sectionHead}>
+        <Card style={[styles.group, { marginTop: 12, paddingVertical: 12 }]}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>声音与提醒</Text>
-        </View>
-        <Card style={styles.group}>
           <View style={styles.row}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>震动反馈</Text>
-              <Text style={styles.rowDesc}>识别楼层、转向与结束时轻触提醒</Text>
+
             </View>
             <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
-              <Switch disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
+              <Switch label="震动反馈" disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
             </Host>
           </View>
+          <View style={[styles.divider, { marginVertical: 0 }]} />
+          <Disclosure title="播报内容" summary="里程碑与鼓励" compact>
+            <Text style={styles.rowDesc}>识别楼层、转向与结束时轻触提醒</Text>
+            <VoiceSpeakerSelector prefs={prefs} onChange={voiceSpeaker => { void update({ voiceSpeaker }) }} />
           {([
             ['voiceBluetoothOnly', '仅蓝牙耳机播报', '未连接蓝牙耳机时保持静音'],
             ['voiceNightQuiet', '夜间免打扰', '每天 22:00 至次日 07:00 静音'],
             ['voiceDuckMusic', '播报时压低音乐', '关闭时遇到音乐播放会略过播报'],
           ] as const).map(([key, label, description]) => <React.Fragment key={key}>
-            <View style={styles.divider} />
+            <View style={[styles.divider, { marginVertical: 0 }]} />
             <View style={styles.row}>
               <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
               <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
-                <Switch disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
+                <Switch label={label} disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
               </Host>
             </View>
           </React.Fragment>)}
-        </Card>
-        <Disclosure title="播报内容" summary="里程碑与鼓励">
+
+
           <View style={styles.detailGroup}>
             {([
               ['voiceEncouragement', '鼓励语', '可关闭额外鼓励，关键状态仍保留'],
@@ -292,110 +284,99 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               ['voiceSteps', '步数里程碑', '教练模式播报'],
               ['voiceFloors', '楼层里程碑', '教练模式播报'],
             ] as const).map(([key, label, description], index) => <React.Fragment key={key}>
-              {index > 0 ? <View style={styles.divider} /> : null}
+              {index > 0 ? <View style={[styles.divider, { marginVertical: 0 }]} /> : null}
               <View style={styles.row}>
                 <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
                 <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
-                  <Switch disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
+                  <Switch label={label} disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
                 </Host>
               </View>
             </React.Fragment>)}
           </View>
-        </Disclosure>
-
-        <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text></View>
-        <Card style={styles.group}>
-          <Text style={styles.rowTitle}>体重</Text>
-          <Text style={styles.rowDesc}>热量按“爬升高度 × 体重”的机械功加活动代谢估算。历史成绩保留训练时的体重。</Text>
-          <View style={styles.weightControl}>
-            <Pressable accessibilityRole="button" accessibilityLabel="体重减一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(-1)}><Text style={styles.weightButtonText}>−</Text></Pressable>
-            <Text style={styles.weightValue}>{Math.round(prefs?.bodyWeightKg ?? 65)}<Text style={styles.weightUnit}> 千克</Text></Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="体重加一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(1)}><Text style={styles.weightButtonText}>＋</Text></Pressable>
-          </View>
-          <View style={styles.divider} />
+          </Disclosure>
         </Card>
 
-        <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>锁屏与后台</Text></View>
-        <Card style={styles.group}><BackgroundTrainingReadiness /></Card>
+        <Card style={[styles.group, { marginTop: 12 }]}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Text style={[styles.rowTitle, { flex: 1 }]}>体重（千克）</Text>
+          <View style={styles.weightControl}>
+            <Pressable accessibilityRole="button" accessibilityLabel="体重减一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(-1)}><Text style={styles.weightButtonText}>−</Text></Pressable>
+            <Text style={styles.weightValue}>{Math.round(prefs?.bodyWeightKg ?? 65)}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="体重加一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(1)}><Text style={styles.weightButtonText}>＋</Text></Pressable>
+          </View>
+          </View>
+          <Text style={styles.rowDesc} accessibilityHint="历史成绩保留训练时的体重。">用于估算本次训练热量。</Text>
+        </Card>
 
-        <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>数据与帮助</Text></View>
-        <Disclosure title="备份与导出">
-        <View style={styles.detailGroup}>
-          <Pressable accessibilityRole="button" style={styles.row} onPress={() => { void handleExport() }} disabled={exporting}>
+        <Card style={[styles.group, { marginTop: 24 }]}><Text accessibilityRole="header" style={styles.sectionTitle}>锁屏与后台</Text>
+          <BackgroundTrainingReadiness grouped /></Card>
+
+        <View style={styles.sectionHead}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>数据与帮助</Text></View>
+        <Disclosure title="备份与导出" dense marginTop={0}>
+        <View>
+          <Pressable accessibilityRole="button" accessibilityHint="导出旧路线与成绩；新楼栋模板暂不包含在普通备份中" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={exporting}>
+            <Feather name="download" size={22} color={theme.ink} />
             <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>导出备份</Text>
-              <Text style={styles.rowDesc}>导出路线与成绩数据文件</Text>
+              <Text style={styles.dataTitle}>导出备份</Text>
             </View>
-            <Text style={styles.rowAction}>{exporting ? '导出中…' : '导出'}</Text>
+            {exporting ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           {isLocalDownloadExportAvailable() ? <>
-            <View style={styles.divider} />
-            <Pressable accessibilityRole="button" style={styles.row} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
+            <Pressable accessibilityRole="button" accessibilityHint="保存到本机 Download/循阶，包含旧路线与成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
+              <Feather name="download" size={22} color={theme.ink} />
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>保存备份到下载</Text>
-                <Text style={styles.rowDesc}>仅保存本机 Download/循阶，文件含路线与训练数据</Text>
+                <Text style={styles.dataTitle}>保存备份到下载</Text>
               </View>
-              <Text style={styles.rowAction}>{exporting ? '保存中…' : '保存'}</Text>
+              {exporting ? <Text style={styles.rowAction}>保存中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
             </Pressable>
           </> : null}
           {exportMessage ? (
             <Text style={styles.messageText}>{exportMessage}</Text>
           ) : null}
-          <View style={styles.divider} />
-          <Pressable accessibilityRole="button" style={styles.row} onPress={handleExportCsv} disabled={exportingCsv}>
+          <Pressable accessibilityRole="button" accessibilityHint="训练记录表格，可用 Excel 打开" style={styles.dataRow} onPress={handleExportCsv} disabled={exportingCsv}>
+            <MaterialCommunityIcons name="table" size={22} color={theme.ink} />
             <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>导出成绩表</Text>
-              <Text style={styles.rowDesc}>训练记录表格，可用 Excel 打开</Text>
+              <Text style={styles.dataTitle}>导出成绩表 Excel</Text>
             </View>
-            <Text style={styles.rowAction}>{exportingCsv ? '导出中…' : '导出'}</Text>
+            {exportingCsv ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
-          <View style={styles.divider} />
-          <Pressable accessibilityRole="button" style={styles.row} onPress={handleImport} disabled={importing}>
+          <Pressable accessibilityRole="button" accessibilityHint="从数据文件恢复路线与成绩" style={styles.dataRow} onPress={handleImport} disabled={importing}>
+            <Feather name="upload" size={22} color={theme.ink} />
             <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>导入备份</Text>
-              <Text style={styles.rowDesc}>从数据文件恢复路线与成绩</Text>
+              <Text style={styles.dataTitle}>导入备份</Text>
             </View>
-            <Text style={styles.rowAction}>{importing ? '导入中…' : '导入'}</Text>
+            {importing ? <Text style={styles.rowAction}>导入中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           {importMessage ? (
             <Text style={styles.messageText}>{importMessage}</Text>
           ) : null}
+          <Text style={styles.rowDesc}>普通备份暂不包含新楼栋模板。</Text>
         </View>
 
         </Disclosure>
-        <Disclosure title="帮助与关于">
-        <View style={styles.detailGroup}>
-          <Text style={styles.rowTitle}>训练记录说明</Text>
-          <Text style={styles.rowDesc}>{isBackgroundTrainingSupported()
-            ? '当前 Android 版本支持锁屏与后台采样，训练时显示持续通知。系统强制停止可能产生缺段，结束时可手动修正最终楼层。'
-            : '锁屏或切到其它应用时，系统会暂停传感器；返回后会提示后台缺段，结束时可手动修正最终楼层。'}</Text>
-          <View style={styles.divider} />
-          <View style={styles.row}>
-            <Text style={styles.rowTitle}>版本</Text>
-            <Text style={styles.rowValue}>{APP_VERSION}</Text>
-          </View>
-          <View style={styles.divider} />
+        <Disclosure title="帮助与关于" dense>
+        <View>
           <Pressable
             accessibilityRole="button"
-            style={styles.row}
+            style={styles.dataRow}
             onPress={() => navigation.navigate('Privacy', { from: 'settings' })}
           >
-            <Text style={styles.rowTitle}>隐私协议</Text>
+            <Feather name="file-text" size={22} color={theme.ink} />
+            <Text style={[styles.dataTitle, { flex: 1 }]}>隐私协议</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
-          <View style={styles.divider} />
           <Pressable
             accessibilityRole="button"
-            style={styles.row}
+            style={styles.dataRow}
             onPress={() => navigation.navigate('Onboarding', { from: 'settings' })}
           >
-            <Text style={styles.rowTitle}>新手引导</Text>
-            <Text style={styles.rowAction}>重看</Text>
+            <Feather name="book-open" size={22} color={theme.ink} />
+            <Text style={[styles.dataTitle, { flex: 1 }]}>新手引导</Text>
+            <Text style={styles.rowAction}>查看</Text>
           </Pressable>
-          <View style={styles.divider} />
           <Pressable
             accessibilityRole="button"
-            style={styles.row}
+            style={styles.dataRow}
             onPress={() =>
               Alert.alert(
                 '如何判断爬楼',
@@ -410,13 +391,15 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               )
             }
           >
-            <Text style={styles.rowTitle}>如何判断爬楼</Text>
+            <Feather name="info" size={22} color={theme.ink} />
+            <Text style={[styles.dataTitle, { flex: 1 }]}>如何判断爬楼</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
 
         </View>
 
         </Disclosure>
+        <Text style={styles.appFooter}>循阶 · {APP_VERSION}</Text>
         {(__DEV__ || process.env.EXPO_PUBLIC_DIAGNOSTIC_CAPTURE === '1') ? <Disclosure title="诊断工具">          {(__DEV__ || process.env.EXPO_PUBLIC_DIAGNOSTIC_CAPTURE === '1') && (
             <>
               <View style={styles.divider} />
@@ -435,7 +418,6 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           )}
         </Disclosure> : null}
 
-        <Text style={styles.appFooter}>循阶 · {APP_VERSION}</Text>
       </ScrollView>
     </View>
   )
@@ -445,46 +427,48 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8 },
-    intro: { color: theme.mutedStrong, fontSize: 15, lineHeight: 22, marginBottom: 24 },
-    sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 24, marginBottom: 12 },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 0 },
+    intro: { color: theme.mutedStrong, fontSize: 17, lineHeight: 24, marginBottom: 16,},
+    sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 16, marginBottom: 8 },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    sectionTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600' },
+    sectionTitle: { color: theme.ink, fontSize: 20, lineHeight: 26, fontWeight: '900', marginBottom: 8,},
     statusText: { color: theme.brand, fontSize: 14, lineHeight: 21, fontWeight: '600' },
     group: { padding: 16, borderRadius: 20 },
-    voiceControl: { paddingVertical: 8, gap: 8 },
+    voiceControl: { paddingVertical: 0, gap: 6, marginTop: 12 },
     detailGroup: { paddingTop: 4, paddingBottom: 16 },
+    dataRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 48, paddingVertical: 8 },
+    dataTitle: { color: theme.ink, fontSize: 16, lineHeight: 22, fontWeight: '700' },
     footerNote: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, paddingTop: 12 },
-    appFooter: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center', paddingTop: 24 },
+    appFooter: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center', paddingTop: 12 },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 12,
-      paddingVertical: 8,
-      minHeight: 56,
+      paddingVertical: 0,
+      minHeight: 48,
     },
     rowText: {
       flex: 1,
     },
     rowTitle: {
       color: theme.ink,
-      fontSize: 15,
-      lineHeight: 22,
-      fontWeight: '500',
+      fontSize: 18,
+      lineHeight: 24,
+      fontWeight: '800',
     },
     rowDesc: {
       marginTop: 3,
       color: theme.mutedStrong,
-      fontSize: 14,
-      lineHeight: 21,
+      fontSize: 13,
+      lineHeight: 20,
     },
     weightControl: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
-      paddingVertical: 16,
+      gap: 0,
+      paddingVertical: 0,
     },
     weightButton: {
       width: 48,
@@ -497,16 +481,16 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.surfaceSoft,
     },
     weightButtonText: {
-      color: theme.brand,
+      color: theme.inkSoft,
       fontSize: 20,
       fontWeight: '700',
       lineHeight: 22,
     },
     weightValue: {
-      minWidth: 58,
+      minWidth: 50,
       color: theme.ink,
-      fontSize: 28,
-      lineHeight: 34,
+      fontSize: 18,
+      lineHeight: 26,
       fontWeight: '700',
       fontVariant: ['tabular-nums'],
       textAlign: 'center',

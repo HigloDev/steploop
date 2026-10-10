@@ -78,7 +78,7 @@ export interface Theme {
   shadowLifted: ShadowStyle
 }
 
-const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '800', letterSpacing: -0.5 }
+const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '900', letterSpacing: -0.5, includeFontPadding: false }
 
 const light: Theme = {
   isDark: false,
@@ -114,15 +114,15 @@ const light: Theme = {
   infoSoft: '#e8f0fb',
   infoInk: '#2b5797',
   radiusSm: 10,
-  radiusMd: 14,
+  radiusMd: 16,
   radiusLg: 20,
   radiusXl: 28,
   tapMin: 48,
-  pagePaddingH: 20,
+  pagePaddingH: 16,
   pagePaddingBottom: 32,
   fontBase: 15,
   fontEyebrow: 12,
-  fontTitle: 28,
+  fontTitle: 30,
   fontSubtitle: 14,
   fontLabel: 13,
   fontValue: 20,
@@ -149,7 +149,7 @@ const light: Theme = {
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
-    elevation: 6,
+    elevation: 0,
   },
 }
 
@@ -190,23 +190,23 @@ const dark: Theme = {
   shadowCard: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 17,
-    elevation: 4,
+    elevation: 0,
   },
   shadowSoft: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0,
     shadowRadius: 7,
-    elevation: 2,
+    elevation: 0,
   },
   shadowLifted: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 9 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0,
     shadowRadius: 22,
-    elevation: 6,
+    elevation: 0,
   },
 }
 
@@ -238,3 +238,12 @@ export function useTheme(): Theme {
 }
 
 export { light, dark }
+
+/** Approved 1.1.2 redraw geometry, in density-independent pixels. */
+export const visual = {
+  spacing: { xs: 4, sm: 8, md: 12, lg: 16, page: 20, section: 24, xl: 32 },
+  radius: { control: 14, card: 20, hero: 28, sheet: 28, pill: 999 },
+  type: { title: 30, heading: 19, body: 16, secondary: 14, caption: 12, numericWeight: '900' as const },
+  controlHeight: 52,
+  poster: { background: '#f7f2e9', ink: '#171411', muted: '#817a72', orange: '#f56616', line: '#d8d0c5' },
+} as const

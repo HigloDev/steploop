@@ -10,8 +10,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TextStyle,
   View,
   ViewStyle,
+  StyleProp,
   PressableProps,
 } from 'react-native'
 import { useTheme, Theme } from '../theme'
@@ -54,6 +56,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
   disabled?: boolean
   fullWidth?: boolean
   style?: ViewStyle
+  labelStyle?: TextStyle
 }
 
 export function Button({
@@ -63,6 +66,7 @@ export function Button({
   disabled = false,
   fullWidth = true,
   style,
+  labelStyle,
   ...rest
 }: ButtonProps) {
   const theme = useTheme()
@@ -95,7 +99,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? theme.onBrand : theme.brand} />
       ) : (
-        <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'danger' && { color: theme.redInk }]}>{title}</Text>
+        <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'danger' && { color: theme.redInk }, labelStyle]}>{title}</Text>
       )}
     </Pressable>
   )
@@ -104,7 +108,7 @@ export function Button({
 interface CardProps {
   children: React.ReactNode
   raised?: boolean
-  style?: ViewStyle
+  style?: StyleProp<ViewStyle>
 }
 
 export function Card({ children, raised = false, style }: CardProps) {
@@ -283,7 +287,7 @@ const makeStyles = (theme: Theme) =>
       minHeight: 56,
       paddingHorizontal: 20,
       paddingVertical: 12,
-      borderRadius: theme.radiusMd,
+      borderRadius: theme.radiusLg,
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: 8,
@@ -294,15 +298,15 @@ const makeStyles = (theme: Theme) =>
 
     },
     secondary: {
-      backgroundColor: theme.brandSoft,
-    },
+      backgroundColor: 'transparent',
+     borderWidth: 1.5, borderColor: theme.brand,},
     danger: {
       backgroundColor: theme.redChip,
     },
     label: {
       color: theme.brand,
-      fontSize: 16,
-      fontWeight: '700',
+      fontSize: 18,
+      fontWeight: '800',
     },
     labelOnPrimary: {
       color: theme.onBrand,
@@ -316,10 +320,10 @@ const makeStyles = (theme: Theme) =>
     },
     card: {
       backgroundColor: theme.card,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: 0,
       borderBottomColor: theme.line,
-      padding: 16,
-    },
+      padding: 18,
+     borderRadius: theme.radiusLg,},
     cardRaised: {
       padding: 16,
       borderRadius: theme.radiusLg,
@@ -372,7 +376,7 @@ const makeStyles = (theme: Theme) =>
       alignSelf: 'flex-start',
     },
     pillDefault: { backgroundColor: theme.surfaceSoft },
-    pillGood: { backgroundColor: theme.successSoft },
+    pillGood: { backgroundColor: theme.successSoft, borderWidth: 1, borderColor: theme.success },
     pillWarn: { backgroundColor: theme.amberChip },
     pillDanger: { backgroundColor: theme.redChip },
     pillText: {
@@ -397,7 +401,7 @@ const makeStyles = (theme: Theme) =>
       marginTop: 4,
       color: theme.ink,
       fontSize: theme.fontMetric,
-      fontWeight: '600',
+      fontWeight: '900',
       fontVariant: ['tabular-nums'],
     },
     metricHint: {

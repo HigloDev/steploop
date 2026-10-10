@@ -28,20 +28,20 @@ export default function MainTabs() {
         tabBarActiveTintColor: theme.brand,
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
-          backgroundColor: theme.card,
+          backgroundColor: theme.paper,
           borderTopColor: theme.lineSoft,
           paddingTop: 8,
-          height: 64 + insets.bottom,
+          height: 76 + insets.bottom,
           elevation: 0,
         },
         tabBarItemStyle: { paddingBottom: 4 },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '600',
+          fontWeight: '700',
         },
         tabBarIcon: ({ color }) => (
-          route.name === 'Train' ? <BrandMark size={24} color={color} /> :
-            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={24} color={color} />
+          route.name === 'Train' ? <BrandMark size={26} color={color} /> :
+            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={26} color={color} />
         ),
       })}
     >

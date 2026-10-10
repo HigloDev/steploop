@@ -2,9 +2,9 @@
   "expo": {
     "name": "循阶",
     "slug": "steploop",
-    "version": "1.0.7",
+    "version": "1.1.2",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/brand/audit-icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
@@ -17,12 +17,11 @@
     },
     "android": {
       "package": "com.zxn.palou",
-      "versionCode": 8,
+      "versionCode": 11,
       "adaptiveIcon": {
-        "backgroundColor": "#3560e4",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#11100F",
+        "foregroundImage": "./assets/brand/audit-adaptive.png",
+        "monochromeImage": "./assets/brand/audit-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -45,14 +44,15 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/brand/audit-favicon.png"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#101522",
-          "image": "./assets/splash-icon-v2.png",
+          "backgroundColor": "#F7F5F2",
+          "image": "./assets/brand/audit-splash.png",
+          "dark": { "backgroundColor": "#11100F", "image": "./assets/brand/audit-splash.png" },
           "imageWidth": 180,
           "resizeMode": "contain"
         }
@@ -84,7 +84,8 @@
       "./plugins/withAndroidTrainingModule.js",
       "./plugins/withAndroidVoiceModule.js",
       "./plugins/withAndroidLocalExportModule.js",
-      "./plugins/withAndroidReleaseSigning.js"
+      "./plugins/withAndroidReleaseSigning.js",
+      "./plugins/withAndroidUiQaLab.js"
     ]
   }
 }
