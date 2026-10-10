@@ -575,7 +575,7 @@ const makeStyles = (theme: Theme) =>
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, gap: 16 },
     hero: { gap: 8 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSmall,
       fontWeight: '700',
     },
@@ -601,8 +601,8 @@ const makeStyles = (theme: Theme) =>
     optionCard: { padding: 16, marginBottom: 12 },
     optionCardActive: {
       borderWidth: 1,
-      borderColor: theme.green,
-      backgroundColor: theme.greenSoft,
+      borderColor: theme.brand,
+      backgroundColor: theme.brandSoft,
     },
     optionHead: {
       flexDirection: 'row',
@@ -613,7 +613,7 @@ const makeStyles = (theme: Theme) =>
     },
     optionTitle: { flex: 1, minWidth: 140, color: theme.ink, fontSize: theme.fontBase, lineHeight: 22, fontWeight: '600' },
     optionDesc: { marginTop: 8, color: theme.mutedStrong, fontSize: theme.fontSubtitle, lineHeight: 21 },
-    optionSelected: { color: theme.green, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '600' },
+    optionSelected: { color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '600' },
     emptyText: { color: theme.muted, fontSize: theme.fontSubtitle, lineHeight: 21 },
     chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: {
@@ -627,9 +627,9 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    chipActive: { borderColor: theme.green, backgroundColor: theme.greenSoft },
+    chipActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
     chipText: { color: theme.inkSoft, fontSize: theme.fontSubtitle, lineHeight: 21, fontWeight: '600' },
-    chipTextActive: { color: theme.green, fontWeight: '700' },
+    chipTextActive: { color: theme.brand, fontWeight: '700' },
     segmented: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -705,13 +705,13 @@ const makeStyles = (theme: Theme) =>
       minHeight: 76,
       borderRadius: 14,
       borderWidth: 1,
-      borderColor: theme.green,
-      backgroundColor: theme.greenSoft,
+      borderColor: theme.brand,
+      backgroundColor: theme.brandSoft,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    annotationButtonValue: { color: theme.green, fontSize: 21, fontWeight: '700' },
-    annotationButtonLabel: { marginTop: 4, color: theme.green, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '600' },
+    annotationButtonValue: { color: theme.brand, fontSize: 21, fontWeight: '700' },
+    annotationButtonLabel: { marginTop: 4, color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '600' },
     message: { marginTop: 12, color: theme.muted, fontSize: theme.fontSmall, lineHeight: 18 },
     footer: { backgroundColor: theme.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
   })

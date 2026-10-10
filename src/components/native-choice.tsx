@@ -15,7 +15,7 @@ export function NativeChoice<T extends string>({ options, value, onChange, disab
   const rows = Array.from({ length: Math.ceil(options.length / columns) }, (_, row) => options.slice(row * columns, row * columns + columns))
   if (Platform.OS !== 'android') return <SegmentedControl
     values={options.map(option => option.label)} selectedIndex={options.findIndex(option => option.value === value)}
-    enabled={!disabled} appearance={theme.isDark ? 'dark' : 'light'} tintColor={theme.greenSoft}
+    enabled={!disabled} appearance={theme.isDark ? 'dark' : 'light'} tintColor={theme.brandSoft}
     onChange={event => onChange(options[event.nativeEvent.selectedSegmentIndex].value)}
     style={{ alignSelf: 'stretch', minHeight: 48 }} testID={testID} />
   return <View testID={testID} style={{ alignSelf: 'stretch', gap: 8 }}>
@@ -27,11 +27,11 @@ export function NativeChoice<T extends string>({ options, value, onChange, disab
           accessibilityLabel={option.label} accessibilityState={{ selected, checked: selected, disabled }}
           onPress={() => onChange(option.value)}
           style={{ flex: 1, minHeight: 48, paddingHorizontal: 8, paddingVertical: 10, alignItems: 'center', justifyContent: 'center',
-            marginLeft: position > 0 ? -1 : 0, borderWidth: 1, borderColor: selected ? theme.green : theme.line,
-            zIndex: selected ? 1 : 0, backgroundColor: selected ? theme.greenSoft : theme.card, opacity: disabled ? 0.5 : 1,
+            marginLeft: position > 0 ? -1 : 0, borderWidth: 1, borderColor: selected ? theme.brand : theme.line,
+            zIndex: selected ? 1 : 0, backgroundColor: selected ? theme.brandSoft : theme.card, opacity: disabled ? 0.5 : 1,
             borderTopLeftRadius: position === 0 ? 24 : 0, borderBottomLeftRadius: position === 0 ? 24 : 0,
             borderTopRightRadius: position === row.length - 1 ? 24 : 0, borderBottomRightRadius: position === row.length - 1 ? 24 : 0 }}>
-          <Text style={{ color: selected ? theme.greenInk : theme.inkSoft, fontSize: 14, lineHeight: 20,
+          <Text style={{ color: selected ? theme.brandInk : theme.inkSoft, fontSize: 14, lineHeight: 20,
             fontWeight: selected ? '600' : '400', textAlign: 'center' }}>{option.label}</Text>
         </Pressable>
       })}

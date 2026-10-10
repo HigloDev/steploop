@@ -120,7 +120,8 @@ export class SensorRecorder {
   private latestMotion = { alpha: 0, beta: 0, gamma: 0 }
   private latestPressure: number | undefined  // 最新气压值（hPa）
   private barometerAvailable = false          // 设备是否支持气压计
-  private barometerLastAt = 0                 // 上次气压样本时间戳
+  private barometerLastAt = 0                 // 上次气压事件时间戳
+  private lastNativePressure: number | undefined
   private startedAt = 0
   private lastSampleAt = 0
   private gyroSampleAt = 0
@@ -224,8 +225,11 @@ export class SensorRecorder {
             alpha: this.latestMotion.alpha,
             beta: this.latestMotion.beta,
             gamma: this.latestMotion.gamma,
-            // 气压计若可用，把最新气压值附在样本上（可能 undefined）
+            // 气压计若可用，把最新气压值附在样本上（可能 undefined），同时附上该气压事件的接收时间。
+            // 口径：Expo 路径下加速度与气压都用 JS 接收时刻 Date.now()（同一时钟）；
+            // 消费方只在 pressureT 变化时才把它当作新的气压事件，停更 > 2s 视为 stale。
             pressure: this.latestPressure,
+            pressureT: this.latestPressure !== undefined ? this.barometerLastAt : undefined,
           }
           this.retainSample(sample)
           this.lastSampleAt = now
@@ -354,9 +358,16 @@ export class SensorRecorder {
       if (sample.pressure !== undefined && sample.pressure > 0 && Number.isFinite(sample.pressure)) {
         this.latestPressure = sample.pressure
         this.barometerAvailable = true
-        if (sample.t - this.barometerLastAt >= BAROMETER_INTERVAL_MS) {
-          this.barometerLastAt = sample.t
-          this.emitBarometer({ available: true, running: true, pressure: sample.pressure, lastSampleAt: sample.t })
+        // 原生端提供气压事件自身时间戳：只有 pressureT 前进才是新的气压读数。
+        // 旧版原生服务没有 pressureT 时，退回按数值变化判断，绝不用加速度时间戳“刷新”旧气压。
+        const eventAt = Number.isFinite(sample.pressureT) ? sample.pressureT as number : undefined
+        const isNewEvent = eventAt !== undefined
+          ? eventAt > this.barometerLastAt
+          : sample.pressure !== this.lastNativePressure
+        this.lastNativePressure = sample.pressure
+        if (isNewEvent) {
+          this.barometerLastAt = eventAt ?? sample.t
+          this.emitBarometer({ available: true, running: true, pressure: sample.pressure, lastSampleAt: this.barometerLastAt })
         }
       }
       this.retainSample(sample)

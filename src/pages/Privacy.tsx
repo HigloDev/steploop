@@ -161,7 +161,7 @@ const makeStyles = (theme: Theme) =>
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, paddingBottom: 24 },
     hero: { marginBottom: 8, gap: 8 },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },

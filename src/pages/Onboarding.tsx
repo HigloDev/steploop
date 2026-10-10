@@ -85,7 +85,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.body}>
         <View style={styles.card}>
           <View style={styles.iconWrap}>
-            {step.key === 'first-climb' ? <BrandMark size={64} color={theme.green} /> : <Ionicons name={step.icon} size={52} color={theme.green} />}
+            {step.key === 'first-climb' ? <BrandMark size={64} color={theme.brand} /> : <Ionicons name={step.icon} size={52} color={theme.brand} />}
           </View>
           <Text style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
           <Text style={styles.title}>{step.title}</Text>
@@ -127,7 +127,7 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: 4,
     },
     topActionText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSubtitle,
       lineHeight: 21,
       fontWeight: '600',
@@ -148,13 +148,13 @@ const makeStyles = (theme: Theme) =>
       width: 112,
       height: 112,
       borderRadius: 56,
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 32,
     },
     stepLabel: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontSmall,
       lineHeight: 18,
       fontWeight: '600',
@@ -194,7 +194,7 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.line,
     },
     dotActive: {
-      backgroundColor: theme.green,
+      backgroundColor: theme.brand,
       width: 20,
     },
     footer: {

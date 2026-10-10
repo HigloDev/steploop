@@ -72,6 +72,18 @@ export class StairTurnGate {
     this.completedCount = Math.max(0, this.completedCount - Math.max(0, count))
   }
 
+  /**
+   * 传感器中断：只丢弃正在累计的半个拐弯，保留已完成的整拐证据。
+   * 旧代码在中断时调用 reset()，会把本层已识别的拐弯一起清空。
+   */
+  interrupt(): void {
+    this.active = false
+    this.accumulatedRad = 0
+    this.startedAt = 0
+    this.recentSteps = []
+    this.lastFrameEnd = -Infinity
+  }
+
   reset(): void {
     this.active = false
     this.accumulatedRad = 0

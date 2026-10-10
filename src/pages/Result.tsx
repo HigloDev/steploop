@@ -468,9 +468,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         <Button
           title="再爬一次"
           variant="secondary"
-          onPress={() =>
-            navigation.replace('WorkoutSetup', { id: session.templateId })
-          }
+          onPress={() => navigation.replace('ClimbWorkout', { templateId: `legacy_${session.templateId}` })}
         />
 
       </ScrollView>
@@ -503,7 +501,7 @@ const makeStyles = (theme: Theme) =>
       gap: 8,
     },
     eyebrow: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },

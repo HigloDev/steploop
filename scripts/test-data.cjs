@@ -2105,23 +2105,7 @@ test('D11-C 后台暂停提示：偏好默认未看过、写入后持久化', as
   assert.equal(after.bodyWeightKg, before.bodyWeightKg)
 })
 
-test('D11-C 开始前说明按偏好显示，统一开始入口与帮助可用', () => {
-  const fs = require('node:fs')
-  const source = fs.readFileSync(path.join(__dirname, '..', 'src/services/workout-entry.ts'), 'utf8')
-  assert.match(source, /backgroundPauseHintSeen === true/)
-  assert.match(source, /savePreferences\(\{ backgroundPauseHintSeen: true \}\)/)
-  assert.match(source, /后台缺段/)
-  assert.match(source, /手动修正最终楼层/)
-  for (const page of ['TrainHome', 'WorkoutSetup']) {
-    const content = fs.readFileSync(path.join(__dirname, '..', `src/pages/${page}.tsx`), 'utf8')
-    assert.match(content, /await confirmBackgroundRecording\(\)/)
-  }
-  const settings = fs.readFileSync(path.join(__dirname, '..', 'src/pages/Settings.tsx'), 'utf8')
-  assert.match(settings, /训练记录说明/)
-  assert.match(settings, /锁屏或切到其它应用时，系统会暂停传感器/)
-})
-
-// === F23：格式未知的日志不得「假装恢复成功」并销毁证据 ===
+// 已删除：D11-C 训练首页开始前说明的静态接线——旧 TrainHome.tsx 随 fusion-v1 新首页移除。
 test('F23 未知格式日志：不得宣称已恢复、不得删除日志', async () => {
   const storage = loadService(path.join('services', 'storage.js'))
   const journal = loadService(path.join('services', 'storage-journal.js'))
@@ -2242,7 +2226,7 @@ async function prepareCheckpointLifecycle({ withRound = false } = {}) {
     cp.currentRoundNumber = 2
     cp.completedRounds = [{ id: 'completed-before-interruption', roundNumber: 1,
       startedAt: 1000, endedAt: 2500, durationMs: 1500, startFloor: 1, targetFloor: 3,
-      finalFloor: 3, floorsCompleted: 3, ascentM: 6, steps: 18, confidence: 0.9,
+      finalFloor: 3, floorsCompleted: 2, ascentM: 6, steps: 18, confidence: 0.9,
       complete: true, completionReason: 'auto_finish', floorSplits: [], events: [], interruptions: [] }]
   }
   await storage.saveRoute(makeRoute(cp.templateId, '待恢复路线'))
@@ -2339,7 +2323,8 @@ for (const action of ['discard', 'save']) {
 test('恢复服务生命周期：保存、停止、复查、清除的顺序可观察', async () => {
   const { cp, w, completion } = await prepareCheckpointLifecycle({ withRound: true })
   trainingStopHook = async () => {
-    assert.equal((await w.getWorkout(cp.workoutId)).totalFloorsCompleted, 3,
+    // 统一楼层口径：1→3 楼爬升 2 层
+    assert.equal((await w.getWorkout(cp.workoutId)).totalFloorsCompleted, 2,
       '停止服务前成绩必须已写入')
     assert.equal((await w.loadActiveCheckpoint()).workoutId, cp.workoutId,
       '停止服务前恢复点必须仍在')

@@ -18,11 +18,9 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000
  * 单轮楼层口径：优先使用轮次自身记录值（训练保存时的口径），
  * 缺失或为 0 时回落到起止楼层派生，保证旧记录（无 corrections 字段）同样可读。
  */
+/** 周累计与记录/结算页同一楼层口径（爬升段数），不再优先信任旧记录里缓存的 floorsCompleted。 */
 function roundFloors(round: WorkoutRound): number {
-  if (round.floorConfirmation === 'pending') return 0
-  return round.floorsCompleted > 0
-    ? round.floorsCompleted
-    : getRoundAchievementCount(round)
+  return getRoundAchievementCount(round)
 }
 
 /**

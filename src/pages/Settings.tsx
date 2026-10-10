@@ -218,7 +218,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         <Text style={styles.intro}>按你的习惯，调整每一次训练。</Text>
         <View style={[styles.sectionHead, { marginTop: 0 }]}>
           <View style={styles.sectionHeading}>
-            <Feather name="volume-2" size={20} color={theme.green} />
+            <Feather name="volume-2" size={20} color={theme.brand} />
             <Text accessibilityRole="header" style={styles.sectionTitle}>运动播报</Text>
           </View>
           <Text style={styles.statusText}>
@@ -226,7 +226,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           </Text>
         </View>
         <Card style={styles.group}>
-          {!prefs ? <ActivityIndicator color={theme.green} accessibilityLabel="正在读取设置" /> : null}
+          {!prefs ? <ActivityIndicator color={theme.brand} accessibilityLabel="正在读取设置" /> : null}
           <VoiceModeSelector
             value={voiceModeChoice(prefs ?? {})}
             disabled={!prefs}
@@ -266,7 +266,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               <Text style={styles.rowTitle}>震动反馈</Text>
               <Text style={styles.rowDesc}>识别楼层、转向与结束时轻触提醒</Text>
             </View>
-            <Host matchContents seedColor={theme.green} style={{ width: 64, minHeight: 48 }}>
+            <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
               <Switch disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
             </Host>
           </View>
@@ -278,7 +278,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             <View style={styles.divider} />
             <View style={styles.row}>
               <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
-              <Host matchContents seedColor={theme.green} style={{ width: 64, minHeight: 48 }}>
+              <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
                 <Switch disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
               </Host>
             </View>
@@ -295,7 +295,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               {index > 0 ? <View style={styles.divider} /> : null}
               <View style={styles.row}>
                 <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
-                <Host matchContents seedColor={theme.green} style={{ width: 64, minHeight: 48 }}>
+                <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
                   <Switch disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
                 </Host>
               </View>
@@ -306,7 +306,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text></View>
         <Card style={styles.group}>
           <Text style={styles.rowTitle}>体重</Text>
-          <Text style={styles.rowDesc}>用于估算消耗。历史成绩保留训练时的体重。</Text>
+          <Text style={styles.rowDesc}>热量按“爬升高度 × 体重”的机械功加活动代谢估算。历史成绩保留训练时的体重。</Text>
           <View style={styles.weightControl}>
             <Pressable accessibilityRole="button" accessibilityLabel="体重减一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(-1)}><Text style={styles.weightButtonText}>−</Text></Pressable>
             <Text style={styles.weightValue}>{Math.round(prefs?.bodyWeightKg ?? 65)}<Text style={styles.weightUnit}> 千克</Text></Text>
@@ -433,21 +433,6 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               </Pressable>
             </>
           )}
-          {(__DEV__ || process.env.EXPO_PUBLIC_DIAGNOSTIC_CAPTURE === '1') && (
-            <>
-              <View style={styles.divider} />
-              <Pressable
-                style={styles.row}
-                onPress={() => navigation.navigate('ClimbPreview')}
-              >
-                <View style={styles.rowText}>
-                  <Text style={styles.rowTitle}>开发预览</Text>
-                  <Text style={styles.rowDesc}>多轮训练状态机预览（仅调试）</Text>
-                </View>
-                <Text style={styles.rowAction}>进入</Text>
-              </Pressable>
-            </>
-          )}
         </Disclosure> : null}
 
         <Text style={styles.appFooter}>循阶 · {APP_VERSION}</Text>
@@ -465,7 +450,7 @@ const makeStyles = (theme: Theme) =>
     sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 24, marginBottom: 12 },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     sectionTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600' },
-    statusText: { color: theme.green, fontSize: 14, lineHeight: 21, fontWeight: '600' },
+    statusText: { color: theme.brand, fontSize: 14, lineHeight: 21, fontWeight: '600' },
     group: { padding: 16, borderRadius: 20 },
     voiceControl: { paddingVertical: 8, gap: 8 },
     detailGroup: { paddingTop: 4, paddingBottom: 16 },
@@ -512,7 +497,7 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.surfaceSoft,
     },
     weightButtonText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 20,
       fontWeight: '700',
       lineHeight: 22,
@@ -529,7 +514,7 @@ const makeStyles = (theme: Theme) =>
     weightUnit: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, fontWeight: '400' },
     rowValue: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },
     rowAction: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 14,
       fontWeight: '600',
     },

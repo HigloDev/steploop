@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
+import { loadFusionCheckpoint } from '../services/building-storage'
 import { Button, Card, EmptyState, Notice, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
@@ -20,7 +21,7 @@ import {
 } from '../services/workout-storage'
 import { discardCheckpointAsAbandoned } from '../services/checkpoint-completion'
 import { calculateWorkoutSummary } from '../core/workout-summary'
-import { getFloorAchievementCount } from '../core/floors'
+import { getFloorTransitionCount } from '../core/floors'
 import {
   ActiveWorkoutCheckpoint,
   ClimbSession,
@@ -89,8 +90,11 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
   if (w.rounds.some(r => r.completionSource === 'manual' || (r.corrections?.length ?? 0) > 0)) { statusText = '已修正'; statusTone = 'warn' }
   const pendingCount = w.rounds.filter(round => round.floorConfirmation === 'pending').length
   if (pendingCount) { statusText = `${pendingCount} 轮楼层待确认`; statusTone = 'warn' }
+  // fusion-v1：证据冲突或不足的轮次标“估算”，提醒用户在结算页核对。
+  const estimatedCount = w.rounds.filter(round => round.estimated === true && !(round.corrections?.length)).length
+  if (estimatedCount) { statusText = `${estimatedCount} 轮估算`; statusTone = 'warn' }
   const floorsPerRound =
-    getFloorAchievementCount(
+    getFloorTransitionCount(
       w.routeSnapshot.startFloor,
       w.routeSnapshot.endFloor,
     ) || w.routeSnapshot.floorsPerRound || 0
@@ -107,7 +111,7 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
     statusTone,
     complete,
     interrupted,
-    metricsLine: `${summary.totalFloors} 层 · ${formatDuration(summary.activeDurationMs)} · ${summary.completeRounds} 轮`,
+    metricsLine: `${Math.round(summary.totalAscentM)} 米 · ${summary.totalFloors} 层 · ${summary.completeRounds} 轮`,
     ascentM: summary.totalAscentM,
     highlightLine: `净爬楼 ${formatDuration(summary.activeDurationMs)} · 总历时 ${formatDuration(summary.totalElapsedMs)}${
       summary.bestRoundMs ? ` · 最快 ${formatDuration(summary.bestRoundMs)}` : ''
@@ -141,7 +145,7 @@ function sessionToCard(s: ClimbSession): BaseCard {
     statusTone,
     complete: s.complete,
     interrupted,
-    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${s.recognitionVersion === 'motion-v3' ? Math.max(0, s.finalFloor - s.startFloor) : getFloorAchievementCount(s.startFloor, s.finalFloor) || s.floorsCompleted} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
+    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${getFloorTransitionCount(s.startFloor, s.finalFloor) || s.floorsCompleted} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
     ascentM: s.floorConfirmation === 'pending' ? 0 : s.ascentM,
     highlightLine: `用时 ${formatDuration(s.durationMs ?? 0)} · 置信度 ${Math.round(s.confidence * 100)}%`,
     target: { route: 'Result', params: { id: s.id } },
@@ -198,6 +202,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [checkpoint, setCheckpoint] = useState<ActiveWorkoutCheckpoint | null>(null)
+  const [fusionPending, setFusionPending] = useState(false)
   const [workouts, setWorkouts] = useState<ClimbWorkout[]>([])
   const [trendBucket, setTrendBucket] = useState<TrendBucket>('week')
   const [trendPoints, setTrendPoints] = useState<TrendPoint[]>([])
@@ -208,11 +213,12 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const [nextWorkouts, sessions, cp, summary] = await Promise.all([
+      const [nextWorkouts, sessions, cp, summary, fusionCp] = await Promise.all([
         listWorkouts(),
         listSessions(),
         loadActiveCheckpoint(),
         historyRepository.summarize(),
+        loadFusionCheckpoint(),
       ])
       const items: BaseCard[] = [
         ...nextWorkouts.map(workoutToCard),
@@ -234,6 +240,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         consecutiveWeeks: progress.consecutiveWeeks,
       })
       setCheckpoint(cp)
+      setFusionPending(!!fusionCp)
       setWorkouts(nextWorkouts)
       setArchiveNotice(describeArchiveNotice(summary))
       setRouteBests(computeRoutePersonalBests(nextWorkouts))
@@ -293,13 +300,18 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         refreshing={loading && cards.length > 0}
         onRefresh={() => { void refresh() }}
         ListHeaderComponent={<>
-        <Text style={styles.intro}>每一步向上，都留在这里。</Text>
+        <Text style={styles.intro}>每一步向上，都留在这里。点任意一次训练可以查看、修改各轮层数。</Text>
+        {fusionPending && !checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
+          <Feather name="pause-circle" size={20} color={theme.amberInk} />
+          <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>回到首页继续或放弃</Text></View>
+          <Feather name="chevron-right" size={20} color={theme.amberInk} />
+        </Pressable> : null}
         {checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
           <Feather name="pause-circle" size={20} color={theme.amberInk} />
           <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>{PHASE_LABEL[checkpoint.phase]} · 返回训练页继续处理</Text></View>
           <Feather name="chevron-right" size={20} color={theme.amberInk} />
         </Pressable> : null}
-        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.green} accessibilityLabel="正在读取记录" /> : null}
+        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.brand} accessibilityLabel="正在读取记录" /> : null}
         {loadError ? <><Notice tone="danger">{loadError}</Notice><Button title="重新读取" onPress={() => { void refresh() }} /></> : null}
         {/* 归档说明（D09 验收 4b）：不再有与事实不符的容量文案（旧文案声称超限即删）。
             文案与数字来自 historyRepository.summarize() 的 trimmedTotal /
@@ -311,7 +323,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         ) : null}
 
         {!loading || cards.length > 0 ? <View style={styles.weekHero}>
-          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text><Feather name="trending-up" size={22} color={theme.green} /></View>
+          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text><Feather name="trending-up" size={22} color={theme.brand} /></View>
           <View style={styles.weekFloor} accessible accessibilityLabel={`本周共爬升 ${week.floors} 层`}>
             <Text style={styles.weekFloorValue}>{week.floors}</Text><Text style={styles.weekFloorUnit}>层爬升</Text>
           </View>
@@ -441,7 +453,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
                   </Text>
                   <Pill tone={card.statusTone}>{card.statusText}</Pill>
                 </View>
-                <Text style={styles.cardDate}>{dateText(card.sortAt).split(' ')[1] || '未知时间'} · {card.kind === 'workout' ? '多轮训练' : '单轮记录'}</Text>
+                <Text style={styles.cardDate}>{dateText(card.sortAt).split(' ')[1] || '未知时间'} · {card.kind === 'workout' ? '训练' : '旧版单轮记录'}</Text>
                 <Text style={styles.cardMetrics}>{card.metricsLine}</Text>
                 <Text style={styles.cardHighlight}>{card.highlightLine}</Text>
               </Card>
@@ -470,10 +482,10 @@ const makeStyles = (theme: Theme) =>
     checkpoint: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: theme.amberSoft, borderRadius: 14, marginBottom: 16, minHeight: 64 },
     checkpointCopy: { flex: 1 },
     checkpointSub: { color: theme.amberInk, fontSize: 14, lineHeight: 21, marginTop: 4 },
-    weekHero: { backgroundColor: theme.greenSoft, borderRadius: 20, padding: 20, marginBottom: 24 },
+    weekHero: { backgroundColor: theme.brandSoft, borderRadius: 20, padding: 20, marginBottom: 24 },
     weekHeroHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     weekFloor: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginVertical: 12 },
-    weekFloorValue: { color: theme.green, fontSize: 48, lineHeight: 58, fontWeight: '700', fontVariant: ['tabular-nums'] },
+    weekFloorValue: { color: theme.brand, fontSize: 48, lineHeight: 58, fontWeight: '700', fontVariant: ['tabular-nums'] },
     weekFloorUnit: { color: theme.mutedStrong, fontSize: 15, lineHeight: 22 },
     weekMetricItem: { flex: 1 },
     weekMetricLabel: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 4 },
@@ -583,7 +595,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: 10,
     },
     filterChipActive: {
-      backgroundColor: theme.greenSoft,
+      backgroundColor: theme.brandSoft,
     },
     filterChipText: {
       color: theme.mutedStrong,
@@ -592,7 +604,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     filterChipTextActive: {
-      color: theme.green,
+      color: theme.brand,
     },
     cardPressable: {
       marginBottom: 12,
@@ -628,12 +640,11 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     cardMetrics: {
+      ...theme.numeric,
       color: theme.ink,
-      fontSize: 17,
-      lineHeight: 24,
-      fontWeight: '600',
-      fontVariant: ['tabular-nums'],
-      marginTop: 16,
+      fontSize: 20,
+      lineHeight: 26,
+      marginTop: 12,
     },
     cardHighlight: {
       color: theme.mutedStrong,
@@ -648,7 +659,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     checkpointAction: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 13,
       fontWeight: '700',
       textDecorationLine: 'underline',

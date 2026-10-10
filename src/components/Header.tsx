@@ -109,7 +109,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: 12,
     },
     rightText: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 14,
       fontWeight: '600',
     },

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MainTabParamList } from './types'
 import { useTheme } from '../theme'
 import { BrandMark } from '../components/brand-mark'
-import TrainHomeScreen from '../pages/TrainHome'
+import TrainHomeScreen from '../pages/Home'
 import HistoryScreen from '../pages/History'
 import SettingsScreen from '../pages/Settings'
 
@@ -25,7 +25,7 @@ export default function MainTabs() {
       initialRouteName="Train"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: theme.green,
+        tabBarActiveTintColor: theme.brand,
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
           backgroundColor: theme.card,
@@ -45,7 +45,7 @@ export default function MainTabs() {
         ),
       })}
     >
-      <Tab.Screen name="Train" component={TrainHomeScreen} options={{ title: '训练' }} />
+      <Tab.Screen name="Train" component={TrainHomeScreen} options={{ title: '爬楼' }} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ title: '记录' }} />
       <Tab.Screen name="Profile" component={SettingsScreen} options={{ title: '设置' }} />
     </Tab.Navigator>
