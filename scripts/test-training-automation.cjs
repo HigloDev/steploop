@@ -501,11 +501,12 @@ function retainedSensors(harness, phase) {
 function sensorHardware({ clockAt = 100000, privacyBarrier, privacyError, privacyRead, statusBarrier, drainBarrier, nativeAvailable = false } = {}) {
   const ts = require('typescript'), fs = require('node:fs')
   let now = clockAt
-  const subscriptions = new Map(), timers = new Map()
+  const subscriptions = new Map(), timers = new Map(), nativeJournal = []
   const calls = { nativeSubscriptions: 0, nativeStatusReads: 0, nativeDrains: 0 }
   const subscribe = (name, callback, value) => {
     const token = { name, remove() { subscriptions.delete(token) } }
     subscriptions.set(token, callback)
+    if (name === 'native') nativeJournal.push(value)
     callback(value)
     return token
   }
@@ -553,7 +554,7 @@ function sensorHardware({ clockAt = 100000, privacyBarrier, privacyError, privac
     if (name === './background-training') return { isBackgroundTrainingSupported: () => nativeAvailable,
       getBackgroundTrainingStatus: async () => { calls.nativeStatusReads += 1; if (statusBarrier) await statusBarrier; return { running: true, sessionId: 'workout', latestSequence: 0 } },
       subscribeBackgroundSamples: callback => { calls.nativeSubscriptions += 1; return subscribe('native', callback, { ...sample(now), sessionId: 'workout', seq: 1 }) },
-      drainBackgroundSamples: async () => { calls.nativeDrains += 1; if (drainBarrier) await drainBarrier; return { sessionId: 'workout', samples: [], latestSequence: 1 } },
+      drainBackgroundSamples: async after => { calls.nativeDrains += 1; if (drainBarrier) await drainBarrier; return { sessionId: 'workout', samples: nativeJournal.filter(sample => sample.seq > after), latestSequence: nativeJournal.at(-1)?.seq ?? 1 } },
     }
     throw new Error(`Unmocked recorder boundary: ${name}`)
   }
@@ -561,7 +562,7 @@ function sensorHardware({ clockAt = 100000, privacyBarrier, privacyError, privac
     { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText
   new Function('require', 'module', 'exports', ...Object.keys(runtime), source)(injectedRequire, module, module.exports, ...Object.values(runtime))
   return { ...runtime, adapter, advanceTime, calls, subscriptions, timers,
-    emit: (name, value) => { for (const [subscription, callback] of [...subscriptions]) if (subscription.name === name) callback(value) },
+    emit: (name, value) => { if (name === 'native') nativeJournal.push(value); for (const [subscription, callback] of [...subscriptions]) if (subscription.name === name) callback(value) },
     SensorRecorder: module.exports.SensorRecorder, get now() { return now } }
 }
 

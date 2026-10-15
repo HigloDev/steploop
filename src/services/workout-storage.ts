@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ActiveWorkoutCheckpoint, ClimbWorkout } from '../core/types'
 import { uid } from '../core/math'
-import { recoverPendingJournal } from './storage-journal'
+import { recoverPendingJournal, runSerial } from './storage-journal'
 import {
   HISTORY_WORKOUT_LIMIT,
   historyRepository,
@@ -21,13 +21,13 @@ function ensureRecovered(): Promise<void> {
             `[workout-storage] 已回滚未完成的多键写入（${report.operation ?? 'unknown'}）`,
           )
         } else if (report.failure) {
-          console.error(
-            `[workout-storage] 未完成写入的自动回滚失败，将在下次启动重试：${report.failure}`,
-          )
+          throw new Error(`本地存储尚未恢复：${report.failure}`)
         }
       })
       .catch((error) => {
+        recoveryPromise = null
         console.error('[workout-storage] 恢复检查失败', error)
+        throw error
       })
   }
   return recoveryPromise
@@ -89,15 +89,18 @@ export async function loadActiveCheckpoint(): Promise<ActiveWorkoutCheckpoint | 
 export async function saveActiveCheckpoint(
   cp: ActiveWorkoutCheckpoint | null,
 ): Promise<void> {
-  if (cp === null) {
-    try {
-      await AsyncStorage.removeItem(ACTIVE_CHECKPOINT_KEY)
-    } catch {
-      throw new Error('未能清除未完成训练，请重试。')
+  await ensureRecovered()
+  await runSerial(async () => {
+    if (cp === null) {
+      try {
+        await AsyncStorage.removeItem(ACTIVE_CHECKPOINT_KEY)
+      } catch {
+        throw new Error('未能清除未完成训练，请重试。')
+      }
+      return
     }
-    return
-  }
-  await safeWrite(ACTIVE_CHECKPOINT_KEY, cp)
+    await safeWrite(ACTIVE_CHECKPOINT_KEY, cp)
+  })
 }
 
 export async function clearActiveCheckpoint(): Promise<void> {

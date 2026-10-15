@@ -108,7 +108,8 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
   return {
     id: w.id,
     kind: 'workout',
-    sortAt: w.updatedAt || w.startedAt,
+    // Correcting a result does not change the day on which the workout happened.
+    sortAt: w.startedAt || w.endedAt || w.createdAt || 0,
     title: w.routeSnapshot.locationName || w.routeSnapshot.name,
     subtitle: `${w.routeSnapshot.startFloor}层 → ${w.routeSnapshot.endFloor}层 · 单轮 ${floorsPerRound} 层`,
     statusText,

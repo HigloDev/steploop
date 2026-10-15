@@ -134,7 +134,17 @@ export class SensorRecorder {
   private baroSub?: SensorSubscription
   private nativeSub?: SensorSubscription
   private nativePoll?: ReturnType<typeof setInterval>
+  private nativeReplay?: () => Promise<void>
   private lastRetainedAt = 0
+  private sensorClockOffset?: number
+
+  /** Keep acquisition intervals when the JS bridge delivers a delayed batch.
+   * Adapted from snapshot/mobile-1.1.0; fusion retains the pressureT contract. */
+  private eventTime(seconds?: number): number {
+    if (seconds === undefined || !Number.isFinite(seconds)) return Date.now()
+    this.sensorClockOffset ??= Date.now() - seconds * 1000
+    return this.sensorClockOffset + seconds * 1000
+  }
 
   constructor(options: SensorRecorderOptions = {}) {
     this.options = options
@@ -179,6 +189,11 @@ export class SensorRecorder {
     if (generation !== this.generation) return
     this.samples = []
     this.lastRetainedAt = 0
+    this.sensorClockOffset = undefined
+    this.latestGyro = { x: 0, y: 0, z: 0 }
+    this.latestMotion = { alpha: 0, beta: 0, gamma: 0 }
+    this.lastNativePressure = undefined
+    this.gapStartedAt = undefined
     this.startedAt = Date.now()
     this.lastSampleAt = 0
     this.gyroSampleAt = 0
@@ -206,14 +221,14 @@ export class SensorRecorder {
 
         this.accelSub = this.adapter.subscribeAccelerometer((value) => {
           if (!this.isActiveGeneration(generation)) return
-          const now = Date.now()
-          if (this.gapStartedAt) {
-            this.emitGap({
-              startMs: this.gapStartedAt - this.startedAt,
-              endMs: now - this.startedAt,
-            })
-            this.gapStartedAt = undefined
+          const now = this.eventTime(value.timestamp)
+          if (this.lastSampleAt && now <= this.lastSampleAt) return
+          // A delayed bridge callback is not a sensor gap. Compare acquisition
+          // times just as the native journal replay path does.
+          if (this.lastSampleAt > 0 && now - this.lastSampleAt > 1500) {
+            this.emitGap({ startMs: this.lastSampleAt - this.startedAt, endMs: now - this.startedAt })
           }
+          this.gapStartedAt = undefined
           const sample: SensorSample = {
             t: now,
             ax: value.x,
@@ -225,8 +240,8 @@ export class SensorRecorder {
             alpha: this.latestMotion.alpha,
             beta: this.latestMotion.beta,
             gamma: this.latestMotion.gamma,
-            // 气压计若可用，把最新气压值附在样本上（可能 undefined），同时附上该气压事件的接收时间。
-            // 口径：Expo 路径下加速度与气压都用 JS 接收时刻 Date.now()（同一时钟）；
+            // 气压计若可用，把最新气压值附在样本上（可能 undefined），同时附上该气压事件的采集时间。
+            // 口径：Expo 路径将原生秒时间戳映射到同一墙钟；桥接延迟不改变采样间隔。
             // 消费方只在 pressureT 变化时才把它当作新的气压事件，停更 > 2s 视为 stale。
             pressure: this.latestPressure,
             pressureT: this.latestPressure !== undefined ? this.barometerLastAt : undefined,
@@ -239,7 +254,7 @@ export class SensorRecorder {
 
         this.gyroSub = this.adapter.subscribeGyroscope((value) => {
           if (!this.isActiveGeneration(generation)) return
-          this.gyroSampleAt = Date.now()
+          this.gyroSampleAt = this.eventTime(value.timestamp)
           this.latestGyro = { x: value.x, y: value.y, z: value.z }
         })
 
@@ -275,10 +290,11 @@ export class SensorRecorder {
         this.baroSub = this.adapter.subscribeBarometer((value) => {
           if (!this.isActiveGeneration(generation)) return
           const pressure = value.pressure
-          if (Number.isFinite(pressure) && pressure > 0) {
+          const at = this.eventTime(value.timestamp)
+          if (at > this.barometerLastAt && Number.isFinite(pressure) && pressure > 0) {
             this.latestPressure = pressure
             this.barometerAvailable = true
-            this.barometerLastAt = Date.now()
+            this.barometerLastAt = at
             this.emitBarometer({
               available: true,
               running: true,
@@ -337,7 +353,8 @@ export class SensorRecorder {
   /** Native journal is authoritative during a bridge pause; replay uses the original timestamps. */
   private async startNativeCapture(generation: number, sessionId: string, initialSequence: number): Promise<void> {
     let lastSequence = initialSequence
-    let replaying = false
+    let replayTask: Promise<void> | undefined
+    let latestReplaySequence = initialSequence
     let closed = false
     const pending: BackgroundTrainingSample[] = []
     const deliver = (sample: BackgroundTrainingSample) => {
@@ -374,34 +391,62 @@ export class SensorRecorder {
       this.options.onSample?.(sample)
       this.emitter.emit('sample', sample)
     }
-    const replay = async () => {
-      if (replaying || closed || !this.isActiveGeneration(generation)) return
-      replaying = true
-      try {
-        while (!closed && this.isActiveGeneration(generation)) {
-          const page = await drainBackgroundSamples(lastSequence, 2000)
-          if (page.sessionId !== sessionId) break
-          for (const sample of page.samples) deliver(sample)
-          if (page.samples.length < 2000 || lastSequence >= page.latestSequence) break
+    const replay = (): Promise<void> => {
+      if (replayTask) return replayTask
+      if (closed || !this.isActiveGeneration(generation)) return Promise.resolve()
+      const task = (async () => {
+        let succeeded = false
+        try {
+          while (!closed && this.isActiveGeneration(generation)) {
+            const page = await drainBackgroundSamples(lastSequence, 2000)
+            if (closed || !this.isActiveGeneration(generation)) return
+            if (page.sessionId !== sessionId) throw new Error('后台采样日志已切换到另一场训练，请重试保存。')
+            latestReplaySequence = Math.max(latestReplaySequence, page.latestSequence)
+            for (const sample of page.samples) deliver(sample)
+            if (page.samples.length < 2000 || lastSequence >= page.latestSequence) break
+          }
+          succeeded = true
+        } catch (error) {
+          if (this.isActiveGeneration(generation)) {
+            console.warn('[sensor] native replay failed', error)
+            this.emitStatus('interrupted')
+            throw error
+          }
+        } finally {
+          // A failed drain cannot move the cursor past its missing samples.
+          // Even a successful page can predate queued live events: only deliver
+          // their contiguous prefix, and leave sequence gaps for the next drain.
+          if (succeeded) {
+            const ordered = pending.splice(0).sort((a, b) => a.seq - b.seq)
+            for (const sample of ordered) {
+              if (sample.seq <= lastSequence) continue
+              if (sample.seq === lastSequence + 1) deliver(sample)
+              else pending.push(sample)
+            }
+          }
         }
-      } catch (error) {
-        console.warn('[sensor] native replay failed', error)
-        if (this.isActiveGeneration(generation)) this.emitStatus('interrupted')
-      } finally {
-        replaying = false
-        const ordered = pending.splice(0).sort((a, b) => a.seq - b.seq)
-        for (const sample of ordered) deliver(sample)
+      })().finally(() => { replayTask = undefined })
+      replayTask = task
+      return task
+    }
+    this.nativeReplay = async () => {
+      // A poll may have captured its page before finish was requested. Wait for
+      // that page, then start one fresh drain against the now-stopped service.
+      if (replayTask) await replayTask
+      await replay()
+      if (lastSequence < latestReplaySequence || pending.some(sample => sample.seq > lastSequence)) {
+        throw new Error('后台采样日志尚未完整读取，请重试保存。')
       }
     }
     this.nativeSub = subscribeBackgroundSamples(sample => {
-      if (closed || !this.isActiveGeneration(generation)) return
-      if (replaying) { pending.push(sample); return }
-      if (sample.seq > lastSequence + 1) { pending.push(sample); void replay(); return }
+      if (closed || !this.isActiveGeneration(generation) || sample.sessionId !== sessionId) return
+      if (replayTask) { pending.push(sample); return }
+      if (sample.seq > lastSequence + 1) { pending.push(sample); void replay().catch(() => undefined); return }
       deliver(sample)
     })
     const subscription = this.nativeSub
     this.nativeSub = { remove: () => { closed = true; pending.length = 0; subscription.remove() } }
-    this.nativePoll = setInterval(() => { void replay(); this.checkSignal() }, 500)
+    this.nativePoll = setInterval(() => { void replay().catch(() => undefined); this.checkSignal() }, 500)
     await replay()
     if (!this.isActiveGeneration(generation)) return
     await this.waitForRequiredSamples(generation)
@@ -416,6 +461,13 @@ export class SensorRecorder {
     this.samples.push(sample)
     // The complete analysis trace is streamed separately; the in-memory learning window is bounded.
     if (this.options.keepRunningInBackground && this.samples.length > 36000) this.samples.splice(0, 1000)
+  }
+
+  /** Drain queued native samples before the consumer freezes its final result.
+   * The caller stops native acquisition first and keeps this recorder attached
+   * until flush completes. Errors remain retryable; no sequence is acknowledged. */
+  async flush(): Promise<void> {
+    await this.nativeReplay?.()
   }
 
   async stop(): Promise<SensorSample[]> {
@@ -544,6 +596,7 @@ export class SensorRecorder {
   private async cleanup(): Promise<SensorSubscription[]> {
     if (this.nativePoll) clearInterval(this.nativePoll)
     this.nativePoll = undefined
+    this.nativeReplay = undefined
     const pending = this.unremovedSubscriptions.splice(
       0,
       this.unremovedSubscriptions.length,

@@ -107,13 +107,22 @@ let queueTail: Promise<unknown> = Promise.resolve()
  * 队列永不因单个任务失败而中断：失败只 reject 该任务的 promise。
  * 注意：不要在此任务内部再次调用 `runSerial`，否则死锁。
  */
-export function runSerial<T>(task: () => Promise<T>): Promise<T> {
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
   const result = queueTail.then(task, task)
   queueTail = result.then(
     () => undefined,
     () => undefined,
   )
   return result
+}
+
+/** Every operation must resolve an earlier transaction before it can change data. */
+export function runSerial<T>(task: () => Promise<T>): Promise<T> {
+  return enqueue(async () => {
+    const report = await recoverPendingJournalUnsafe()
+    if (report.failure) throw new Error(`本地存储尚未恢复，已停止写入：${report.failure}`)
+    return task()
+  })
 }
 
 /** 运行时校验集合键未被写错（防止日志与实际存储键漂移）。 */
@@ -130,16 +139,35 @@ export function assertCollectionKeys(
 }
 
 async function readJournal(): Promise<AnyJournalEntry | null> {
+  let raw: string | null
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_JOURNAL_KEY)
-    if (!raw) return null
-    const value = JSON.parse(raw) as AnyJournalEntry
-    if (!value || typeof value !== 'object' || !value.before || !value.after) {
-      return null
-    }
-    return value
+    raw = await AsyncStorage.getItem(STORAGE_JOURNAL_KEY)
+  } catch (error) {
+    throw new Error(`存储恢复日志读取失败，已停止写入：${error instanceof Error ? error.message : String(error)}`)
+  }
+  if (raw === null) return null
+  let value: AnyJournalEntry
+  try {
+    value = JSON.parse(raw) as AnyJournalEntry
   } catch {
-    return null
+    throw new Error('存储恢复日志无法解析，已保留原始日志并停止写入。')
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      typeof value.id !== 'string' || !value.id || typeof value.committed !== 'boolean' ||
+      !value.before || typeof value.before !== 'object' || Array.isArray(value.before) ||
+      !value.after || typeof value.after !== 'object' || Array.isArray(value.after) ||
+      Object.values(value.before).some(content => content !== null && typeof content !== 'string') ||
+      ('scoped' in value && value.scoped !== true) ||
+      ('scoped' in value && STORAGE_JOURNAL_KEY in value.before)) {
+    throw new Error('存储恢复日志格式无效，已保留原始日志并停止写入。')
+  }
+  return value
+}
+
+async function assertNoPendingJournal(): Promise<void> {
+  const pending = await readJournal()
+  if (pending && !pending.committed) {
+    throw new Error('存在尚未恢复的存储日志，已停止新写入并保留原始日志。')
   }
 }
 
@@ -161,6 +189,7 @@ export async function beginJournal(
   after: KeySnapshot,
   id = `${operation}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 ): Promise<string> {
+  await assertNoPendingJournal()
   const entry: JournalEntry = {
     id,
     operation,
@@ -197,6 +226,7 @@ export async function beginScopedJournal(
   after: ScopedKeySnapshot,
   id = `${operation}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 ): Promise<string> {
+  await assertNoPendingJournal()
   const fingerprints: Record<string, ScopedKeyFingerprint> = {}
   for (const [key, raw] of Object.entries(after)) fingerprints[key] = fingerprint(raw)
   const entry: ScopedJournalEntry = {
@@ -251,7 +281,12 @@ export interface RecoveryReport {
  * - scoped 格式（D08a）：before/after 是任意存储键映射。
  * 两种格式都只还原 before 里**实际存在**的键，绝不因为字段缺失而写入 "undefined"。
  */
-export async function recoverPendingJournal(): Promise<RecoveryReport> {
+export function recoverPendingJournal(): Promise<RecoveryReport> {
+  // Do not use runSerial here: its precondition is this very recovery step.
+  return enqueue(recoverPendingJournalUnsafe)
+}
+
+async function recoverPendingJournalUnsafe(): Promise<RecoveryReport> {
   const entry = await readJournal()
   if (!entry) return { recovered: false }
   if (entry.committed) {
@@ -289,6 +324,9 @@ export async function recoverPendingJournal(): Promise<RecoveryReport> {
     try {
       if (target === null) await AsyncStorage.removeItem(storageKey)
       else await AsyncStorage.setItem(storageKey, target)
+      if (await AsyncStorage.getItem(storageKey) !== target) {
+        throw new Error('恢复内容读回校验失败')
+      }
       restored.push(storageKey)
     } catch (error) {
       problems.push(`${storageKey}: ${error instanceof Error ? error.message : String(error)}`)
@@ -304,7 +342,15 @@ export async function recoverPendingJournal(): Promise<RecoveryReport> {
       failure: problems.join('; '),
     }
   }
-  await removeJournal()
+  try {
+    // A pending journal cannot be left behind after new writes are allowed: the
+    // next recovery would otherwise undo those newer writes.
+    await AsyncStorage.removeItem(STORAGE_JOURNAL_KEY)
+    if (await AsyncStorage.getItem(STORAGE_JOURNAL_KEY) !== null) throw new Error('日志清理未生效')
+  } catch (error) {
+    return { recovered: false, operation: entry.operation, entryId: entry.id, restored,
+      failure: `回滚已完成，但恢复日志未能清理：${error instanceof Error ? error.message : String(error)}` }
+  }
   return {
     recovered: true,
     operation: entry.operation,

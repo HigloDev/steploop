@@ -15,7 +15,6 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated'
-import { scheduleOnRN } from 'react-native-worklets'
 import { triggerHaptic } from '../services/preferences'
 
 import { useWorkoutPalette, WorkoutPalette } from '../theme'
@@ -146,9 +145,9 @@ export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfi
   const confirm = () => { void triggerHaptic('medium'); onConfirm() }
   const start = () => {
     setHolding(true)
-    progress.set(withTiming(1, { duration: holdMs, easing: Easing.linear }, finished => {
-      if (finished) scheduleOnRN(confirm)
-    }))
+    // Animation may finish immediately when Reduce Motion is enabled. Only
+    // Pressable's real hold timer may authorize the action; this is feedback.
+    progress.set(withTiming(1, { duration: holdMs, easing: Easing.linear }))
   }
   const stop = () => {
     setHolding(false)
@@ -161,9 +160,11 @@ export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfi
       accessibilityLabel={`${label}，需要长按`}
       accessibilityHint={accessibilityHint ?? '长按约一秒确认，或使用读屏的双击确认'}
       accessibilityActions={[{ name: 'activate', label }]}
-      onAccessibilityAction={confirm}
+      onAccessibilityAction={event => { if (event.nativeEvent.actionName === 'activate') confirm() }}
       onPressIn={start}
       onPressOut={stop}
+      delayLongPress={holdMs}
+      onLongPress={confirm}
       style={[styles.hold, tone === 'accent' && { borderColor: P.brandInk }, tone === 'danger' && { borderColor: P.danger }, tone === 'primary' && { borderColor: P.brand, backgroundColor: P.brand }, style]}
     >
       <Animated.View style={[styles.holdFill, tone === 'danger' && { backgroundColor: P.dangerFill }, tone === 'primary' && { backgroundColor: P.brandPressed }, fill]} />

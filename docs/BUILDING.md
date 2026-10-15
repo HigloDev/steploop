@@ -9,6 +9,7 @@
 - `ANDROID_HOME` 指向 Android SDK；`JAVA_HOME` 指向 JDK。
 - 全量测试使用 FFmpeg 的 `ffprobe` 检查预录 MP3。
 - Windows 映射目录必须从实际路径执行，避免 Metro/Gradle 混用盘符。
+- Windows原生构建使用真实短目录（例如 `G:\steploop-build`），并检查Ninja版本不低于1.12；旧Ninja可能把拼接超过260字符的现有CMake输入误判为不存在，导致 `build.ninja still dirty after 100 tries`。详见[官方指南](https://docs.swmansion.com/react-native-reanimated/docs/guides/building-on-windows/)。不要复用另一个路径生成的`.cxx`缓存。
 
 ```sh
 npm ci

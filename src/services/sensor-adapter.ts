@@ -33,6 +33,7 @@ export const expoSensorAdapter: SensorAdapter = {
   subscribeAccelerometer: (listener: Listener<AccelerometerPayload>): SensorSubscription =>
     Accelerometer.addListener((value) =>
       listener({
+        timestamp: value.timestamp,
         x: Number(value?.x) || 0,
         y: Number(value?.y) || 0,
         z: Number(value?.z) || 0,
@@ -41,6 +42,7 @@ export const expoSensorAdapter: SensorAdapter = {
   subscribeGyroscope: (listener: Listener<GyroscopePayload>): SensorSubscription =>
     Gyroscope.addListener((value) =>
       listener({
+        timestamp: value.timestamp,
         x: Number(value?.x) || 0,
         y: Number(value?.y) || 0,
         z: Number(value?.z) || 0,
@@ -51,5 +53,5 @@ export const expoSensorAdapter: SensorAdapter = {
       listener({ rotation: value?.rotation ?? undefined }),
     ),
   subscribeBarometer: (listener: Listener<BarometerPayload>): SensorSubscription =>
-    Barometer.addListener((value) => listener({ pressure: Number(value?.pressure) })),
+    Barometer.addListener((value) => listener({ pressure: Number(value?.pressure), timestamp: value.timestamp })),
 }

@@ -13,32 +13,26 @@ import {
 } from '../core/building-template'
 import type { FusionRoundResult } from '../core/fusion-engine'
 import { listRoutes } from './storage'
+import { runSerial } from './storage-journal'
+import { BUILDINGS_KEY, HIDDEN_LEGACY_KEY } from './building-storage-keys'
 
-const BUILDINGS_KEY = 'steploop.buildings.v1'
 const ACTIVE_FUSION_KEY = 'steploop.fusionActive.v1'
-const HIDDEN_LEGACY_KEY = 'steploop.hiddenLegacyRoutes.v1'
-
-let cache: BuildingTemplate[] | undefined
 
 async function readOwn(): Promise<BuildingTemplate[]> {
-  if (cache) return cache
   try {
     const raw = await AsyncStorage.getItem(BUILDINGS_KEY)
     const parsed = raw ? JSON.parse(raw) : []
-    cache = Array.isArray(parsed)
-      ? parsed.map(normalizeBuildingTemplate).filter((item): item is BuildingTemplate => !!item)
-      : []
+    if (!Array.isArray(parsed)) throw new Error('楼栋模板集合不是数组')
+    return parsed.map(normalizeBuildingTemplate).filter((item): item is BuildingTemplate => !!item)
   } catch (error) {
     console.warn('[building-storage] 读取楼栋模板失败', error)
     throw new Error('楼栋模板暂时无法读取，请重试。')
   }
-  return cache
 }
 
 async function writeOwn(items: BuildingTemplate[]): Promise<void> {
   try {
     await AsyncStorage.setItem(BUILDINGS_KEY, JSON.stringify(items))
-    cache = items
   } catch (error) {
     throw new Error(`楼栋模板保存失败，可能存储空间不足：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -48,9 +42,10 @@ async function hiddenLegacy(): Promise<string[]> {
   try {
     const raw = await AsyncStorage.getItem(HIDDEN_LEGACY_KEY)
     const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : []
+    if (!Array.isArray(parsed)) throw new Error('隐藏路线集合不是数组')
+    return parsed.filter((id): id is string => typeof id === 'string')
   } catch {
-    return []
+    throw new Error('隐藏路线暂时无法读取，请重试。')
   }
 }
 
@@ -78,7 +73,7 @@ export async function getBuilding(id: string): Promise<BuildingTemplate | undefi
 }
 
 /** 保存或覆盖（同 id）。旧路线模板保存时生成新 id，并记住来源，之后不再重复展示旧路线。 */
-export async function saveBuilding(template: BuildingTemplate): Promise<BuildingTemplate> {
+async function saveBuildingUnsafe(template: BuildingTemplate): Promise<BuildingTemplate> {
   const own = await readOwn()
   const next: BuildingTemplate = { ...template, updatedAt: Date.now() }
   const index = own.findIndex(item => item.id === next.id)
@@ -87,37 +82,47 @@ export async function saveBuilding(template: BuildingTemplate): Promise<Building
   return next
 }
 
+export async function saveBuilding(template: BuildingTemplate): Promise<BuildingTemplate> {
+  return runSerial(() => saveBuildingUnsafe(template))
+}
+
 export async function renameBuilding(id: string, name: string): Promise<void> {
   const trimmed = name.trim().slice(0, 24)
   if (!trimmed) return
-  const own = await readOwn()
-  if (own.some(item => item.id === id)) {
-    await writeOwn(own.map(item => (item.id === id ? { ...item, name: trimmed, updatedAt: Date.now() } : item)))
-    return
-  }
-  const legacy = (await listBuildings()).find(item => item.id === id)
-  if (legacy) await saveBuilding({ ...legacy, id: `building_${legacy.legacyRouteId ?? id}`, name: trimmed })
+  // Resolve legacy routes outside the write queue: listRoutes may itself migrate them.
+  const legacy = id.startsWith('legacy_') ? await getBuilding(id) : undefined
+  await runSerial(async () => {
+    const own = await readOwn()
+    if (own.some(item => item.id === id)) {
+      await writeOwn(own.map(item => (item.id === id ? { ...item, name: trimmed, updatedAt: Date.now() } : item)))
+    } else if (legacy) {
+      await saveBuildingUnsafe({ ...legacy, id: `building_${legacy.legacyRouteId ?? id}`, name: trimmed })
+    }
+  })
 }
 
 export async function deleteBuilding(id: string): Promise<void> {
-  const own = await readOwn()
-  const target = own.find(item => item.id === id)
-  if (target) {
-    await writeOwn(own.filter(item => item.id !== id))
-    return
-  }
-  // 旧路线：只在新界面隐藏，不删除旧数据（备份/导出仍保留）。
-  const legacy = (await listBuildings()).find(item => item.id === id)
-  if (legacy?.legacyRouteId) {
-    const hidden = await hiddenLegacy()
-    await AsyncStorage.setItem(HIDDEN_LEGACY_KEY, JSON.stringify([...new Set([...hidden, legacy.legacyRouteId])]))
-  }
+  const legacy = id.startsWith('legacy_') ? await getBuilding(id) : undefined
+  await runSerial(async () => {
+    const own = await readOwn()
+    if (own.some(item => item.id === id)) {
+      await writeOwn(own.filter(item => item.id !== id))
+      return
+    }
+    // Only hide the legacy route; retain the original data for backup/export.
+    if (legacy?.legacyRouteId) {
+      const hidden = await hiddenLegacy()
+      await AsyncStorage.setItem(HIDDEN_LEGACY_KEY, JSON.stringify([...new Set([...hidden, legacy.legacyRouteId])]))
+    }
+  })
 }
 
 export async function recordBuildingResult(id: string, result: BuildingLastResult): Promise<void> {
-  const own = await readOwn()
-  if (!own.some(item => item.id === id)) return
-  await writeOwn(own.map(item => (item.id === id ? { ...item, lastResult: result } : item)))
+  await runSerial(async () => {
+    const own = await readOwn()
+    if (!own.some(item => item.id === id)) return
+    await writeOwn(own.map(item => (item.id === id ? { ...item, lastResult: result } : item)))
+  })
 }
 
 // ===================== 训练检查点 =====================
@@ -140,8 +145,12 @@ export interface FusionCheckpoint {
 
 export async function saveFusionCheckpoint(checkpoint: FusionCheckpoint | null): Promise<void> {
   try {
-    if (checkpoint) await AsyncStorage.setItem(ACTIVE_FUSION_KEY, JSON.stringify(checkpoint))
-    else await AsyncStorage.removeItem(ACTIVE_FUSION_KEY)
+    // Capture now; delayed writes must not observe a later mutation of the caller's object.
+    const raw = checkpoint ? JSON.stringify(checkpoint) : null
+    await runSerial(async () => {
+      if (raw !== null) await AsyncStorage.setItem(ACTIVE_FUSION_KEY, raw)
+      else await AsyncStorage.removeItem(ACTIVE_FUSION_KEY)
+    })
   } catch (error) {
     console.warn('[building-storage] 训练检查点写入失败', error)
     throw new Error('训练恢复点保存失败，请检查手机存储空间后重试。')
@@ -163,7 +172,7 @@ export async function loadFusionCheckpoint(): Promise<FusionCheckpoint | null> {
 
 /** 测试用。 */
 export function __resetBuildingStorageForTests(): void {
-  cache = undefined
+  // No cache: backup imports and rollbacks must be visible immediately.
 }
 
 // ===================== 待保存的标定结果 =====================
@@ -178,9 +187,25 @@ export interface PendingTemplate {
   replaceTemplateId?: string
 }
 
+async function readPendingTemplates(): Promise<PendingTemplate[]> {
+  const raw = await AsyncStorage.getItem(PENDING_TEMPLATE_KEY)
+  if (!raw) return []
+  const parsed = JSON.parse(raw)
+  // Keep compatibility with the original single-workout draft.
+  const values = Array.isArray(parsed) ? parsed : [parsed]
+  if (values.some(value => !value || typeof value.workoutId !== 'string' || !normalizeBuildingTemplate(value.template))) {
+    throw new Error('标定草稿格式无效，已保留原始数据')
+  }
+  return values
+}
+
 export async function savePendingTemplate(pending: PendingTemplate): Promise<void> {
   try {
-    await AsyncStorage.setItem(PENDING_TEMPLATE_KEY, JSON.stringify(pending))
+    await runSerial(async () => {
+      const existing = await readPendingTemplates()
+      const next = [pending, ...existing.filter(item => item.workoutId !== pending.workoutId)]
+      await AsyncStorage.setItem(PENDING_TEMPLATE_KEY, JSON.stringify(next))
+    })
   } catch (error) {
     console.warn('[building-storage] 标定草稿写入失败', error)
     throw new Error('楼栋标定结果保存失败，请检查手机存储空间后重试。')
@@ -189,17 +214,23 @@ export async function savePendingTemplate(pending: PendingTemplate): Promise<voi
 
 export async function loadPendingTemplate(workoutId: string): Promise<PendingTemplate | null> {
   try {
-    const raw = await AsyncStorage.getItem(PENDING_TEMPLATE_KEY)
-    if (!raw) return null
-    const value = JSON.parse(raw) as PendingTemplate
-    if (!value || value.workoutId !== workoutId) return null
+    const value = (await readPendingTemplates()).find(item => item.workoutId === workoutId)
+    if (!value) return null
     const template = normalizeBuildingTemplate(value.template)
     return template ? { ...value, template, warnings: Array.isArray(value.warnings) ? value.warnings : [] } : null
   } catch {
-    return null
+    throw new Error('楼栋标定草稿暂时无法读取，请重试。')
   }
 }
 
-export async function clearPendingTemplate(): Promise<void> {
-  try { await AsyncStorage.removeItem(PENDING_TEMPLATE_KEY) } catch { /* 草稿丢失不影响成绩 */ }
+export async function clearPendingTemplate(workoutId?: string): Promise<void> {
+  await runSerial(async () => {
+    if (!workoutId) {
+      await AsyncStorage.removeItem(PENDING_TEMPLATE_KEY)
+      return
+    }
+    const next = (await readPendingTemplates()).filter(item => item.workoutId !== workoutId)
+    if (next.length) await AsyncStorage.setItem(PENDING_TEMPLATE_KEY, JSON.stringify(next))
+    else await AsyncStorage.removeItem(PENDING_TEMPLATE_KEY)
+  })
 }

@@ -12,6 +12,7 @@ import { BrandMark } from '../components/brand-mark'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { AscentReferences } from '../components/ascent-references'
 import { FlowSheet } from '../components/flow-sheet'
+import { waitForFusionCleanup } from '../hooks/useFusionWorkout'
 import { BuildingTemplate, floorCount, templateTotalAscentM } from '../core/building-template'
 import { getRoundAchievementCount, normalizeFloorNumber, shiftFloorNumber } from '../core/floors'
 import { describeAscent } from '../core/landmarks'
@@ -94,6 +95,8 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
     setLoading(true)
     setLoadError('')
     try {
+      // A render retry can remount Home before the old workout finishes saving.
+      await waitForFusionCleanup()
       const [items, workouts, cp, legacy] = await Promise.all([
         listBuildings(), listWorkouts(), loadFusionCheckpoint(), loadActiveCheckpoint(),
       ])
@@ -190,7 +193,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
           <Text style={styles.brand}>循阶</Text>
         </View>
 
-        {checkpoint ? (
+        {checkpoint && !loading && !loadError ? (
           <View style={styles.resume}>
             <View style={{ flex: 1 }}>
               <Text style={styles.resumeTitle}>{checkpoint.endedAt ? '有成绩等待保存' : '有一次训练没有结束'}</Text>
@@ -208,7 +211,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
             </Pressable>
           </View>
         ) : null}
-        {legacyCheckpoint ? (
+        {legacyCheckpoint && !loading && !loadError ? (
           <View style={styles.resume}>
             <View style={{ flex: 1 }}>
               <Text style={styles.resumeTitle}>旧版训练没有结束</Text>

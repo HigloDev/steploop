@@ -1,7 +1,7 @@
 // 隐私协议页：展示协议内容，同意后 agreePrivacy；未看过引导则进入 Onboarding，否则进入主应用。
 
 import React, { useState } from 'react'
-import { Alert, BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, BackHandler, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 
@@ -14,17 +14,19 @@ import { agreePrivacy } from '../services/privacy'
 import { hasSeenOnboarding } from '../services/onboarding'
 import { HISTORY_SESSION_LIMIT, HISTORY_WORKOUT_LIMIT } from '../services/history-repository'
 
+// Date of this description revision; it must not change whenever the page opens.
+const PRIVACY_NOTICE_UPDATED_AT = '2026-10-15'
+const FEEDBACK_URL = 'https://github.com/HigloDev/steploop/issues'
+
 export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const navigation = useNavigation<RootStackNavigation>()
   const from = route.params?.from
+  const fromSettings = from === 'settings'
   const [agreeing, setAgreeing] = useState(false)
   const [rejecting, setRejecting] = useState(false)
-
-  const today = new Date()
-  const effectiveDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   const handleAgree = async () => {
     if (agreeing) return
@@ -65,9 +67,9 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 
         <PrivacySection number="01" title="信息收集" summary="训练期间使用运动传感器数据，辅助判断爬楼状态。">
           <Text style={styles.paragraph}>本应用仅在用户主动操作时收集以下信息：</Text>
-          <Text style={styles.itemDesc}>地图选点与路线管理说明适用于旧版功能。1.1.2 以楼栋模板标定与训练为主，历史路线与成绩继续保留。</Text>
+          <Text style={styles.itemDesc}>当前版本以楼栋模板标定与训练为主，开始爬楼无需地图选点。旧版路线、地点与成绩继续保留。</Text>
           <Text style={styles.itemLabel}>· 地理位置</Text>
-          <Text style={styles.itemDesc}>用于在地图上选择爬楼建筑并按距离推荐附近已标定路线。仅在创建或修改路线时使用。</Text>
+          <Text style={styles.itemDesc}>旧版路线可能含有你在地图上选择的建筑位置。当前训练入口不使用定位来判断楼层；这些历史地点仍可能包含在你主动导出的备份中。</Text>
           <Text style={styles.itemLabel}>· 运动传感器</Text>
           <Text style={styles.itemDesc}>包括加速度、旋转、气压及设备可用的步数信息。仅在你主动开始标定、训练或诊断时读取，用于识别楼层与运动过程。</Text>
           <Text style={styles.itemLabel}>· 设备标识</Text>
@@ -75,7 +77,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
         </PrivacySection>
 
         <PrivacySection number="02" title="信息存储" summary="运动记录保存在本机，可由你主动导出。">
-          <Text style={styles.paragraph}>所有路线模板、爬楼记录与成绩摘要均存储在本地存储中，保存在当前设备下，不会上传到任何服务器。</Text>
+          <Text style={styles.paragraph}>所有楼栋模板、旧版路线、爬楼记录与成绩摘要均存储在本地存储中，保存在当前设备下，不会上传到任何服务器。</Text>
           <Text style={styles.paragraph}>训练时按约 10 Hz 留存原始运动样本，采样中断会保留缺段记录。识别结果、人工修正和语音播报日志也保存在本机，可由你主动导出用于电脑分析，不会自动上传。</Text>
           <Text style={styles.paragraph}>标定复核使用当前采集草稿；离开页面不会清除已经保存的训练分析文件。</Text>
           <Text style={styles.paragraph}>
@@ -96,7 +98,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 
         <PrivacySection number="03" title="信息使用" summary="用于计层、成绩展示和训练诊断。">
           <Text style={styles.paragraph}>收集的信息仅用于：</Text>
-          <Text style={styles.itemDesc}>· 在地图上选点与推荐附近路线</Text>
+          <Text style={styles.itemDesc}>· 显示你保存的楼栋模板与旧版路线信息</Text>
           <Text style={styles.itemDesc}>· 识别当前楼层、步态与转向事件</Text>
           <Text style={styles.itemDesc}>· 生成本地成绩摘要（仅包含路线名称与运动成绩）</Text>
           <Text style={styles.itemDesc}>· 在更换手机时提示重新验证</Text>
@@ -104,11 +106,11 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 
         <PrivacySection number="04" title="信息共享" summary="不会自动向第三方上传运动记录。">
           <Text style={styles.paragraph}>运动记录不会自动上传或共享给第三方，也不会用于广告。只有你主动导出或分享时，文件才会交给你选择的目标应用。</Text>
-          <Text style={styles.paragraph}>地图选点使用高德在线地图服务，加载地图、搜索地点和解析地址时会发送必要的位置或搜索信息。你也可以通过“快速开练”开始不记录地点的训练。</Text>
+          <Text style={styles.paragraph}>旧版地图选点使用高德在线地图服务，加载地图、搜索地点和解析地址时会发送必要的位置或搜索信息。当前首页的“开始爬楼”不需要地图选点；主动分享旧版路线或导出备份前，请留意其中可能包含的地点信息。</Text>
         </PrivacySection>
 
         <PrivacySection number="05" title="信息删除" summary="可删除楼栋模板，历史训练会保留。">
-          <Text style={styles.paragraph}>用户可在路线管理中手动删除路线模板，已经保存的训练仍会保留；有路线快照的历史记录继续显示当次路线信息。</Text>
+          <Text style={styles.paragraph}>可在首页楼栋卡片的管理菜单中删除楼栋模板。旧版路线在首页移除后，其原始数据仍保留在备份中；已保存的训练不受影响，有路线快照的记录继续显示当次信息。</Text>
           <Text style={styles.paragraph}>卸载应用或清除应用数据将永久删除所有本地数据，无法恢复。</Text>
         </PrivacySection>
 
@@ -119,21 +121,27 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
           <Text style={styles.paragraph}>· 锁屏持续采集需要系统允许后台训练和相应权限，部分手机的省电策略仍可能中断采样。缺段会保留记录并提醒，不会补造样本。</Text>
         </PrivacySection>
 
-        <PrivacySection number="07" title="联系方式" summary="详见协议正文。">
-          <Text style={styles.paragraph}>如有疑问，可通过应用反馈渠道联系开发者。</Text>
+        <PrivacySection number="07" title="联系方式" summary="可通过项目反馈页联系开发者。">
+          <Text style={styles.paragraph}>如有疑问，可在项目反馈页描述问题。请勿公开上传完整备份、位置或其他个人信息。</Text>
+          <Pressable accessibilityRole="link" accessibilityLabel="打开循阶项目反馈页" onPress={() => { void Linking.openURL(FEEDBACK_URL).catch(() => Alert.alert('无法打开反馈页', '请复制下方地址，在浏览器中打开。')) }} style={{ minHeight: 48, justifyContent: 'center' }}>
+            <Text style={[styles.paragraph, { color: theme.brandInk }]}>打开项目反馈页</Text>
+          </Pressable>
+          <Text selectable style={styles.itemDesc}>{FEEDBACK_URL}</Text>
         </PrivacySection>
 
-        <Text style={styles.version}>版本 1.0 · 生效日期 {effectiveDate}</Text>
+        <Text style={styles.version}>隐私说明 1.0 · 内容更新日期 {PRIVACY_NOTICE_UPDATED_AT}</Text>
 
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 8 }]}>
+        {fromSettings ? <Button title="返回设置" onPress={() => navigation.goBack()} /> : <>
         <Button title="同意并开始" style={{ minHeight: 48, paddingVertical: 6 }} onPress={handleAgree} loading={agreeing} />
         <Pressable style={styles.rejectBtn} accessibilityRole="button" disabled={agreeing} onPress={handleReject}>
           <Text style={styles.rejectText}>不同意</Text>
         </Pressable>
+        </>}
       </View>
       <FlowSheet visible={rejecting} title="未同意隐私协议" onClose={() => setRejecting(false)}>
-        <Text style={styles.paragraph}>不同意将无法使用需要位置与传感器的功能。可以稍后在重新进入时确认。</Text>
+        <Text style={styles.paragraph}>未同意前无法开始标定和训练。可以稍后重新进入应用，再查看并确认。</Text>
         <Button title="返回协议" onPress={() => setRejecting(false)} />
         {navigation.canGoBack() || Platform.OS === 'android' ? <Button title={navigation.canGoBack() ? '返回上一页' : '退出应用'} variant="secondary" onPress={leaveWithoutAgreeing} /> : null}
       </FlowSheet>

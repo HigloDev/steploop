@@ -9,6 +9,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 
+import { AppErrorBoundary } from './src/components/app-error-boundary'
+
 import { RootStackParamList } from './src/navigation/types'
 import { isPrivacyAgreed } from './src/services/privacy'
 import { hasSeenOnboarding } from './src/services/onboarding'
@@ -26,7 +28,7 @@ import DiagnosticCaptureScreen from './src/pages/DiagnosticCapture'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
-export default function App() {
+function AppContent() {
   const scheme = useColorScheme()
   const theme = useTheme()
   const workoutPalette = useWorkoutPalette()
@@ -42,6 +44,7 @@ export default function App() {
           setInitialRoute('Privacy')
         } else {
           const seenOnboarding = await hasSeenOnboarding().catch(() => false)
+          if (!mounted) return
           setInitialRoute(seenOnboarding ? 'Main' : 'Onboarding')
         }
         if (mounted) setReady(true)
@@ -111,4 +114,8 @@ export default function App() {
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
     </SafeAreaProvider>
   )
+}
+
+export default function App() {
+  return <AppErrorBoundary><AppContent /></AppErrorBoundary>
 }

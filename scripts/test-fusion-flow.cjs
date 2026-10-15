@@ -251,6 +251,8 @@ function storageHarness() {
       removeItem: async key => { if (failWrite) throw Error('remove failure'); values.delete(key) },
     },
     './storage': { listRoutes: async () => [] },
+    './storage-journal': { runSerial: task => task() },
+    './building-storage-keys': { BUILDINGS_KEY: 'steploop.buildings.v1', HIDDEN_LEGACY_KEY: 'steploop.hiddenLegacyRoutes.v1' },
   })
   return { storage, failWrite(value) { failWrite = value }, failRead(value) { failRead = value } }
 }

@@ -151,7 +151,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
         routeSnapshot: { ...workout.routeSnapshot, name, locationName: name } }
       await saveWorkout(linked)
       setWorkout(linked)
-      await clearPendingTemplate()
+      await clearPendingTemplate(workout.id)
       setPending(null)
       setTemplate(saved)
       setSavedTemplate(true)

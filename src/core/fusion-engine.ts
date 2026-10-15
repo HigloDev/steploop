@@ -225,6 +225,7 @@ export class FusionWorkoutEngine {
   private readonly startedAt: number
   private plateauSince?: number
   private descendingSince?: number
+  private waitingSince: number
   private bottomAlt?: number
   private closurePending = false
   private lastTransit?: VerticalTransit
@@ -235,6 +236,7 @@ export class FusionWorkoutEngine {
   constructor(options: FusionEngineOptions) {
     this.startedAt = options.startedAt
     this.now = options.startedAt
+    this.waitingSince = options.startedAt
     this.template = options.template
     this.startFloor = normalizeFloorNumber(options.template?.startFloor ?? options.startFloor ?? 1)
     if (this.template && this.template.startFloor !== this.startFloor) {
@@ -357,11 +359,9 @@ export class FusionWorkoutEngine {
     }
     if (this.phase === 'climbing' && this.round) {
       this.endAutoRound('manual', t)
-      this.phase = 'waiting'
-      this.bottomAlt = undefined
+      this.enterWaiting(t)
     } else if (this.phase === 'descending') {
-      this.phase = 'waiting'
-      this.bottomAlt = undefined
+      this.enterWaiting(t)
     }
   }
 
@@ -646,8 +646,7 @@ export class FusionWorkoutEngine {
     if (speed !== undefined && Math.abs(speed) < PLATEAU_SPEED_MPS) this.plateauSince ??= t
     else this.plateauSince = undefined
     if (this.plateauSince !== undefined && t - this.plateauSince >= PLATEAU_MS && this.lastTransit !== 'elevator_down') {
-      this.bottomAlt = this.baro.altitudeBetween(this.plateauSince, t)
-      this.phase = 'waiting'
+      this.enterWaiting(t, this.baro.altitudeBetween(this.plateauSince, t))
       this.applyClosure(t)
     }
   }
@@ -671,14 +670,21 @@ export class FusionWorkoutEngine {
     if (rise < AUTO_START_RISE_M || this.lastTransit === 'elevator_up') return
     // 本轮起点回溯到最后一次处于楼下基线的时刻。
     const history = this.baro.history(t - 120000)
-    let startAt = t - AUTO_START_WINDOW_MS
+    let startAt = Math.max(this.waitingSince, t - AUTO_START_WINDOW_MS)
     for (let i = history.length - 1; i >= 0; i -= 1) {
+      if (history[i].t < this.waitingSince) break
       if (history[i].altM <= this.bottomAlt + 0.15) { startAt = history[i].t; break }
     }
     // 上升 0.6m 约等于 3~4 级台阶，与速度无关；电梯上行没有步数。
-    if (this.stepsTotal - this.stepsAt(startAt - 1500) >= AUTO_START_STEPS) {
+    if (this.stepsTotal - this.stepsAt(Math.max(this.waitingSince, startAt - 1500)) >= AUTO_START_STEPS) {
       this.startAutoRound(startAt, this.bottomAlt)
     }
+  }
+
+  private enterWaiting(t: number, bottomAlt?: number): void {
+    this.phase = 'waiting'
+    this.waitingSince = t
+    this.bottomAlt = bottomAlt
   }
 
   private enterDescending(t: number): void {
@@ -717,22 +723,22 @@ export class FusionWorkoutEngine {
       const atTop = round.floors.length >= this.template.floors.length
       if (!baroOk && atTop && t - this.lastStepAt >= NO_BARO_IDLE_END_MS && round.floors.length > 0) {
         this.endAutoRound('idle', t)
-        this.phase = 'waiting'
-        this.bottomAlt = undefined
+        this.enterWaiting(t)
       }
       return
     }
     if (this.phase === 'waiting' && !baroOk && this.template) {
-      if (this.recentSteps(t, 6000) >= AUTO_START_STEPS_NO_BARO) {
-        const first = this.stepTimes.find(time => time > t - 6000) ?? t
+      const earliest = Math.max(this.waitingSince, t - 6000)
+      const freshSteps = this.stepTimes.filter(time => time > earliest && time <= t)
+      if (freshSteps.length >= AUTO_START_STEPS_NO_BARO) {
+        const first = freshSteps[0]
         this.startAutoRound(first, undefined)
       }
       return
     }
     if (this.phase === 'descending' && !baroOk && this.descendingSince !== undefined && t - this.descendingSince > 20000) {
       // 下行途中气压长时间停更：回到楼下等待，用步数兜底起爬。
-      this.phase = 'waiting'
-      this.bottomAlt = undefined
+      this.enterWaiting(t)
     }
   }
 
@@ -781,7 +787,7 @@ export class FusionWorkoutEngine {
     if (!round) return
     if (!round.marks.length) {
       this.round = undefined
-      this.phase = 'waiting'
+      this.enterWaiting(t)
       return
     }
     const topAt = round.topAt ?? round.marks.at(-1)!.t
@@ -828,7 +834,7 @@ export class FusionWorkoutEngine {
     })
     this.round = undefined
     if (reason === 'elevator_down' || reason === 'stairs_down') this.enterDescending(t)
-    else { this.phase = 'waiting'; this.bottomAlt = undefined }
+    else this.enterWaiting(t)
   }
 
   private endAutoRound(reason: FusionRoundEndReason, t: number): void {

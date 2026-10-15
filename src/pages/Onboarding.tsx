@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -33,11 +33,22 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
   const navigation = useNavigation<RootStackNavigation>()
   const fromSettings = route.params?.from === 'settings'
   const [stepIndex, setStepIndex] = useState(0)
+  const [finishing, setFinishing] = useState(false)
+  const finishingRef = useRef(false)
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
   const step = STEPS[stepIndex]
   const isLast = stepIndex === STEPS.length - 1
 
   const finish = async () => {
+    if (finishingRef.current || !mountedRef.current) return
+    finishingRef.current = true
+    setFinishing(true)
     await markOnboardingSeen()
+    if (!mountedRef.current) return
     if (fromSettings) {
       navigation.goBack()
     } else {
@@ -46,16 +57,18 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
   }
 
   const handlePrimary = () => {
+    if (finishingRef.current) return
     if (isLast) {
       void finish()
     } else {
-      setStepIndex((i) => i + 1)
+      setStepIndex((i) => Math.min(STEPS.length - 1, i + 1))
     }
   }
 
   const handleBack = () => {
+    if (finishingRef.current) return
     if (stepIndex > 0) {
-      setStepIndex((i) => i - 1)
+      setStepIndex((i) => Math.max(0, i - 1))
     } else if (fromSettings) {
       navigation.goBack()
     }
@@ -67,6 +80,8 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
         {fromSettings || stepIndex > 0 ? <Pressable
           accessibilityRole="button"
           accessibilityLabel={stepIndex > 0 ? '上一步' : '返回'}
+          accessibilityState={{ disabled: finishing }}
+          disabled={finishing}
           hitSlop={8}
           style={styles.topAction}
           onPress={handleBack}
@@ -75,6 +90,8 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
         </Pressable> : <View style={styles.topAction} />}
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ disabled: finishing, busy: finishing }}
+          disabled={finishing}
           hitSlop={8}
           style={styles.topAction}
           onPress={() => void finish()}
@@ -85,11 +102,11 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
 
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.body, compact && { paddingVertical: 12 }]}>
         <View style={[styles.card, compact && { paddingVertical: 8 }]}>
-          <Text style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
+          <Text accessibilityLiveRegion="polite" style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
           <View style={[styles.iconWrap, compact && { width: 128, height: 112, marginTop: 12, marginBottom: 16 }]}>
             {step.key === 'first-climb' ? <BrandMark size={compact ? 108 : 150} color={theme.brand} /> : step.key === 'carry' ? <Feather name="smartphone" size={compact ? 100 : 144} color={theme.brand} /> : <MaterialCommunityIcons name="shield-check-outline" size={compact ? 100 : 144} color={theme.brand} />}
           </View>
-          <Text style={[styles.title, step.title.length > 8 && { fontSize: 36 }, compact && { fontSize: step.title.length > 8 ? 30 : 36, lineHeight: 42, marginBottom: 8 }]}>{step.title}</Text>
+          <Text accessibilityRole="header" style={[styles.title, step.title.length > 8 && { fontSize: 36 }, compact && { fontSize: step.title.length > 8 ? 30 : 36, lineHeight: 42, marginBottom: 8 }]}>{step.title}</Text>
           <Text style={[styles.bodyText, compact && { fontSize: 20, lineHeight: 28, marginBottom: 8 }]}>{step.body}</Text>
           <Text style={[styles.hint, { maxWidth: step.key === 'carry' ? 300 : 340 }, compact && { fontSize: 15, lineHeight: 22, marginTop: 8 }]}>{step.hint}</Text>
         </View>
@@ -102,7 +119,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + (compact ? 20 : 56) }]}>
-        <Button style={{ minHeight: compact ? 64 : 80, borderRadius: 24 }} labelStyle={{ fontSize: compact ? 22 : 26 }} title={isLast ? '开始使用' : '下一步'} onPress={handlePrimary} />
+        <Button style={{ minHeight: compact ? 64 : 80, borderRadius: 24 }} labelStyle={{ fontSize: compact ? 22 : 26 }} title={isLast ? '开始使用' : '下一步'} loading={finishing} onPress={handlePrimary} />
       </View>
     </View>
   )

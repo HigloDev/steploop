@@ -3,13 +3,14 @@
   "version": "1.1.3",
   "main": "index.ts",
   "dependencies": {
-    "@expo/ui": "~57.0.22",
+    "@expo/ui": "~57.0.24",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.18.18",
     "@react-navigation/native": "^7.3.14",
     "@react-navigation/native-stack": "^7.18.6",
-    "expo": "~57.0.27",
+    "expo": "~57.0.29",
+    "expo-asset": "~57.0.20",
     "expo-audio": "~57.0.5",
     "expo-clipboard": "~57.0.2",
     "expo-document-picker": "~57.0.3",
@@ -17,12 +18,13 @@
     "expo-font": "~57.0.4",
     "expo-haptics": "~57.0.3",
     "expo-keep-awake": "~57.0.2",
-    "expo-location": "~57.0.20",
+    "expo-location": "~57.0.21",
     "expo-media-library": "~57.0.5",
     "expo-sensors": "~57.0.3",
-    "expo-sharing": "~57.0.22",
-    "expo-splash-screen": "~57.0.9",
+    "expo-sharing": "~57.0.23",
+    "expo-splash-screen": "~57.0.10",
     "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
     "react": "19.2.3",
     "react-dom": "^19.2.3",
     "react-native": "0.86.3",
@@ -55,7 +57,7 @@
     "diagnostics:smoke": "npm run build:core && node scripts/make-synthetic-diagnostics.cjs .diagnostics-synthetic && node scripts/replay-diagnostics.cjs --out .diagnostics-synthetic-report.json .diagnostics-synthetic",
     "release:check": "node scripts/release-check.cjs",
     "smoke:android": "powershell -ExecutionPolicy Bypass -File scripts/android-smoke.ps1",
-    "test": "npm run test:core && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:theme && npm run test:legacy-ui && npm run test:xiaomi14",
+    "test": "npm run test:core && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:theme && npm run test:legacy-ui && npm run test:xiaomi14 && npm run test:audit-regressions",
     "test:gates": "node scripts/check-release-gates.test.cjs",
     "test:progress": "node --test scripts/test-progress.cjs",
     "test:fusion-flow": "npm run build:core && node --test scripts/test-fusion-flow.cjs",
@@ -78,7 +80,17 @@
     "test:uiqa-isolation": "node --test scripts/uiqa-native-isolation.test.cjs",
     "test:theme": "node --test scripts/theme-palette.test.cjs",
     "test:legacy-ui": "node --test scripts/test-legacy-ui.cjs",
-    "test:xiaomi14": "node --test scripts/xiaomi14-improvements.test.cjs"
+    "test:xiaomi14": "node --test scripts/xiaomi14-improvements.test.cjs",
+    "typecheck": "tsc --noEmit",
+    "test:audit-regressions": "node --test scripts/test-ui-safety.cjs scripts/test-building-storage.cjs scripts/test-fusion-lifecycle-regressions.cjs scripts/test-sensor-timestamps.cjs scripts/test-error-boundary.cjs scripts/test-toolchain-compat.cjs"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "metro": {
+      "image-size": "2.0.4"
+    },
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  }
 }

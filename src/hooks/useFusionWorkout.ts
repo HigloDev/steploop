@@ -19,6 +19,7 @@ import { liveWorkoutMetrics } from '../core/live-workout-metrics'
 import { WorkoutFeedbackTracker } from '../core/workout-feedback'
 import type { VoiceObservation } from '../core/voice-events'
 import {
+  FusionCheckpoint,
   getBuilding,
   loadFusionCheckpoint,
   recordBuildingResult,
@@ -73,6 +74,31 @@ export interface FusionWorkoutApi {
 
 const TICK_MS = 500
 
+// Shared across remounts: a new screen must not start native capture until the
+// previous screen has cleaned up even a start that resolved after unmount.
+let pendingFusionCleanup: Promise<void> = Promise.resolve()
+let unsavedCheckpoint: FusionCheckpoint | undefined
+let checkpointRecovery: Promise<void> | undefined
+
+function forgetUnsavedCheckpoint(workoutId: string) {
+  if (unsavedCheckpoint?.workoutId === workoutId) unsavedCheckpoint = undefined
+}
+
+/** Recovery entry points wait for the departing screen's durable checkpoint. */
+export async function waitForFusionCleanup(): Promise<void> {
+  await pendingFusionCleanup
+  if (!unsavedCheckpoint) return
+  if (!checkpointRecovery) {
+    const checkpoint = unsavedCheckpoint
+    checkpointRecovery = saveFusionCheckpoint(checkpoint).then(() => {
+      if (unsavedCheckpoint === checkpoint) unsavedCheckpoint = undefined
+    }).catch(() => {
+      throw new Error('上次训练尚未保存成功，请释放存储空间后重试。暂时无法开始新训练。')
+    }).finally(() => { checkpointRecovery = undefined })
+  }
+  await checkpointRecovery
+}
+
 function voicePhase(phase: FusionSnapshot['phase']): string {
   switch (phase) {
     case 'calibrating':
@@ -114,6 +140,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const replaceTemplateIdRef = useRef(params.recalibrateTemplateId)
   const endedAtRef = useRef<number | undefined>(undefined)
   const checkpointWriteRef = useRef<Promise<void>>(Promise.resolve())
+  const stopPromiseRef = useRef<Promise<void> | undefined>(undefined)
   const finishPromiseRef = useRef<Promise<string | undefined> | undefined>(undefined)
 
   const persistCheckpoint = useCallback(() => {
@@ -124,7 +151,9 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       workoutId: workoutIdRef.current,
       startedAt: startedAtRef.current,
       savedAt: Date.now(),
-      endedAt: endedAtRef.current,
+      // Replayed rounds may checkpoint while finish is still draining. Only a
+      // frozen engine is a complete result that may safely be saved later.
+      endedAt: engine.getPhase() === 'finished' ? endedAtRef.current : undefined,
       startFloor: engine.snapshot().startFloor,
       template: engine.getTemplate(),
       calibrated: calibratedRef.current,
@@ -133,26 +162,36 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     }
     checkpointWriteRef.current = checkpointWriteRef.current.then(async () => {
       await saveFusionCheckpoint(checkpoint)
+      forgetUnsavedCheckpoint(checkpoint.workoutId)
       if (checkpoint.endedAt !== undefined) setCanSaveLater(true)
     }).catch(e => {
+      // Keep the latest snapshot in memory across a render failure. Resource
+      // cleanup must finish, but a new session must wait for a durable retry.
+      unsavedCheckpoint = checkpoint
       if (checkpoint.endedAt !== undefined) setCanSaveLater(false)
       setWarning(e instanceof Error ? e.message : String(e))
     })
     return checkpointWriteRef.current
   }, [])
 
-  const stopSensors = useCallback(async () => {
+  const stopSensors = useCallback((): Promise<void> => {
+    if (stopPromiseRef.current) return stopPromiseRef.current
     if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = undefined
     const recorder = recorderRef.current
+    const evidence = evidenceRef.current
     recorderRef.current = undefined
-    try { await recorder?.stop() } catch (e) { console.warn('[fusion] 停止传感器失败', e) }
-    if (isBackgroundTrainingSupported()) {
-      try { await stopBackgroundTraining() } catch (e) { console.warn('[fusion] 停止后台采样失败', e) }
-    }
-    try { evidenceRef.current?.close(Date.now()) } catch { /* 证据文件写入失败不影响成绩 */ }
     evidenceRef.current = undefined
-    deactivateKeepAwake('fusion-workout')
+    const task = (async () => {
+      try { await recorder?.stop() } catch (e) { console.warn('[fusion] 停止传感器失败', e) }
+      if (isBackgroundTrainingSupported()) {
+        try { await stopBackgroundTraining() } catch (e) { console.warn('[fusion] 停止后台采样失败', e) }
+      }
+      try { evidence?.close(Date.now()) } catch { /* 证据文件写入失败不影响成绩 */ }
+      try { deactivateKeepAwake('fusion-workout') } catch (e) { console.warn('[fusion] 释放屏幕常亮失败', e) }
+    })().finally(() => { stopPromiseRef.current = undefined })
+    stopPromiseRef.current = task
+    return task
   }, [])
 
   // ---------- 启动 ----------
@@ -161,8 +200,11 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     closedRef.current = false
     setStatus('starting')
     setError(undefined)
-    void (async () => {
+    const previousCleanup = waitForFusionCleanup()
+    const startup = (async () => {
       try {
+        await previousCleanup
+        if (cancelled) return
         const prefs = await getPreferences()
         prefsRef.current = prefs
         let selected: BuildingTemplate | undefined
@@ -210,7 +252,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           void persistCheckpoint()
         })
 
-        void activateKeepAwakeAsync('fusion-workout').catch(() => undefined)
+        await activateKeepAwakeAsync('fusion-workout').catch(() => undefined)
+        if (cancelled) return
         voiceRef.current = createWorkoutVoiceService({ settings: workoutVoiceSettings(prefs) })
         const evidence = createWorkoutEvidenceJournal(
           { workoutId: workoutIdRef.current, roundNumber: 1, phase: 'ascending', startedAt: startedAtRef.current },
@@ -231,6 +274,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           retainSamples: false,
           keepRunningInBackground: isBackgroundTrainingSupported(),
           onSample: sample => {
+            if (cancelled || engine.getPhase() === 'finished' ||
+                (endedAtRef.current !== undefined && sample.t > endedAtRef.current)) return
             engine.pushSample(sample)
             const next = engine.snapshot(sample.t)
             const feedback = feedbackRef.current?.observe(next)
@@ -241,6 +286,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
             evidence.pushSample(sample)
           },
           onGap: gap => {
+            if (cancelled) return
             const origin = recorder.getStartedAt()
             evidence.gap(origin + gap.startMs, origin + gap.endMs)
           },
@@ -253,6 +299,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         void triggerHaptic('success')
 
         timerRef.current = setInterval(() => {
+          if (cancelled || endedAtRef.current !== undefined) return
           const now = Date.now()
           engine.tick(now)
           const next = engine.snapshot(now)
@@ -287,9 +334,15 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       cancelled = true
       if (!closedRef.current) {
         // 页面被卸载但训练未结束：保留检查点，停止采样（首页可恢复）。
-        void persistCheckpoint()
-        void stopSensors()
-        void voiceRef.current?.dispose()
+        const checkpoint = persistCheckpoint()
+        // Cancel an already-created recorder immediately, then clean up again
+        // after pending native/keep-awake starts settle. The next mount/retry
+        // waits for this barrier, so old cleanup cannot stop its new resources.
+        const stopping = stopSensors()
+        const voice = voiceRef.current
+        voiceRef.current = undefined
+        const disposing = voice?.dispose().catch(() => undefined)
+        pendingFusionCleanup = Promise.all([startup, stopping, disposing, checkpoint]).then(() => stopSensors())
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,6 +396,17 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       setError(undefined)
       const endedAt = endedAtRef.current ?? Date.now()
       endedAtRef.current = endedAt
+      if (timerRef.current) clearInterval(timerRef.current)
+      timerRef.current = undefined
+      // Native acquisition can be ahead of the JS engine after a bridge pause.
+      // Stop its producer, replay the journal through the fixed finish time,
+      // and only then freeze the result. A failed drain leaves the engine open
+      // for a retry and never presents an incomplete result as safely saved.
+      const recorder = recorderRef.current
+      if (recorder) {
+        if (isBackgroundTrainingSupported()) await stopBackgroundTraining()
+        await recorder.flush?.()
+      }
       const finalRounds = engine.finish(endedAt)
       setSnapshot(engine.snapshot(endedAt))
       setRounds(finalRounds)
@@ -380,6 +444,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       }
       await checkpointWriteRef.current
       await saveFusionCheckpoint(null)
+      forgetUnsavedCheckpoint(workoutIdRef.current)
       closedRef.current = true
       setStatus('done')
       return id
@@ -409,6 +474,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       voiceRef.current = undefined
       await checkpointWriteRef.current
       await saveFusionCheckpoint(null)
+      forgetUnsavedCheckpoint(workoutIdRef.current)
       closedRef.current = true
       setStatus('done')
     } catch (e) {

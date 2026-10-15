@@ -114,7 +114,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   const handleImport = () => {
     Alert.alert(
       '导入备份',
-      '导入前会自动备份当前数据。合并导入保留本机已有内容；覆盖导入会替换全部数据。',
+      '导入前会自动创建恢复快照。合并导入保留本机已有内容；覆盖导入会替换备份包含的路线、楼栋模板与成绩，请核对下一步预览。',
       [
         { text: '取消', style: 'cancel' },
         { text: '合并导入', onPress: () => runImport('merge') },
@@ -130,7 +130,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   const confirmReplaceImport = () => {
     Alert.alert(
       '覆盖导入',
-      '将用备份文件替换本机全部路线和成绩。导入前会自动创建快照，出错时可恢复。确定覆盖吗？',
+      '将用备份文件替换路线和成绩；包含楼栋模板的备份也会替换本机楼栋模板。旧版备份未包含楼栋模板时，会保留本机模板。导入前会创建恢复快照，请在下一步核对数量后确认。',
       [
         { text: '取消', style: 'cancel' },
         {
@@ -198,7 +198,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           ? `；按容量上限裁剪了 ${result.sessionsTruncated ?? 0} 条会话、${result.workoutsTruncated ?? 0} 条训练（已归档为统计）`
           : ''
       setImportMessage(
-        `已${mode === 'replace' ? '覆盖' : '合并'}导入 ${result.routesCount} 条路线、${result.sessionsCount} 条成绩${trimmedNote}`,
+        `已${mode === 'replace' ? '覆盖' : '合并'}导入 ${result.routesCount} 条旧版路线、${result.sessionsCount} 条单轮记录、${result.workoutsCount} 次训练${trimmedNote}`,
       )
       Alert.alert('导入成功', '建议重新打开应用以确保所有页面刷新最新数据。', [
         { text: '知道了' },
@@ -332,7 +332,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>数据与帮助</Text></View>
         <Disclosure title="备份与导出" dense marginTop={0}>
         <View>
-          <Pressable accessibilityRole="button" accessibilityHint="导出旧路线与成绩；新楼栋模板暂不包含在普通备份中" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={exporting}>
+          <Pressable accessibilityRole="button" accessibilityHint="导出楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={exporting}>
             <Feather name="download" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出备份</Text>
@@ -340,7 +340,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             {exporting ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           {isLocalDownloadExportAvailable() ? <>
-            <Pressable accessibilityRole="button" accessibilityHint="保存到本机 Download/循阶，包含旧路线与成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
+            <Pressable accessibilityRole="button" accessibilityHint="保存到本机 Download/循阶，包含楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
               <Feather name="download" size={22} color={theme.ink} />
               <View style={styles.rowText}>
                 <Text style={styles.dataTitle}>保存备份到下载</Text>
@@ -358,7 +358,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             </View>
             {exportingCsv ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityHint="从数据文件恢复路线与成绩" style={styles.dataRow} onPress={handleImport} disabled={importing}>
+          <Pressable accessibilityRole="button" accessibilityHint="从备份文件恢复楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={handleImport} disabled={importing}>
             <Feather name="upload" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导入备份</Text>

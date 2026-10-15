@@ -20,8 +20,8 @@ import { useTheme, visual } from '../theme'
 
 type Template = 'weekly' | 'height'
 
-export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; width: number; template: Template; onReady: () => void }>(
-  ({ week, width, template, onReady }, ref) => {
+export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; width: number; template: Template; onReady: () => void; onError?: () => void }>(
+  ({ week, width, template, onReady, onError }, ref) => {
     const u = width / 320, P = visual.poster
     const next = ascentReference(week.ascentM)
     const maximum = Math.max(1, ...week.days.map(day => day.floors))
@@ -29,7 +29,7 @@ export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; wi
     return <View ref={ref} collapsable={false} accessible accessibilityRole="image" accessibilityLabel={`本周成果海报，${week.floors} 层，${Math.round(week.ascentM)} 米，${week.workouts} 次训练`}
       style={{ width, height: width * 1.25, backgroundColor: P.background, borderRadius: 20 * u, overflow: 'hidden', padding: 22 * u, justifyContent: 'space-between' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 * u }}><BrandMark size={25 * u} color={P.orange} onLoad={onReady} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 * u }}><BrandMark size={25 * u} color={P.orange} onLoad={onReady} onError={onError} />
           <Text allowFontScaling={false} style={{ ...text, fontSize: 23 * u, fontWeight: '900' }}>循阶</Text></View>
         <Text allowFontScaling={false} style={{ ...text, fontSize: 9 * u, color: P.muted, fontWeight: '700', letterSpacing: 1.5 * u }}>WEEKLY / UP</Text>
       </View>
@@ -72,9 +72,11 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState<'save' | 'share' | null>(null)
   const [readyKey, setReadyKey] = useState('')
+  const [posterAttempt, setPosterAttempt] = useState(0)
+  const [posterError, setPosterError] = useState('')
   const poster = useRef<View>(null)
   const busyRef = useRef(false)
-  const key = `${theme.isDark}-${template}-${width}-${week?.weekStart}`
+  const key = `${theme.isDark}-${template}-${width}-${week?.weekStart}-${posterAttempt}`
   useEffect(() => {
     let active = true
     setError('')
@@ -86,12 +88,16 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
     if (!week?.workouts || busyRef.current) return
     busyRef.current = true; setBusy(action); setMessage('')
     try {
-      if (!poster.current || readyKey !== key) throw new Error('海报正在准备，请稍后再试。')
+      if (!poster.current || readyKey !== key || posterError) throw new Error('海报正在准备，请稍后再试。')
+      const target = poster.current
       if (action === 'save') {
         const permission = await MediaLibrary.requestPermissionsAsync(true)
         if (!permission.granted) { setMessage('没有获得相册权限，海报未保存。'); return }
       } else if (!(await Sharing.isAvailableAsync())) throw new Error('这台设备暂时没有可用的分享方式。')
-      const uri = await captureRef(poster, { format: 'png', quality: 1, width: 1080, height: 1350, result: 'tmpfile' })
+      // Native permission/share preparation can outlive a theme or size change.
+      // Capture only the same mounted poster that the user chose to export.
+      if (poster.current !== target) throw new Error('海报样式已变化，请等待准备完成后重新导出。')
+      const uri = await captureRef(target, { format: 'png', quality: 1, width: 1080, height: 1350, result: 'tmpfile' })
       if (action === 'save') { await MediaLibrary.saveToLibraryAsync(uri); setMessage('本周成果海报已保存到相册。'); void triggerHaptic('success') }
       else { await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: '分享本周爬楼成果' }); setMessage('已返回分享页面。可继续保存海报或选择分享方式。') }
     } catch (e) { setMessage(e instanceof Error ? e.message : '无法导出海报，请重试。'); void triggerHaptic('error') }
@@ -108,13 +114,14 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
           <Button title="去爬一会儿" onPress={() => navigation.navigate('Main', { screen: 'Train' })} />
         </View> : <>
           <Text style={{ color: theme.muted, fontSize: 13, textAlign: 'center' }}>一整周的向上，做成一张海报</Text>
-          <View style={{ alignItems: 'center' }}><WeeklyPoster key={key} ref={poster} week={week} width={Math.min(360, width - 40)} template={template} onReady={() => setReadyKey(key)} /></View>
-          <NativeChoice value={template} onChange={value => { setTemplate(value); setMessage('') }} options={[{ value: 'weekly', label: '本周周报' }, { value: 'height', label: '高度足迹' }]} />
+          <View style={{ alignItems: 'center' }}><WeeklyPoster key={key} ref={poster} week={week} width={Math.min(360, width - 40)} template={template} onReady={() => { setReadyKey(key); setPosterError('') }} onError={() => { setReadyKey(''); setPosterError('海报图片加载失败，请重新加载后再导出。') }} /></View>
+          {posterError ? <><Text accessibilityRole="alert" style={{ color: theme.redInk, textAlign: 'center' }}>{posterError}</Text><Button title="重新加载海报" variant="secondary" disabled={busy !== null} onPress={() => { if (busyRef.current) return; setPosterError(''); setReadyKey(''); setPosterAttempt(value => value + 1) }} /></> : null}
+          <NativeChoice value={template} disabled={busy !== null} onChange={value => { if (busyRef.current) return; setTemplate(value); setPosterError(''); setMessage('') }} options={[{ value: 'weekly', label: '本周周报' }, { value: 'height', label: '高度足迹' }]} />
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}><MaterialCommunityIcons name="shield-check-outline" size={18} color={theme.mutedStrong} accessible={false} />
             <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, flex: 1 }}>只分享本周汇总，不含楼栋名称、地址、身份和逐次训练详情。热量为估算。</Text></View>
           <>
-            <View style={{ flexDirection: 'row', gap: 12 }}><Button title="保存海报" variant="secondary" fullWidth={false} style={{ flex: 1 }} disabled={busy !== null || readyKey !== key} loading={busy === 'save'} onPress={() => void exportPoster('save')} />
-              <Button title="分享本周成果" fullWidth={false} style={{ flex: 1 }} disabled={busy !== null || readyKey !== key} loading={busy === 'share'} onPress={() => void exportPoster('share')} /></View>
+            <View style={{ flexDirection: 'row', gap: 12 }}><Button title="保存海报" variant="secondary" fullWidth={false} style={{ flex: 1 }} disabled={busy !== null || readyKey !== key || !!posterError} loading={busy === 'save'} onPress={() => void exportPoster('save')} />
+              <Button title="分享本周成果" fullWidth={false} style={{ flex: 1 }} disabled={busy !== null || readyKey !== key || !!posterError} loading={busy === 'share'} onPress={() => void exportPoster('share')} /></View>
             <Pressable accessibilityRole="button" accessibilityLabel="复制本周分享文案" disabled={busy !== null} onPress={() => { void Clipboard.setStringAsync(weeklyShareText(week)).then(() => { setMessage('本周分享文案已复制。'); void triggerHaptic('success') }).catch(() => setMessage('暂时无法复制，请重试。')) }}
               style={{ minHeight: 48, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: theme.brandInk, fontSize: 14, fontWeight: '700' }}>复制分享文案</Text></Pressable>
           </>

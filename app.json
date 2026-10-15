@@ -89,7 +89,16 @@
       "./plugins/withAndroidLocalExportModule.js",
       "./plugins/withAndroidReleaseSigning.js",
       "./plugins/withAndroidUiQaLab.js",
-      ["expo-audio", {"microphonePermission": false, "recordAudioAndroid": false, "enableBackgroundRecording": false, "enableBackgroundPlayback": false}]
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
+        }
+      ],
+      "expo-asset"
     ]
   }
 }
