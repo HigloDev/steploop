@@ -1,0 +1,26 @@
+{
+  "light-weekly-entry-and-empty": true,
+  "dark-weekly-entry-and-empty": true,
+  "device": {
+    "serial": "emulator-5582",
+    "package": "com.zxn.palou.uiqa",
+    "size": "1200x2670",
+    "density": 480,
+    "fontScale": 1.25
+  },
+  "light-live-metrics-visible-at-xiaomi-font": true,
+  "light-picker-skips-zero-both-directions": true,
+  "dark-live-metrics-visible-at-xiaomi-font": true,
+  "light-weekly-save-copy-share-and-theme-switch": true,
+  "dark-picker-skips-zero-both-directions": true,
+  "dark-weekly-save-copy-share-and-theme-switch": true,
+  "light-animation-preview-returns-without-new-record": true,
+  "dark-animation-preview-returns-without-new-record": true,
+  "native-chime-decoded-and-finished": true,
+  "light-native-chime-decoded-and-finished": true,
+  "dark-native-chime-decoded-and-finished": true,
+  "light-real-save-precedes-celebration-and-retains-records": true,
+  "dark-real-save-precedes-celebration-and-retains-records": true,
+  "tall-reachable-controls-and-metrics": true,
+  "small-large-font-reachable-controls-and-metrics": true
+}

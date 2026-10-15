@@ -4,6 +4,14 @@ const assert = require('node:assert/strict')
 const { execFileSync } = require('node:child_process')
 
 const repo = path.join(__dirname, '..')
+// These hooks were retired by fusion-v1. Keep their historical checks runnable
+// when the hooks exist, but do not report them as coverage of useFusionWorkout.
+const legacyHooksAvailable = ['useClimbWorkout.ts', 'useClimbRoundSession.ts'].every(name =>
+  require('node:fs').existsSync(path.join(repo, 'src/hooks', name)))
+const legacyHookTest = (name, run) => test(name, {
+  skip: legacyHooksAvailable ? false : 'Retired climb hooks; current flow is covered by test-fusion.cjs and test-fusion-flow.cjs',
+}, run)
+
 const compiled = path.join(repo, 'node_modules/.cache/prd-training-automation')
 execFileSync(process.execPath, [require.resolve('typescript/bin/tsc'), '--ignoreConfig', '--ignoreDeprecations', '6.0',
   '--lib', 'es2022', '--rootDir', 'src', '--outDir', compiled, '--module', 'commonjs', '--moduleResolution', 'node',
@@ -784,7 +792,7 @@ test('continuous native acquisition replay clears a stale watchdog without inven
   } finally { await recorder.stop() }
 })
 
-test('an actual waiting recorder stopped during privacy startup cannot outlive its phase', async () => {
+legacyHookTest('an actual waiting recorder stopped during privacy startup cannot outlive its phase', async () => {
   let releasePrivacy
   const blocked = new Promise(resolve => { releasePrivacy = resolve })
   const hardware = sensorHardware({ privacyBarrier: blocked })
@@ -803,7 +811,7 @@ test('an actual waiting recorder stopped during privacy startup cannot outlive i
   } finally { releasePrivacy(); harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })
 
-test('waiting completion retains an actual interrupted terminal gap with its original acquisition times', async () => {
+legacyHookTest('waiting completion retains an actual interrupted terminal gap with its original acquisition times', async () => {
   let releasePrivacy
   const blocked = new Promise(resolve => { releasePrivacy = resolve })
   const hardware = sensorHardware({ privacyBarrier: blocked })
@@ -829,7 +837,7 @@ test('waiting completion retains an actual interrupted terminal gap with its ori
   } finally { releasePrivacy(); harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })
 
-test('actual ascending terminal gaps stay in their owner journal and late samples cannot reach the next round', async () => {
+legacyHookTest('actual ascending terminal gaps stay in their owner journal and late samples cannot reach the next round', async () => {
   const hardware = sensorHardware()
   const harness = singleRoundHarness(hardware)
   try {
@@ -862,7 +870,7 @@ test('actual ascending terminal gaps stay in their owner journal and late sample
   } finally { harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })
 
-test('an actual resumed ascent journals a normal gap once and still informs its current recognizer', async () => {
+legacyHookTest('an actual resumed ascent journals a normal gap once and still informs its current recognizer', async () => {
   const hardware = sensorHardware()
   const harness = singleRoundHarness(hardware)
   try {
@@ -881,7 +889,7 @@ test('an actual resumed ascent journals a normal gap once and still informs its 
   } finally { harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })
 
-test('single-round cleanup during actual sensor startup cannot revive isRunning or leave listeners behind', async () => {
+legacyHookTest('single-round cleanup during actual sensor startup cannot revive isRunning or leave listeners behind', async () => {
   let releasePrivacy
   const blocked = new Promise(resolve => { releasePrivacy = resolve })
   const hardware = sensorHardware({ privacyBarrier: blocked })
@@ -898,7 +906,7 @@ test('single-round cleanup during actual sensor startup cannot revive isRunning 
   } finally { releasePrivacy(); await startup.catch(() => undefined); harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })
 
-test('single-round cleanup before queued startup prevents creation of an abandoned owner', async () => {
+legacyHookTest('single-round cleanup before queued startup prevents creation of an abandoned owner', async () => {
   const hardware = sensorHardware()
   const harness = singleRoundHarness(hardware)
   const startup = harness.result.start()
@@ -911,7 +919,7 @@ test('single-round cleanup before queued startup prevents creation of an abandon
   } finally { harness.cleanup(); for (const recorder of harness.recorders) await recorder.stop() }
 })
 
-test('manual ready, round-complete and recovery retain measured motion without advancing automatically', async () => {
+legacyHookTest('manual ready, round-complete and recovery retain measured motion without advancing automatically', async () => {
   const harness = workoutHarness({ clockAt: 100000, nativeAvailable: true })
   try {
     harness.result.startWorkout(); await harness.settle()
@@ -964,7 +972,7 @@ test('manual ready, round-complete and recovery retain measured motion without a
   } finally { harness.cleanup() }
 })
 
-test('waiting mode changes preserve the recorder and phase timer while requiring fresh stair evidence', async () => {
+legacyHookTest('waiting mode changes preserve the recorder and phase timer while requiring fresh stair evidence', async () => {
   const harness = workoutHarness({ clockAt: 200000 })
   try {
     harness.result.startWorkout(); await harness.settle()
@@ -991,7 +999,7 @@ test('waiting mode changes preserve the recorder and phase timer while requiring
   } finally { harness.cleanup() }
 })
 
-test('mode changes persist the current checkpoint independently of capture and never write one during final save', async () => {
+legacyHookTest('mode changes persist the current checkpoint independently of capture and never write one during final save', async () => {
   let releaseSave
   const blocked = new Promise(resolve => { releaseSave = resolve })
   const harness = workoutHarness({ clockAt: 250000, saveBarrier: () => blocked })
@@ -1023,7 +1031,7 @@ test('mode changes persist the current checkpoint independently of capture and n
   } finally { releaseSave(); if (completion) await completion; harness.cleanup() }
 })
 
-test('an obsolete full-auto timer cannot advance after mode changes before effect cleanup', async () => {
+legacyHookTest('an obsolete full-auto timer cannot advance after mode changes before effect cleanup', async () => {
   const harness = workoutHarness({ clockAt: 280000, trackingMode: 'full_auto' })
   try {
     harness.result.startWorkout(); harness.render()
@@ -1044,7 +1052,7 @@ test('an obsolete full-auto timer cannot advance after mode changes before effec
 })
 
 for (const [mode, delay] of [['full_auto', 300], ['automatic', 2000]]) {
-  test(`${mode} result countdown respects pause and mode changes without restarting raw capture or phase time`, async () => {
+  legacyHookTest(`${mode} result countdown respects pause and mode changes without restarting raw capture or phase time`, async () => {
     const harness = workoutHarness({ clockAt: 300000 })
     try {
       harness.result.startWorkout(); harness.render()
@@ -1080,7 +1088,7 @@ for (const [mode, delay] of [['full_auto', 300], ['automatic', 2000]]) {
   })
 }
 
-test('pending final save continues raw retention but suppresses automatic arrival and new monitors', async () => {
+legacyHookTest('pending final save continues raw retention but suppresses automatic arrival and new monitors', async () => {
   let releaseSave
   const blocked = new Promise(resolve => { releaseSave = resolve })
   const harness = workoutHarness({ clockAt: 400000, nativeAvailable: true, trackingMode: 'full_auto',
@@ -1117,7 +1125,7 @@ test('pending final save continues raw retention but suppresses automatic arriva
   } finally { releaseSave(); harness.cleanup() }
 })
 
-test('saving an ascent cannot start a result-display recorder after the workout is marked complete', async () => {
+legacyHookTest('saving an ascent cannot start a result-display recorder after the workout is marked complete', async () => {
   let releaseSave
   const blocked = new Promise(resolve => { releaseSave = resolve })
   const harness = workoutHarness({ clockAt: 500000, nativeAvailable: true, saveBarrier: () => blocked })
@@ -1138,7 +1146,7 @@ test('saving an ascent cannot start a result-display recorder after the workout 
   } finally { releaseSave(); if (completion) await completion; harness.cleanup() }
 })
 
-test('ending during asynchronous background startup never leaves a waiting recorder behind', async () => {
+legacyHookTest('ending during asynchronous background startup never leaves a waiting recorder behind', async () => {
   let releaseStart
   const blocked = new Promise(resolve => { releaseStart = resolve })
   const harness = workoutHarness({ clockAt: 600000, nativeAvailable: true, backgroundStartBarrier: blocked })
@@ -1156,7 +1164,7 @@ test('ending during asynchronous background startup never leaves a waiting recor
   } finally { releaseStart(); if (completion) await completion; harness.cleanup() }
 })
 
-test('a failed final save keeps its existing waiting evidence open until a successful retry', async () => {
+legacyHookTest('a failed final save keeps its existing waiting evidence open until a successful retry', async () => {
   const harness = workoutHarness({ clockAt: 700000, nativeAvailable: true, saveFailsOnce: true })
   try {
     harness.result.startWorkout(); await harness.settle()
@@ -1176,7 +1184,7 @@ test('a failed final save keeps its existing waiting evidence open until a succe
   } finally { harness.cleanup() }
 })
 
-test('actual training hook manually finishes at15 from12 and journals correction without checkpoint sample buffers', async () => {
+legacyHookTest('actual training hook manually finishes at15 from12 and journals correction without checkpoint sample buffers', async () => {
   const harness = workoutHarness()
   try {
     harness.result.startWorkout(); harness.render()
@@ -1196,7 +1204,7 @@ test('actual training hook manually finishes at15 from12 and journals correction
   } finally { harness.cleanup() }
 })
 
-test('actual hook keeps zero-ascent ending available and saves complete history', async () => {
+legacyHookTest('actual hook keeps zero-ascent ending available and saves complete history', async () => {
   const harness = workoutHarness()
   try {
     harness.result.startWorkout(); harness.render()
@@ -1212,7 +1220,7 @@ test('actual hook keeps zero-ascent ending available and saves complete history'
   } finally { harness.cleanup() }
 })
 
-test('actual hook ends and saves authoritative13 even when the sensor never started', async () => {
+legacyHookTest('actual hook ends and saves authoritative13 even when the sensor never started', async () => {
   const harness = workoutHarness({ noRecognizer: true })
   try {
     harness.result.startWorkout(); harness.render()
@@ -1229,7 +1237,7 @@ test('actual hook ends and saves authoritative13 even when the sensor never star
   } finally { harness.cleanup() }
 })
 
-test('switching mode during an ascent changes completion policy without restarting or losing that round', async () => {
+legacyHookTest('switching mode during an ascent changes completion policy without restarting or losing that round', async () => {
   const harness = workoutHarness()
   try {
     harness.result.startWorkout(); harness.render()
@@ -1244,7 +1252,7 @@ test('switching mode during an ascent changes completion policy without restarti
   } finally { harness.cleanup() }
 })
 
-test('failed final save can retry without duplicating rounds or permanently locking the finish action', async () => {
+legacyHookTest('failed final save can retry without duplicating rounds or permanently locking the finish action', async () => {
   const harness = workoutHarness({ saveFailsOnce: true })
   try {
     harness.result.startWorkout(); harness.render()
@@ -1261,7 +1269,7 @@ test('failed final save can retry without duplicating rounds or permanently lock
   } finally { harness.cleanup() }
 })
 
-test('manual floor confirmation owns the round while full-auto transitions are paused', async () => {
+legacyHookTest('manual floor confirmation owns the round while full-auto transitions are paused', async () => {
   const harness = workoutHarness()
   try {
     harness.result.startWorkout(); harness.render()
@@ -1279,7 +1287,7 @@ test('manual floor confirmation owns the round while full-auto transitions are p
   } finally { harness.cleanup() }
 })
 
-test('a service stop failure reports saved-but-still-running and safely retries', async () => {
+legacyHookTest('a service stop failure reports saved-but-still-running and safely retries', async () => {
   const harness = workoutHarness({ nativeStopFailures: 2 })
   try {
     harness.result.startWorkout(); harness.render()
@@ -1295,7 +1303,7 @@ test('a service stop failure reports saved-but-still-running and safely retries'
   } finally { harness.cleanup() }
 })
 
-test('final voice drains after saving the workout and before stopping native capture', async () => {
+legacyHookTest('final voice drains after saving the workout and before stopping native capture', async () => {
   const lifecycle = []
   const harness = workoutHarness({
     nativeAvailable: true,
@@ -1315,7 +1323,7 @@ test('final voice drains after saving the workout and before stopping native cap
   } finally { harness.cleanup() }
 })
 
-test('a real sensor gap remains visible after fresh motion and requires explicit dismissal', async () => {
+legacyHookTest('a real sensor gap remains visible after fresh motion and requires explicit dismissal', async () => {
   const harness = workoutHarness({ nativeAvailable: true })
   try {
     harness.result.startWorkout(); harness.render()
@@ -1331,7 +1339,7 @@ test('a real sensor gap remains visible after fresh motion and requires explicit
   } finally { harness.cleanup() }
 })
 
-test('zero or manually corrected training never reruns route learning from older history', async () => {
+legacyHookTest('zero or manually corrected training never reruns route learning from older history', async () => {
   const trusted = workoutHarness({ routeAvailable: true, sessionOverrides: { confidence: 0.95 } })
   try {
     trusted.result.startWorkout(); trusted.render()
@@ -1353,7 +1361,7 @@ test('zero or manually corrected training never reruns route learning from older
   }
 })
 
-test('first free training with zero confirmed ascent keeps the draft route empty', async () => {
+legacyHookTest('first free training with zero confirmed ascent keeps the draft route empty', async () => {
   const harness = workoutHarness({ firstCalibration: true, routeAvailable: true,
     sessionOverrides: { mode: 'free', startedAt: 1000, endedAt: 9000,
       samples: Array.from({ length: 80 }, (_, i) => sample(1000 + i * 100)) } })
@@ -1368,7 +1376,7 @@ test('first free training with zero confirmed ascent keeps the draft route empty
   } finally { harness.cleanup() }
 })
 
-test('first manual floor confirmation produces a pending template with no valid learning sample', async () => {
+legacyHookTest('first manual floor confirmation produces a pending template with no valid learning sample', async () => {
   const harness = workoutHarness({ firstCalibration: true, routeAvailable: true,
     sessionOverrides: { mode: 'free', startedAt: 1000, endedAt: 9000,
       samples: Array.from({ length: 80 }, (_, i) => sample(1000 + i * 100)) } })
@@ -1390,7 +1398,7 @@ test('first manual floor confirmation produces a pending template with no valid 
   } finally { harness.cleanup() }
 })
 
-test('actual floor marks preserve the estimate and raw record while keeping this round running', async () => {
+legacyHookTest('actual floor marks preserve the estimate and raw record while keeping this round running', async () => {
   const hardware = sensorHardware(), harness = singleRoundHarness(hardware)
   try {
     await harness.result.start(); await harness.settle()

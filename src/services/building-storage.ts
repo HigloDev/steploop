@@ -30,15 +30,15 @@ async function readOwn(): Promise<BuildingTemplate[]> {
       : []
   } catch (error) {
     console.warn('[building-storage] 读取楼栋模板失败', error)
-    cache = []
+    throw new Error('楼栋模板暂时无法读取，请重试。')
   }
   return cache
 }
 
 async function writeOwn(items: BuildingTemplate[]): Promise<void> {
-  cache = items
   try {
     await AsyncStorage.setItem(BUILDINGS_KEY, JSON.stringify(items))
+    cache = items
   } catch (error) {
     throw new Error(`楼栋模板保存失败，可能存储空间不足：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -127,6 +127,8 @@ export interface FusionCheckpoint {
   workoutId: string
   startedAt: number
   savedAt: number
+  /** 已结束但保存尚未完成；恢复时重试保存，不重新启动采样。 */
+  endedAt?: number
   startFloor: number
   template?: BuildingTemplate
   /** 本次训练是否是新标定（结算时可保存为新模板）。 */
@@ -142,6 +144,7 @@ export async function saveFusionCheckpoint(checkpoint: FusionCheckpoint | null):
     else await AsyncStorage.removeItem(ACTIVE_FUSION_KEY)
   } catch (error) {
     console.warn('[building-storage] 训练检查点写入失败', error)
+    throw new Error('训练恢复点保存失败，请检查手机存储空间后重试。')
   }
 }
 
@@ -154,7 +157,7 @@ export async function loadFusionCheckpoint(): Promise<FusionCheckpoint | null> {
     const template = value.template ? normalizeBuildingTemplate(value.template) : undefined
     return { ...value, template }
   } catch {
-    return null
+    throw new Error('训练恢复点暂时无法读取，请重试后再开始训练。')
   }
 }
 
@@ -180,6 +183,7 @@ export async function savePendingTemplate(pending: PendingTemplate): Promise<voi
     await AsyncStorage.setItem(PENDING_TEMPLATE_KEY, JSON.stringify(pending))
   } catch (error) {
     console.warn('[building-storage] 标定草稿写入失败', error)
+    throw new Error('楼栋标定结果保存失败，请检查手机存储空间后重试。')
   }
 }
 

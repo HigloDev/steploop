@@ -2,7 +2,7 @@ import React from 'react'
 import { ColorValue, Image, ImageProps } from 'react-native'
 import { useTheme } from '../theme'
 
-const BRAND_MARK = require('../../assets/brand/mark.png')
+const BRAND_MARK = require('../../assets/brand/mark-audit.png')
 
 type BrandMarkProps = Pick<ImageProps, 'style' | 'onLoad' | 'onError' | 'accessible' | 'accessibilityLabel'> & {
   size?: number

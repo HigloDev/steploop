@@ -1,0 +1,214 @@
+[
+  {
+    "case": "start floor skips zero and confirms",
+    "result": "passed",
+    "seconds": 40.5
+  },
+  {
+    "case": "rename keyboard save persistence and cancel",
+    "result": "failed",
+    "error": "No current native accessibility tree",
+    "seconds": 48.7
+  },
+  {
+    "case": "start floor skips zero and confirms",
+    "result": "failed",
+    "error": "No current native accessibility tree",
+    "seconds": 25.2
+  },
+  {
+    "case": "start floor skips zero and confirms",
+    "result": "passed",
+    "seconds": 95.9
+  },
+  {
+    "case": "rename keyboard save persistence and cancel",
+    "result": "failed",
+    "error": "Missing 'UI-QA-RENAMED': ['循阶', '设置', '\\uf1d3', '16楼', '9楼', '1楼', '选择我的路线', '我的路线', '\\uf12e', '城市花园 · A座', '1楼 → 16楼', '每轮爬升 15 层', '本次目标', '减少一轮', '\\uf1a3', '训练目标：2 轮，调整', '2 轮', '增加一轮', '\\uf1c0', '预计爬楼 30 层', '管理路线, \\uf117', '管理路线', '\\uf117', '本周爬升 75 层，4 次训练，查看记录', '本周完成', '75 层', '4 次训练', '开始爬楼', '开始爬楼', '训练', '训练', '\\U000f0150, 记录', '\\U000f0150', '记录', '\\U000f08bb, 设置', '\\U000f08bb', '设置']",
+    "seconds": 112.4
+  },
+  {
+    "case": "start floor skips zero and confirms",
+    "result": "passed",
+    "seconds": 48.0
+  },
+  {
+    "case": "rename keyboard save persistence and cancel",
+    "result": "passed",
+    "seconds": 91.9
+  },
+  {
+    "case": "round correction recalculates totals persists and cancel",
+    "result": "passed",
+    "seconds": 103.6
+  },
+  {
+    "case": "calibration template save appears on home",
+    "result": "failed",
+    "error": "Missing 'UI-QA-TEMPLATE': ['循阶', '开始爬楼，从 1 楼出发，第一轮标定', '\\U000f12bd', '开始爬楼', '新楼栋 · 第一轮每到一层点一下', '起始楼层 1 楼，点按修改', '从 1 楼出发', '\\U000f0142', '本周累计爬升 195 米，65 层，连续训练 3 天', '本周累计', '195', '米', '65', '层', '≈ 3.8 座黄鹤楼', '\\U000f0238', '3', '连续天数', '我的楼栋', '城市花园·A座，15 层，点按开始，长按管理', '\\U000f151f', '城市花园·A座', '1楼起 · 15 层 · 45 米', '管理 城市花园·A座', '\\U000f01d8', '\\U000f040a', '运动中心，10 层，点按开始，长按管理', '\\U000f151f', '运动中心', '1楼起 · 10 层 · 30 米', '管理 运动中心', '\\U000f01d8', '\\U000f040a', '爬楼', '爬楼', '\\U000f02da, 记录', '\\U000f02da', '记录', '\\U000f08bb, 设置', '\\U000f08bb', '设置']",
+    "seconds": 49.0
+  },
+  {
+    "case": "calibration template save appears on home",
+    "result": "passed",
+    "seconds": 83.5
+  },
+  {
+    "case": "manual mark undo next round short tap protected long hold finishes",
+    "result": "passed",
+    "seconds": 67.6
+  },
+  {
+    "case": "save failure later navigation and retry",
+    "result": "passed",
+    "seconds": 67.6
+  },
+  {
+    "case": "voice volume speed mode and weight persist",
+    "result": "passed",
+    "seconds": 84.6
+  },
+  {
+    "case": "history filters and trend expansion",
+    "result": "passed",
+    "seconds": 50.3
+  },
+  {
+    "case": "system share cancellation does not mark success",
+    "result": "passed",
+    "seconds": 44.6
+  },
+  {
+    "case": "all poster templates prepare and three PNG ratios export at 1080px",
+    "result": "failed",
+    "error": "No visible control: 1:1 方形图片",
+    "seconds": 68.3
+  },
+  {
+    "case": "all poster templates prepare and three PNG ratios export at 1080px",
+    "result": "passed",
+    "seconds": 106.3
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "failed",
+    "error": "No visible control: 设备品牌",
+    "seconds": 51.5
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "failed",
+    "error": "No visible control: 开始本地传感器诊断采集",
+    "seconds": 113.5
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "failed",
+    "error": "No current native accessibility tree",
+    "seconds": 188.4
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "failed",
+    "error": "['BridgelessReactNativeDevBundle.js', 'profileInstalled', 'training-native-journal']",
+    "seconds": 106.6
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "failed",
+    "error": "App did not become ready: diagnostic",
+    "seconds": 95.0
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "failed",
+    "error": "",
+    "seconds": 65.6
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "passed",
+    "seconds": 52.9
+  },
+  {
+    "case": "three onboarding steps back finish and complete privacy text consent flow",
+    "result": "passed",
+    "seconds": 47.2
+  },
+  {
+    "case": "native labeled haptic switch changes and persists its actual preference",
+    "result": "passed",
+    "seconds": 32.7
+  },
+  {
+    "case": "six native pages render in light theme",
+    "result": "passed",
+    "seconds": 79.6
+  },
+  {
+    "case": "empty home and history retain usable primary navigation",
+    "result": "passed",
+    "seconds": 15.6
+  },
+  {
+    "case": "320x568dp with 130 percent text supports scrolling and long-name form save",
+    "result": "passed",
+    "seconds": 140.5
+  },
+  {
+    "case": "post-fix four keyboard-hidden native sheets keep all final actions visible and correction accurate",
+    "result": "passed",
+    "seconds": 47.6
+  },
+  {
+    "case": "post-fix 320x568dp 130 percent text keeps calibration actions visible and long-name form usable",
+    "result": "passed",
+    "seconds": 65.4
+  },
+  {
+    "case": "poster copy tab updates the actual preview and sanitized clipboard export succeeds",
+    "result": "failed",
+    "error": "No visible control: 一步一步，向上生活。",
+    "seconds": 14.8
+  },
+  {
+    "case": "short screen fixed footer leaves all three onboarding hints and privacy contact text scrollable",
+    "result": "passed",
+    "seconds": 45.2
+  },
+  {
+    "case": "poster copy tab updates the actual preview and sanitized clipboard export succeeds",
+    "result": "passed",
+    "seconds": 29.7
+  },
+  {
+    "case": "native backup download CSV export and cancelled import preserve stored workouts",
+    "result": "passed",
+    "seconds": 42.4
+  },
+  {
+    "case": "real FusionWorkout hook native sampling manual calibration summary save and history persistence",
+    "result": "passed",
+    "seconds": 49.1
+  },
+  {
+    "case": "short screen fixed footer leaves all three onboarding hints and privacy contact text scrollable",
+    "result": "passed",
+    "seconds": 48.7
+  },
+  {
+    "case": "legacy correction entry saves manual provenance and persists without raising trust",
+    "result": "passed",
+    "seconds": 41.1
+  },
+  {
+    "case": "settings lower shows actual granted permissions backup help and version together",
+    "result": "passed",
+    "seconds": 24.4
+  },
+  {
+    "case": "short screen fixed footer leaves all three onboarding hints and privacy contact text scrollable",
+    "result": "passed",
+    "seconds": 69.0
+  }
+]

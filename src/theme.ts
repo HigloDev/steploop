@@ -2,7 +2,7 @@
 // - 品牌色：能量橙（brand*）。旧 token 里的 green* 实际是蓝色，已全部更名：
 //   green→brand、greenInk→brandInk、greenSoft→brandSoft、greenBright→brandBright、mint→brandTint、
 //   onPrimary→onBrand、blueSoft/blueInk→infoSoft/infoInk。
-// - 首页、记录、设置：浅色（跟随系统深色模式）；训练页：固定深色高对比（workoutPalette）。
+// - 所有页面和训练状态跟随系统主题；训练页保留独立的高对比配色。
 // - 数字统一用等宽数字粗体（numeric），爬楼时一眼读清、跳动不抖。
 
 import { TextStyle, useColorScheme } from 'react-native'
@@ -78,13 +78,13 @@ export interface Theme {
   shadowLifted: ShadowStyle
 }
 
-const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '800', letterSpacing: -0.5 }
+const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '900', letterSpacing: -0.5, includeFontPadding: false }
 
 const light: Theme = {
   isDark: false,
   ink: '#1c1917',
   inkSoft: '#44403c',
-  muted: '#78716c',
+  muted: '#6b635c',
   mutedStrong: '#57534e',
   paper: '#f7f5f2',
   card: '#ffffff',
@@ -98,7 +98,7 @@ const light: Theme = {
   brandBright: '#ff7a2e',
   brandSoft: '#fff0e6',
   brandTint: '#ffc9a6',
-  onBrand: '#ffffff',
+  onBrand: '#1a0d05',
   energy: '#f05a0a',
   success: '#1f7a55',
   successSoft: '#e4f4ec',
@@ -114,15 +114,15 @@ const light: Theme = {
   infoSoft: '#e8f0fb',
   infoInk: '#2b5797',
   radiusSm: 10,
-  radiusMd: 14,
+  radiusMd: 16,
   radiusLg: 20,
   radiusXl: 28,
   tapMin: 48,
-  pagePaddingH: 20,
+  pagePaddingH: 16,
   pagePaddingBottom: 32,
   fontBase: 15,
   fontEyebrow: 12,
-  fontTitle: 28,
+  fontTitle: 30,
   fontSubtitle: 14,
   fontLabel: 13,
   fontValue: 20,
@@ -149,7 +149,7 @@ const light: Theme = {
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
-    elevation: 6,
+    elevation: 0,
   },
 }
 
@@ -190,51 +190,113 @@ const dark: Theme = {
   shadowCard: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 17,
-    elevation: 4,
+    elevation: 0,
   },
   shadowSoft: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0,
     shadowRadius: 7,
-    elevation: 2,
+    elevation: 0,
   },
   shadowLifted: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 9 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0,
     shadowRadius: 22,
-    elevation: 6,
+    elevation: 0,
   },
 }
 
-/**
- * 训练页固定深色：墨黑底 + 能量橙，高对比。
- * 爬楼时手机晃动、满头大汗，也要一眼看清楼层数字。
- */
-export const workoutPalette = {
+/** Both training themes use explicit string colors, including animated controls. */
+export interface WorkoutPalette {
+  isDark: boolean
+  bg: string
+  surface: string
+  surfaceHigh: string
+  failureSurface: string
+  line: string
+  ink: string
+  inkSoft: string
+  muted: string
+  brand: string
+  brandInk: string
+  brandPressed: string
+  brandDim: string
+  onBrand: string
+  good: string
+  warn: string
+  danger: string
+  dangerFill: string
+  estimate: string
+}
+
+const workoutLight: WorkoutPalette = {
+  isDark: false,
+  bg: light.paper,
+  surface: light.card,
+  surfaceHigh: light.surfaceSoft,
+  failureSurface: light.card,
+  line: light.line,
+  ink: light.ink,
+  inkSoft: light.inkSoft,
+  muted: light.mutedStrong,
+  brand: light.brand,
+  brandInk: light.brandInk,
+  brandPressed: light.brandBright,
+  brandDim: light.brandSoft,
+  onBrand: light.onBrand,
+  good: light.success,
+  warn: light.amberInk,
+  danger: light.redInk,
+  dangerFill: light.redSoft,
+  estimate: light.amberInk,
+}
+
+// Keep the approved dark training appearance; pressed fills remain legible.
+const workoutDark: WorkoutPalette = {
+  isDark: true,
   bg: '#0b0b0c',
   surface: '#17171a',
   surfaceHigh: '#222226',
+  failureSurface: dark.card,
   line: '#2e2e33',
   ink: '#ffffff',
   inkSoft: '#d9d6d2',
   muted: '#9b968f',
   brand: '#ff6b1a',
-  brandDeep: '#c24a0a',
+  brandInk: '#ff6b1a',
+  brandPressed: '#ee641a',
   brandDim: '#4a230c',
   onBrand: '#140800',
   good: '#3ddc84',
   warn: '#ffc542',
   danger: '#ff5a52',
+  dangerFill: dark.redSoft,
   estimate: '#ffc542',
-} as const
+}
+
+export const workoutPalettes = { light: workoutLight, dark: workoutDark } as const
 
 export function useTheme(): Theme {
   const scheme = useColorScheme()
   return scheme === 'dark' ? dark : light
 }
 
+/** Resolve in render so a system theme change also updates an active workout. */
+export function useWorkoutPalette(): WorkoutPalette {
+  return useTheme().isDark ? workoutPalettes.dark : workoutPalettes.light
+}
+
 export { light, dark }
+
+/** Approved 1.1.2 redraw geometry, in density-independent pixels. */
+export const visual = {
+  spacing: { xs: 4, sm: 8, md: 12, lg: 16, page: 20, section: 24, xl: 32 },
+  radius: { control: 14, card: 20, hero: 28, sheet: 28, pill: 999 },
+  type: { title: 30, heading: 19, body: 16, secondary: 14, caption: 12, numericWeight: '900' as const },
+  controlHeight: 52,
+  poster: { background: '#f7f2e9', ink: '#171411', muted: '#817a72', orange: '#f56616', line: '#d8d0c5' },
+} as const

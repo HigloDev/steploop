@@ -153,10 +153,13 @@ export function correctRoundFloors(
     })
     return corrected === round ? round : { ...corrected, targetFloor: finalFloor, estimated: false }
   })
-  return buildFusionWorkout({
+  const rebuilt = buildFusionWorkout({
     id: workout.id, startedAt: workout.startedAt, endedAt: workout.endedAt, status: workout.status,
     template, rounds, bodyWeightKg: workout.bodyWeightKg, createdAt: workout.createdAt,
   })
+  // 历史身份属于这次训练；删除或重命名模板不应改变已保存的楼栋名称和关联。
+  return { ...workout, ...rebuilt, buildingId: workout.buildingId, templateId: workout.templateId,
+    templateVersion: workout.templateVersion, routeSnapshot: workout.routeSnapshot, updatedAt: at }
 }
 
 /** 训练热量：爬升机械功 + 活动/休息代谢（详见 calories.ts）。 */

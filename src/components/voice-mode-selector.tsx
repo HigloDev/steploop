@@ -15,9 +15,9 @@ export function VoiceModeSelector({ value, onChange, compact = false, disabled =
   value: VoiceModeChoice; onChange: (value: VoiceModeChoice) => void; compact?: boolean; disabled?: boolean
 }) {
   const theme = useTheme()
-  return <View style={{ paddingVertical: compact ? 8 : 12, gap: 8 }}>
-    <Text style={{ color: theme.ink, fontWeight: '600', fontSize: 15 }}>播报模式</Text>
+  return <View style={{ paddingVertical: 0, gap: 4 }}>
+    <Text style={{ color: theme.ink, fontWeight: '800', fontSize: 18, lineHeight: 22 }}>播报模式</Text>
     <NativeChoice testID="voice-detail-mode" options={VOICE_MODES} value={value} onChange={onChange} disabled={disabled} />
-    {!compact && <Text style={{ color: theme.mutedStrong, fontSize: 13, lineHeight: 20 }}>{VOICE_MODES.find(mode => mode.value === value)?.description}</Text>}
+    {!compact && <Text style={{ color: theme.mutedStrong, fontSize: 14, lineHeight: 20 }}>{VOICE_MODES.find(mode => mode.value === value)?.description}</Text>}
   </View>
 }

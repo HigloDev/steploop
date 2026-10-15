@@ -1,0 +1,992 @@
+{
+  "light-calibrating": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-calibration_top": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-climbing": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-descending": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-waiting": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-climbing-estimated": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-starting": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-start-error": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-finishing": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-save-failed": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-save-failed-no-recovery": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-home": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-history": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-settings": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-summary": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-template": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-share": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-onboarding": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-privacy": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-privacy-first": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-legacy": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-diagnostic": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-empty": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-history-heights": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-references-everest": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-home": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-history": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-settings": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-summary": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-template": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-share": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-onboarding": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-privacy": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-privacy-first": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-legacy": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-diagnostic": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-empty": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-history-heights": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-references-everest": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-calibrating": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-calibration_top": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-climbing": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-descending": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-waiting": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-climbing-estimated": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-starting": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-start-error": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-finishing": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-save-failed": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-save-failed-no-recovery": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-share-switch": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-share-switch-saved": {
+    "appearance": "dark",
+    "rootRGB": [
+      7,
+      7,
+      6
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-share-switch": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-share-switch-saved": {
+    "appearance": "light",
+    "rootRGB": [
+      99,
+      98,
+      97
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-floor-picker": {
+    "appearance": "light",
+    "rootRGB": [
+      168,
+      166,
+      164
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-building-actions": {
+    "appearance": "light",
+    "rootRGB": [
+      168,
+      166,
+      164
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-building-rename": {
+    "appearance": "light",
+    "rootRGB": [
+      168,
+      166,
+      164
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-height-references": {
+    "appearance": "light",
+    "rootRGB": [
+      244,
+      241,
+      237
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-height-references-bottom": {
+    "appearance": "light",
+    "rootRGB": [
+      244,
+      241,
+      237
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-history-actions": {
+    "appearance": "light",
+    "rootRGB": [
+      168,
+      166,
+      164
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-round-edit": {
+    "appearance": "light",
+    "rootRGB": [
+      168,
+      166,
+      164
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-floor-picker": {
+    "appearance": "dark",
+    "rootRGB": [
+      12,
+      12,
+      11
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-building-actions": {
+    "appearance": "dark",
+    "rootRGB": [
+      12,
+      12,
+      11
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-building-rename": {
+    "appearance": "dark",
+    "rootRGB": [
+      12,
+      12,
+      11
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-height-references": {
+    "appearance": "dark",
+    "rootRGB": [
+      36,
+      33,
+      30
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-height-references-bottom": {
+    "appearance": "dark",
+    "rootRGB": [
+      36,
+      33,
+      30
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-history-actions": {
+    "appearance": "dark",
+    "rootRGB": [
+      12,
+      12,
+      11
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-round-edit": {
+    "appearance": "dark",
+    "rootRGB": [
+      12,
+      12,
+      11
+    ],
+    "rootChecked": false,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-sensor-retry": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-back-guard": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-finish-result": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-save-retry-result": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-save-later-home": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-sensor-retry": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-back-guard": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-finish-result": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-save-retry-result": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-save-later-home": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-large-text-climbing-long": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-large-text-calibrating": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-large-text-save-failed": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-large-text-save-failed-actions": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-large-text-template": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-large-text-climbing-long": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-large-text-calibrating": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-large-text-save-failed": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-large-text-save-failed-actions": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-large-text-template": {
+    "appearance": "dark",
+    "rootRGB": [
+      18,
+      17,
+      16
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "light-switch-in-place": {
+    "appearance": "light",
+    "rootRGB": [
+      247,
+      245,
+      242
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  },
+  "dark-switch-in-place": {
+    "appearance": "dark",
+    "rootRGB": [
+      11,
+      11,
+      12
+    ],
+    "rootChecked": true,
+    "package": "com.zxn.palou.uiqa",
+    "nativeScreenshot": true
+  }
+}

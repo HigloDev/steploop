@@ -311,6 +311,16 @@ test('结算页修改层数：爬升按模板逐层层高重算，原值进入�
     rounds: [fusionRoundToWorkoutRound({ ...fusionRound, floors: 0, finalFloor: 1, ascentM: 0 })] }), 'r1', 2, template)
   assert.equal(zero.rounds[0].ascentM, 8)
   assert.ok(workoutCalories(corrected) > 0)
+  const historical = { ...workout, buildingId: 'deleted-building', templateId: 'deleted-building', templateVersion: 7,
+    routeSnapshot: { ...workout.routeSnapshot, name: '已删除的测试楼栋', locationName: '测试位置' }, customMetadata: 'retain' }
+  const withoutTemplate = correctRoundFloors(historical, 'r1', 4, undefined, 90000)
+  assert.equal(withoutTemplate.totalFloorsCompleted, 4)
+  assert.equal(withoutTemplate.buildingId, 'deleted-building')
+  assert.equal(withoutTemplate.templateId, 'deleted-building')
+  assert.equal(withoutTemplate.templateVersion, 7)
+  assert.deepEqual(withoutTemplate.routeSnapshot, historical.routeSnapshot)
+  assert.equal(withoutTemplate.customMetadata, 'retain')
+  assert.equal(withoutTemplate.updatedAt, 90000)
 })
 
 test('旧数据兼容：motion-v3 记录与旧路线可读，不崩溃', () => {

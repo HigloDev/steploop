@@ -1,0 +1,318 @@
+{
+  "version": "1.1.2",
+  "package": "com.zxn.palou.uiqa",
+  "device": "Android 15 / API 35 emulator-5582",
+  "representativeStates": true,
+  "sourceBoardSheetsUseDifferentHomeScale": true,
+  "exactPixelEqualityClaimed": false,
+  "density": 2,
+  "rawViewport": [
+    780,
+    1834
+  ],
+  "cropSystemBars": {
+    "top": 98,
+    "bottom": 48
+  },
+  "states": [
+    {
+      "key": "home",
+      "page": "首页",
+      "title": "主操作、周累计与楼栋",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/home.png",
+      "actual": "actual/home.png",
+      "compare": "compare/home.png",
+      "actualSha256": "9731b57ec24b5ecfe5d8bc40a8f9d63708651e102bd0af97f86d9f29cb1c3f23"
+    },
+    {
+      "key": "history",
+      "page": "记录",
+      "title": "成果、筛选与历史",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/history.png",
+      "actual": "actual/history.png",
+      "compare": "compare/history.png",
+      "actualSha256": "f8a0b2d763a4ab4b96e372f5f7f3f419202d1d9b4c941ff0dfec6ce030c532f4"
+    },
+    {
+      "key": "settings",
+      "page": "设置",
+      "title": "播报、震动与体重",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/settings.png",
+      "actual": "actual/settings.png",
+      "compare": "compare/settings.png",
+      "actualSha256": "3a0d093ceea976ba5eedc492e3a87779148341b82e2805db8fa6069794c22e28"
+    },
+    {
+      "key": "climbing",
+      "page": "训练",
+      "title": "自动计层",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/climbing.png",
+      "actual": "actual/climbing.png",
+      "compare": "compare/climbing.png",
+      "actualSha256": "9d8447deb4553540de5709fdd2b8ed9954ad77c9a108caa15ba8f9e6c447d22a"
+    },
+    {
+      "key": "summary",
+      "page": "结算",
+      "title": "总爬升与每轮成果",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/summary.png",
+      "actual": "actual/summary.png",
+      "compare": "compare/summary.png",
+      "actualSha256": "5739d8540647b64d2fff89b26ba6eaadfc9a27f1c5adba2a5350f7eb45145e6b"
+    },
+    {
+      "key": "share",
+      "page": "分享",
+      "title": "海报、样式与导出",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/share.png",
+      "actual": "actual/share.png",
+      "compare": "compare/share.png",
+      "actualSha256": "80eb3496fc9b3197daf5074366a13f9bf752738df8f25921b83f9e37bc5e6f97"
+    },
+    {
+      "key": "onboarding-1",
+      "page": "引导",
+      "title": "携带方式",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/onboarding-1.png",
+      "actual": "actual/onboarding-1.png",
+      "compare": "compare/onboarding-1.png",
+      "actualSha256": "53f33f77d96d625e5a81771a25db3fe14367dabe8ddfc7ff9d69b43a01389528"
+    },
+    {
+      "key": "onboarding-2",
+      "page": "引导",
+      "title": "首次标定",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/onboarding-2.png",
+      "actual": "actual/onboarding-2.png",
+      "compare": "compare/onboarding-2.png",
+      "actualSha256": "fa192c7f96c0198dba9b159de79996f79024832563aa2fa8d4489f7f9cecf1a6"
+    },
+    {
+      "key": "onboarding-3",
+      "page": "引导",
+      "title": "成果核对",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/onboarding-3.png",
+      "actual": "actual/onboarding-3.png",
+      "compare": "compare/onboarding-3.png",
+      "actualSha256": "eced30442600f9813b046ad8fbcd96f7f5fd15c45af58a701c6954202bda4bf3"
+    },
+    {
+      "key": "privacy",
+      "page": "隐私",
+      "title": "七项摘要与完整协议入口",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/privacy.png",
+      "actual": "actual/privacy.png",
+      "compare": "compare/privacy.png",
+      "actualSha256": "6028df74a679d7c60b7cdba607ccf1f1ba33c622d4d7243a283c60a8a724d56d"
+    },
+    {
+      "key": "legacy",
+      "page": "旧版成绩",
+      "title": "兼容历史与修正",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/legacy.png",
+      "actual": "actual/legacy.png",
+      "compare": "compare/legacy.png",
+      "actualSha256": "3ef694f88d8be72de7f3a9f384dfcc1022bb43370d52d873629fc64bf5293140"
+    },
+    {
+      "key": "diagnostic",
+      "page": "诊断",
+      "title": "原生传感器采集与真值标记",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/diagnostic.png",
+      "actual": "actual/diagnostic.png",
+      "compare": "compare/diagnostic.png",
+      "actualSha256": "ed9c2f57f755c43cc488bf1d93292b7ac9893ee73df8ad44e947eef402027e81"
+    },
+    {
+      "key": "calibrating",
+      "page": "训练",
+      "title": "标定中",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/calibrating.png",
+      "actual": "actual/calibrating.png",
+      "compare": "compare/calibrating.png",
+      "actualSha256": "c3a44704be8d9050b61beb34f5971e4d44af91716020e5207e1265ed8d2aa143"
+    },
+    {
+      "key": "calibration_top",
+      "page": "训练",
+      "title": "标定到顶",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/calibration_top.png",
+      "actual": "actual/calibration_top.png",
+      "compare": "compare/calibration_top.png",
+      "actualSha256": "bd6df4471097dbbc55928a63eb081bfff57df22e249ef4ac082e44724603dafd"
+    },
+    {
+      "key": "descending",
+      "page": "训练",
+      "title": "下行",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/descending.png",
+      "actual": "actual/descending.png",
+      "compare": "compare/descending.png",
+      "actualSha256": "09a57f75a037ed7f6c345556984ddaa073feeab371a5a8a08753a89fdc037b7a"
+    },
+    {
+      "key": "waiting",
+      "page": "训练",
+      "title": "等待下一轮",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/waiting.png",
+      "actual": "actual/waiting.png",
+      "compare": "compare/waiting.png",
+      "actualSha256": "b7baccd79f7482ef7cdbdf320f5df0a8dacba5c82f98e67213ac6df2684ef7c4"
+    },
+    {
+      "key": "start-floor",
+      "page": "弹窗",
+      "title": "选择起始楼层",
+      "viewport": [
+        390,
+        697
+      ],
+      "reference": "reference/start-floor.png",
+      "actual": "actual/start-floor.png",
+      "compare": "compare/start-floor.png",
+      "actualSha256": "afc6306b993eee4dcf20b206d93e7e135b481c9859d80c0e16971481ef591d66"
+    },
+    {
+      "key": "manage",
+      "page": "弹窗",
+      "title": "楼栋管理",
+      "viewport": [
+        390,
+        697
+      ],
+      "reference": "reference/manage.png",
+      "actual": "actual/manage.png",
+      "compare": "compare/manage.png",
+      "actualSha256": "8a9baef3b5b3c5cc03ef0bd1c1a57c177517204776b1982b619f7cb69df2d055"
+    },
+    {
+      "key": "rename",
+      "page": "弹窗",
+      "title": "重命名",
+      "viewport": [
+        390,
+        697
+      ],
+      "reference": "reference/rename.png",
+      "actual": "actual/rename.png",
+      "compare": "compare/rename.png",
+      "actualSha256": "c8d174662457ff780ae2c68a621186f8cbaba2162e78055662252a9c0b4f3b55"
+    },
+    {
+      "key": "edit-round",
+      "page": "弹窗",
+      "title": "修改每轮层数",
+      "viewport": [
+        390,
+        697
+      ],
+      "reference": "reference/edit-round.png",
+      "actual": "actual/edit-round.png",
+      "compare": "compare/edit-round.png",
+      "actualSha256": "44bac550bc8a87ed772041846125a7d07dae3e4de5f5f4924f65623963c7bbb7"
+    },
+    {
+      "key": "settings-lower",
+      "page": "设置",
+      "title": "后台权限、备份与帮助",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/settings-lower.png",
+      "actual": "actual/settings-lower.png",
+      "compare": "compare/settings-lower.png",
+      "actualSha256": "375030cd678cf57e643a313530d8d87f9bbc5332ebffab8d5346f245d9cd330b"
+    },
+    {
+      "key": "template",
+      "page": "结算",
+      "title": "保存楼栋模板",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/template.png",
+      "actual": "actual/template.png",
+      "compare": "compare/template.png",
+      "actualSha256": "e6c0a89b61d92e78747ef9213b248f60faef9867defea4a413fc1e98041c7b93"
+    },
+    {
+      "key": "save-failed",
+      "page": "训练",
+      "title": "保存失败与重试",
+      "viewport": [
+        390,
+        844
+      ],
+      "reference": "reference/save-failed.png",
+      "actual": "actual/save-failed.png",
+      "compare": "compare/save-failed.png",
+      "actualSha256": "bec21f1c5df5d56a77f3245f7be41cea002633147ed7fcc7493264e0bf14d2b6"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
 import * as Sharing from 'expo-sharing'
@@ -25,6 +25,7 @@ import {
   DEFAULT_BODY_WEIGHT_KG,
   formatCalories,
 } from '../core/calories'
+import { formatDuration } from '../core/math'
 import { workoutCalories } from '../core/fusion-workout'
 import { ClimbWorkout, WorkoutSummary } from '../core/types'
 import {
@@ -40,7 +41,7 @@ import { deriveTrainingProgress } from '../core/training-progress'
 import { RootStackScreen } from '../navigation/types'
 import { getPreferences } from '../services/preferences'
 import { getWorkout, listWorkouts, saveWorkout } from '../services/workout-storage'
-import { Theme, useTheme } from '../theme'
+import { Theme, useTheme, visual } from '../theme'
 
 type EditorTab = 'template' | 'copy' | 'size'
 type PosterTemplate = 'hero' | 'editorial' | 'report' | 'streak'
@@ -92,88 +93,52 @@ interface PosterProps {
   week?: WeekStats
 }
 
-const SharePoster = React.forwardRef<View, PosterProps>(
+export const SharePoster = React.forwardRef<View, PosterProps>(
   ({ workout, summary, quote, width, calories, template, ratio, week, onImageReady }, ref) => {
-    const theme = useTheme()
     const compact = ratio === '1:1'
     const streak = template === 'streak'
-    const posterDate = formatShareDate(workout.startedAt)
+    const unit = width / 320
+    const P = visual.poster
     const floors = streak ? week?.floors ?? 0 : summary.totalFloors
-    const ink = theme.ink
-    const muted = theme.mutedStrong
-    const unit = width / 360 * (compact && (quote || template === 'report') ? 0.85 : 1)
-    // The exported artifact has fixed typography; the surrounding controls still follow system text size.
-    const text = { color: ink, fontSize: 14 * unit }
-    const imageKey = `${theme.isDark ? 'dark' : 'light'}-${template}`
-    const imagesReady = useRef({ key: imageKey, background: false, mark: false })
-    if (imagesReady.current.key !== imageKey) imagesReady.current = { key: imageKey, background: false, mark: false }
-    const imageLoaded = (image: 'background' | 'mark') => {
-      if (imagesReady.current.key !== imageKey) return
-      imagesReady.current[image] = true
-      if (imagesReady.current.background && imagesReady.current.mark) onImageReady()
-    }
-    return (
-      <View ref={ref} collapsable={false} accessible accessibilityRole="image"
-        accessibilityLabel={`成果海报：${floors} 层，日期 ${posterDate}。地点与身份信息已隐藏。`}
-        style={{ width, height: Math.round(width * RATIO_VALUES[ratio]), backgroundColor: theme.card, overflow: 'hidden', borderRadius: 20 }}>
-        <ImageBackground key={imageKey} source={theme.isDark ? STAIRCASE_IMAGE : LIGHT_STAIRCASE_IMAGE} resizeMode="cover" onLoad={() => imageLoaded('background')} style={{ flex: 1 }}>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.isDark ? 'rgba(16,21,34,0.76)' : template === 'editorial' ? 'rgba(244,246,250,0.34)' : 'rgba(244,246,250,0.88)' }]} />
-          <View style={{ flex: 1, padding: 28 * unit }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * unit }}>
-                <BrandMark size={24 * unit} color={theme.brand} onLoad={() => imageLoaded('mark')} />
-                <Text allowFontScaling={false} style={{ ...text, fontSize: 18 * unit, fontWeight: '700', letterSpacing: 2 }}>循阶</Text>
-              </View>
-              <Text allowFontScaling={false} style={{ ...text, color: muted, fontSize: 10 * unit }}>每一步向上</Text>
-            </View>
-            <View style={{ marginTop: (compact ? 15 : 28) * unit, alignSelf: template === 'editorial' ? 'flex-end' : 'stretch', width: template === 'editorial' ? '80%' : undefined }}>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                <Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={{ color: theme.brand, fontSize: (compact ? 64 : 80) * unit, fontWeight: '700', maxWidth: width * 0.72, fontVariant: ['tabular-nums'] }}>{floors}</Text>
-                <Text allowFontScaling={false} style={{ ...text, fontSize: 24 * unit, marginLeft: 6 }}>层</Text>
-              </View>
-              <Text allowFontScaling={false} style={{ ...text, color: muted }}>{streak ? '本周累计爬升' : workout.floorCounting === 'transitions' ? '实际爬升' : '历史完成层数'}</Text>
-              <View style={{ flexDirection: 'row', gap: 25 * unit, marginTop: 20 * unit }}>
-                <View><Text allowFontScaling={false} style={{ ...text, fontSize: 18 * unit, fontWeight: '600' }}>{streak ? `${week?.workouts ?? 0} 次` : formatShareDuration(summary.activeDurationMs)}</Text><Text allowFontScaling={false} style={{ ...text, color: muted, marginTop: 5, fontSize: 11 * unit }}>{streak ? '本周训练' : '净爬楼'}</Text></View>
-                <View><Text allowFontScaling={false} style={{ ...text, fontSize: 18 * unit, fontWeight: '600' }}>{streak ? `${week?.consecutiveWeeks ?? 0} 周` : `${summary.completeRounds} 轮`}</Text><Text allowFontScaling={false} style={{ ...text, color: muted, marginTop: 5, fontSize: 11 * unit }}>{streak ? '连续训练' : '完成轮数'}</Text></View>
-              </View>
-              {template === 'report' ? <View style={{ marginTop: 12 * unit, paddingTop: 12 * unit, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line }}>
-                <Text allowFontScaling={false} style={{ ...text, fontSize: 12 * unit }}>爬升 {summary.totalAscentM.toFixed(0)} 米 · {summary.totalSteps} 步</Text>
-                <Text allowFontScaling={false} style={{ ...text, color: muted, fontSize: 11 * unit, marginTop: 4 * unit }}>估算消耗 {formatCalories(calories)} 千卡</Text>
-              </View> : null}
-            </View>
-            <View style={{ flex: 1 }} />
-            {quote ? <Text allowFontScaling={false} style={{ ...text, fontSize: (compact ? 16 : 20) * unit, fontWeight: '600', marginBottom: 12 }}>{quote}</Text> : null}
-            <Text allowFontScaling={false} style={{ ...text, fontSize: 11 * unit, color: muted }}>{posterDate}</Text>
-          </View>
-        </ImageBackground>
+    const ascent = streak ? week?.ascentM ?? 0 : summary.totalAscentM
+    const typography = { color: P.ink, fontSize: 14 * unit }
+    return <View ref={ref} collapsable={false} accessible accessibilityRole="image"
+      accessibilityLabel={`成果海报：${floors} 层，日期 ${formatShareDate(workout.startedAt)}。地点与身份信息已隐藏。`}
+      style={{ width, height: Math.round(width * RATIO_VALUES[ratio]), backgroundColor: P.background, overflow: 'hidden', borderRadius: 20 * unit }}>
+      {template === 'editorial' ? <ImageBackground source={LIGHT_STAIRCASE_IMAGE} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.12 }} /> : null}
+      <View style={{ flex: 1, padding: 24 * unit, alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * unit }}>
+          <BrandMark key={`${template}-${ratio}`} size={32 * unit} color={P.orange} onLoad={onImageReady} />
+          <Text allowFontScaling={false} style={{ ...typography, fontSize: 28 * unit, fontWeight: '900' }}>循阶</Text>
+        </View>
+        <Text allowFontScaling={false} numberOfLines={2} style={{ ...typography, fontSize: (compact ? 23 : 32) * unit, fontWeight: '900', textAlign: 'center', lineHeight: 38 * unit }}>{quote || (streak ? '这周也在向上' : '每一步向上')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
+          <Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={{ color: P.orange, fontSize: (compact ? 108 : 160) * unit, lineHeight: (compact ? 116 : 168) * unit, fontWeight: '900', fontVariant: ['tabular-nums'], maxWidth: width * 0.65, includeFontPadding: false }}>{floors}</Text>
+          <Text allowFontScaling={false} style={{ color: P.orange, fontSize: 34 * unit, fontWeight: '900', marginLeft: 6 }}>层</Text>
+        </View>
+        <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontWeight: '800', fontSize: (compact ? 18 : 22) * unit }}>实际爬升 <Text style={{ color: P.orange, fontSize: (compact ? 24 : 28) * unit }}>{Math.round(ascent)}米</Text></Text>
+        {template === 'report' ? <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontSize: 12 * unit }}>{summary.totalSteps} 步 · 估算 {formatCalories(calories)} 千卡</Text> : null}
+        <View style={{ alignSelf: 'stretch', borderTopWidth: 1, borderTopColor: P.line, paddingTop: 12 * unit, alignItems: 'center', gap: 12 * unit }}>
+          <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontSize: (compact ? 14 : 16) * unit, fontWeight: '700' }}>{streak ? `本周训练 ${week?.workouts ?? 0} 次 · 连续 ${week?.consecutiveWeeks ?? 0} 周` : `净爬楼 ${formatDuration(summary.activeDurationMs)} · 完成 ${summary.completeRounds} 轮`}</Text>
+          <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontSize: 14 * unit }}>{formatShareDate(workout.startedAt).replace(/-/g, '.')}</Text>
+        </View>
       </View>
-    )
+    </View>
   },
 )
 SharePoster.displayName = 'SharePoster'
 
-function PosterThumbnail({
-  active,
-  template,
-  floors,
-  onPress,
-}: {
-  active: boolean
-  template: PosterTemplate
-  floors: number
-  onPress: () => void
+function PosterThumbnail({ active, template, workout, summary, calories, week, onPress }: {
+  active: boolean; template: PosterTemplate; workout: ClimbWorkout; summary: WorkoutSummary;
+  calories: number; week?: WeekStats; onPress: () => void
 }) {
   const theme = useTheme()
-  return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected: active }}
-      accessibilityLabel={`${TEMPLATE_LABELS[template]}模板`} onPress={onPress}
-      style={{ flexGrow: 1, flexBasis: '45%', minHeight: 104, padding: 16, justifyContent: 'center', borderRadius: 14, backgroundColor: active ? theme.brandSoft : theme.card, borderWidth: 1, borderColor: active ? theme.brand : theme.line }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-        <Text style={{ color: active ? theme.brand : theme.ink, fontSize: 28, lineHeight: 34, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{floors}<Text style={{ fontSize: 12, fontWeight: '400' }}> 层</Text></Text>
-      </View>
-      <Text style={{ color: theme.mutedStrong, fontSize: 14, lineHeight: 21, marginTop: 8 }}>{TEMPLATE_LABELS[template]}</Text>
-    </Pressable>
-  )
+  return <Pressable accessibilityRole="button" accessibilityState={{ selected: active }}
+    accessibilityLabel={`${TEMPLATE_LABELS[template]}模板`} onPress={onPress}
+    style={{ width: 112, padding: 4, borderRadius: 10, borderWidth: 2, borderColor: active ? theme.brand : 'transparent' }}>
+    <SharePoster width={100} ratio="4:5" template={template} workout={workout} summary={summary}
+      calories={calories} week={week} quote={template === 'editorial' ? '持续向上' : template === 'report' ? '今天也向上了' : ''} onImageReady={() => {}} />
+  </Pressable>
 }
 
 export default function ShareStudioScreen({
@@ -243,6 +208,8 @@ export default function ShareStudioScreen({
     return captureRef(posterRef, {
       format: 'png',
       quality: 1,
+      width: 1080,
+      height: Math.round(1080 * RATIO_VALUES[ratio]),
       result: 'tmpfile',
     })
   }
@@ -391,7 +358,7 @@ export default function ShareStudioScreen({
     )
   }
 
-  const posterWidth = Math.min(320, windowWidth - 64)
+  const posterWidth = Math.min(328, windowWidth - 64)
   // 热量按爬升机械功 + 活动/休息代谢估算（与结算页同一口径）。
   const calories = workoutCalories({ ...workout, bodyWeightKg: workout.bodyWeightKg ?? bodyWeightKg })
   // D10：页面不再自己拼分享文案；隐私剔除结果（redacted）由纯函数给出，UI 只负责展示。
@@ -433,6 +400,7 @@ export default function ShareStudioScreen({
         </View>
         <View style={styles.previewWrap}>
           <SharePoster
+            key={theme.isDark ? 'dark' : 'light'}
             ref={posterRef}
             onImageReady={() => setReadyTheme(theme.isDark)}
             workout={workout}
@@ -451,12 +419,12 @@ export default function ShareStudioScreen({
           accessibilityRole="text"
           accessibilityLabel={'分享内容已隐藏 ' + sharePayload.redacted.length + ' 项隐私字段：' + sharePayload.redacted.join('、')}
         >
-          <Feather name="lock" size={16} color={theme.mutedStrong} />
+          <MaterialCommunityIcons name="lock" size={16} color={theme.mutedStrong} />
           <Text style={styles.privacyText}>地点已隐藏 · 不含身份信息</Text>
         </View>
         {outcomeLabel ? <Text style={styles.outcomeText} accessibilityLiveRegion="polite" accessibilityLabel={outcomeLabel}>{outcomeLabel}</Text> : null}
 
-        <Text accessibilityRole="header" style={styles.sectionTitle}>海报样式</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}><Text accessibilityRole="header" style={styles.sectionTitle}>海报样式</Text>
         <View style={styles.editorTabs} accessibilityRole="tablist">
           {editorTabs.map(tab => <Pressable
             key={tab.key}
@@ -467,15 +435,16 @@ export default function ShareStudioScreen({
           ><Text style={[styles.editorTabText, editorTab === tab.key && styles.editorTabTextActive]}>{tab.label}</Text></Pressable>)}
         </View>
 
-        {editorTab === 'template' ? <View style={styles.thumbnailRow}>
+        </View>
+        {editorTab === 'template' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
           {(['hero', 'editorial', 'report', 'streak'] as PosterTemplate[]).map(value => <PosterThumbnail
             key={value}
             active={template === value}
             template={value}
-            floors={value === 'streak' ? week?.floors ?? 0 : summary.totalFloors}
+            workout={workout} summary={summary} calories={calories} week={week ?? undefined}
             onPress={() => { if (value !== template) { setReadyTheme(null); setTemplate(value) } }}
           />)}
-        </View> : null}
+        </ScrollView> : null}
 
         {editorTab === 'copy' ? <View style={styles.optionList}>
           {QUOTES.map(item => <Pressable
@@ -538,22 +507,22 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8, gap: 16 },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 4, gap: 10,},
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
     loadingText: { color: theme.mutedStrong, fontSize: 15, lineHeight: 22, marginBottom: 24 },
     previewHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    previewLabel: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },
+    previewLabel: { color: theme.ink, fontSize: 16, lineHeight: 21, fontWeight: '800',},
     previewRatio: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, fontVariant: ['tabular-nums'] },
-    previewWrap: { alignItems: 'center', paddingVertical: 16, backgroundColor: theme.surfaceSoft, borderRadius: 20 },
+    previewWrap: { alignItems: 'center', paddingVertical: 0, backgroundColor: 'transparent', borderRadius: 20 },
     privacyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 32 },
     privacyText: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, flexShrink: 1 },
-    sectionTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600', marginTop: 8 },
-    editorTabs: { flexDirection: 'row', padding: 4, borderRadius: 14, backgroundColor: theme.card, gap: 4 },
-    editorTab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 8 },
-    editorTabActive: { backgroundColor: theme.brandSoft },
+    sectionTitle: { color: theme.ink, fontSize: 20, lineHeight: 24, fontWeight: '900', marginTop: 0 },
+    editorTabs: { flexDirection: 'row', flex: 1, minWidth: 210, padding: 3, borderRadius: 24, backgroundColor: theme.card, gap: 0 },
+    editorTab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4 },
+    editorTabActive: { backgroundColor: theme.brand,},
     editorTabText: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, fontWeight: '500' },
-    editorTabTextActive: { color: theme.brand, fontWeight: '600' },
-    thumbnailRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    editorTabTextActive: { color: theme.onBrand, fontWeight: '800',},
+    thumbnailRow: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8,},
     optionList: { gap: 8 },
     option: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
     optionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
@@ -567,6 +536,6 @@ const makeStyles = (theme: Theme) =>
     sizeHint: { marginTop: 4, color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center' },
     copyNote: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, marginBottom: 16 },
     outcomeText: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },
-    dock: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingTop: 8, backgroundColor: theme.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line },
+    dock: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingTop: 8, backgroundColor: theme.paper, borderTopWidth: 0, borderTopColor: theme.line },
     dockButton: { flex: 1 },
   })

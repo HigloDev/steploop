@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { Button, Field, Metric, Pill } from '../components/ui'
@@ -301,7 +302,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session && !loadError) {
     return (
       <View style={styles.page}>
-        <Header title="成绩" back />
+        <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brand, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>加载中…</Text>
         </View>
@@ -312,7 +313,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session) {
     return (
       <View style={styles.page}>
-        <Header title="成绩" back />
+        <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brand, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>{loadError || '记录不存在'}</Text>
           <Button title="返回首页" onPress={() => navigation.navigate('Main', { screen: 'Train' })} />
@@ -325,7 +326,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
 
   return (
     <View style={styles.page}>
-      <Header title="成绩" back />
+      <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brand, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
         style={styles.flex}
@@ -333,14 +334,13 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         contentContainerStyle={[styles.content, { paddingBottom: 24 }]}
       >
         <View style={styles.hero}>
-          <Text style={styles.routeName}>{routeName}</Text>
-          <Text style={styles.dateText}>{dateText(session.endedAt)}</Text>
-          <View style={styles.statusRow}>
-            <Pill tone={session.complete ? 'good' : 'warn'}>
-              {statusTitle}
-            </Pill>
+          <MaterialCommunityIcons name="office-building" size={36} color={theme.brand} />
+          <View style={{ flex: 1 }}><Text style={styles.routeName}>{routeName}</Text>
+            <Text style={styles.dateText}>{new Date(session.endedAt).getFullYear()} 年 {new Date(session.endedAt).getMonth() + 1} 月 {new Date(session.endedAt).getDate()} 日</Text></View>
+          <View accessible accessibilityLabel={statusTitle} style={{ alignItems: 'center', gap: 4 }}>
+            <MaterialCommunityIcons name={session.complete ? 'check-circle' : 'alert-circle'} size={30} color={session.complete ? theme.brand : theme.amber} />
+            <Text style={{ color: session.complete ? theme.brand : theme.amberInk, fontSize: 14, fontWeight: '800' }}>{statusTitle}</Text>
           </View>
-          <Text style={styles.statusText}>{statusText}</Text>
         </View>
 
         <View style={styles.achievement}>
@@ -351,63 +351,19 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
           </View>
           <Text selectable style={styles.achievementDuration}>用时 {formatDuration(session.durationMs ?? 0)}</Text>
         </View>
-        <Disclosure title="详细成绩">
-        <View style={styles.metricGrid}>
-          <Metric
-            label={session.floorConfirmation === 'pending' ? '楼层待确认' : '完成楼层'}
-            value={`${
-              sessionFloorCount(session)
-            } 层`}
-            style={styles.metric}
-          />
-          <Metric
-            label="估计爬升"
-            value={`${session.ascentM}米`}
-            style={styles.metric}
-          />
-          <Metric label="总用时" value={formatDuration(session.durationMs ?? 0)} style={styles.metric} />
-          <Metric label="总步数" value={session.steps} style={styles.metric} />
-          <Metric
-            label="平均单层"
-            value={session.floorsCompleted > 0 && (session.averageFloorMs ?? 0) > 0 ? formatDuration(session.averageFloorMs!) : '—'}
-            style={styles.metric}
-          />
-          <Metric
-            label="最快单层"
-            value={session.floorsCompleted > 0 && (session.bestFloorSplitMs ?? 0) > 0 ? formatDuration(session.bestFloorSplitMs!) : '—'}
-            style={styles.metric}
-          />
-        </View>
-
-        <View style={styles.detailCard}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>起止楼层</Text>
-            <Text style={styles.detailValue}>
-              {session.startFloor}层 → {session.finalFloor}层
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>置信度</Text>
-            <Text style={styles.detailValue}>{Math.round(session.confidence * 100)}%</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>中断次数</Text>
-            <Text style={styles.detailValue}>{session.interruptions.length}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>人工修正</Text>
-            <Text style={styles.detailValue}>
-              {correctionCount > 0
-                ? `${correctionCount} 次`
-                : manualCount > 0
-                  ? '已人工确认'
-                  : '无'}
-            </Text>
-          </View>
-        </View>
-
-        </Disclosure>
-        <Disclosure title="修正最终楼层" summary={correctionCount || manualCount ? '已人工修正' : undefined}>
+        <View style={{ backgroundColor: theme.card, borderRadius: 20, paddingHorizontal: 16 }}>
+        <Disclosure marginTop={0} title="详细成绩" initiallyOpen compact>
+          {[
+            ['arrow-up', '上升高度', `${session.ascentM} 米`],
+            ['shoe-print', '步数', `${session.steps} 步`],
+            ['chart-bar', '平均单层', session.averageFloorMs ? `${Number((session.averageFloorMs / 1000).toFixed(1))} 秒` : '—'],
+            ['lightning-bolt', '最快单层', session.bestFloorSplitMs ? `${Number((session.bestFloorSplitMs / 1000).toFixed(1))} 秒` : '—'],
+          ].map(([icon, label, value]) => <View key={label} style={styles.detailRow}>
+            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brand} />
+            <Text style={[styles.detailLabel, { flex: 1 }]}>{label}</Text><Text style={styles.detailValue}>{value}</Text>
+          </View>)}
+        </Disclosure></View>
+        <Disclosure marginTop={0} title="修正最终楼层" summary={correctionCount || manualCount ? '已人工修正' : undefined}>
         <View style={styles.correctionCard}>
           <Text style={styles.correctionTitle}>修正本轮最终楼层</Text>
           <Text style={styles.correctionHint}>
@@ -442,7 +398,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         </View>
 
         </Disclosure>
-        <Disclosure title="单层用时">
+        <Disclosure marginTop={0} title="单层用时">
         {floorSplits.length > 0 ? (
           <View style={styles.splitCard}>
             <Text style={styles.splitTitle}>单层用时</Text>
@@ -462,14 +418,45 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
               </View>
             ))}
           </View>
-        ) : null}
+        ) : <Text style={styles.correctionHint}>这条旧版记录没有单层用时明细。</Text>}
 
         </Disclosure>
+        <Disclosure marginTop={0} title="更多训练信息">
+          <Text style={styles.statusText}>{statusText}</Text>
+          <Text style={styles.dateText}>{dateText(session.endedAt)}</Text>
+        <View style={styles.detailCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>起止楼层</Text>
+            <Text style={styles.detailValue}>
+              {session.startFloor}层 → {session.finalFloor}层
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>置信度</Text>
+            <Text style={styles.detailValue}>{Math.round(session.confidence * 100)}%</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>中断次数</Text>
+            <Text style={styles.detailValue}>{session.interruptions.length}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>人工修正</Text>
+            <Text style={styles.detailValue}>
+              {correctionCount > 0
+                ? `${correctionCount} 次`
+                : manualCount > 0
+                  ? '已人工确认'
+                  : '无'}
+            </Text>
+          </View>
+        </View>
+
         <Button
           title="再爬一次"
           variant="secondary"
           onPress={() => navigation.replace('ClimbWorkout', { templateId: `legacy_${session.templateId}` })}
         />
+        </Disclosure>
 
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
@@ -484,7 +471,7 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, gap: 16 },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 8, gap: 12 },
     loading: {
       flex: 1,
       alignItems: 'center',
@@ -498,8 +485,8 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 12,
     },
     hero: {
-      gap: 8,
-    },
+      gap: 12, flexDirection: 'row', alignItems: 'center',
+     backgroundColor: theme.card, borderRadius: theme.radiusLg, padding: 14,},
     eyebrow: {
       color: theme.brand,
       fontSize: theme.fontEyebrow,
@@ -507,9 +494,9 @@ const makeStyles = (theme: Theme) =>
     },
     routeName: {
       color: theme.ink,
-      fontSize: theme.fontTitle,
-      fontWeight: '700',
-      lineHeight: 34,
+      fontSize: 18,
+      fontWeight: '900',
+      lineHeight: 24,
     },
     dateText: {
       color: theme.mutedStrong,
@@ -542,20 +529,20 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       flexWrap: 'wrap',
       gap: 12,
-      paddingVertical: 12,
+      paddingVertical: 8,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.line,
     },
     detailLabel: {
       color: theme.mutedStrong,
-      fontSize: theme.fontSubtitle,
-      lineHeight: 21,
+      fontSize: 16,
+      lineHeight: 24,
     },
     detailValue: {
       color: theme.ink,
-      fontSize: theme.fontBase,
-      lineHeight: 22,
-      fontWeight: '600',
+      fontSize: 18,
+      lineHeight: 24,
+      fontWeight: '800',
       fontVariant: ['tabular-nums'],
     },
     correctionCard: {
@@ -595,7 +582,7 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       flexWrap: 'wrap',
       gap: 8,
-      paddingVertical: 12,
+      paddingVertical: 8,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.line,
     },
@@ -624,11 +611,11 @@ const makeStyles = (theme: Theme) =>
     splitFastest: {
       color: theme.success,
     },
-    achievement: { paddingVertical: 8, gap: 8 },
-    achievementLabel: { color: theme.mutedStrong, fontSize: theme.fontSmall, lineHeight: 18 },
+    achievement: { paddingVertical: 12, gap: 6, backgroundColor: theme.brand, borderRadius: theme.radiusXl, padding: 24, alignItems: 'center', marginTop: 0,},
+    achievementLabel: { color: theme.onBrand, fontSize: 18, lineHeight: 18, fontWeight: '900',},
     achievementLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 8 },
-    achievementValue: { color: theme.ink, fontSize: 56, lineHeight: 68, fontWeight: '700', fontVariant: ['tabular-nums'] },
-    achievementUnit: { color: theme.mutedStrong, fontSize: 20, lineHeight: 28, fontWeight: '600' },
-    achievementDuration: { color: theme.mutedStrong, fontSize: theme.fontBase, lineHeight: 22, fontVariant: ['tabular-nums'] },
-    footer: { backgroundColor: theme.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
+    achievementValue: { color: theme.onBrand, fontSize: 110, lineHeight: 118, includeFontPadding: false, fontWeight: '900', fontVariant: ['tabular-nums'] },
+    achievementUnit: { color: theme.onBrand, fontSize: 28, lineHeight: 28, fontWeight: '800',},
+    achievementDuration: { color: theme.onBrand, fontSize: 22, lineHeight: 30, fontVariant: ['tabular-nums'], fontWeight: '800',},
+    footer: { backgroundColor: theme.paper, borderTopWidth: 0, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
   })

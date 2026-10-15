@@ -13,6 +13,9 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { FlowSheet } from '../components/flow-sheet'
+import { formatDuration } from '../core/math'
 import { Header } from '../components/Header'
 import { Disclosure } from '../components/disclosure'
 import { Button, Card, Pill } from '../components/ui'
@@ -69,6 +72,7 @@ export default function DiagnosticCaptureScreen({
   const sampleCountRef = useRef(0)
   const renderAtRef = useRef(0)
 
+  const [configOpen, setConfigOpen] = useState(false)
   const [routes, setRoutes] = useState<RouteTemplate[]>([])
   const [routeId, setRouteId] = useState('')
   const [activity, setActivity] =
@@ -333,7 +337,7 @@ export default function DiagnosticCaptureScreen({
 
   return (
     <View style={styles.page}>
-      <Header title="传感器诊断" back={false} rightLabel="关闭" onRightPress={requestLeave} />
+      <Header title="传感器诊断" align="left" back onBackPress={requestLeave} rightLabel="关闭" onRightPress={requestLeave} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         style={styles.flex}
@@ -348,12 +352,24 @@ export default function DiagnosticCaptureScreen({
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>本机诊断</Text>
           <Text style={styles.title}>记录一段真实动作</Text>
-          <Text style={styles.subtitle}>
-            原始运动数据只保存在本机。文件会移除路线地点和经纬度，只有点击结束并导出后才会打开系统分享。
-          </Text>
         </View>
-
-        <Disclosure key={recording ? 'recording-options' : 'ready-options'} title="本次采集设置" summary={selectedRoute?.name ?? '选择参考路线与动作'} initiallyOpen={!recording}>
+        <Card style={{ padding: 16 }}>
+          <Text style={styles.annotationTitle}>本次采集设置</Text>
+          {[
+            ['run', '真实动作', ACTIVITY_OPTIONS.find(item => item.key === activity)?.label ?? '向上爬楼'],
+            ['cellphone', '手机位置', carryMode === 'pocket' ? '裤子口袋' : '贴身腰包'],
+            ['account-group', '匿名设备组', deviceCohortId],
+            ['account', '采集者化名', participantId],
+          ].map(([icon, label, value]) => <Pressable key={label} disabled={recording} accessibilityRole="button"
+            accessibilityLabel={`修改${label}`} accessibilityHint={`参考路线：${selectedRoute?.name ?? '请选择参考楼梯'}`} onPress={() => setConfigOpen(true)}
+            style={{ flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.line }}>
+            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brand} /><Text style={{ flex: 1, color: theme.mutedStrong, fontSize: 16 }}>{label}</Text>
+            <Text style={{ color: theme.ink, fontSize: 16, fontWeight: '800', flexShrink: 1 }}>{value}</Text>
+            {!recording ? <MaterialCommunityIcons name="chevron-right" size={18} color={theme.muted} /> : null}
+          </Pressable>)}
+        </Card>
+        <FlowSheet visible={configOpen} title="本次采集设置" onClose={() => setConfigOpen(false)}>
+          <Text style={styles.subtitle}>原始运动数据只保存在本机。导出文件会移除路线地点和经纬度；只有点击结束并导出才会打开系统分享。</Text>
         <Text style={styles.sectionLabel}>参考路线</Text>
         {routes.length ? (
           routes.map((route) => (
@@ -486,63 +502,34 @@ export default function DiagnosticCaptureScreen({
           style={styles.cohortInput}
         />
 
-        </Disclosure>
+        </FlowSheet>
         <Card raised style={styles.liveCard}>
           <View style={styles.liveHead}>
-            <View style={styles.liveHeading}>
-              <Text style={styles.liveLabel}>采集状态</Text>
-              <Text style={styles.liveValue}>
-                {recording ? '记录中' : exporting ? '正在导出' : '待机'}
-              </Text>
-            </View>
-            <Pill tone={sensorSignal === 'good' ? 'good' : sensorSignal === 'interrupted' ? 'danger' : 'default'}>
-              {sensorSignal === 'good'
-                ? '信号稳定'
-                : sensorSignal === 'interrupted'
-                  ? '信号中断'
-                  : '等待信号'}
-            </Pill>
+            <Text style={styles.annotationTitle}>采集状态</Text>
+            <Text style={{ color: recording ? theme.brand : theme.mutedStrong, fontSize: 17, fontWeight: '800' }}>{recording ? '● 采集中' : exporting ? '正在导出' : '待机'}</Text>
           </View>
-          <View style={styles.metrics}>
-            <View style={styles.metricItem}>
-              <Text style={styles.metricValue}>{(elapsedMs / 1000).toFixed(1)}</Text>
-              <Text style={styles.metricLabel}>秒</Text>
-            </View>
-            <View style={styles.metricItem}>
-              <Text style={styles.metricValue}>{sampleCount}</Text>
-              <Text style={styles.metricLabel}>样本</Text>
-            </View>
-            <View style={styles.metricItem}>
-              <Text style={styles.metricValue}>{barometerAvailable ? '有' : '无'}</Text>
-              <Text style={styles.metricLabel}>气压计</Text>
-            </View>
-            <View style={styles.metricItem}>
-              <Text style={styles.metricValue}>
-                {elapsedMs > 0 ? Math.round((sampleCount * 1000) / elapsedMs) : 0}
-              </Text>
-              <Text style={styles.metricLabel}>赫兹</Text>
-            </View>
+          <Text style={{ ...theme.numeric, color: theme.ink, fontSize: 62, lineHeight: 74, textAlign: 'center', marginVertical: 8 }}>{formatDuration(elapsedMs)}</Text>
+          <View style={[styles.metrics, { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10, marginTop: 0 }]}>
+            {[
+              ['样本', String(sampleCount)], ['气压计', barometerAvailable ? '有' : '无'],
+              ['频率', `${elapsedMs > 0 ? Math.round((sampleCount * 1000) / elapsedMs) : 0} Hz`],
+            ].map(([label, value]) => <View key={label} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
+              <Text style={[styles.metricLabel, { marginTop: 0 }]}>{label}</Text><Text style={[styles.metricValue, { fontSize: 24, lineHeight: 30 }]}>{value}</Text>
+            </View>)}
           </View>
-          {recording && !isNegative ? (
-            <View style={styles.annotationBlock}>
-              <Text style={styles.annotationTitle}>人工真值标注</Text>
-              <Text style={styles.annotationHint}>
-                双脚到达新楼层平台时标记楼层；身体完成转向时标记转弯。
-              </Text>
-              <View style={styles.annotationActions}>
-                <Pressable accessibilityRole="button" accessibilityLabel={`标记到达 ${markedFloor + 1} 层`} style={styles.annotationButton} onPress={markFloor}>
-                  <Text style={styles.annotationButtonValue}>{markedFloor}F</Text>
-                  <Text style={styles.annotationButtonLabel}>到达下一层</Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel="标记刚刚完成的转弯" style={styles.annotationButton} onPress={markTurn}>
-                  <Text style={styles.annotationButtonValue}>{turnCount}</Text>
-                  <Text style={styles.annotationButtonLabel}>标记转弯</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : null}
         </Card>
-
+        {recording && !isNegative ? <Card style={{ padding: 16 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+            <Text style={styles.annotationTitle}>人工真值标注</Text>
+            <Text style={[styles.annotationHint, { marginTop: 0 }]}>{markedFloor} 楼 · {turnCount} 次转弯</Text>
+          </View>
+          <View style={styles.annotationActions}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`标记到达 ${markedFloor + 1} 层`} accessibilityHint="双脚到达新楼层平台时点按" onPress={markFloor}
+              style={[styles.annotationButton, { flex: 1.5, backgroundColor: theme.brand }]}><Text style={{ color: theme.onBrand, fontSize: 19, fontWeight: '900' }}>到达下一层 +1</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="标记刚刚完成的转弯" onPress={markTurn}
+              style={[styles.annotationButton, { backgroundColor: 'transparent' }]}><Text style={{ color: theme.ink, fontSize: 16, fontWeight: '800' }}>标记转弯</Text></Pressable>
+          </View>
+        </Card> : null}
         {message ? <Text selectable style={styles.message}>{message}</Text> : null}
 
       </ScrollView>
@@ -572,18 +559,18 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, gap: 16 },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, gap: 12 },
     hero: { gap: 8 },
     eyebrow: {
       color: theme.brand,
       fontSize: theme.fontSmall,
-      fontWeight: '700',
+      fontWeight: '900',
     },
     title: {
       color: theme.ink,
       fontSize: theme.fontTitle,
       lineHeight: 34,
-      fontWeight: '700',
+      fontWeight: '900',
     },
     subtitle: {
       color: theme.mutedStrong,
@@ -596,7 +583,7 @@ const makeStyles = (theme: Theme) =>
       color: theme.ink,
       fontSize: 17,
       lineHeight: 24,
-      fontWeight: '600',
+      fontWeight: '800',
     },
     optionCard: { padding: 16, marginBottom: 12 },
     optionCardActive: {
@@ -611,9 +598,9 @@ const makeStyles = (theme: Theme) =>
       gap: 12,
       flexWrap: 'wrap',
     },
-    optionTitle: { flex: 1, minWidth: 140, color: theme.ink, fontSize: theme.fontBase, lineHeight: 22, fontWeight: '600' },
+    optionTitle: { flex: 1, minWidth: 140, color: theme.ink, fontSize: theme.fontBase, lineHeight: 22, fontWeight: '800' },
     optionDesc: { marginTop: 8, color: theme.mutedStrong, fontSize: theme.fontSubtitle, lineHeight: 21 },
-    optionSelected: { color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '600' },
+    optionSelected: { color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '800' },
     emptyText: { color: theme.muted, fontSize: theme.fontSubtitle, lineHeight: 21 },
     chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: {
@@ -628,8 +615,8 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     chipActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
-    chipText: { color: theme.inkSoft, fontSize: theme.fontSubtitle, lineHeight: 21, fontWeight: '600' },
-    chipTextActive: { color: theme.brand, fontWeight: '700' },
+    chipText: { color: theme.inkSoft, fontSize: theme.fontSubtitle, lineHeight: 21, fontWeight: '800' },
+    chipTextActive: { color: theme.brand, fontWeight: '900' },
     segmented: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -659,9 +646,9 @@ const makeStyles = (theme: Theme) =>
       borderRadius: 10,
     },
     segmentActive: { backgroundColor: theme.card, ...theme.shadowSoft },
-    segmentText: { color: theme.mutedStrong, fontSize: theme.fontSubtitle, lineHeight: 21, fontWeight: '600' },
-    segmentTextActive: { color: theme.ink, fontWeight: '700' },
-    liveCard: { padding: 16 },
+    segmentText: { color: theme.mutedStrong, fontSize: theme.fontSubtitle, lineHeight: 21, fontWeight: '800' },
+    segmentTextActive: { color: theme.ink, fontWeight: '900' },
+    liveCard: { padding: 16, borderRadius: theme.radiusLg },
     liveHead: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -671,7 +658,7 @@ const makeStyles = (theme: Theme) =>
     },
     liveHeading: { flex: 1, minWidth: 120 },
     liveLabel: { color: theme.mutedStrong, fontSize: theme.fontSmall, lineHeight: 18 },
-    liveValue: { marginTop: 8, color: theme.ink, fontSize: 20, lineHeight: 28, fontWeight: '700' },
+    liveValue: { marginTop: 8, color: theme.ink, fontSize: 20, lineHeight: 28, fontWeight: '900' },
     metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 16 },
     metricItem: {
       flexGrow: 1,
@@ -684,9 +671,9 @@ const makeStyles = (theme: Theme) =>
     },
     metricValue: {
       color: theme.ink,
-      fontSize: 24,
-      lineHeight: 32,
-      fontWeight: '700',
+      fontSize: 32,
+      lineHeight: 42,
+      fontWeight: '900',
       fontVariant: ['tabular-nums'],
     },
     metricLabel: { marginTop: 4, color: theme.mutedStrong, fontSize: theme.fontSmall, lineHeight: 18 },
@@ -696,13 +683,13 @@ const makeStyles = (theme: Theme) =>
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.line,
     },
-    annotationTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600' },
+    annotationTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '800' },
     annotationHint: { marginTop: 4, color: theme.muted, fontSize: theme.fontSmall, lineHeight: 18 },
-    annotationActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 16 },
+    annotationActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
     annotationButton: {
       flex: 1,
       minWidth: 120,
-      minHeight: 76,
+      minHeight: 56,
       borderRadius: 14,
       borderWidth: 1,
       borderColor: theme.brand,
@@ -710,8 +697,8 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    annotationButtonValue: { color: theme.brand, fontSize: 21, fontWeight: '700' },
-    annotationButtonLabel: { marginTop: 4, color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '600' },
+    annotationButtonValue: { color: theme.brand, fontSize: 21, fontWeight: '900' },
+    annotationButtonLabel: { marginTop: 4, color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '800' },
     message: { marginTop: 12, color: theme.muted, fontSize: theme.fontSmall, lineHeight: 18 },
-    footer: { backgroundColor: theme.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
+    footer: { backgroundColor: theme.paper, borderTopWidth: 0, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
   })
