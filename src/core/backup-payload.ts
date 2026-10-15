@@ -1,4 +1,5 @@
 import { ClimbSession, ClimbWorkout, RouteTemplate, WorkoutRound } from './types'
+import { BuildingTemplate, normalizeBuildingTemplate } from './building-template'
 
 export interface BackupPayloadLike {
   version: 1 | 2
@@ -6,6 +7,9 @@ export interface BackupPayloadLike {
   routes: RouteTemplate[]
   sessions: ClimbSession[]
   workouts?: ClimbWorkout[]
+  /** Fusion templates are separate from the legacy route collection. */
+  buildings?: BuildingTemplate[]
+  hiddenLegacyRouteIds?: string[]
   /**
    * D09：可选携带「归档聚合」（长期统计账本）。旧备份没有该字段，恢复行为完全不变。
    * 字段内容损坏时只忽略该字段并记录原因（在 `archiveAggregateProblems` 里），
@@ -257,6 +261,20 @@ export function validateBackupPayload(
   if (!Array.isArray(payload.routes) || !Array.isArray(payload.sessions)) {
     return { ok: false, error: '备份内容缺少 routes 或 sessions 字段' }
   }
+  let buildings: BuildingTemplate[] | undefined
+  if (payload.buildings !== undefined) {
+    if (!Array.isArray(payload.buildings)) return { ok: false, error: '备份的楼栋模板字段无效' }
+    buildings = []
+    for (const raw of payload.buildings) {
+      const template = normalizeBuildingTemplate(raw)
+      if (!template || !template.id.trim()) return { ok: false, error: '备份含无法读取的楼栋模板，未导入任何数据' }
+      buildings.push(template)
+    }
+  }
+  if (payload.hiddenLegacyRouteIds !== undefined &&
+      (!Array.isArray(payload.hiddenLegacyRouteIds) || payload.hiddenLegacyRouteIds.some(id => typeof id !== 'string'))) {
+    return { ok: false, error: '备份的隐藏路线字段无效' }
+  }
   const workouts = Array.isArray(payload.workouts) ? payload.workouts : []
   const payloadWithoutArchive: BackupPayloadLike = {
     version: payload.version,
@@ -264,6 +282,8 @@ export function validateBackupPayload(
     routes: payload.routes,
     sessions: payload.sessions,
     workouts: sanitizeWorkoutCorrections(workouts),
+    ...(buildings !== undefined ? { buildings } : {}),
+    ...(payload.hiddenLegacyRouteIds !== undefined ? { hiddenLegacyRouteIds: [...new Set(payload.hiddenLegacyRouteIds)] } : {}),
   }
   // D09 验收 4c：归档聚合是**可选**字段。
   // - 旧备份没有该字段：结果对象里不出现这两个键（恢复行为与 D06/D08a 时期完全一致）。

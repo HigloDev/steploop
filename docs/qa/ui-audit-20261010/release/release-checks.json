@@ -1,0 +1,33 @@
+{
+  "package": "com.zxn.palou",
+  "device": "emulator-5582",
+  "standaloneColdStart": true,
+  "qaMetroStopped": true,
+  "visibleSaveAndDiscard": true,
+  "backKeepsTrainingWithoutAlert": true,
+  "shortSaveDoesNotExit": true,
+  "longDiscardReturnsHome": true,
+  "oldStoredValuesPreserved": true,
+  "oldStorageKeyCount": 8,
+  "nativeRuntimeErrors": 0,
+  "phoneInstalled": false,
+  "apkSha256": "7cfe25ba4c2c4aa2baeaa460ab7b8dbfb29fbf563a4d9343469836559626b94b",
+  "apkBytes": 75724634,
+  "version": "1.1.2",
+  "versionCode": 11,
+  "sameUpgradeCertificate": true,
+  "certificateSha256": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c",
+  "signingType": "Android Debug internal",
+  "releaseFixtureCodeExcluded": true,
+  "abis": [
+    "arm64-v8a",
+    "x86_64"
+  ],
+  "nativeLogoLaunchFrames": 6,
+  "homeHistorySettingsOpened": true,
+  "realProductionHookSavedTwoFloorsExactlyOnce": true,
+  "oldWorkoutEntitiesPreservedAfterSave": true,
+  "savedWorkoutSurvivesColdStart": true,
+  "installedApkSha256": "7cfe25ba4c2c4aa2baeaa460ab7b8dbfb29fbf563a4d9343469836559626b94b",
+  "installedPackageHashMatches": true
+}

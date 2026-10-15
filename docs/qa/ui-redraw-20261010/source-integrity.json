@@ -1,0 +1,14 @@
+{
+  "baseline": "G:\\CDriveData\\Users\\zxn\\Documents\\palou-ui-baselines\\20261010-002242",
+  "businessFilesCompared": 98,
+  "businessFilesChanged": [],
+  "buildInputFilesCompared": 359,
+  "buildInputsIdentical": true,
+  "existingTestFailures": {
+    "trainingBaseline": 29,
+    "trainingCurrent": 29,
+    "prdBaseline": 50,
+    "prdCurrent": 48,
+    "newFailingTestNames": []
+  }
+}

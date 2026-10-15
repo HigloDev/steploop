@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { preparationDeviceKey, scopePreparationToDevice } from './preparation-device'
 import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
 import { normalizeSession } from '../core/session'
+import type { BuildingTemplate } from '../core/building-template'
+import { BUILDINGS_KEY, HIDDEN_LEGACY_KEY } from './building-storage-keys'
 import { migrateRouteToV3 } from '../core/route-model'
 import {
   mergeById,
@@ -99,7 +101,7 @@ let recoveryPromise: Promise<void> | null = null
 
 /**
  * 首次读取/写入前检查未提交的存储操作日志并回滚。
- * 回滚失败不阻塞读取（用户至少能看到旧数据），但会在控制台明确报错。
+ * 回滚失败会保留日志并拒绝读写；故障消除后下次请求重新尝试。
  */
 function ensureRecovered(): Promise<void> {
   if (!recoveryPromise) {
@@ -110,13 +112,13 @@ function ensureRecovered(): Promise<void> {
             `[storage] 已回滚未完成的多键写入（${report.operation ?? 'unknown'} / ${report.entryId ?? '-'}）`,
           )
         } else if (report.failure) {
-          console.error(
-            `[storage] 未完成写入的自动回滚失败，将在下次启动重试：${report.failure}`,
-          )
+          throw new Error(`本地存储尚未恢复：${report.failure}`)
         }
       })
       .catch((error) => {
+        recoveryPromise = null
         console.error('[storage] 恢复检查失败', error)
+        throw error
       })
   }
   return recoveryPromise
@@ -154,13 +156,15 @@ export async function getCapacityStatus(): Promise<CapacityStatus> {
   }
 }
 
-async function readArray<T>(key: string): Promise<T[]> {
+async function readArray<T>(key: string, strict = false): Promise<T[]> {
   try {
     const raw = await AsyncStorage.getItem(key)
     if (!raw) return []
     const value = JSON.parse(raw)
+    if (!Array.isArray(value) && strict) throw new Error('集合内容不是数组')
     return Array.isArray(value) ? value : []
-  } catch {
+  } catch (error) {
+    if (strict) throw new Error(`本地存储读取失败（${key}）：${error instanceof Error ? error.message : String(error)}`)
     return []
   }
 }
@@ -241,6 +245,7 @@ async function writeJournaledKeys(
         throw new Error(`${key} 读回校验失败（写入未生效）`)
       }
     }
+    await commitScopedJournal(journalId)
   } catch (error) {
     const restoreProblems = await restoreKeysUnsafe(before, written)
     if (!restoreProblems.length) {
@@ -254,7 +259,6 @@ async function writeJournaledKeys(
       `${error instanceof Error ? error.message : String(error)}${detail}`,
     )
   }
-  await commitScopedJournal(journalId)
 }
 
 async function restoreKeysUnsafe(
@@ -280,12 +284,12 @@ async function restoreKeysUnsafe(
 
 /** 读取路线并在需要时把 v1/v2 惰性迁移为 v3（迁移写入同样受日志保护）。 */
 async function listRoutesUnsafe(): Promise<RouteTemplate[]> {
-  let routes = await readArray<RouteTemplate>(ROUTES_KEY)
+  let routes = await readArray<RouteTemplate>(ROUTES_KEY, true)
   if (!routes.length) {
-    const v2 = await readArray<RouteTemplate>(V2_ROUTES_KEY)
+    const v2 = await readArray<RouteTemplate>(V2_ROUTES_KEY, true)
     const legacy = v2.length
       ? v2
-      : await readArray<RouteTemplate>(LEGACY_ROUTES_KEY)
+      : await readArray<RouteTemplate>(LEGACY_ROUTES_KEY, true)
     if (legacy.length) {
       // 先完整转换，全部成功后再一次写入 V3。失败时继续读取旧数据，绝不清空。
       routes = legacy.map((route) => migrateRouteToV3(route))
@@ -306,7 +310,8 @@ async function listRoutesUnsafe(): Promise<RouteTemplate[]> {
         await AsyncStorage.removeItem(LEGACY_ROUTES_KEY)
       } catch (error) {
         console.warn('[storage] route v3 migration write failed', error)
-        // 旧数据仍然可读；未提交日志会在下次启动被回滚。
+        // Stop this operation; a later queued retry will recover the pending journal.
+        throw new Error('路线迁移尚未完成，原始数据已保留，请重试。')
       }
     }
   }
@@ -315,7 +320,7 @@ async function listRoutesUnsafe(): Promise<RouteTemplate[]> {
 
 export async function listRoutes(): Promise<RouteTemplate[]> {
   await ensureRecovered()
-  const routes = await listRoutesUnsafe()
+  const routes = await runSerial(listRoutesUnsafe)
   if (!routes.some(route => route.preparation)) return routes
   const deviceKey = await preparationDeviceKey()
   return routes.map(route => scopePreparationToDevice(route, deviceKey))
@@ -444,6 +449,8 @@ export interface BackupPayload {
   sessions: ClimbSession[]
   // 新增多轮训练记录，旧备份可能缺失，导入时按可选处理
   workouts?: ClimbWorkout[]
+  buildings?: BuildingTemplate[]
+  hiddenLegacyRouteIds?: string[]
   capacity?: {
     sessionsCount: number
     sessionsLimit: number
@@ -462,33 +469,39 @@ export interface BackupPayload {
 /** 导出当前设备的路线与会话数据；路线走 listRoutes 以保证已迁移且不丢旧键数据。 */
 export async function exportRawData(): Promise<BackupPayload> {
   await ensureRecovered()
-  const sessions = await readArray<ClimbSession>(SESSIONS_KEY)
-  const workouts = await readArray<ClimbWorkout>(WORKOUTS_KEY)
-  const meta = await readMeta()
-  // D09 4c：把「已归档明细的长期聚合」一并带走。
-  // 没有这个字段时，换设备恢复会丢掉被容量策略裁剪掉的历史贡献（统计少算，明细也在源设备上）。
-  const archiveAggregate = await readHistoryAggregateDoc()
-  return {
-    version: 2,
-    exportedAt: Date.now(),
-    routes: await listRoutes(),
-    sessions,
-    workouts,
-    archiveAggregate: archiveAggregate ?? undefined,
-    capacity: {
-      sessionsCount: sessions.length,
-      sessionsLimit: SESSIONS_LIMIT,
-      sessionsTrimmed: meta.sessionsTrimmed,
-      workoutsCount: workouts.length,
-      workoutsLimit: SESSIONS_LIMIT,
-      workoutsTrimmed: meta.workoutsTrimmed,
-    },
-  }
+  return runSerial(async () => {
+    const sessions = await readArray<ClimbSession>(SESSIONS_KEY, true)
+    const workouts = await readArray<ClimbWorkout>(WORKOUTS_KEY, true)
+    const meta = await readMeta()
+    // D09 4c：把「已归档明细的长期聚合」一并带走。
+    // 没有这个字段时，换设备恢复会丢掉被容量策略裁剪掉的历史贡献（统计少算，明细也在源设备上）。
+    const archiveAggregate = await readHistoryAggregateDoc()
+    return {
+      version: 2,
+      exportedAt: Date.now(),
+      routes: await listRoutesUnsafe(),
+      sessions,
+      workouts,
+      buildings: await readArray<BuildingTemplate>(BUILDINGS_KEY, true),
+      hiddenLegacyRouteIds: await readArray<string>(HIDDEN_LEGACY_KEY, true),
+      archiveAggregate: archiveAggregate ?? undefined,
+      capacity: {
+        sessionsCount: sessions.length,
+        sessionsLimit: SESSIONS_LIMIT,
+        sessionsTrimmed: meta.sessionsTrimmed,
+        workoutsCount: workouts.length,
+        workoutsLimit: SESSIONS_LIMIT,
+        workoutsTrimmed: meta.workoutsTrimmed,
+      },
+    }
+  })
 }
 
 export type ImportMode = 'merge' | 'replace'
 
 export interface PreImportSnapshot {
+  /** Exact optional keys allow undo to restore the original archive and fusion data. */
+  extraKeys?: Record<string, string | null>
   savedAt: number
   routes: RouteTemplate[]
   sessions: ClimbSession[]
@@ -653,7 +666,7 @@ export async function previewImportFromBackup(
   const previousSessions = await readHistoryCollection<ClimbSession>('sessions')
   const previousWorkouts = await readHistoryCollection<ClimbWorkout>('workouts')
   const localAggregate = await readHistoryAggregateDoc()
-  return previewImport({
+  const preview = previewImport({
     mode,
     incomingRoutes: checked.payload.routes.map((route) => migrateRouteToV3(route)),
     incomingSessions: checked.payload.sessions,
@@ -664,6 +677,12 @@ export async function previewImportFromBackup(
     carriedAggregate: checked.payload.archiveAggregate ?? null,
     hasLocalAggregate: localAggregate !== null,
   })
+  if (checked.payload.buildings !== undefined) {
+    preview.warnings.push(`本次将${mode === 'replace' ? '替换' : '合并'} ${checked.payload.buildings.length} 个楼栋模板，导入前快照可撤销。`)
+  } else {
+    preview.warnings.push('此备份不含楼栋模板，本机楼栋模板将保留。')
+  }
+  return preview
 }
 
 export interface ImportRawResult {
@@ -688,6 +707,12 @@ async function readSnapshot(): Promise<PreImportSnapshot | null> {
       return null
     }
     return {
+      ...(value.extraKeys && typeof value.extraKeys === 'object' ? {
+        extraKeys: Object.fromEntries(SNAPSHOT_EXTRA_KEYS.filter(key =>
+          Object.prototype.hasOwnProperty.call(value.extraKeys, key) &&
+          (value.extraKeys![key] === null || typeof value.extraKeys![key] === 'string'),
+        ).map(key => [key, value.extraKeys![key]])),
+      } : {}),
       savedAt: typeof value.savedAt === 'number' ? value.savedAt : 0,
       routes: value.routes,
       sessions: value.sessions,
@@ -698,13 +723,18 @@ async function readSnapshot(): Promise<PreImportSnapshot | null> {
   }
 }
 
+const SNAPSHOT_EXTRA_KEYS = [BUILDINGS_KEY, HIDDEN_LEGACY_KEY, HISTORY_AGG_KEY, STORAGE_META_KEY] as const
+
 /** 写导入前快照（覆盖式）。快照覆盖在导入失败时不应丢失，因此不在此处清理旧快照。 */
 async function writePreImportSnapshotUnsafe(): Promise<void> {
+  const extraKeys: Record<string, string | null> = {}
+  for (const key of SNAPSHOT_EXTRA_KEYS) extraKeys[key] = await readTextStrict(key)
   const snapshot: PreImportSnapshot = {
+    extraKeys,
     savedAt: Date.now(),
     routes: await listRoutesUnsafe(),
-    sessions: await readArray<ClimbSession>(SESSIONS_KEY),
-    workouts: await readArray<ClimbWorkout>(WORKOUTS_KEY),
+    sessions: await readArray<ClimbSession>(SESSIONS_KEY, true),
+    workouts: await readArray<ClimbWorkout>(WORKOUTS_KEY, true),
   }
   await setItemUnsafe(PRE_IMPORT_KEY, snapshot)
 }
@@ -729,9 +759,9 @@ export async function restorePreImportSnapshot(): Promise<{
   workoutsCount: number
 } | null> {
   await ensureRecovered()
-  const snapshot = await readSnapshot()
-  if (!snapshot) return null
   return runSerial(async () => {
+    const snapshot = await readSnapshot()
+    if (!snapshot) return null
     const previousSessions = await readHistoryCollection<ClimbSession>('sessions')
     const previousWorkouts = await readHistoryCollection<ClimbWorkout>('workouts')
     // 恢复同样受容量策略约束：原始明细不无限增长，被裁掉的计入聚合与计数。
@@ -770,8 +800,14 @@ export async function restorePreImportSnapshot(): Promise<{
       [WORKOUTS_KEY]: JSON.stringify(workouts),
       [HISTORY_AGG_KEY]: plan.aggRaw,
     }
+    // New snapshots restore the original ledger exactly; deriving it from the imported
+    // ledger would keep the imported archive even after the user chooses Undo.
+    for (const [key, value] of Object.entries(snapshot.extraKeys ?? {})) {
+      before[key] = await readTextStrict(key)
+      after[key] = value
+    }
     await writeJournaledKeys('restore', before, after)
-    await syncLegacyTrimMirror(plan.doc)
+    if (!snapshot.extraKeys || !(STORAGE_META_KEY in snapshot.extraKeys)) await syncLegacyTrimMirror(plan.doc)
     if (previousSessions.rawCorrupt || previousSessions.corrupt > 0) {
       await quarantineUnreadableCollection(
         'sessions',
@@ -895,6 +931,18 @@ export async function importRawData(
       [SESSIONS_KEY]: JSON.stringify(sessions),
       [WORKOUTS_KEY]: JSON.stringify(workouts),
       [HISTORY_AGG_KEY]: plan.aggRaw,
+    }
+    if (checked.payload.buildings !== undefined) {
+      before[BUILDINGS_KEY] = await readTextStrict(BUILDINGS_KEY)
+      const existing = await readArray<BuildingTemplate>(BUILDINGS_KEY, true)
+      after[BUILDINGS_KEY] = JSON.stringify(mode === 'replace'
+        ? checked.payload.buildings : mergeById(existing, checked.payload.buildings))
+    }
+    if (checked.payload.hiddenLegacyRouteIds !== undefined) {
+      before[HIDDEN_LEGACY_KEY] = await readTextStrict(HIDDEN_LEGACY_KEY)
+      const existing = await readArray<string>(HIDDEN_LEGACY_KEY, true)
+      after[HIDDEN_LEGACY_KEY] = JSON.stringify(mode === 'replace'
+        ? checked.payload.hiddenLegacyRouteIds : [...new Set([...existing, ...checked.payload.hiddenLegacyRouteIds])])
     }
     await writeJournaledKeys('import', before, after)
     await syncLegacyTrimMirror(plan.doc)

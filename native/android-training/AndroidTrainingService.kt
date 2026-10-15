@@ -30,6 +30,10 @@ class AndroidTrainingService : Service(), SensorEventListener {
   private var gyro = floatArrayOf(0f, 0f, 0f)
   private var orientation = floatArrayOf(0f, 0f, 0f)
   private var pressure: Float? = null
+  // 气压事件自身的时间戳（SensorEvent.timestamp，纳秒，elapsedRealtimeNanos 时基）。
+  // 加速度样本只“附带”最近一次气压；JS 端依据 pressureT 是否变化判断是否是新的气压事件，
+  // 并据此判定停更（stale），不再把旧气压值当成新时间戳的新读数。
+  private var pressureNanos = 0L
   private var steps: Float? = null
   private var lastAccelNanos = 0L
   private var intervalMs = 20L
@@ -102,7 +106,13 @@ class AndroidTrainingService : Service(), SensorEventListener {
     if (!running) return
     when (event.sensor.type) {
       Sensor.TYPE_GYROSCOPE -> gyro = event.values.copyOf(3)
-      Sensor.TYPE_PRESSURE -> pressure = event.values.firstOrNull()?.takeIf { it.isFinite() && it > 0 }
+      Sensor.TYPE_PRESSURE -> {
+        val value = event.values.firstOrNull()?.takeIf { it.isFinite() && it > 0 }
+        if (value != null) {
+          pressure = value
+          pressureNanos = event.timestamp
+        }
+      }
       Sensor.TYPE_STEP_COUNTER -> steps = event.values.firstOrNull()
       Sensor.TYPE_ROTATION_VECTOR -> {
         val rotation = FloatArray(9)
@@ -119,7 +129,11 @@ class AndroidTrainingService : Service(), SensorEventListener {
           .put("az", event.values[2] / SensorManager.GRAVITY_EARTH)
           .put("gx", gyro[0]).put("gy", gyro[1]).put("gz", gyro[2])
           .put("alpha", orientation[0]).put("beta", orientation[1]).put("gamma", orientation[2])
-        pressure?.let { frame.put("pressure", it) }
+        pressure?.let {
+          frame.put("pressure", it)
+          // 与 t 同一口径：clockOffsetMs + 事件纳秒时间戳 / 1e6（墙钟毫秒）。
+          frame.put("pressureT", clockOffsetMs + pressureNanos / 1_000_000L)
+        }
         steps?.let { frame.put("steps", it) }
         try {
           journal!!.append(frame)

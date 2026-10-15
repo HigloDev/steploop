@@ -674,14 +674,14 @@ export async function planHistoryLedgerChanges(
   changes: HistoryLedgerChange[],
   options?: {
     /**
-     * 本机没有账本时（例如新设备导入备份）用来「认领」备份里携带的归档聚合。
-     * 只在本机账本缺失时生效，避免把两台设备的账本混在一起重复计数。
+     * 显式认领已校验的备份账本（新设备或替换导入）。
+     * 调用方只在允许替换时传入；merge + 已有账本必须省略，避免重复计数。
      */
     adoptAggregate?: HistoryAggregateDoc | null
   },
 ): Promise<HistoryLedgerPlan> {
-  const previousAggRaw = await readRawLenient(HISTORY_AGG_KEY)
-  const existing = parseAggregateDoc(previousAggRaw) ?? options?.adoptAggregate ?? null
+  const previousAggRaw = await readRawStrict(HISTORY_AGG_KEY)
+  const existing = options?.adoptAggregate ?? parseAggregateDoc(previousAggRaw) ?? null
   const legacyTrimCounts = await readLegacyTrimCounts()
   const doc = existing ?? emptyAggregateDoc()
   let departedCount = 0
@@ -826,6 +826,7 @@ async function writeHistoryPair(
         throw new Error(`${key} 读回校验失败（写入未生效）`)
       }
     }
+    await commitScopedJournal(journalId)
   } catch (error) {
     const problems = await restoreScopedKeys(before, written)
     if (!problems.length) await abandonJournal()
@@ -836,7 +837,6 @@ async function writeHistoryPair(
       `${error instanceof Error ? error.message : String(error)}${detail}`,
     )
   }
-  await commitScopedJournal(journalId)
 }
 
 // ---------------------------------------------------------------------------
@@ -1193,13 +1193,13 @@ function ensureRecovered(): Promise<void> {
             `[history-repository] 已回滚未完成的写入（${report.operation ?? 'unknown'} / ${report.entryId ?? '-'}）`,
           )
         } else if (report.failure) {
-          console.error(
-            `[history-repository] 未完成写入的自动回滚失败，将在下次启动重试：${report.failure}`,
-          )
+          throw new Error(`本地存储尚未恢复：${report.failure}`)
         }
       })
       .catch((error) => {
+        recoveryPromise = null
         console.error('[history-repository] 恢复检查失败', error)
+        throw error
       })
   }
   return recoveryPromise

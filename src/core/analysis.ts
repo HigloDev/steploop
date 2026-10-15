@@ -184,8 +184,18 @@ export function inferRoute(frames: FeatureFrame[], markers: RouteMarker[]): Infe
   const candidates = boundaryCandidates(markers)
   const floorBoundaries = [0]
   const minSpacing = Math.min(1000, (duration / Math.max(1, estimatedFloorCount)) * 0.3)
+  // 无标记时按累计步数切分（而不是按总时长均分）：中途休息不会把边界拉偏。
+  const stepTimeAt = (fraction: number): number => {
+    if (totalSteps <= 0) return duration * fraction
+    let accumulated = 0
+    for (const frame of frames) {
+      accumulated += Math.max(0, frame.steps)
+      if (accumulated >= totalSteps * fraction) return frame.endMs
+    }
+    return duration
+  }
   for (let floor = 1; floor < estimatedFloorCount; floor += 1) {
-    const target = (duration * floor) / estimatedFloorCount
+    const target = stepTimeAt(floor / estimatedFloorCount)
     const lower = floorBoundaries.at(-1)! + minSpacing
     const upper = duration - (estimatedFloorCount - floor) * minSpacing
     floorBoundaries.push(Math.round(nearestBoundary(frames, candidates, target, lower, upper)))
@@ -363,9 +373,9 @@ function buildBoundariesFromManualMarks(
   for (const mark of floorMarks) {
     if (mark.atMs > boundaries.at(-1)! && mark.atMs <= last) boundaries.push(Math.round(mark.atMs))
   }
-  // 最后一条楼层标记就是终点；结束采集不应凭空多生成一层。
-  if (boundaries.length > 1) boundaries[boundaries.length - 1] = last
-  else boundaries.push(last)
+  // 最后一条楼层标记就是终点：保留它的真实时刻。旧实现把它替换成录制结束时间，
+  // 导致顶层停留（甚至走向电梯）的时间和步数都被算进最后一层。
+  if (boundaries.length === 1) boundaries.push(last)
   return boundaries
 }
 
@@ -393,6 +403,12 @@ export function buildFloorSplits(
   const firstT = samples[0]?.t ?? 0
   const totalAscent = estimatedAscentM ?? 0
   const perFloorAscent = totalAscent / Math.max(1, boundaries.length - 1)
+  // 有气压时每层爬升取该段首末气压差（而不是总高度均分），大堂层更高也能体现。
+  const baro = samples.filter((s) => typeof s.pressure === 'number' && (s.pressure ?? 0) > 0)
+  const pressureAround = (ms: number): number | undefined => {
+    const near = baro.filter((s) => Math.abs(s.t - firstT - ms) <= 1000).map((s) => s.pressure as number).sort((a, b) => a - b)
+    return near.length ? near[Math.floor(near.length / 2)] : undefined
+  }
   const allTurns = markers.filter(
     (m) => m.type === 'turn' || m.type === 'manual_turn',
   )
@@ -417,7 +433,12 @@ export function buildFloorSplits(
       durationMs: endMs - startMs,
       stepCount: stepsInSeg,
       turnCount: turnsInSeg || manualTurnsInSeg,
-      ascentM: Number(perFloorAscent.toFixed(1)),
+      ascentM: (() => {
+        const from = pressureAround(startMs)
+        const to = pressureAround(endMs)
+        if (from === undefined || to === undefined) return Number(perFloorAscent.toFixed(1))
+        return Number(Math.max(0, pressureToAltitude(to) - pressureToAltitude(from)).toFixed(1))
+      })(),
     })
   }
   return splits

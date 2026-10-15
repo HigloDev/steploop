@@ -4,11 +4,14 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
+import { BuildingThumb } from '../components/BuildingThumb'
+import { FlowSheet } from '../components/flow-sheet'
+import { loadFusionCheckpoint } from '../services/building-storage'
 import { Button, Card, EmptyState, Notice, Pill } from '../components/ui'
 import { useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
@@ -20,7 +23,7 @@ import {
 } from '../services/workout-storage'
 import { discardCheckpointAsAbandoned } from '../services/checkpoint-completion'
 import { calculateWorkoutSummary } from '../core/workout-summary'
-import { getFloorAchievementCount } from '../core/floors'
+import { getFloorTransitionCount } from '../core/floors'
 import {
   ActiveWorkoutCheckpoint,
   ClimbSession,
@@ -59,6 +62,8 @@ interface BaseCard {
   highlightLine: string
   // 累计爬升米数（用于顶部汇总，避免从显示文本解析）
   ascentM: number
+  // 与正文共用的实际完成层数，多轮合计；不采用路线楼高或过期缓存。
+  floors: number
   // 跳转目标
   target: { route: 'WorkoutResult'; params: { id: string } } | { route: 'Result'; params: { id: string } }
 }
@@ -80,7 +85,7 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
   let statusText = '未完成'
   let statusTone: BaseCard['statusTone'] = 'default'
   if (complete && !interrupted) {
-    statusText = `${summary.completeRounds} 轮`
+    statusText = '已完成'
     statusTone = 'good'
   } else if (interrupted) {
     statusText = '含中断'
@@ -89,8 +94,11 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
   if (w.rounds.some(r => r.completionSource === 'manual' || (r.corrections?.length ?? 0) > 0)) { statusText = '已修正'; statusTone = 'warn' }
   const pendingCount = w.rounds.filter(round => round.floorConfirmation === 'pending').length
   if (pendingCount) { statusText = `${pendingCount} 轮楼层待确认`; statusTone = 'warn' }
+  // fusion-v1：证据冲突或不足的轮次标“估算”，提醒用户在结算页核对。
+  const estimatedCount = w.rounds.filter(round => round.estimated === true && !(round.corrections?.length)).length
+  if (estimatedCount) { statusText = `${estimatedCount} 轮估算`; statusTone = 'warn' }
   const floorsPerRound =
-    getFloorAchievementCount(
+    getFloorTransitionCount(
       w.routeSnapshot.startFloor,
       w.routeSnapshot.endFloor,
     ) || w.routeSnapshot.floorsPerRound || 0
@@ -100,15 +108,17 @@ function workoutToCard(w: ClimbWorkout): BaseCard {
   return {
     id: w.id,
     kind: 'workout',
-    sortAt: w.updatedAt || w.startedAt,
+    // Correcting a result does not change the day on which the workout happened.
+    sortAt: w.startedAt || w.endedAt || w.createdAt || 0,
     title: w.routeSnapshot.locationName || w.routeSnapshot.name,
     subtitle: `${w.routeSnapshot.startFloor}层 → ${w.routeSnapshot.endFloor}层 · 单轮 ${floorsPerRound} 层`,
     statusText,
     statusTone,
     complete,
     interrupted,
-    metricsLine: `${summary.totalFloors} 层 · ${formatDuration(summary.activeDurationMs)} · ${summary.completeRounds} 轮`,
+    metricsLine: `${summary.totalFloors} 层 · ${Math.round(summary.totalAscentM)} 米 · ${formatDuration(summary.totalElapsedMs)}`,
     ascentM: summary.totalAscentM,
+    floors: summary.totalFloors,
     highlightLine: `净爬楼 ${formatDuration(summary.activeDurationMs)} · 总历时 ${formatDuration(summary.totalElapsedMs)}${
       summary.bestRoundMs ? ` · 最快 ${formatDuration(summary.bestRoundMs)}` : ''
     }`,
@@ -131,6 +141,7 @@ function sessionToCard(s: ClimbSession): BaseCard {
     statusTone = 'warn'
   }
   if (s.floorConfirmation === 'pending') { statusText = '楼层待确认'; statusTone = 'warn' }
+  const floors = s.floorConfirmation === 'pending' ? 0 : Math.max(0, getFloorTransitionCount(s.startFloor, s.finalFloor) || s.floorsCompleted || 0)
   return {
     id: s.id,
     kind: 'legacy_session',
@@ -141,8 +152,9 @@ function sessionToCard(s: ClimbSession): BaseCard {
     statusTone,
     complete: s.complete,
     interrupted,
-    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${s.recognitionVersion === 'motion-v3' ? Math.max(0, s.finalFloor - s.startFloor) : getFloorAchievementCount(s.startFloor, s.finalFloor) || s.floorsCompleted} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
+    metricsLine: `${s.floorConfirmation === 'pending' ? '楼层待确认' : `${floors} 层`} · ${formatDuration(s.durationMs ?? 0)}`,
     ascentM: s.floorConfirmation === 'pending' ? 0 : s.ascentM,
+    floors,
     highlightLine: `用时 ${formatDuration(s.durationMs ?? 0)} · 置信度 ${Math.round(s.confidence * 100)}%`,
     target: { route: 'Result', params: { id: s.id } },
   }
@@ -187,6 +199,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const styles = makeStyles(theme)
   const [cards, setCards] = useState<BaseCard[]>([])
   const [filter, setFilter] = useState<Filter>('all')
+  const [managing, setManaging] = useState<BaseCard | null>(null)
   const [totalCompleted, setTotalCompleted] = useState(0)
   const [totalAscent, setTotalAscent] = useState(0)
   const [week, setWeek] = useState({
@@ -198,6 +211,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [checkpoint, setCheckpoint] = useState<ActiveWorkoutCheckpoint | null>(null)
+  const [fusionPending, setFusionPending] = useState(false)
   const [workouts, setWorkouts] = useState<ClimbWorkout[]>([])
   const [trendBucket, setTrendBucket] = useState<TrendBucket>('week')
   const [trendPoints, setTrendPoints] = useState<TrendPoint[]>([])
@@ -208,11 +222,12 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const [nextWorkouts, sessions, cp, summary] = await Promise.all([
+      const [nextWorkouts, sessions, cp, summary, fusionCp] = await Promise.all([
         listWorkouts(),
         listSessions(),
         loadActiveCheckpoint(),
         historyRepository.summarize(),
+        loadFusionCheckpoint(),
       ])
       const items: BaseCard[] = [
         ...nextWorkouts.map(workoutToCard),
@@ -234,6 +249,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         consecutiveWeeks: progress.consecutiveWeeks,
       })
       setCheckpoint(cp)
+      setFusionPending(!!fusionCp)
       setWorkouts(nextWorkouts)
       setArchiveNotice(describeArchiveNotice(summary))
       setRouteBests(computeRoutePersonalBests(nextWorkouts))
@@ -294,12 +310,17 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         onRefresh={() => { void refresh() }}
         ListHeaderComponent={<>
         <Text style={styles.intro}>每一步向上，都留在这里。</Text>
+        {fusionPending && !checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
+          <Feather name="pause-circle" size={20} color={theme.amberInk} />
+          <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>回到首页继续或放弃</Text></View>
+          <Feather name="chevron-right" size={20} color={theme.amberInk} />
+        </Pressable> : null}
         {checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
           <Feather name="pause-circle" size={20} color={theme.amberInk} />
           <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>{PHASE_LABEL[checkpoint.phase]} · 返回训练页继续处理</Text></View>
           <Feather name="chevron-right" size={20} color={theme.amberInk} />
         </Pressable> : null}
-        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.green} accessibilityLabel="正在读取记录" /> : null}
+        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.brand} accessibilityLabel="正在读取记录" /> : null}
         {loadError ? <><Notice tone="danger">{loadError}</Notice><Button title="重新读取" onPress={() => { void refresh() }} /></> : null}
         {/* 归档说明（D09 验收 4b）：不再有与事实不符的容量文案（旧文案声称超限即删）。
             文案与数字来自 historyRepository.summarize() 的 trimmedTotal /
@@ -311,14 +332,14 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         ) : null}
 
         {!loading || cards.length > 0 ? <View style={styles.weekHero}>
-          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text><Feather name="trending-up" size={22} color={theme.green} /></View>
+          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text></View>
           <View style={styles.weekFloor} accessible accessibilityLabel={`本周共爬升 ${week.floors} 层`}>
             <Text style={styles.weekFloorValue}>{week.floors}</Text><Text style={styles.weekFloorUnit}>层爬升</Text>
           </View>
           <View style={styles.weekMetrics}>
-            <View style={styles.weekMetricItem}><Text style={styles.weekMetric}>{week.validWorkouts} 次</Text><Text style={styles.weekMetricLabel}>训练</Text></View>
-            <View style={styles.weekMetricItem}><Text style={styles.weekMetric}>{week.ascentM.toFixed(0)} 米</Text><Text style={styles.weekMetricLabel}>上升高度</Text></View>
-            <View style={styles.weekMetricItem}><Text style={styles.weekMetric}>{week.consecutiveWeeks} 周</Text><Text style={styles.weekMetricLabel}>连续训练</Text></View>
+            <Text style={styles.weekMetric}>训练 <Text style={{ fontWeight: '900' }}>{week.validWorkouts}</Text> 次</Text>
+            <Text style={styles.weekMetric}>上升高度 <Text style={{ fontWeight: '900' }}>{week.ascentM.toFixed(0)}</Text> 米</Text>
+            <Text style={styles.weekMetric}>连续训练 <Text style={{ fontWeight: '900' }}>{week.consecutiveWeeks}</Text> 周</Text>
           </View>
         </View> : null}
         <Disclosure title="趋势与最佳成绩">
@@ -427,28 +448,54 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         ) : null}
         renderItem={({ item: card, index }) => (
           <>
-            {index === 0 || dateText(card.sortAt).split(' ')[0] !== dateText(filtered[index - 1].sortAt).split(' ')[0] ? <Text style={styles.dateHeading}>{dateText(card.sortAt).split(' ')[0]}</Text> : null}
+            {index === 0 || dateText(card.sortAt).split(' ')[0] !== dateText(filtered[index - 1].sortAt).split(' ')[0] ? <Text style={styles.dateHeading}>{new Date(card.sortAt).getMonth() + 1}月{new Date(card.sortAt).getDate()}日 <Text style={{ color: theme.muted, fontSize: 14, fontWeight: '400' }}>{new Date(card.sortAt).toDateString() === new Date().toDateString() ? '今天' : new Date(card.sortAt).toDateString() === new Date(Date.now() - 86400000).toDateString() ? '昨天' : ''}</Text></Text> : null}
+            <Card style={[styles.card, styles.cardPressable]}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${card.title}，${dateText(card.sortAt)}，${card.metricsLine}，${card.statusText}`}
-              style={styles.cardPressable}
               onPress={() => navigation.navigate(card.target.route, card.target.params)}
             >
-              <Card style={styles.card}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                <BuildingThumb floors={card.floors} size={42} dynamic />
+                <View style={{ flex: 1 }}>
                 <View style={styles.cardHead}>
-                  <Text style={styles.cardTitle} >
+                  <Text style={styles.cardTitle} numberOfLines={2}>
                     {card.title}
                   </Text>
                   <Pill tone={card.statusTone}>{card.statusText}</Pill>
                 </View>
-                <Text style={styles.cardDate}>{dateText(card.sortAt).split(' ')[1] || '未知时间'} · {card.kind === 'workout' ? '多轮训练' : '单轮记录'}</Text>
-                <Text style={styles.cardMetrics}>{card.metricsLine}</Text>
-                <Text style={styles.cardHighlight}>{card.highlightLine}</Text>
-              </Card>
+                <Text style={[styles.cardMetrics, { paddingRight: 32 }]}>{card.metricsLine}</Text>
+                {card.interrupted || card.statusTone === 'warn' ? <Text style={styles.cardHighlight}>{card.highlightLine}</Text> : null}
+                </View>
+                </View>
             </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={`更多操作 ${card.title}`} onPress={() => setManaging(card)}
+              style={styles.moreButton}>
+              <MaterialCommunityIcons name="dots-horizontal" size={24} color={theme.mutedStrong} accessible={false} />
+            </Pressable>
+            </Card>
           </>
         )}
       />
+      {!loading && cards.length > 0 ? <View style={{ paddingHorizontal: theme.pagePaddingH, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <MaterialCommunityIcons name="information" size={18} color={theme.mutedStrong} />
+        <Text style={{ color: theme.mutedStrong, fontSize: 13, flex: 1 }}>点任意一次训练查看详情，支持修改层数。</Text>
+      </View> : null}
+      <FlowSheet visible={!!managing} title={managing?.title ?? '训练记录'} onClose={() => setManaging(null)}>
+        <Button title="查看与修改" onPress={() => {
+          if (!managing) return
+          const card = managing
+          setManaging(null)
+          navigation.navigate(card.target.route, card.target.params)
+        }} />
+        {managing?.kind === 'workout' ? <Button title="分享成绩" variant="secondary" onPress={() => {
+          if (!managing) return
+          const id = managing.target.params.id
+          setManaging(null)
+          navigation.navigate('ShareStudio', { id })
+        }} /> : null}
+        <Button title="取消" variant="secondary" onPress={() => setManaging(null)} />
+      </FlowSheet>
     </View>
   )
 }
@@ -464,23 +511,23 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8 },
-    intro: { color: theme.mutedStrong, fontSize: 15, lineHeight: 22, marginBottom: 24 },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 0 },
+    intro: { color: theme.mutedStrong, fontSize: 17, lineHeight: 24, marginBottom: 16,},
     loading: { marginVertical: 24 },
     checkpoint: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: theme.amberSoft, borderRadius: 14, marginBottom: 16, minHeight: 64 },
     checkpointCopy: { flex: 1 },
     checkpointSub: { color: theme.amberInk, fontSize: 14, lineHeight: 21, marginTop: 4 },
-    weekHero: { backgroundColor: theme.greenSoft, borderRadius: 20, padding: 20, marginBottom: 24 },
+    weekHero: { backgroundColor: theme.card, borderRadius: 20, padding: 20, marginBottom: 0,},
     weekHeroHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    weekFloor: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginVertical: 12 },
-    weekFloorValue: { color: theme.green, fontSize: 48, lineHeight: 58, fontWeight: '700', fontVariant: ['tabular-nums'] },
-    weekFloorUnit: { color: theme.mutedStrong, fontSize: 15, lineHeight: 22 },
+    weekFloor: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginVertical: 2,},
+    weekFloorValue: { color: theme.ink, fontSize: 62, lineHeight: 66, fontWeight: '900', fontVariant: ['tabular-nums'] },
+    weekFloorUnit: { color: theme.ink, fontSize: 20, lineHeight: 22, fontWeight: '800',},
     weekMetricItem: { flex: 1 },
     weekMetricLabel: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 4 },
-    listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 24, marginBottom: 12 },
-    sectionTitle: { color: theme.ink, fontSize: 17, lineHeight: 24, fontWeight: '600' },
+    listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20, marginBottom: 12 },
+    sectionTitle: { color: theme.ink, fontSize: 20, lineHeight: 24, fontWeight: '900',},
     recordCount: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18 },
-    dateHeading: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 16, marginBottom: 8 },
+    dateHeading: { color: theme.mutedStrong, fontSize: 20, lineHeight: 26, fontWeight: '800', marginTop: 8, marginBottom: 8,},
     summaryRow: {
       flexDirection: 'row',
       gap: 16,
@@ -509,20 +556,20 @@ const makeStyles = (theme: Theme) =>
     },
     weekLabel: {
       color: theme.ink,
-      fontSize: 15,
+      fontSize: 16,
       lineHeight: 22,
-      fontWeight: '600',
-      marginBottom: 8,
+      fontWeight: '800',
+      marginBottom: 4,
     },
     weekMetrics: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 12,
+      gap: 8,
       flexWrap: 'wrap',
     },
     weekMetric: {
       color: theme.ink,
-      fontSize: 17,
+      fontSize: 14,
       lineHeight: 24,
       fontWeight: '600',
       fontVariant: ['tabular-nums'],
@@ -567,24 +614,24 @@ const makeStyles = (theme: Theme) =>
     },
     filterRow: {
       flexDirection: 'row',
-      gap: 8,
+      gap: 10,
       marginBottom: 12,
-      backgroundColor: theme.card,
+      backgroundColor: 'transparent',
       borderRadius: 14,
-      padding: 4,
+      padding: 0,
     },
     filterChip: {
       paddingHorizontal: 14,
-      paddingVertical: 12,
+      paddingVertical: 8,
       minHeight: 48,
       flexGrow: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 10,
-    },
+      borderRadius: 24,
+     borderWidth: 1, borderColor: theme.line,},
     filterChipActive: {
-      backgroundColor: theme.greenSoft,
-    },
+      backgroundColor: theme.brand,
+     borderColor: theme.brand,},
     filterChipText: {
       color: theme.mutedStrong,
       fontSize: 14,
@@ -592,7 +639,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     filterChipTextActive: {
-      color: theme.green,
+      color: theme.onBrand,
     },
     cardPressable: {
       marginBottom: 12,
@@ -601,19 +648,20 @@ const makeStyles = (theme: Theme) =>
       padding: 16,
       borderRadius: 20,
     },
+    moreButton: { position: 'absolute', right: 4, bottom: 0, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
     cardHead: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: 4,
+      marginBottom: 2,
       gap: 8,
     },
     cardTitle: {
       flex: 1,
       color: theme.ink,
-      fontSize: 17,
+      fontSize: 18,
       lineHeight: 24,
-      fontWeight: '600',
+      fontWeight: '900',
     },
     cardDate: {
       color: theme.mutedStrong,
@@ -628,13 +676,12 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     cardMetrics: {
+      ...theme.numeric,
       color: theme.ink,
-      fontSize: 17,
+      fontSize: 16,
       lineHeight: 24,
-      fontWeight: '600',
-      fontVariant: ['tabular-nums'],
-      marginTop: 16,
-    },
+      marginTop: 0,
+     fontWeight: '500',},
     cardHighlight: {
       color: theme.mutedStrong,
       fontSize: 12,
@@ -648,7 +695,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     checkpointAction: {
-      color: theme.green,
+      color: theme.brand,
       fontSize: 13,
       fontWeight: '700',
       textDecorationLine: 'underline',

@@ -29,7 +29,8 @@ test('live totals combine saved rounds and current motion with distinct elapsed 
   assert.equal(result.activeMs, 150000)
   assert.equal(result.totalMs, 300000)
   assert.equal(result.nonClimbingMs, 150000)
-  assert.equal(result.calories, 20)
+  // Current net-energy model: 30 m inferred ascent, 60 kg, 150 s active.
+  assert.ok(Math.abs(result.calories - 26.101816443594647) < 1e-9)
   assert.equal(result.floorsPerMinute, 6.4)
 })
 
@@ -40,7 +41,7 @@ test('saving a round and entering the elevator do not count the old live snapsho
     assert.equal(result.steps, 280, phase)
     assert.equal(result.activeMs, 120000, phase)
     assert.equal(result.currentRoundActiveMs, phase === 'round_ready' ? 0 : 120000, phase)
-    assert.equal(result.calories, 16, phase)
+    assert.ok(Math.abs(result.calories - 20.881453154875718) < 1e-9, phase)
     assert.equal(result.nonClimbingMs, 180000, phase)
   }
 })
@@ -55,9 +56,10 @@ test('preparing and starting a new round resets its own time while preserving ac
   }
 })
 
-test('new floor transitions and legacy saved counting remain distinguishable', () => {
+test('legacy metadata stays intact while totals use traversed floor intervals', () => {
   const legacy = { startFloor: 1, finalFloor: 15, floorsCompleted: 15, durationMs: 120000, steps: 280 }
-  assert.equal(metrics({ rounds: [legacy], phase: 'workout_complete' }).floors, 15)
+  assert.equal(metrics({ rounds: [legacy], phase: 'workout_complete' }).floors, 14)
+  assert.equal(legacy.floorsCompleted, 15)
   assert.equal(metrics({ rounds: [], phase: 'ascending', snapshot: { currentFloor: 1, activeMs: 0, steps: 0 } }).floors, 0)
 })
 
@@ -68,7 +70,7 @@ test('waiting changes only elapsed/rest time, and calories use the workout weigh
   assert.equal(after.steps, before.steps)
   assert.equal(after.activeMs, before.activeMs)
   assert.equal(after.nonClimbingMs - before.nonClimbingMs, 60000)
-  assert.equal(metrics({ bodyWeightKg: 90 }).calories, 30)
+  assert.ok(Math.abs(metrics({ bodyWeightKg: 90 }).calories - 39.15272466539197) < 1e-9)
 })
 
 test('the result building reaches the exact cumulative count including above 60 and empty workouts', () => {

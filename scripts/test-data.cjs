@@ -2105,23 +2105,7 @@ test('D11-C 后台暂停提示：偏好默认未看过、写入后持久化', as
   assert.equal(after.bodyWeightKg, before.bodyWeightKg)
 })
 
-test('D11-C 开始前说明按偏好显示，统一开始入口与帮助可用', () => {
-  const fs = require('node:fs')
-  const source = fs.readFileSync(path.join(__dirname, '..', 'src/services/workout-entry.ts'), 'utf8')
-  assert.match(source, /backgroundPauseHintSeen === true/)
-  assert.match(source, /savePreferences\(\{ backgroundPauseHintSeen: true \}\)/)
-  assert.match(source, /后台缺段/)
-  assert.match(source, /手动修正最终楼层/)
-  for (const page of ['TrainHome', 'WorkoutSetup']) {
-    const content = fs.readFileSync(path.join(__dirname, '..', `src/pages/${page}.tsx`), 'utf8')
-    assert.match(content, /await confirmBackgroundRecording\(\)/)
-  }
-  const settings = fs.readFileSync(path.join(__dirname, '..', 'src/pages/Settings.tsx'), 'utf8')
-  assert.match(settings, /训练记录说明/)
-  assert.match(settings, /锁屏或切到其它应用时，系统会暂停传感器/)
-})
-
-// === F23：格式未知的日志不得「假装恢复成功」并销毁证据 ===
+// 已删除：D11-C 训练首页开始前说明的静态接线——旧 TrainHome.tsx 随 fusion-v1 新首页移除。
 test('F23 未知格式日志：不得宣称已恢复、不得删除日志', async () => {
   const storage = loadService(path.join('services', 'storage.js'))
   const journal = loadService(path.join('services', 'storage-journal.js'))
@@ -2242,7 +2226,7 @@ async function prepareCheckpointLifecycle({ withRound = false } = {}) {
     cp.currentRoundNumber = 2
     cp.completedRounds = [{ id: 'completed-before-interruption', roundNumber: 1,
       startedAt: 1000, endedAt: 2500, durationMs: 1500, startFloor: 1, targetFloor: 3,
-      finalFloor: 3, floorsCompleted: 3, ascentM: 6, steps: 18, confidence: 0.9,
+      finalFloor: 3, floorsCompleted: 2, ascentM: 6, steps: 18, confidence: 0.9,
       complete: true, completionReason: 'auto_finish', floorSplits: [], events: [], interruptions: [] }]
   }
   await storage.saveRoute(makeRoute(cp.templateId, '待恢复路线'))
@@ -2339,7 +2323,8 @@ for (const action of ['discard', 'save']) {
 test('恢复服务生命周期：保存、停止、复查、清除的顺序可观察', async () => {
   const { cp, w, completion } = await prepareCheckpointLifecycle({ withRound: true })
   trainingStopHook = async () => {
-    assert.equal((await w.getWorkout(cp.workoutId)).totalFloorsCompleted, 3,
+    // 统一楼层口径：1→3 楼爬升 2 层
+    assert.equal((await w.getWorkout(cp.workoutId)).totalFloorsCompleted, 2,
       '停止服务前成绩必须已写入')
     assert.equal((await w.loadActiveCheckpoint()).workoutId, cp.workoutId,
       '停止服务前恢复点必须仍在')
@@ -2426,4 +2411,294 @@ test('旧路线没有新检查字段时读取不改写旧记录', () => {
   const device = loadService(path.join('services', 'preparation-device.js'))
   const old = makeRoute('old-real-route', '旧路线仍然保留')
   assert.equal(device.scopePreparationToDevice(old, 'local'), old)
+})
+
+
+// Integration audit: fusion backup completeness and non-destructive read failures.
+function makeBuilding(id, name = id) {
+  return { schemaVersion: 1, id, name, startFloor: 1,
+    floors: [{ floorFrom: 1, floorTo: 2, heightM: 3, steps: 20, turns: 2, durationMs: 10000 }],
+    barometer: true, createdAt: 1000, updatedAt: 1000, version: 1 }
+}
+const BUILDINGS_KEY = 'steploop.buildings.v1'
+const HIDDEN_LEGACY_KEY = 'steploop.hiddenLegacyRoutes.v1'
+
+test('fusion building templates and hidden legacy choices survive export and new-device import', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const buildings = [makeBuilding('home', 'Home')]
+  store.set(BUILDINGS_KEY, JSON.stringify(buildings))
+  store.set(HIDDEN_LEGACY_KEY, JSON.stringify(['legacy-hidden']))
+  const backup = await storage.exportRawData()
+  assert.deepEqual(backup.buildings, buildings)
+  assert.deepEqual(backup.hiddenLegacyRouteIds, ['legacy-hidden'])
+  resetHistoryState()
+  await storage.importRawData(JSON.parse(JSON.stringify(backup)))
+  assert.deepEqual(JSON.parse(store.get(BUILDINGS_KEY)), buildings)
+  assert.deepEqual(JSON.parse(store.get(HIDDEN_LEGACY_KEY)), ['legacy-hidden'])
+})
+
+test('building replace and undo restore the original collection, including an absent original key', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  store.set(BUILDINGS_KEY, JSON.stringify([makeBuilding('local')]))
+  store.set(HIDDEN_LEGACY_KEY, JSON.stringify(['hidden-local']))
+  await storage.importRawData({ ...makePayload([]), buildings: [makeBuilding('incoming')], hiddenLegacyRouteIds: [] }, { mode: 'replace' })
+  assert.deepEqual(JSON.parse(store.get(BUILDINGS_KEY)).map(item => item.id), ['incoming'])
+  await storage.restorePreImportSnapshot()
+  assert.deepEqual(JSON.parse(store.get(BUILDINGS_KEY)).map(item => item.id), ['local'])
+  assert.deepEqual(JSON.parse(store.get(HIDDEN_LEGACY_KEY)), ['hidden-local'])
+  resetHistoryState()
+  await storage.importRawData({ ...makePayload([]), buildings: [makeBuilding('incoming')] })
+  await storage.restorePreImportSnapshot()
+  assert.equal(store.has(BUILDINGS_KEY), false)
+})
+
+test('legacy backups preserve local fusion templates even when replacing legacy data', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const original = JSON.stringify([makeBuilding('local')])
+  store.set(BUILDINGS_KEY, original)
+  await storage.importRawData(makePayload([]), { mode: 'replace' })
+  assert.equal(store.get(BUILDINGS_KEY), original)
+})
+
+test('building import merges by ID and invalid building fields write nothing', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  store.set(BUILDINGS_KEY, JSON.stringify([makeBuilding('same', 'Old'), makeBuilding('keep')]))
+  await storage.importRawData({ ...makePayload([]), buildings: [makeBuilding('same', 'New'), makeBuilding('added')] })
+  const buildings = JSON.parse(store.get(BUILDINGS_KEY))
+  assert.deepEqual(buildings.map(item => item.id).sort(), ['added', 'keep', 'same'])
+  assert.equal(buildings.find(item => item.id === 'same').name, 'New')
+  const before = [...store.entries()]
+  await assert.rejects(storage.importRawData({ ...makePayload([]), buildings: [null] }, { mode: 'replace' }), /楼栋模板/)
+  assert.deepEqual([...store.entries()], before)
+})
+
+test('building import failure rolls back legacy collections as well as new templates', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  await storage.saveRoute(makeRoute('local', 'Local'))
+  store.set(BUILDINGS_KEY, JSON.stringify([makeBuilding('local')]))
+  const before = snapshotStore([...COLLECTION_STORAGE_KEYS, BUILDINGS_KEY, HISTORY_KEYS.agg])
+  armSetItemFailureForKey(BUILDINGS_KEY)
+  await assert.rejects(storage.importRawData({ ...makePayload([makeRoute('incoming', 'Incoming')]), buildings: [makeBuilding('incoming')] }, { mode: 'replace' }), /已回滚/)
+  disarmSetItemFailure()
+  assert.deepEqual(snapshotStore([...COLLECTION_STORAGE_KEYS, BUILDINGS_KEY, HISTORY_KEYS.agg]), before)
+})
+
+test('replace adopts the backup archive and undo restores the previous archive and trim counts exactly', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const repository = loadRepository().historyRepository
+  for (let index = 0; index < 105; index++) {
+    await repository.saveWorkout(makeWorkoutAt('remote-' + index, { atMs: 10000 + index, floors: 3, ascentM: 9 }))
+  }
+  const remoteSummary = await repository.summarize()
+  const backup = await storage.exportRawData()
+  resetHistoryState()
+  for (let index = 0; index < 102; index++) {
+    await repository.saveWorkout(makeWorkoutAt('local-' + index, { atMs: 20000 + index, floors: 7, ascentM: 21 }))
+  }
+  const localSummary = await repository.summarize()
+  const originalKeys = snapshotStore([HISTORY_KEYS.agg, HISTORY_KEYS.meta])
+  await storage.importRawData(backup, { mode: 'replace' })
+  const imported = await repository.summarize()
+  assert.equal(imported.workoutCount, remoteSummary.workoutCount)
+  assert.equal(imported.totalFloors, remoteSummary.totalFloors)
+  assert.equal(imported.trimmedTotal, remoteSummary.trimmedTotal)
+  await storage.restorePreImportSnapshot()
+  assert.deepEqual(snapshotStore([HISTORY_KEYS.agg, HISTORY_KEYS.meta]), originalKeys)
+  const restored = await repository.summarize()
+  assert.equal(restored.workoutCount, localSummary.workoutCount)
+  assert.equal(restored.totalFloors, localSummary.totalFloors)
+  assert.equal(restored.trimmedTotal, localSummary.trimmedTotal)
+})
+
+test('a failed route read cannot turn a save into an overwrite of all previous routes', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  await storage.saveRoute(makeRoute('existing', 'Existing'))
+  const original = store.get(ROUTES_KEY)
+  const getItem = AsyncStorageMock.getItem
+  AsyncStorageMock.getItem = async key => { if (key === ROUTES_KEY) throw Error('temporary read failure'); return getItem(key) }
+  try {
+    await assert.rejects(storage.saveRoute(makeRoute('new', 'New')), /读取失败/)
+  } finally { AsyncStorageMock.getItem = getItem }
+  assert.equal(store.get(ROUTES_KEY), original)
+  await storage.saveRoute(makeRoute('new', 'New'))
+  assert.deepEqual((await storage.listRoutes()).map(item => item.id).sort(), ['existing', 'new'])
+})
+
+test('an unreadable history collection aborts backup export and import snapshot creation', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  store.set(SESSIONS_KEY, JSON.stringify([makeSession('existing')]))
+  const original = [...store.entries()]
+  const getItem = AsyncStorageMock.getItem
+  AsyncStorageMock.getItem = async key => { if (key === SESSIONS_KEY) throw Error('temporary read failure'); return getItem(key) }
+  try {
+    await assert.rejects(storage.exportRawData(), /读取失败/)
+    await assert.rejects(storage.importRawData(makePayload([]), { mode: 'replace' }), /读取失败/)
+  } finally { AsyncStorageMock.getItem = getItem }
+  assert.deepEqual([...store.entries()], original)
+})
+
+
+test('import commit-marker failure rolls every changed collection back before allowing a retry', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  await storage.saveRoute(makeRoute('local', 'Local'))
+  const before = snapshotStore([...COLLECTION_STORAGE_KEYS, HISTORY_KEYS.agg])
+  // snapshot, journal, routes, sessions, workouts, aggregate, committed marker
+  armSetItemFailure(7)
+  await assert.rejects(storage.importRawData(makePayload([makeRoute('incoming', 'Incoming')]), { mode: 'replace' }), /已回滚/)
+  disarmSetItemFailure()
+  assert.deepEqual(snapshotStore([...COLLECTION_STORAGE_KEYS, HISTORY_KEYS.agg]), before)
+  assert.equal(store.has(JOURNAL_KEY), false)
+  await storage.importRawData(makePayload([makeRoute('retry', 'Retry')]), { mode: 'replace' })
+  assert.equal((await storage.listRoutes())[0].id, 'retry')
+})
+
+test('history pair commit-marker failure rolls back a deleted workout and its ledger', async () => {
+  resetHistoryState()
+  const repository = loadRepository().historyRepository
+  await repository.saveWorkout(makeWorkoutAt('existing', { floors: 3 }))
+  const before = snapshotStore([WORKOUTS_KEY, HISTORY_KEYS.agg])
+  // journal, workouts, aggregate, committed marker
+  armSetItemFailure(4)
+  await assert.rejects(repository.deleteWorkout('existing'), /已回滚/)
+  disarmSetItemFailure()
+  assert.deepEqual(snapshotStore([WORKOUTS_KEY, HISTORY_KEYS.agg]), before)
+  assert.equal(store.has(JOURNAL_KEY), false)
+})
+
+
+async function assertWritesBlocked(storage, pattern) {
+  await assert.rejects(storage.saveRoute(makeRoute('blocked', 'Blocked')), pattern)
+  await assert.rejects(loadRepository().historyRepository.saveWorkout(makeWorkoutAt('blocked')), pattern)
+  await assert.rejects(loadService('services/workout-storage.js').saveActiveCheckpoint({ workoutId: 'blocked' }), pattern)
+  await assert.rejects(storage.importRawData(makePayload([]), { mode: 'replace' }), pattern)
+}
+
+function pendingRouteJournal(before) {
+  return JSON.stringify({ id: 'pending-protected', operation: 'import', createdAt: 1, scoped: true,
+    before: { [ROUTES_KEY]: before }, after: { [ROUTES_KEY]: { bytes: 2, hash: 1 } }, committed: false })
+}
+
+test('journal read failure rejects recovery and every subsequent data write without treating the store as empty', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const journal = loadService('services/storage-journal.js')
+  await storage.saveRoute(makeRoute('existing', 'Existing'))
+  const before = [...store.entries()]
+  const getItem = AsyncStorageMock.getItem
+  AsyncStorageMock.getItem = async key => { if (key === JOURNAL_KEY) throw Error('journal disk read failure'); return getItem(key) }
+  try {
+    await assert.rejects(journal.recoverPendingJournal(), /日志读取失败/)
+    await assertWritesBlocked(storage, /日志读取失败/)
+    assert.deepEqual([...store.entries()], before)
+  } finally { AsyncStorageMock.getItem = getItem }
+  await storage.saveRoute(makeRoute('retry', 'Retry'))
+  assert.deepEqual((await storage.listRoutes()).map(item => item.id).sort(), ['existing', 'retry'])
+})
+
+test('malformed and invalid-shape journals remain byte-for-byte intact while all data writes are blocked', async () => {
+  for (const raw of ['{incomplete', '', '{}', JSON.stringify({ id: 'invalid', committed: false, before: { routes: {} }, after: {} })]) {
+    resetHistoryState()
+    const storage = loadService('services/storage.js')
+    const journal = loadService('services/storage-journal.js')
+    store.set(ROUTES_KEY, JSON.stringify([makeRoute('existing', 'Existing')]))
+    store.set(JOURNAL_KEY, raw)
+    const before = [...store.entries()]
+    await assert.rejects(journal.recoverPendingJournal(), /日志/)
+    await assertWritesBlocked(storage, /日志/)
+    assert.deepEqual([...store.entries()], before)
+  }
+})
+
+test('failed recovery keeps the pending journal and blocks new transactions until a verified retry succeeds', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const journal = loadService('services/storage-journal.js')
+  const previous = JSON.stringify([makeRoute('original', 'Original')])
+  store.set(ROUTES_KEY, JSON.stringify([makeRoute('half-imported', 'Half imported')]))
+  store.set(JOURNAL_KEY, pendingRouteJournal(previous))
+  const before = [...store.entries()]
+  armSetItemFailureForKey(ROUTES_KEY)
+  try {
+    const report = await journal.recoverPendingJournal()
+    assert.equal(report.recovered, false)
+    assert.ok(report.failure)
+    await assertWritesBlocked(storage, /尚未恢复/)
+    await assert.rejects(journal.beginScopedJournal('history', {}, {}), /尚未恢复/)
+    assert.deepEqual([...store.entries()], before)
+  } finally { disarmSetItemFailure() }
+  await storage.saveRoute(makeRoute('retry', 'Retry'))
+  assert.deepEqual((await storage.listRoutes()).map(item => item.id).sort(), ['original', 'retry'])
+  assert.equal(store.has(JOURNAL_KEY), false)
+})
+
+test('recovery verifies rollback writes before deleting the only recovery journal', async () => {
+  resetHistoryState()
+  const journal = loadService('services/storage-journal.js')
+  const storage = loadService('services/storage.js')
+  store.set(ROUTES_KEY, JSON.stringify([makeRoute('half-imported', 'Half imported')]))
+  store.set(JOURNAL_KEY, pendingRouteJournal(JSON.stringify([makeRoute('original', 'Original')])))
+  const before = [...store.entries()]
+  const setItem = AsyncStorageMock.setItem
+  AsyncStorageMock.setItem = async (key, value) => { if (key !== ROUTES_KEY) await setItem(key, value) }
+  try {
+    const report = await journal.recoverPendingJournal()
+    assert.match(report.failure, /读回校验失败/)
+    await assert.rejects(storage.saveRoute(makeRoute('blocked', 'Blocked')), /尚未恢复/)
+    assert.deepEqual([...store.entries()], before)
+  } finally { AsyncStorageMock.setItem = setItem }
+})
+
+test('failure to remove a recovered pending journal prevents later writes from being rolled back again', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const journal = loadService('services/storage-journal.js')
+  const previous = JSON.stringify([makeRoute('original', 'Original')])
+  store.set(ROUTES_KEY, JSON.stringify([makeRoute('half-imported', 'Half imported')]))
+  store.set(JOURNAL_KEY, pendingRouteJournal(previous))
+  const rawJournal = store.get(JOURNAL_KEY)
+  const removeItem = AsyncStorageMock.removeItem
+  AsyncStorageMock.removeItem = async key => { if (key === JOURNAL_KEY) throw Error('remove failed'); return removeItem(key) }
+  try {
+    const report = await journal.recoverPendingJournal()
+    assert.match(report.failure, /日志未能清理/)
+    await assertWritesBlocked(storage, /尚未恢复/)
+    assert.equal(store.get(ROUTES_KEY), previous)
+    assert.equal(store.get(JOURNAL_KEY), rawJournal)
+  } finally { AsyncStorageMock.removeItem = removeItem }
+  await storage.saveRoute(makeRoute('retry', 'Retry'))
+  assert.deepEqual((await storage.listRoutes()).map(item => item.id).sort(), ['original', 'retry'])
+})
+
+test('startup recovery queues behind an active import instead of rolling it back midway', async () => {
+  resetHistoryState()
+  const storage = loadService('services/storage.js')
+  const journal = loadService('services/storage-journal.js')
+  await storage.saveRoute(makeRoute('local', 'Local'))
+  let reachedWrite, releaseWrite
+  const started = new Promise(resolve => { reachedWrite = resolve })
+  const released = new Promise(resolve => { releaseWrite = resolve })
+  const setItem = AsyncStorageMock.setItem
+  let blocked = false
+  AsyncStorageMock.setItem = async (key, value) => {
+    if (key === ROUTES_KEY && !blocked) { blocked = true; reachedWrite(); await released }
+    return setItem(key, value)
+  }
+  try {
+    const importing = storage.importRawData(makePayload([makeRoute('incoming', 'Incoming')]), { mode: 'replace' })
+    await started
+    const recovering = journal.recoverPendingJournal()
+    releaseWrite()
+    await importing
+    assert.equal((await recovering).recovered, false)
+    assert.deepEqual((await storage.listRoutes()).map(item => item.id), ['incoming'])
+  } finally { AsyncStorageMock.setItem = setItem; releaseWrite() }
 })

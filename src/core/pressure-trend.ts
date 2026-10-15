@@ -10,6 +10,25 @@ export interface PressureTrendSnapshot {
   reason: 'collecting' | 'continuous' | 'noisy_trend' | 'pressure_jump' | 'stale'
 }
 
+const TREND_WINDOW_MS = 12000
+/** 判定 level 需要的最短观察跨度：不足时宁可 unknown，也不报 level。 */
+const LEVEL_MIN_SPAN_MS = 9000
+const LEVEL_MAX_CHANGE_M = 0.25
+const DIRECTION_MIN_SPEED_MPS = 0.03
+
+function slopeMps(points: Array<{ t: number; pressure: number }>): number {
+  const t0 = points[0].t
+  let sx = 0, sy = 0, sxx = 0, sxy = 0
+  for (const point of points) {
+    const x = (point.t - t0) / 1000
+    const y = -point.pressure * METERS_PER_HPA
+    sx += x; sy += y; sxx += x * x; sxy += x * y
+  }
+  const n = points.length
+  const denom = n * sxx - sx * sx
+  return denom > 0 ? (n * sxy - sx * sy) / denom : 0
+}
+
 /** Relative pressure is context, never a floor counter or an endpoint requirement. */
 export class PressureTrend {
   private points: Array<{ t: number; pressure: number }> = []
@@ -37,7 +56,9 @@ export class PressureTrend {
     }
     this.baseline ??= pressure
     this.points.push({ t, pressure })
-    this.points = this.points.filter(point => point.t >= t - 4500)
+    // 旧实现只看 ~4.5s 窗口、|Δh|<0.3m 判 level：0.06 m/s 的慢爬 4.5s 只上升 0.27m，
+    // 会被误判为平地，识别器因此丢帧甚至清空进度。改为 12s 窗口 + 回归斜率累计判定。
+    this.points = this.points.filter(point => point.t >= t - TREND_WINDOW_MS)
     return this.snapshot(t)
   }
 
@@ -85,10 +106,15 @@ export class PressureTrend {
     const early = this.points.slice(0, 5).map(point => point.pressure).sort((a, b) => a - b)
     const initial = early[Math.floor(early.length / 2)]
     const changeM = (initial - current) * METERS_PER_HPA
-    const speedMps = changeM / (span / 1000)
-    // These broad signal guards are starting settings, not measured accuracy claims.
-    const direction: PressureDirection = Math.abs(changeM) < 0.3 ? 'level' : speedMps > 0.08 ? 'up'
-      : speedMps < -0.08 ? 'down' : 'level'
+    const speedMps = slopeMps(this.points)
+    // 累计判定：只有足够长的跨度内累计变化很小才是 level；跨度不足时按斜率给方向或 unknown。
+    let direction: PressureDirection
+    if (speedMps > DIRECTION_MIN_SPEED_MPS && changeM > 0.15) direction = 'up'
+    else if (speedMps < -DIRECTION_MIN_SPEED_MPS && changeM < -0.15) direction = 'down'
+    else if (span >= LEVEL_MIN_SPAN_MS && Math.abs(changeM) < LEVEL_MAX_CHANGE_M) direction = 'level'
+    // 短跨度只在斜率几乎为零、累计变化也很小时才判 level（0.06 m/s 慢爬 3s 已上升 0.18m，不会被误判）。
+    else if (Math.abs(speedMps) < 0.02 && Math.abs(changeM) < 0.12) direction = 'level'
+    else direction = 'unknown'
     return { direction, reliable: true, relativeHeightM, speedMps, changedAt: last.t, reason: 'continuous' }
   }
 }

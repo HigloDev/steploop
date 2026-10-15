@@ -1,0 +1,37 @@
+{
+  "package": "com.zxn.palou",
+  "version": "1.1.2",
+  "versionCode": 11,
+  "device": "emulator-5582",
+  "independentColdStart": true,
+  "qaMetroStopped": true,
+  "metroReverse8081Removed": true,
+  "homeHistorySettingsOpened": true,
+  "oldStoredValuesUnchanged": true,
+  "changedOldKeys": [],
+  "addedKeys": [],
+  "snapshots": [
+    {
+      "stage": "before",
+      "keys": 8,
+      "storageSha256": "4b4fb16f495d7cf54a61e5c6b69bbbb6df9359440c48535fabdcbae7571d45aa"
+    },
+    {
+      "stage": "after-launch",
+      "keys": 8,
+      "storageSha256": "4b4fb16f495d7cf54a61e5c6b69bbbb6df9359440c48535fabdcbae7571d45aa"
+    }
+  ],
+  "sameUpgradeCertificate": true,
+  "certificateSha256": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c",
+  "signingType": "Android Debug internal",
+  "releaseFixtureCodeExcluded": true,
+  "nativeRuntimeErrors": 0,
+  "apkBytes": 75568635,
+  "apkSha256": "c50eaf90886c846bab3eb3403f431c28fd9e9a8f817924a8339bf40c1fc3db97",
+  "abis": [
+    "arm64-v8a",
+    "x86_64"
+  ],
+  "physicalDeviceConnected": false
+}

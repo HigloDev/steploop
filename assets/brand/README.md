@@ -1,5 +1,11 @@
 # 循阶品牌图标
 
+当前 1.1.2 使用黑橙品牌资源，说明见 [AUDIT-20261010.md](AUDIT-20261010.md)。默认打包命令 `node scripts/package-brand-assets.cjs` 已指向当前资源；复查命令为 `python scripts/ui-audit-logo-check.py`。
+
+## 历史蓝色方案
+
+以下保留 2026-10-04 的母版记录。只有显式传入 `--legacy` 才会重新打包旧版蓝色资源。
+
 2026-10-04：用户选择“人物向上爬楼”方案，替换旧荧光绿人物图标和 App 内作为品牌标识使用的普通楼梯符号。
 
 - `master.png`：内置 Image Gen 根据用户批准方案生成的黑色透明母版。

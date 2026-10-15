@@ -15,10 +15,10 @@ function load(module) {
 }
 
 // === floors：楼层口径 ===
-test('floors: 1层到15层为14段真实爬升、15层成绩', () => {
+test('floors: 1层到15层为14段真实爬升、统一按爬升段数（fusion-v1 起旧“到达口径”废弃）', () => {
   const { getFloorTransitionCount, getFloorAchievementCount } = load('floors')
   assert.equal(getFloorTransitionCount(1, 15), 14)
-  assert.equal(getFloorAchievementCount(1, 15), 15)
+  assert.equal(getFloorAchievementCount(1, 15), 14)
   assert.equal(getFloorTransitionCount(5, 5), 0)
   assert.equal(getFloorAchievementCount(5, 5), 0)
 })
@@ -120,7 +120,7 @@ test('workout-summary: 汇总字段正确派生', () => {
   )
   assert.equal(summary.totalRounds, 3)
   assert.equal(summary.completeRounds, 3)
-  assert.equal(summary.totalFloors, 48)
+  assert.equal(summary.totalFloors, 45)
   assert.equal(summary.totalAscentM, 144)
   assert.equal(summary.totalSteps, 1470)
   assert.equal(summary.activeDurationMs, 807000)
@@ -1333,15 +1333,15 @@ test('preflight: 腰包携带给出固定建议且不阻塞', () => {
 })
 
 // === D06：人工修正链 / 成绩来源 / 学习资格 ===
-// 复用的轮次夹具：1 层出发到达 12 层 = 12 层成绩，每层 3 米。
+// 复用的轮次夹具：1 层出发到达 12 层 = 爬升 11 层（统一口径），每层 3 米。
 function makeCorrectableRound(overrides = {}) {
   return {
     ...makeRound(1, 200000),
     startFloor: 1,
     targetFloor: 12,
     finalFloor: 12,
-    floorsCompleted: 12,
-    ascentM: 36,
+    floorsCompleted: 11,
+    ascentM: 33,
     confidence: 0.9,
     complete: true,
     completionReason: 'route_complete',
@@ -1371,11 +1371,11 @@ test('D06: 修正最终楼层保留原值、同步楼层与爬升、标记人工
   assert.equal(next.corrections[0].before.finalFloor, 12)
   assert.equal(next.corrections[0].after.finalFloor, 13)
   assert.equal(next.finalFloor, 13)
-  // floorsCompleted 用与展示同一口径（getFloorAchievementCount），ascentM 按每层爬升等比缩放
-  assert.equal(next.floorsCompleted, 13)
-  assert.equal(next.corrections[0].after.floorsCompleted, 13)
-  assert.equal(next.ascentM, 39, '每层 3 米 × 13 层')
-  assert.equal(next.corrections[0].after.ascentM, 39)
+  // floorsCompleted 用与展示同一口径（爬升段数），ascentM 按每层爬升重新计算
+  assert.equal(next.floorsCompleted, 12)
+  assert.equal(next.corrections[0].after.floorsCompleted, 12)
+  assert.equal(next.ascentM, 36, '每层 3 米 × 12 层')
+  assert.equal(next.corrections[0].after.ascentM, 36)
   assert.equal(next.trustworthy, false)
   assert.equal(next.completionSource, 'manual')
   assert.equal(next.userCorrectionCount, 1)
@@ -1443,8 +1443,8 @@ test('D06: 链式修正保留每一步原值', () => {
   assert.equal(twice.corrections[1].before.finalFloor, 13, '第二次修正的 before 是第一次的结果')
   assert.equal(twice.corrections[1].after.finalFloor, 14)
   assert.equal(twice.finalFloor, 14)
-  assert.equal(twice.floorsCompleted, 14)
-  assert.equal(twice.ascentM, 42)
+  assert.equal(twice.floorsCompleted, 13)
+  assert.equal(twice.ascentM, 39)
   assert.equal(twice.userCorrectionCount, 2)
   const chain = summarizeCorrectionChain(twice)
   assert.equal(chain.count, 2)
@@ -2101,7 +2101,7 @@ test('D07: 无 plan 字段的旧数据导入与汇总行为不变（回归）', 
   )
   assert.equal(summary.totalRounds, 2)
   assert.equal(summary.completeRounds, 2)
-  assert.equal(summary.totalFloors, 32)
+  assert.equal(summary.totalFloors, 30)
   assert.equal(summary.totalAscentM, 96)
   assert.equal(summary.activeDurationMs, 400000)
   // D06 追加字段对旧数据照常为 0（本任务没有回退 D06 的改动）
@@ -2477,7 +2477,7 @@ test('D07b: 无计划训练（旧目标）汇总与判定不变', () => {
   const { calculateWorkoutSummary, checkGoalReached } = load('workout-summary')
   const rounds = [makeRound(1, 360000), makeRound(2, 360000), makeRound(3, 360000)]
   const summary = calculateWorkoutSummary(rounds, 1000, 1000 + 1080000)
-  assert.equal(summary.totalFloors, 48)
+  assert.equal(summary.totalFloors, 45)
   assert.equal(summary.activeDurationMs, 1080000)
   assert.equal('warmupDurationMs' in summary, false)
   assert.equal(checkGoalReached(summary, { type: 'rounds', targetRounds: 3 }).reached, true)
@@ -2497,122 +2497,8 @@ test('D07b: 无计划训练（旧目标）汇总与判定不变', () => {
 })
 
 // 验收 1/2/4/6：hook 的静态接线（无渲染器，只能证明源码接线与口径）
-test('D07b: useClimbWorkout 静态接线（计划推进/热身入账/检查点持久化）', () => {
-  const fs = require('node:fs')
-  const source = fs.readFileSync(
-    path.join(__dirname, '..', 'src', 'hooks', 'useClimbWorkout.ts'),
-    'utf8',
-  )
-  // 计划纯函数只从 core/workout-plan 引入
-  assert.match(source, /from '\.\.\/core\/workout-plan'/)
-  assert.match(source, /nextPlanPhase\(/)
-  assert.match(source, /advancePlanProgress\(/)
-  assert.match(source, /canSkipPhase\(/)
-  assert.match(source, /finishPlanProgress\(/)
-  assert.match(source, /initialPlanProgress\(/)
-  assert.match(source, /buildPlanFeedback\(/)
-  assert.match(source, /withPlanCursor\(/)
-  // 推进时机：热身结束 / 上爬结束 / 返回结束 / 恢复结束各推进一次
-  assert.ok(
-    source.includes("currentPlanPhase()?.kind === 'warmup'") &&
-      (source.match(/advancePlan\('completed'\)/g) ?? []).length >= 3,
-    '热身/上爬/返回/恢复结束时推进计划',
-  )
-  assert.ok(
-    source.includes("currentPlanPhase()?.kind === 'recovery') advancePlan('completed')"),
-  )
-  assert.ok(
-    source.includes("currentPlanPhase()?.kind === 'return') advancePlan('completed')"),
-  )
-  assert.ok(
-    source.includes("currentPlanPhase()?.kind === 'climb') advancePlan('completed')"),
-  )
-  // 跳过：只有 canSkipPhase 为真才推进，热身/恢复两条路径都在
-  assert.ok(
-    source.includes(
-      'if (!p || !progress || !phase || !canSkipPhase(p, phase)) return false',
-    ),
-  )
-  assert.ok(source.includes("advancePlan('skipped')"))
-  // 检查点持久化：条件展开，旧形状（无计划）保持一致。
-  // F18 起，同一分支里还会写入热身净时长与自由加练标记（仍是无计划时不写）。
-  assert.ok(
-    /planRef\.current\s*\?\s*\{\s*plan: planRef\.current,/.test(source),
-    '检查点必须仍按「有计划才写 plan」的条件展开',
-  )
-  assert.ok(
-    source.includes('warmupDurationMs: warmupAccumulatedRef.current'),
-    'F18：热身净时长必须随计划写入检查点',
-  )
-  assert.ok(source.includes('...(planProgressRef.current'))
-  // 恢复：读检查点里的 plan/planProgress；旧检查点保持 undefined
-  assert.ok(source.includes('const restoredPlan = checkpoint.plan'))
-  assert.ok(source.includes('let restoredProgress = checkpoint.planProgress'))
-  assert.ok(source.includes('planId: restoredPlan.id'))
-  // 热身净时长只作为 extras 传入，绝不进 activeDurationMs / return / recovery
-  assert.ok(source.includes('activePlan ? { warmupDurationMs } : undefined'))
-  assert.equal(
-    /activeDurationMs:[^\n]*warmupDurationMs/.test(source),
-    false,
-    'activeDurationMs 不得包含热身时长',
-  )
-  assert.equal(
-    /activeDurationMs:[^\n]*(returnDurationMs|recoveryDurationMs)/.test(source),
-    false,
-    'activeDurationMs 不得包含返回/恢复时长',
-  )
-  // 结束与中止都会收尾计划（保留已完成阶段）
-  assert.equal((source.match(/finishPlan\(\)/g) ?? []).length >= 2, true)
-})
+// 已删除：D07b useClimbWorkout 静态接线——旧训练 hook 随 fusion-v1 移除（新 hook：useFusionWorkout）。
 
-// 验收 1/2/6：设置页与训练页的静态接线
-test('D07b: 训练设置页/训练页静态接线（计划创建、阶段提示、跳过、反馈）', () => {
-  const fs = require('node:fs')
-  const setup = fs.readFileSync(
-    path.join(__dirname, '..', 'src', 'pages', 'WorkoutSetup.tsx'),
-    'utf8',
-  )
-  const workout = fs.readFileSync(
-    path.join(__dirname, '..', 'src', 'pages', 'ClimbWorkout.tsx'),
-    'utf8',
-  )
-
-  // 设置页：显式传入 id/now 构建计划（core 里不得调 Date.now()），并把计划放进路由参数
-  assert.match(setup, /buildPlanFromGoal\(/)
-  assert.ok(setup.includes('`plan-${id}-${now}`'), '计划 id 由页面显式生成')
-  assert.match(setup, /includeWarmup: planWarmup/)
-  assert.match(setup, /includeRecovery: planRecovery/)
-  assert.match(setup, /describePlanStructure\(/)
-  assert.match(setup, /\.\.\.\(plan \? \{ plan \} : \{\}\)/)
-  assert.match(setup, /navigation\.replace\('ClimbWorkout', params\)/)
-  assert.match(setup, /按计划训练/)
-
-  // 训练页：计划透传给 hook
-  assert.match(workout, /plan: planParam/)
-  assert.match(workout, /planPhaseLabel\(workout\.planPhase\.kind\)/)
-  // 阶段提示包含剩余轮数
-  assert.match(workout, /workout\.planRemainingRounds/)
-  // 跳过按钮：热身与恢复各一个，且用 canSkipCurrentPlanPhase 控制
-  assert.match(workout, /跳过热身/)
-  assert.match(workout, /跳过休息/)
-  assert.match(workout, /workout\.canSkipCurrentPlanPhase/)
-  assert.match(workout, /workout\.skipCurrentPlanPhase/)
-  // 反馈文案只来自 buildPlanFeedback（hook）的输出，页面不另写判定
-  assert.match(workout, /planLines=\{workout\.planFeedback\?\.lines \?\? \[\]\}/)
-  assert.match(workout, /feedbackLines=\{workout\.planFeedback\?\.lines \?\? \[\]\}/)
-  assert.equal(
-    /planFeedback[\s\S]{0,60}targetRounds/.test(workout),
-    false,
-    '页面不得基于 planFeedback 另写一套目标判定',
-  )
-  // 热身阶段不自动开爬（否则热身形同虚设）
-  assert.match(workout, /if \(workout\.planPhase\?\.kind === 'warmup'\) return/)
-  // 热身时长单独展示（休息不算上爬）
-  assert.match(workout, /workout\.summary\.warmupDurationMs/)
-})
-
-// 验收 1/2：状态机与计划阶段全程同步（模拟一次 3 轮带热身/恢复的训练，
-// 按 hook 的真实调用顺序：先推进计划，再 dispatch 状态机）
 test('D07b: 状态机与计划阶段全程同步（3 轮：热身→上爬→返回→恢复）', () => {
   const P = load('workout-plan')
   const M = load('workout-machine')
@@ -3128,36 +3014,7 @@ test('D10: ShareStudio 分享文本与海报不含地点（静态接线）', () 
 })
 
 // 验收 4：减少动画时传感器可视化降级（静态接线 + 关键常量）
-test('D10: 减少动画时波形降级为低频更新（静态接线）', () => {
-  const viz = readSource('src/components/sensor-motion-visualizer.tsx')
-  const ui = readSource('src/components/ui.tsx')
-
-  // 统一监听系统「减少动画」开关
-  assert.match(ui, /export function useReduceMotion\(\)/)
-  assert.match(ui, /AccessibilityInfo\.isReduceMotionEnabled\(\)/)
-  assert.match(ui, /'reduceMotionChanged'/)
-  assert.match(viz, /useReduceMotion\(\)/)
-  // 降级：10 秒低频刷新，而不是跟随 2.5fps 流式刷新
-  assert.match(viz, /REDUCED_MOTION_REFRESH_MS\s*=\s*10000/)
-  assert.match(viz, /useDisplayWaves\(/)
-  assert.match(viz, /setInterval\(/)
-  assert.ok(
-    viz.includes('reducedMotion ? REDUCED_MOTION_REFRESH_MS : 0'),
-    '减少动画时切换到低频通路',
-  )
-  // 波形是 2.5fps 的：绝不能挂 live region 逐帧播报
-  assert.equal(
-    /accessibilityLiveRegion/.test(viz),
-    false,
-    '波形不得逐帧播报（UX 规范要求状态播报限频）',
-  )
-  // 图表有文字摘要（UX 规范：图表提供文字摘要）
-  assert.match(viz, /accessibilityRole="image"/)
-  assert.ok(viz.includes('accessibilityLabel={chartSummary}'))
-  assert.ok(viz.includes('已按系统「减少动画」设置降级'))
-})
-
-// 验收 5：控件语义与可读名称（ui.tsx 静态接线）
+// 已删除：D10 波形可视化降级的静态接线——sensor-motion-visualizer 只用于旧的熟悉/检查流程，已移除。
 test('D10: 控件读屏语义与可读名称来自可见文本（静态接线）', () => {
   const ui = readSource('src/components/ui.tsx')
 
@@ -3207,8 +3064,9 @@ test('D10: 大字体下关键控件不依赖固定高度（静态断言）', () 
   for (const file of [
     'src/components/ui.tsx',
     'src/pages/ShareStudio.tsx',
-    'src/pages/WorkoutResult.tsx',
-    'src/pages/TrainHome.tsx',
+    'src/pages/Summary.tsx',
+    'src/pages/Home.tsx',
+    'src/pages/Workout.tsx',
   ]) {
     assert.equal(
       readSource(file).includes('maxFontSizeMultiplier'),
@@ -3260,20 +3118,21 @@ test('D10: 缺字段的旧记录不崩且仍不泄露地点', () => {
   assert.equal(barePayload.body.includes('路线'), false)
 })
 
-// 验收 5/4：结果页与训练页的读屏语义、庆祝动效降级（静态接线）
-test('D10: 结果页庆祝动效尊重减少动画，关键数值成组朗读（静态接线）', () => {
-  const result = readSource('src/pages/WorkoutResult.tsx')
-  assert.ok(result.includes('useReduceMotion'))
-  assert.match(result, /if \(reduceMotion\) \{\s*badgeScale\.setValue\(1\)/)
-  assert.ok(result.includes('accessibilityRole="header"'))
-  assert.ok(result.includes('accessible'))
-  assert.ok(result.includes('本次共爬升'))
-
-  const train = readSource('src/pages/TrainHome.tsx')
-  assert.ok(train.includes('accessibilityRole="header"'), '页面标题要有 header 语义')
-  assert.ok(train.includes('accessibilityLiveRegion="polite"'))
-  assert.ok(train.includes('已完成 ${roundsDone} 轮，已爬 ${floorsDone} 层'))
-  assert.ok(train.includes('本周有效训练：爬升'))
+// 验收 5/4（fusion-v1 改版后）：训练页数字动画尊重减少动画；结算/首页关键数值成组朗读（静态接线）
+test('D10: 训练页数字动画尊重减少动画，关键数值成组朗读（静态接线）', () => {
+  const ui = readSource('src/components/workout-ui.tsx')
+  assert.ok(ui.includes('useReduceMotion'), '数字翻动动画必须尊重系统“减少动画”')
+  assert.match(ui, /if \(reduced\) return/)
+  assert.ok(ui.includes('accessibilityLiveRegion="polite"'), '楼层数字变化要能被读屏播报')
+  const workout = readSource('src/pages/Workout.tsx')
+  assert.ok(workout.includes('HoldToConfirm'), '结束训练必须长按确认')
+  assert.ok(workout.includes('accessibilityLabel={`到了一层'))
+  const summary = readSource('src/pages/Summary.tsx')
+  assert.ok(summary.includes('accessibilityLabel={`总爬升'), '总爬升成组朗读')
+  assert.ok(summary.includes('估算'))
+  const home = readSource('src/pages/Home.tsx')
+  assert.ok(home.includes('accessibilityLabel={`本周累计爬升'))
+  assert.ok(home.includes('开始爬楼'))
 })
 
 
@@ -3313,39 +3172,7 @@ test('D14-guard 隐私说明与诊断包实际采集字段一致（防止声明�
   assert.match(privacy, /归档/, '隐私说明必须说明历史记录会被归档为长期统计')
 })
 
-test('F18 检查点携带热身净时长与自由加练标记（含旧检查点兼容）', () => {
-  const types = readSource('src/core/types.ts')
-  const hook = readSource('src/hooks/useClimbWorkout.ts')
-
-  // 1) 检查点契约里有这两个可选字段（无计划训练/旧检查点不写）
-  assert.match(types, /warmupDurationMs\?: number/, '检查点必须能携带热身净时长')
-  assert.match(types, /extraRounds\?: boolean/, '检查点必须能携带自由加练标记')
-
-  // 2) 持久化路径：带计划时写入，无计划时不写（旧形状逐字段不变）
-  assert.match(
-    hook,
-    /planRef\.current\s*\?\s*\{\s*plan: planRef\.current,\s*warmupDurationMs: warmupAccumulatedRef\.current,\s*extraRounds: extraRoundsRef\.current,/s,
-    'persistCheckpoint 必须把热身净时长与自由加练标记随计划一起写入',
-  )
-
-  // 3) 恢复路径：读回并夹到非负；旧检查点缺字段时回落 0/false
-  assert.match(
-    hook,
-    /warmupAccumulatedRef\.current = Math\.max\(\s*0,\s*checkpoint\.warmupDurationMs \?\? 0,?\s*\)/s,
-    '恢复时必须把热身净时长夹到非负',
-  )
-  assert.match(
-    hook,
-    /extraRoundsRef\.current = checkpoint\.extraRounds === true/,
-    '恢复时自由加练标记必须严格按 true 判定（缺字段 → false）',
-  )
-
-  // 4) ref 与 state 必须同步，否则持久化会滞后一拍
-  const setTrue = hook.indexOf('extraRoundsRef.current = true')
-  const setFalseCount = (hook.match(/extraRoundsRef\.current = false/g) || []).length
-  assert.ok(setTrue > -1, '进入自由加练时必须同步 ref')
-  assert.ok(setFalseCount >= 2, '重置自由加练时（两处）必须同步 ref')
-})
+// 已删除：F18 检查点热身/自由加练的 hook 静态接线——计划训练随旧训练 hook 移除（类型字段保留以读取旧检查点）。
 
 test('F12 reducer 是时间的纯函数：时间戳由动作提供，缺失即抛错', () => {
   const M = load('workout-machine')
@@ -3396,7 +3223,6 @@ test('F12 reducer 是时间的纯函数：时间戳由动作提供，缺失即�
 test('D14-guard 发布说明的关键声明与实现一致（防止声明漂移）', () => {
   const notes = readSource('docs/release-notes-draft.md')
   const repo = readSource('src/services/history-repository.ts')
-  const setup = readSource('src/pages/WorkoutSetup.tsx')
   const tabs = readSource('src/navigation/MainTabs.tsx')
   const share = readSource('src/pages/ShareStudio.tsx')
   const storage = readSource('src/services/storage.ts')
@@ -3416,13 +3242,7 @@ test('D14-guard 发布说明的关键声明与实现一致（防止声明漂移�
     `发布说明里的明细上限声明必须都是 100，实际抓到 ${limitClaims.join('、')}`,
   )
 
-  // 2) 「计划训练默认关闭」：开关初值必须是 false
-  assert.match(
-    setup,
-    /const \[planEnabled, setPlanEnabled\] = useState\(false\)/,
-    '计划开关默认必须是关闭',
-  )
-  assert.match(notes, /计划训练默认/, '发布说明必须写明计划默认状态')
+  // 2) 已删除：「计划训练默认关闭」——训练设置页（WorkoutSetup）随 fusion-v1 移除，不再有计划开关。
 
   // 3) 「训练入口从路线页移到训练页」
   assert.match(tabs, /name="Train" component=\{TrainHomeScreen\}/, '训练页必须是首页')

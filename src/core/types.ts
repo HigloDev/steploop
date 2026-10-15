@@ -51,6 +51,12 @@ export interface SensorSample {
   gamma: number
   // 气压（hPa）。部分设备无气压计，缺失时为 undefined
   pressure?: number
+  /**
+   * 该气压值对应的气压事件自身时间戳（毫秒，与 t 同一墙钟口径）。
+   * 原生采样把最近一次气压附在每个加速度样本上，只有 pressureT 变化才代表新的气压事件；
+   * 旧数据没有该字段。
+   */
+  pressureT?: number
 }
 
 // 气压计状态：用于 UI 提示用户气压计是否连上
@@ -253,7 +259,7 @@ export interface RecognitionEndState {
 
 export interface ClimbSession {
   floorConfirmation?: 'automatic' | 'manual' | 'pending'
-  recognitionVersion?: 'motion-v3'
+  recognitionVersion?: 'motion-v3' | 'fusion-v1'
   manualFloorMarks?: ManualMark[]
   id: string
   evidenceId?: string
@@ -390,9 +396,32 @@ export interface RoundCorrection {
   excludeFromLearning: boolean
 }
 
+/** fusion-v1 每层识别明细（只保存轻量结果，不保存原始传感器数据）。 */
+export interface FusionFloorDetail {
+  floorTo: number
+  /** 相对本轮开始的毫秒数。 */
+  reachedAtMs: number
+  steps: number
+  turns: number
+  heightM?: number
+  source: 'manual' | 'baro' | 'baro_forced' | 'motion' | 'split' | 'closure'
+  confidence: number
+  estimated: boolean
+}
+
 export interface WorkoutRound {
   floorConfirmation?: 'automatic' | 'manual' | 'pending'
-  recognitionVersion?: 'motion-v3'
+  recognitionVersion?: 'motion-v3' | 'fusion-v1'
+  /** fusion-v1：标定轮（用户点击）或自动轮。 */
+  roundKind?: 'calibration' | 'auto'
+  /** fusion-v1：证据冲突或不足，本轮层数为估算。 */
+  estimated?: boolean
+  fusionFloors?: FusionFloorDetail[]
+  endReason?: 'elevator_down' | 'stairs_down' | 'idle' | 'manual' | 'workout_end'
+  /** 识别说明（中文），例如“气压停更 20 秒，期间按步数估算”。 */
+  notes?: string[]
+  /** fusion-v1：有步伐的活动时间（毫秒），用于热量；durationMs 是起爬到登顶的墙钟用时。 */
+  activeMs?: number
   manualFloorMarks?: ManualMark[]
   id: string
   /** 新训练按实际楼层差计算；未标记的历史记录保留原成绩口径。 */
@@ -440,6 +469,10 @@ export interface WorkoutRound {
 
 export interface ClimbWorkout {
   id: string
+  /** fusion-v1 训练写入；旧记录缺省（motion-v3 或更早）。 */
+  recognitionVersion?: 'motion-v3' | 'fusion-v1'
+  /** fusion-v1：使用/生成的楼栋模板 id。 */
+  buildingId?: string
   trackingMode?: TrackingMode
   floorCounting?: 'transitions'
   bodyWeightKg?: number

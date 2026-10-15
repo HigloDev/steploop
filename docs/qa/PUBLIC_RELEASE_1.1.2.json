@@ -1,0 +1,36 @@
+{
+  "version": "1.1.2",
+  "versionCode": 11,
+  "publicApkSha256": "6983ef2df5e8e0eb627c4c8c8ed2805e66146b0677d0c11a2680c86ec183d084",
+  "publicCertificateSha256": "81a255930d55290b199732c23f7a48e180b0170300bf3a8757c9c016d90d7e99",
+  "cleanNpmCi": true,
+  "typescript": true,
+  "nodeTestCounts": {
+    "tests": 536,
+    "pass": 503,
+    "fail": 0,
+    "skipped": 33
+  },
+  "retiredHookChecksSkipped": 29,
+  "retiredUiSuitesSkipped": 4,
+  "retiredUiChecksInThoseSuites": 43,
+  "runtimePayloadMatchesPhoneApk": true,
+  "publicUpgrade": {
+    "publicUpgradeFrom": "1.0.7 / code 8",
+    "publicUpgradeTo": "1.1.2 / code 11",
+    "isolatedEmulator": true,
+    "syntheticRecords": 2,
+    "syntheticRounds": 2,
+    "oldSavedKeysPreservedByteForByte": 3,
+    "home37ReferencesEntry": true,
+    "referenceSheetOpenClose": true,
+    "legacyRecordsVisible": true,
+    "restartPreservesSavedData": true,
+    "firstInstallTimePreserved": true,
+    "installedApkExactMatch": true,
+    "installedApkSha256": "6983ef2df5e8e0eb627c4c8c8ed2805e66146b0677d0c11a2680c86ec183d084",
+    "runtimeFatalOrJsErrors": 0,
+    "phoneModified": false
+  },
+  "privateDataExcluded": true
+}

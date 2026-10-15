@@ -1,0 +1,152 @@
+[
+  {
+    "case": "three digit current floor, complete gauge count and editable 150 floors at small 130 percent",
+    "result": "failed",
+    "error": "No current native accessibility tree",
+    "seconds": 22.6
+  },
+  {
+    "case": "three digit current floor, complete gauge count and editable 150 floors at small 130 percent",
+    "result": "failed",
+    "error": "('加一层', 'small target', '[520,441][640,585]')",
+    "seconds": 65.0
+  },
+  {
+    "case": "three digit current floor, complete gauge count and editable 150 floors at small 130 percent",
+    "result": "passed",
+    "seconds": 59.6
+  },
+  {
+    "case": "rename native keyboard keeps save and cancel visible at phone and small large-text sizes",
+    "result": "passed",
+    "seconds": 52.9
+  },
+  {
+    "case": "all three compact onboarding screens, full hints and finish remain reachable",
+    "result": "passed",
+    "seconds": 53.1
+  },
+  {
+    "case": "record more menu cancels, opens actual details and opens sharing",
+    "result": "failed",
+    "error": "Missing '训练详情': ['返回', '\\uf12f', '训练完成', '完成', '完成', '10月10日 09:00 · 城市花园·A座', '总爬升 90 米，30 层', '总爬升', '90', '米', '总层数 30层', '总层数', '30 层', '轮数 2轮', '轮数', '2 轮', '用时 09:20', '用时', '09:20', '千卡 83', '千卡', '83', '估算', '各轮层数', '..', '点任意一轮可修改层数', '第1轮，15 层，点按修改', '15 层', '第1轮', '第2轮，15 层，点按修改', '15 层', '第2轮', '..', '成绩已保存', '继续加油，保持向上的力量！', '生成分享卡片', '生成分享卡片']",
+    "seconds": 24.3
+  },
+  {
+    "case": "record more menu cancels, opens actual details and opens sharing",
+    "result": "passed",
+    "seconds": 43.9
+  },
+  {
+    "case": "template clear changes only draft, empty validation and real template save work",
+    "result": "passed",
+    "seconds": 28.9
+  },
+  {
+    "case": "first privacy reject really exits without consent, agree enters onboarding, settings return is labeled correctly",
+    "result": "passed",
+    "seconds": 63.5
+  },
+  {
+    "case": "start floor skips zero and confirms",
+    "result": "passed",
+    "seconds": 21.2
+  },
+  {
+    "case": "rename keyboard save persistence and cancel",
+    "result": "passed",
+    "seconds": 40.7
+  },
+  {
+    "case": "round correction recalculates totals persists and cancel",
+    "result": "passed",
+    "seconds": 43.2
+  },
+  {
+    "case": "calibration template save appears on home",
+    "result": "passed",
+    "seconds": 26.7
+  },
+  {
+    "case": "manual mark undo next round short tap protected long hold finishes",
+    "result": "passed",
+    "seconds": 27.8
+  },
+  {
+    "case": "save failure later navigation and retry",
+    "result": "passed",
+    "seconds": 28.3
+  },
+  {
+    "case": "voice volume speed mode and weight persist",
+    "result": "passed",
+    "seconds": 38.9
+  },
+  {
+    "case": "history filters and trend expansion",
+    "result": "passed",
+    "seconds": 20.7
+  },
+  {
+    "case": "system share cancellation does not mark success",
+    "result": "passed",
+    "seconds": 21.3
+  },
+  {
+    "case": "all poster templates prepare and three PNG ratios export at 1080px",
+    "result": "passed",
+    "seconds": 49.4
+  },
+  {
+    "case": "all four poster designs and copy or size editing tabs render",
+    "result": "failed",
+    "error": "Unreachable: 本周累计模板",
+    "seconds": 38.8
+  },
+  {
+    "case": "all four poster designs and copy or size editing tabs render",
+    "result": "passed",
+    "seconds": 38.5
+  },
+  {
+    "case": "all seven full privacy sections expand and footer remains reachable",
+    "result": "passed",
+    "seconds": 56.2
+  },
+  {
+    "case": "legacy record exposes correction, floor splits and complete original details",
+    "result": "passed",
+    "seconds": 27.6
+  },
+  {
+    "case": "back and short or cancelled holds preserve active training without an exit popup",
+    "result": "failed",
+    "error": "name 'SAVE' is not defined",
+    "seconds": 12.8
+  },
+  {
+    "case": "back and short or cancelled holds preserve active training without an exit popup",
+    "result": "passed",
+    "seconds": 24.1
+  },
+  {
+    "case": "failed save with and without recovery blocks unsafe exit and allows retry",
+    "result": "passed",
+    "seconds": 35.4
+  },
+  {
+    "case": "native backup download, CSV and cancelled import preserve stored workouts",
+    "result": "passed",
+    "seconds": 44.4
+  },
+  {
+    "case": "copy editor changes preview and sanitized clipboard export succeeds",
+    "result": "passed",
+    "seconds": 30.2
+  },
+  {
+    "case": "real emulator sensor capture annotations sanitized invalid export",
+    "result": "passed",
+    "seconds": 54.0
+  }
+]

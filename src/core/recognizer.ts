@@ -32,6 +32,7 @@ export class RouteRecognizer {
   private hadUncertainFloor = false
   private recentUpAt = -Infinity
   private lastFrameSteps = 0
+  private segmentStartHeightM = 0
   private readonly pressure = new PressureTrend()
   private readonly turnGate = new StairTurnGate()
   private readonly featureSpace: FeatureSpace
@@ -66,13 +67,9 @@ export class RouteRecognizer {
     // incompatible walking clears it and requires human confirmation.
     if (descending || levelWalking) {
       if (frame.steps > 0) this.incompatibleWalkingMs += Math.max(0, frame.endMs - frame.startMs)
-      if (this.incompatibleWalkingMs >= 6000) {
-        this.observed = []
-        this.observedSteps = 0
-        this.upWalkingSteps = 0
-        this.turnGate.reset()
-        this.hadUncertainFloor = true
-      }
+      // 持续的平地/下行走动只标记“不确定”，不再清空本层已累计的进度：
+      // 旧实现会因为慢爬被误判 level 而把整层进度清零。
+      if (this.incompatibleWalkingMs >= 6000) this.hadUncertainFloor = true
       return this.snapshot()
     }
     this.incompatibleWalkingMs = 0
@@ -100,10 +97,16 @@ export class RouteRecognizer {
     if (strongMatch || motionRescue) {
       this.lastMatchReliable = strongMatch && trend.reliable && trend.direction === 'up' && trend.reason === 'continuous'
       if (!this.lastMatchReliable) this.hadUncertainFloor = true
+      // 真实证据融合：拐弯按“实际/模板”是否一致打分；气压按本层实际上升高度与模板层高的吻合度打分。
+      // 旧实现给 turn=1、baro=1 两个恒定证据，置信度被系统性抬高。
+      const gainedM = trend.relativeHeightM - this.segmentStartHeightM
+      // 气压只作为佐证：上升不足模板一半时视为“无气压证据”，不否决动作匹配（motion-v3 的既定口径）。
+      const baroScore = trend.reliable && segment.ascentM > 0 && gainedM >= segment.ascentM * 0.5
+        ? clamp(Math.exp(-Math.abs(Math.log(gainedM / segment.ascentM))), 0, 1) : undefined
+      const turnScore = expectedTurns ? (this.turnGate.completedTurns === expectedTurns ? 1 : 0.75) : undefined
       this.floorConfidence = strongMatch
         ? fuseConfidence({ motion: clamp(this.observedSteps / stepsNeeded, 0, 1),
-            turn: expectedTurns ? 1 : undefined, dtw: this.currentConfidence,
-            baro: trend.reliable && trend.direction === 'up' ? 1 : undefined })
+            turn: turnScore, dtw: this.currentConfidence, baro: baroScore })
         : Math.min(0.75, this.currentConfidence || 0.65)
       this.events.push({ t: frame.endMs, type: 'floor', floor: segment.floorTo,
         confidence: this.floorConfidence, source: 'motion', heightM: Number(trend.relativeHeightM.toFixed(2)),
@@ -115,14 +118,17 @@ export class RouteRecognizer {
           ...(trend.reliable ? [{ source: 'barometer' as const, score: trend.direction === 'up' ? 1 : 0,
             observedAt: frame.endMs, reasonCode: 'pressure_trend_context' }] : []),
         ], reasonCode: strongMatch ? 'motion_route_estimate' : 'motion_trend_rescue_estimate' })
+      // atMs 是相对采集开始的墙钟时间；elapsedMs 统一为活动时间（只计有步伐的帧）。
       this.floorSplits.push({ floor: segment.floorTo, atMs: frame.endMs,
-        elapsedMs: frame.endMs })
+        elapsedMs: this.activeMs })
       this.lastFloorAt = frame.endMs
       this.segmentIndex += 1
       this.observed = []
       this.observedSteps = 0
       this.upWalkingSteps = 0
-      this.turnGate.reset()
+      // 只消费本层所需的整拐，多余的拐弯留给漏识别后的追赶。
+      this.turnGate.consume(expectedTurns)
+      this.segmentStartHeightM = trend.relativeHeightM
     }
     return this.snapshot()
   }
@@ -152,10 +158,21 @@ export class RouteRecognizer {
   pushSamples(samples: SensorSample[]): RecognitionSnapshot {
     const origin = samples[0]?.t ?? this.startedAt
     let index = 0
+    let lastPressureAt = -Infinity
+    let lastPressure: number | undefined
     for (const frame of extractFrames(samples)) {
       while (index < samples.length && samples[index].t - origin <= frame.endMs) {
         const sample = samples[index++]
-        if (sample.pressure !== undefined) this.pushBarometer(sample.pressure, sample.t - origin)
+        if (sample.pressure === undefined) continue
+        // 只推送真实的新气压事件：有 pressureT 时按事件自身时间戳，旧数据按数值变化。
+        if (sample.pressureT !== undefined) {
+          if (sample.pressureT <= lastPressureAt) continue
+          lastPressureAt = sample.pressureT
+          this.pushBarometer(sample.pressure, sample.pressureT - origin)
+        } else if (sample.pressure !== lastPressure) {
+          lastPressure = sample.pressure
+          this.pushBarometer(sample.pressure, sample.t - origin)
+        }
       }
       this.pushFrame(frame)
     }
@@ -173,7 +190,7 @@ export class RouteRecognizer {
     this.observedSteps = 0
     this.upWalkingSteps = 0
     this.incompatibleWalkingMs = 0
-    this.turnGate.reset()
+    this.turnGate.interrupt()
   }
 
   resume(atMs: number): void {
