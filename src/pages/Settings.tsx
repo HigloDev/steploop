@@ -332,7 +332,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>数据与帮助</Text></View>
         <Disclosure title="备份与导出" dense marginTop={0}>
         <View>
-          <Pressable accessibilityRole="button" accessibilityHint="导出楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={exporting}>
+          <Pressable accessibilityRole="button" accessibilityLabel="导出备份" accessibilityHint="导出楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={exporting}>
             <Feather name="download" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出备份</Text>
@@ -340,7 +340,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             {exporting ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           {isLocalDownloadExportAvailable() ? <>
-            <Pressable accessibilityRole="button" accessibilityHint="保存到本机 Download/循阶，包含楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
+            <Pressable accessibilityRole="button" accessibilityLabel="保存备份到下载" accessibilityHint="保存到本机 Download/循阶，包含楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
               <Feather name="download" size={22} color={theme.ink} />
               <View style={styles.rowText}>
                 <Text style={styles.dataTitle}>保存备份到下载</Text>
@@ -351,14 +351,14 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           {exportMessage ? (
             <Text style={styles.messageText}>{exportMessage}</Text>
           ) : null}
-          <Pressable accessibilityRole="button" accessibilityHint="训练记录表格，可用 Excel 打开" style={styles.dataRow} onPress={handleExportCsv} disabled={exportingCsv}>
+          <Pressable accessibilityRole="button" accessibilityLabel="导出成绩表 Excel" accessibilityHint="训练记录表格，可用 Excel 打开" style={styles.dataRow} onPress={handleExportCsv} disabled={exportingCsv}>
             <MaterialCommunityIcons name="table" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出成绩表 Excel</Text>
             </View>
             {exportingCsv ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityHint="从备份文件恢复楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={handleImport} disabled={importing}>
+          <Pressable accessibilityRole="button" accessibilityLabel="导入备份" accessibilityHint="从备份文件恢复楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={handleImport} disabled={importing}>
             <Feather name="upload" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导入备份</Text>
@@ -368,7 +368,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           {importMessage ? (
             <Text style={styles.messageText}>{importMessage}</Text>
           ) : null}
-          <Text style={styles.rowDesc}>普通备份暂不包含新楼栋模板。</Text>
+          <Text style={styles.rowDesc}>备份包含楼栋模板、旧版路线与训练成绩。原始传感器采样文件需单独导出。</Text>
         </View>
 
         </Disclosure>
@@ -398,8 +398,8 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             onPress={() =>
               Alert.alert(
                 '如何判断爬楼',
-                '先带手机逐层熟悉路线，再检查它能不能认对。平时参考这段楼梯的脚步和转弯；气压只帮助判断上楼、下楼等变化，不按固定高度直接换算楼层。\n\n' +
-                  '当前算法每层还要求识别到两次完整转弯；不同楼梯或携带方式可能导致报层延迟，正在用真实采样核对。缺少气压时，估算精度会下降。\n\n' +
+                '首次在一栋楼训练时，每到一层点一下“到了一层”，到顶点“到顶了”。保存楼栋后，下次选择它开始自动计层。\n\n' +
+                  '应用结合标定时的逐层高度、步数、转弯与当前传感器数据估算楼层。气压帮助判断爬升与下行；缺少气压时使用运动数据估算。楼梯结构、携带方式或采样中断都可能影响结果，请在结算时核对实际层数。\n\n' +
                   '当前楼层与爬升层数不同：从 1 楼到 2 楼，爬升 1 层。新训练从 1 到 15 楼记为爬升 14 层；未标新口径的旧成绩保留原值。\n\n' +
                   (isBackgroundTrainingSupported()
                     ? '正式锻炼时，这个 Android 版本可以在锁屏后继续记录，并显示通知。系统强制关闭或权限改变仍可能打断记录；结束时可以确认实际楼层。熟悉路线时，请保持页面打开。\n\n'

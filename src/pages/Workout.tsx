@@ -194,7 +194,7 @@ export function WorkoutContent({ navigation, session }: {
   }
 
   const showManualNext = (phase === 'calibration_top' || (phase === 'climbing' && snapshot.baro !== 'ok'))
-  const heroHeight = compact ? 180 : Math.min(310, Math.max(220, height * 0.29))
+  const heroHeight = calibrating ? (compact ? 150 : 200) : compact ? 180 : Math.min(310, Math.max(220, height * 0.29))
   const climbingMinutes = (snapshot.ascentMs ?? snapshot.activeMs) / 60000
   const frequency = climbingMinutes > 0 ? snapshot.totalFloors / climbingMinutes : 0
   const ascent = snapshot.ascentM ?? snapshot.totalFloors * 3
@@ -222,24 +222,11 @@ export function WorkoutContent({ navigation, session }: {
           <Text style={[styles.eyebrow, compact && { fontSize: 16 }]}>{eyebrow}</Text>
           {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brand} style={{ marginTop: 12 }} /> : null}
           <View style={styles.bigRow}>
-            <FlipNumber value={bigValue} size={compact ? 102 : 144} accessibilityLabel={`${bigValue} ${unit}`} />
+            <FlipNumber value={bigValue} size={calibrating ? (compact ? 80 : 112) : compact ? 102 : 144} accessibilityLabel={`${bigValue} ${unit}`} />
             <Text style={[styles.unit, compact && { fontSize: 26, marginBottom: 16 }]}>{unit}</Text>
           </View>
           <Text style={[styles.caption, compact && { fontSize: 16, lineHeight: 22, marginTop: 4 }, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
         </View>
-      </View>
-
-      <View>
-        <View style={styles.liveMetrics}>
-          {metrics.map(metric => <View key={metric.label} style={[styles.liveMetric, compact && { minHeight: 68, paddingVertical: 10 }]} accessible
-            accessibilityLabel={`${metric.label} ${metric.value} ${metric.unit}`}>
-            <View style={styles.liveMetricTitle}><MaterialCommunityIcons name={metric.icon} size={16} color={P.brandInk} accessible={false} />
-              <Text style={styles.liveMetricLabel}>{metric.label}</Text></View>
-            <View style={styles.liveMetricNumber}><Text style={[styles.liveMetricValue, compact && { fontSize: 24 }]} numberOfLines={1} adjustsFontSizeToFit>{metric.value}</Text>
-              <Text style={styles.liveMetricUnit}>{metric.unit}</Text></View>
-          </View>)}
-        </View>
-        <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
       </View>
 
       {calibrating ? (
@@ -276,6 +263,19 @@ export function WorkoutContent({ navigation, session }: {
         <MaterialCommunityIcons name={phase === 'descending' ? 'elevator-down' : phase === 'waiting' ? 'play-circle-outline' : 'vibrate'} size={20} color={P.brandInk} accessible={false} />
         <Text style={styles.phaseHintText}>{phase === 'descending' ? '下行不累计楼层与热量' : phase === 'waiting' ? '开始上行即可继续，休息不计入爬楼频率' : '每完成一层，楼层数字与震动同步提醒'}</Text>
       </View>}
+      <View>
+        <View style={styles.liveMetrics}>
+          {metrics.map(metric => <View key={metric.label} style={[styles.liveMetric, compact && { minHeight: 68, paddingVertical: 10 }]} accessible
+            accessibilityLabel={`${metric.label} ${metric.value} ${metric.unit}`}>
+            <View style={styles.liveMetricTitle}><MaterialCommunityIcons name={metric.icon} size={16} color={P.brandInk} accessible={false} />
+              <Text style={styles.liveMetricLabel}>{metric.label}</Text></View>
+            <View style={styles.liveMetricNumber}><Text style={[styles.liveMetricValue, compact && { fontSize: 24 }]} numberOfLines={1} adjustsFontSizeToFit>{metric.value}</Text>
+              <Text style={styles.liveMetricUnit}>{metric.unit}</Text></View>
+          </View>)}
+        </View>
+        <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
+      </View>
+
       </ScrollView>
 
       <View style={styles.stats}>

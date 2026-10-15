@@ -29,6 +29,7 @@ export default function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: theme.brand,
         tabBarInactiveTintColor: theme.muted,
+        tabBarAccessibilityLabel: { Train: '爬楼', History: '记录', Profile: '设置' }[route.name],
         tabBarStyle: {
           backgroundColor: theme.paper,
           borderTopColor: theme.lineSoft,
@@ -43,7 +44,7 @@ export default function MainTabs() {
         },
         tabBarIcon: ({ color }) => (
           route.name === 'Train' ? <BrandMark size={26} color={color} /> :
-            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={26} color={color} />
+            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={26} color={color} accessible={false} />
         ),
       })}
     >
