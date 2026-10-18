@@ -1,6 +1,6 @@
 /** Explicit development-only visual lab. Never loaded by a release bundle. */
 import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, Linking, LogBox, View } from 'react-native'
+import { ActivityIndicator, Appearance, Linking, LogBox, View } from 'react-native'
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -27,8 +27,8 @@ import { savePreferences } from '../services/preferences'
 import { agreePrivacy } from '../services/privacy'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
-const NOW = new Date(2026, 9, 10, 20).getTime()
-const START = new Date(2026, 9, 10, 9).getTime()
+const NOW = new Date(2026, 9, 18, 20).getTime()
+const START = new Date(2026, 9, 18, 9).getTime()
 export const building: BuildingTemplate = {
   schemaVersion: 1, id: 'uiqa-building-a', name: '城市花园·A座', startFloor: 1,
   floors: Array.from({ length: 15 }, (_, i) => ({ floorFrom: i + 1, floorTo: i + 2, heightM: 3, steps: 18, turns: 2, durationMs: 12800 })),
@@ -126,6 +126,9 @@ async function seed(state: string) {
     await saveWorkout(w)
     await savePendingTemplate({ workoutId: w.id, template: { ...building, id: 'uiqa-unsaved' }, warnings: [] })
   }
+  if (state === 'home-long') await saveBuilding({ ...building, name: '城市花园北区三期·超长名称办公楼A座' })
+  if (state === 'summary-single') await saveWorkout(buildFusionWorkout({ id: 'uiqa-summary', startedAt: START, endedAt: START + 192000,
+    status: 'completed', template: building, rounds: [fusionRoundToWorkoutRound(round(15, 1))], bodyWeightKg: 65 }))
   liveAt = performance.now()
 }
 
@@ -151,7 +154,7 @@ function WorkoutFixture({ navigation, state }: { navigation: any; state: string 
   const api = { snapshot: status === 'starting' || status === 'error' ? null : snapshot, status: saveFailed ? 'save_failed' : status,
     error: saveFailed ? '本次训练仍保留在本机，请重试保存。' : status === 'error' ? '传感器暂时未连接，请检查权限后重试。' : undefined,
     warning: estimated ? '此设备无气压计，楼层为步数估算。' : undefined,
-    calories: 12 + floors * 0.46, workoutId: 'uiqa-live', rounds: [round(15, 1), round(15, 2)], canSaveLater: state !== 'save-failed-no-recovery',
+    calories: 12 + floors * 0.46, workoutId: 'uiqa-live', rounds: Array.from({ length: saveFailed || status === 'finishing' ? 2 : snapshot.completedRounds }, (_, index) => round(15, index + 1)), canSaveLater: state !== 'save-failed-no-recovery',
     markFloor: () => setFloors(f => f + 1), undoMark: () => setFloors(f => Math.max(0, f - 1)),
     markTop: () => setPhase('calibration_top'), nextRound: () => { setFloors(0); setPhase('waiting') },
     finish: async () => { setSaveFailed(false); return 'uiqa-summary' }, discard: async () => {}, retry: () => { setSaveFailed(false); setStatus('running') },
@@ -163,6 +166,8 @@ export default function UiQaApp() {
   const theme = useTheme()
   const [state, setState] = useState('')
   useEffect(() => { void Linking.getInitialURL().then(async url => {
+    const appearance = url?.match(/[?&]theme=(light|dark)/)?.[1]
+    Appearance.setColorScheme(appearance === 'light' || appearance === 'dark' ? appearance : 'unspecified')
     const next = url?.split('state=')[1]?.split('&')[0] ?? 'home'
     await seed(next)
     setState(next)
@@ -188,8 +193,8 @@ export default function UiQaApp() {
       <Stack.Screen name="Privacy" component={Privacy} /><Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen name="Result" component={Result} initialParams={{ id: 'uiqa-legacy' }} />
       <Stack.Screen name="DiagnosticCapture" component={DiagnosticCapture} />
-      <Stack.Screen name="ClimbWorkout">{props => WORKOUT_STATES.includes(state)
-        ? <WorkoutFixture navigation={props.navigation} state={state} /> : <Workout {...props} />}</Stack.Screen>
+      <Stack.Screen name="ClimbWorkout">{props => WORKOUT_STATES.includes(state) || state === 'home-flow'
+        ? <WorkoutFixture navigation={props.navigation} state={state === 'home-flow' ? props.route.params?.templateId ? 'climbing' : 'calibrating' : state} /> : <Workout {...props} />}</Stack.Screen>
     </Stack.Navigator>
   </NavigationContainer><StatusBar style={theme.isDark ? 'light' : 'dark'} /></SafeAreaProvider>
 }

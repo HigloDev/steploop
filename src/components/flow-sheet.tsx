@@ -22,7 +22,7 @@ export function FlowSheet({ visible, title, onClose, busy = false, expanded = fa
         <RNHostView matchContents>
           <ScrollView style={{ width: Math.min(width, 640), maxHeight: height * 0.75 }} keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24, gap: 8 }}>
-            <Text accessibilityRole="header" style={{ color: theme.ink, fontSize: 23, fontWeight: '900' }}>{title}</Text>
+            <Text accessibilityRole="header" style={{ color: theme.ink, fontSize: 20, fontWeight: '700' }}>{title}</Text>
             <View style={{ gap: 12 }}>{children}</View>
           </ScrollView>
         </RNHostView>

@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MainTabParamList } from './types'
 import { useTheme } from '../theme'
 import { triggerHaptic } from '../services/preferences'
-import { BrandMark } from '../components/brand-mark'
 import TrainHomeScreen from '../pages/Home'
 import HistoryScreen from '../pages/History'
 import SettingsScreen from '../pages/Settings'
@@ -14,7 +13,7 @@ import SettingsScreen from '../pages/Settings'
 const Tab = createBottomTabNavigator<MainTabParamList>()
 
 const TAB_ICONS: Record<Exclude<keyof MainTabParamList, 'Train'>, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  History: 'history',
+  History: 'chart-timeline-variant',
   Profile: 'cog-outline',
 }
 
@@ -29,26 +28,26 @@ export default function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: theme.brand,
         tabBarInactiveTintColor: theme.muted,
-        tabBarAccessibilityLabel: { Train: '爬楼', History: '记录', Profile: '设置' }[route.name],
+        tabBarAccessibilityLabel: { Train: '训练', History: '记录', Profile: '设置' }[route.name],
         tabBarStyle: {
-          backgroundColor: theme.paper,
+          backgroundColor: theme.card,
           borderTopColor: theme.lineSoft,
           paddingTop: 8,
-          height: 76 + insets.bottom,
+          height: 64 + insets.bottom,
           elevation: 0,
         },
         tabBarItemStyle: { paddingBottom: 4 },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '700',
+          fontSize: 11,
+          fontWeight: '500',
         },
         tabBarIcon: ({ color }) => (
-          route.name === 'Train' ? <BrandMark size={26} color={color} /> :
-            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={26} color={color} accessible={false} />
+          route.name === 'Train' ? <MaterialCommunityIcons name="stairs-up" size={24} color={color} accessible={false} /> :
+            <MaterialCommunityIcons name={TAB_ICONS[route.name]} size={24} color={color} accessible={false} />
         ),
       })}
     >
-      <Tab.Screen name="Train" component={TrainHomeScreen} options={{ title: '爬楼' }} />
+      <Tab.Screen name="Train" component={TrainHomeScreen} options={{ title: '训练' }} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ title: '记录' }} />
       <Tab.Screen name="Profile" component={SettingsScreen} options={{ title: '设置' }} />
     </Tab.Navigator>

@@ -17,7 +17,7 @@ import { voiceModeChoice, voiceModePreferences } from '../services/workout-voice
 import { Header } from '../components/Header'
 import { Card } from '../components/ui'
 import { CompletionCelebration } from '../components/completion-celebration'
-import { useTheme, Theme } from '../theme'
+import { sport, useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import {
   getPreferences,
@@ -220,7 +220,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         style={styles.flex}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
-        <Text style={styles.intro}>按你的习惯，调整每一次训练。</Text>
+        <Text style={styles.intro}>找到自己的节奏。</Text>
         <Card style={styles.group}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>运动播报</Text>
           {!prefs ? <ActivityIndicator color={theme.brand} accessibilityLabel="正在读取设置" /> : null}
@@ -251,7 +251,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         </Card>
         {prefsWriteError ? <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.amberInk }]}>{prefsWriteError}</Text> : null}
 
-        <Card style={[styles.group, { marginTop: 12, paddingVertical: 12 }]}>
+        <Card style={[styles.group, styles.nextGroup]}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>声音与提醒</Text>
           <View style={styles.row}>
             <View style={styles.rowText}>
@@ -263,8 +263,8 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             </Host>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="试一下楼层震动" disabled={!prefs?.hapticFeedback}
-            onPress={() => void triggerHapticPattern('floor')} style={{ minHeight: 48, justifyContent: 'center', opacity: prefs?.hapticFeedback ? 1 : 0.45 }}>
-            <Text style={{ color: theme.brandInk, fontSize: 14, fontWeight: '700' }}>试一下楼层震动</Text>
+            onPress={() => void triggerHapticPattern('floor')} style={[styles.previewAction, { opacity: prefs?.hapticFeedback ? 1 : 0.45 }]}>
+            <Text style={styles.previewActionText}>试一下楼层震动</Text>
           </Pressable>
           <View style={[styles.divider, { marginVertical: 0 }]} />
           <View style={styles.row}>
@@ -273,8 +273,8 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               <Switch label="结算音效" disabled={!prefs} value={Boolean(prefs?.completionSound)} onValueChange={value => { void update({ completionSound: value }) }} />
             </Host>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="预览盖楼结算" disabled={!prefs} onPress={() => setPreviewCompletion(true)} style={{ minHeight: 48, justifyContent: 'center' }}>
-            <Text style={{ color: theme.brandInk, fontSize: 14, fontWeight: '700' }}>预览盖楼动画与音效</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="预览盖楼结算" disabled={!prefs} onPress={() => setPreviewCompletion(true)} style={styles.previewAction}>
+            <Text style={styles.previewActionText}>预览盖楼动画与音效</Text>
           </Pressable>
           <View style={[styles.divider, { marginVertical: 0 }]} />
           <Disclosure title="播报内容" summary="里程碑与鼓励" compact>
@@ -314,7 +314,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           </Disclosure>
         </Card>
 
-        <Card style={[styles.group, { marginTop: 12 }]}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text>
+        <Card style={[styles.group, styles.nextGroup]}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text style={[styles.rowTitle, { flex: 1 }]}>体重（千克）</Text>
           <View style={styles.weightControl}>
@@ -326,7 +326,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           <Text style={styles.rowDesc} accessibilityHint="历史成绩保留训练时的体重。">用于估算本次训练热量。</Text>
         </Card>
 
-        <Card style={[styles.group, { marginTop: 24 }]}><Text accessibilityRole="header" style={styles.sectionTitle}>锁屏与后台</Text>
+        <Card style={[styles.group, styles.nextGroup]}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>锁屏与后台</Text>
           <BackgroundTrainingReadiness grouped /></Card>
 
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>数据与帮助</Text></View>
@@ -446,39 +446,42 @@ const makeStyles = (theme: Theme) =>
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 0 },
-    intro: { color: theme.mutedStrong, fontSize: 17, lineHeight: 24, marginBottom: 16,},
-    sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 16, marginBottom: 8 },
+    intro: { color: theme.muted, fontSize: sport.type.secondary, lineHeight: 20, marginBottom: sport.space.lg },
+    sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sport.space.md, marginTop: sport.space.page, marginBottom: sport.space.sm },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    sectionTitle: { color: theme.ink, fontSize: 20, lineHeight: 26, fontWeight: '900', marginBottom: 8,},
+    sectionTitle: { color: theme.ink, fontSize: sport.type.label, lineHeight: 24, fontWeight: '600', marginBottom: sport.space.md },
     statusText: { color: theme.brand, fontSize: 14, lineHeight: 21, fontWeight: '600' },
-    group: { padding: 16, borderRadius: 20 },
-    voiceControl: { paddingVertical: 0, gap: 6, marginTop: 12 },
-    detailGroup: { paddingTop: 4, paddingBottom: 16 },
-    dataRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 48, paddingVertical: 8 },
-    dataTitle: { color: theme.ink, fontSize: 16, lineHeight: 22, fontWeight: '700' },
+    group: { padding: sport.space.lg, borderRadius: sport.radius.panel, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft },
+    nextGroup: { marginTop: sport.space.lg },
+    voiceControl: { gap: sport.space.sm, marginTop: sport.space.lg },
+    detailGroup: { paddingTop: sport.space.xs, paddingBottom: 0 },
+    previewAction: { minHeight: 48, justifyContent: 'center', paddingBottom: sport.space.xs },
+    previewActionText: { color: theme.brandInk, fontSize: sport.type.secondary, lineHeight: 20, fontWeight: '600' },
+    dataRow: { flexDirection: 'row', alignItems: 'center', gap: sport.space.md, minHeight: 56, paddingVertical: sport.space.md },
+    dataTitle: { color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' },
     footerNote: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, paddingTop: 12 },
     appFooter: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center', paddingTop: 12 },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
-      paddingVertical: 0,
-      minHeight: 48,
+      gap: sport.space.md,
+      paddingVertical: sport.space.md,
+      minHeight: 64,
     },
     rowText: {
       flex: 1,
     },
     rowTitle: {
       color: theme.ink,
-      fontSize: 18,
-      lineHeight: 24,
-      fontWeight: '800',
+      fontSize: sport.type.body,
+      lineHeight: 22,
+      fontWeight: '500',
     },
     rowDesc: {
-      marginTop: 3,
+      marginTop: sport.space.xs,
       color: theme.mutedStrong,
-      fontSize: 13,
+      fontSize: sport.type.secondary,
       lineHeight: 20,
     },
     weightControl: {

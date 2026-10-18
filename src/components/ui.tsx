@@ -307,8 +307,8 @@ const makeStyles = (theme: Theme) =>
     },
     label: {
       color: theme.brand,
-      fontSize: 18,
-      fontWeight: '800',
+      fontSize: 16,
+      fontWeight: '600',
     },
     labelOnPrimary: {
       color: theme.onBrand,

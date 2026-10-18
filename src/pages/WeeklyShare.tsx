@@ -41,7 +41,7 @@ export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; wi
           <Text allowFontScaling={false} style={{ ...text, fontSize: 22 * u, color: P.orange, fontWeight: '900' }}>层</Text></View>
           <Text allowFontScaling={false} style={{ ...text, fontWeight: '800', fontSize: 14 * u, marginTop: 4 * u }}>累计向上 {Math.round(week.ascentM)} 米</Text>
         </View>
-        <AchievementBuilding floors={week.floors} width={100 * u} colors={{ ink: P.ink, card: P.background, line: P.line, brand: P.orange, brandSoft: '#f6d3b5' }} />
+        <AchievementBuilding floors={week.floors} width={100 * u} colors={{ ink: P.ink, card: P.background, line: P.line, brand: P.orange, brandSoft: P.tint }} />
       </View>
       {template === 'weekly' ? <View style={{ flexDirection: 'row', gap: 8 * u, alignItems: 'flex-end', height: 53 * u }}>
         {week.days.map(day => <View key={day.at} style={{ flex: 1, alignItems: 'center' }}>

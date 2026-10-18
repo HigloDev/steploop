@@ -3,17 +3,18 @@
 // 顶部显示检查点恢复提示（如有未结束的训练）。
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
-import { BuildingThumb } from '../components/BuildingThumb'
 import { FlowSheet } from '../components/flow-sheet'
+import { StatPair } from '../components/sport-ui'
+import { TrendChart } from '../components/training-visuals'
 import { loadFusionCheckpoint } from '../services/building-storage'
-import { Button, Card, EmptyState, Notice, Pill } from '../components/ui'
-import { useTheme, Theme } from '../theme'
+import { Button, EmptyState, Notice } from '../components/ui'
+import { sport, useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import { listSessions } from '../services/storage'
 import { historyRepository } from '../services/history-repository'
@@ -199,6 +200,8 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
   const styles = makeStyles(theme)
   const [cards, setCards] = useState<BaseCard[]>([])
   const [filter, setFilter] = useState<Filter>('all')
+  const [query, setQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const [managing, setManaging] = useState<BaseCard | null>(null)
   const [totalCompleted, setTotalCompleted] = useState(0)
   const [totalAscent, setTotalAscent] = useState(0)
@@ -273,7 +276,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
     setTrendPoints(buildTrend(workouts, { bucket: trendBucket, fromMs, toMs }))
   }, [trendBucket, workouts])
 
-  const filtered = applyFilter(cards, filter)
+  const filtered = applyFilter(cards, filter).filter(card => !query.trim() || `${card.title} ${card.subtitle} ${dateText(card.sortAt)}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
 
   const handleDiscardCheckpoint = () => {
     Alert.alert(
@@ -300,16 +303,21 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
 
   return (
     <View style={styles.page}>
-      <Header title="记录" back={false} large />
+      <Header title="记录" back={false} large rightContent={<Pressable accessibilityRole="button" accessibilityLabel="搜索训练记录"
+        onPress={() => { setSearchOpen(open => !open); if (searchOpen) setQuery('') }}
+        style={{ minWidth: 48, minHeight: 48, alignItems: 'flex-end', justifyContent: 'center' }}>
+        <MaterialCommunityIcons name={searchOpen ? 'close' : 'magnify'} size={25} color={theme.inkSoft} accessible={false} />
+      </Pressable>} />
       <FlatList
         style={styles.flex}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
         data={loading ? [] : filtered}
         keyExtractor={card => `${card.kind}-${card.id}`}
         refreshing={loading && cards.length > 0}
+        keyboardShouldPersistTaps="handled"
         onRefresh={() => { void refresh() }}
         ListHeaderComponent={<>
-        <Text style={styles.intro}>每一步向上，都留在这里。</Text>
+        <Text style={styles.intro}>向上的轨迹，留给更好的自己。</Text>
         {fusionPending && !checkpoint ? <Pressable accessibilityRole="button" style={styles.checkpoint} onPress={() => navigation.navigate('Train')}>
           <Feather name="pause-circle" size={20} color={theme.amberInk} />
           <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>回到首页继续或放弃</Text></View>
@@ -331,18 +339,14 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
           </Notice>
         ) : null}
 
-        {!loading || cards.length > 0 ? <View style={styles.weekHero}>
-          <View style={styles.weekHeroHeading}><Text style={styles.weekLabel}>本周成果</Text></View>
-          <View style={styles.weekFloor} accessible accessibilityLabel={`本周共爬升 ${week.floors} 层`}>
-            <Text style={styles.weekFloorValue}>{week.floors}</Text><Text style={styles.weekFloorUnit}>层爬升</Text>
-          </View>
-          <View style={styles.weekMetrics}>
-            <Text style={styles.weekMetric}>训练 <Text style={{ fontWeight: '900' }}>{week.validWorkouts}</Text> 次</Text>
-            <Text style={styles.weekMetric}>上升高度 <Text style={{ fontWeight: '900' }}>{week.ascentM.toFixed(0)}</Text> 米</Text>
-            <Text style={styles.weekMetric}>连续训练 <Text style={{ fontWeight: '900' }}>{week.consecutiveWeeks}</Text> 周</Text>
+        {!loading && !loadError ? <View style={styles.weekHero}>
+          <View style={[styles.summaryRow, { marginTop: 0 }]}>
+            <StatPair label="累计完成" value={String(totalCompleted)} unit="次" />
+            <StatPair label="累计爬升" value={Math.round(totalAscent).toLocaleString()} unit="米" />
+            <StatPair label="本周训练" value={String(week.validWorkouts)} unit="次" />
           </View>
         </View> : null}
-        <Disclosure title="趋势与最佳成绩">
+        <Disclosure title="趋势与最佳成绩" dense>
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{totalCompleted}</Text>
@@ -378,6 +382,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
             ))}
           </View>
         </View>
+        <TrendChart points={trendPoints} />
         <View style={styles.trendList}>
           {trendPoints.map((point) => (
             <View key={point.bucketStart} style={styles.trendItem}>
@@ -420,6 +425,12 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
 
         <Text style={styles.trendSub}>新训练的累计与趋势包含你确认的实际成果；历史记录沿用原有口径。个人最佳与路线学习仅采用可信数据。</Text>
         </Disclosure>
+        {searchOpen ? <View style={styles.search}>
+          <MaterialCommunityIcons name="magnify" size={21} color={theme.muted} accessible={false} />
+          <TextInput value={query} onChangeText={setQuery} placeholder="搜索楼栋或日期" placeholderTextColor={theme.muted} accessibilityLabel="输入楼栋或日期" autoFocus
+            returnKeyType="search" style={styles.searchInput} />
+          {query ? <Pressable accessibilityRole="button" accessibilityLabel="清空搜索" onPress={() => setQuery('')} style={styles.searchClear}><MaterialCommunityIcons name="close-circle" size={19} color={theme.muted} /></Pressable> : null}
+        </View> : null}
         <View style={styles.listHeading}><Text accessibilityRole="header" style={styles.sectionTitle}>训练记录</Text><Text style={styles.recordCount}>{filtered.length} 条</Text></View>
         <View style={styles.filterRow}>
           {FILTERS.map((item) => (
@@ -449,22 +460,22 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
         renderItem={({ item: card, index }) => (
           <>
             {index === 0 || dateText(card.sortAt).split(' ')[0] !== dateText(filtered[index - 1].sortAt).split(' ')[0] ? <Text style={styles.dateHeading}>{new Date(card.sortAt).getMonth() + 1}月{new Date(card.sortAt).getDate()}日 <Text style={{ color: theme.muted, fontSize: 14, fontWeight: '400' }}>{new Date(card.sortAt).toDateString() === new Date().toDateString() ? '今天' : new Date(card.sortAt).toDateString() === new Date(Date.now() - 86400000).toDateString() ? '昨天' : ''}</Text></Text> : null}
-            <Card style={[styles.card, styles.cardPressable]}>
+            <View style={[styles.card, styles.cardPressable]}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${card.title}，${dateText(card.sortAt)}，${card.metricsLine}，${card.statusText}`}
               onPress={() => navigation.navigate(card.target.route, card.target.params)}
             >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                <BuildingThumb floors={card.floors} size={42} dynamic />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={styles.recordIcon}><MaterialCommunityIcons name="stairs-up" size={23} color={theme.brandInk} accessible={false} /></View>
                 <View style={{ flex: 1 }}>
                 <View style={styles.cardHead}>
                   <Text style={styles.cardTitle} numberOfLines={2}>
                     {card.title}
                   </Text>
-                  <Pill tone={card.statusTone}>{card.statusText}</Pill>
+                  <Text style={[styles.statusLabel, { color: card.statusTone === 'warn' ? theme.amberInk : card.statusTone === 'good' ? theme.success : theme.muted }]}>{card.statusText}</Text>
                 </View>
-                <Text style={[styles.cardMetrics, { paddingRight: 32 }]}>{card.metricsLine}</Text>
+                <Text style={[styles.cardMetrics, { paddingRight: 28 }]}>{card.metricsLine}</Text>
                 {card.interrupted || card.statusTone === 'warn' ? <Text style={styles.cardHighlight}>{card.highlightLine}</Text> : null}
                 </View>
                 </View>
@@ -473,14 +484,10 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
               style={styles.moreButton}>
               <MaterialCommunityIcons name="dots-horizontal" size={24} color={theme.mutedStrong} accessible={false} />
             </Pressable>
-            </Card>
+            </View>
           </>
         )}
       />
-      {!loading && cards.length > 0 ? <View style={{ paddingHorizontal: theme.pagePaddingH, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <MaterialCommunityIcons name="information" size={18} color={theme.mutedStrong} />
-        <Text style={{ color: theme.mutedStrong, fontSize: 13, flex: 1 }}>点任意一次训练查看详情，支持修改层数。</Text>
-      </View> : null}
       <FlowSheet visible={!!managing} title={managing?.title ?? '训练记录'} onClose={() => setManaging(null)}>
         <Button title="查看与修改" onPress={() => {
           if (!managing) return
@@ -512,26 +519,33 @@ const makeStyles = (theme: Theme) =>
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 0 },
-    intro: { color: theme.mutedStrong, fontSize: 17, lineHeight: 24, marginBottom: 16,},
+    intro: { color: theme.muted, fontSize: 13, lineHeight: 21, marginBottom: 12 },
+    totalLabel: { color: theme.muted, fontSize: sport.type.secondary, fontWeight: '500' },
+    search: { backgroundColor: theme.cardSoft, borderRadius: sport.radius.control, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 14, minHeight: 48, marginTop: 16 },
+    searchInput: { flex: 1, minWidth: 0, minHeight: 48, color: theme.ink, fontSize: sport.type.body, paddingVertical: 10 },
+    searchClear: { width: 44, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+    recordIcon: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: sport.radius.small, backgroundColor: theme.brandSoft },
+    statusLabel: { fontSize: sport.type.micro, fontWeight: '500', paddingTop: 3, flexShrink: 1, maxWidth: '35%' },
     loading: { marginVertical: 24 },
     checkpoint: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: theme.amberSoft, borderRadius: 14, marginBottom: 16, minHeight: 64 },
     checkpointCopy: { flex: 1 },
     checkpointSub: { color: theme.amberInk, fontSize: 14, lineHeight: 21, marginTop: 4 },
-    weekHero: { backgroundColor: theme.card, borderRadius: 20, padding: 20, marginBottom: 0,},
+    weekHero: { backgroundColor: theme.card, borderRadius: sport.radius.panel, padding: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line, marginBottom: 8 },
     weekHeroHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     weekFloor: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginVertical: 2,},
     weekFloorValue: { color: theme.ink, fontSize: 62, lineHeight: 66, fontWeight: '900', fontVariant: ['tabular-nums'] },
     weekFloorUnit: { color: theme.ink, fontSize: 20, lineHeight: 22, fontWeight: '800',},
     weekMetricItem: { flex: 1 },
     weekMetricLabel: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 4 },
-    listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 20, marginBottom: 12 },
-    sectionTitle: { color: theme.ink, fontSize: 20, lineHeight: 24, fontWeight: '900',},
+    listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 16, marginBottom: 8 },
+    sectionTitle: { color: theme.ink, fontSize: 18, lineHeight: 24, fontWeight: '700' },
     recordCount: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18 },
-    dateHeading: { color: theme.mutedStrong, fontSize: 20, lineHeight: 26, fontWeight: '800', marginTop: 8, marginBottom: 8,},
+    dateHeading: { color: theme.muted, fontSize: 13, lineHeight: 20, fontWeight: '500', marginTop: 20, marginBottom: 4 },
     summaryRow: {
       flexDirection: 'row',
       gap: 16,
-      marginVertical: 12,
+      marginTop: 16,
+      marginBottom: 4,
     },
     summaryItem: {
       flex: 1,
@@ -614,24 +628,24 @@ const makeStyles = (theme: Theme) =>
     },
     filterRow: {
       flexDirection: 'row',
-      gap: 10,
-      marginBottom: 12,
-      backgroundColor: 'transparent',
-      borderRadius: 14,
-      padding: 0,
+      gap: 4,
+      marginBottom: 0,
+      backgroundColor: theme.cardSoft,
+      borderRadius: 12,
+      padding: 4,
     },
     filterChip: {
       paddingHorizontal: 14,
       paddingVertical: 8,
-      minHeight: 48,
+      minHeight: 44,
       flexGrow: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 24,
-     borderWidth: 1, borderColor: theme.line,},
+      borderRadius: 8,
+     borderWidth: 0 },
     filterChipActive: {
-      backgroundColor: theme.brand,
-     borderColor: theme.brand,},
+      backgroundColor: theme.card,
+     borderColor: theme.line },
     filterChipText: {
       color: theme.mutedStrong,
       fontSize: 14,
@@ -639,14 +653,17 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     filterChipTextActive: {
-      color: theme.onBrand,
+      color: theme.brandInk,
+      fontWeight: '700',
     },
     cardPressable: {
-      marginBottom: 12,
+      marginBottom: 0,
     },
     card: {
-      padding: 16,
-      borderRadius: 20,
+      paddingVertical: 16,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.line,
+      backgroundColor: 'transparent',
     },
     moreButton: { position: 'absolute', right: 4, bottom: 0, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
     cardHead: {
@@ -659,9 +676,9 @@ const makeStyles = (theme: Theme) =>
     cardTitle: {
       flex: 1,
       color: theme.ink,
-      fontSize: 18,
+      fontSize: 15,
       lineHeight: 24,
-      fontWeight: '900',
+      fontWeight: '600',
     },
     cardDate: {
       color: theme.mutedStrong,

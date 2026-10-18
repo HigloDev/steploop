@@ -1,0 +1,46 @@
+{
+  "completedLocalDate": "2026-10-19",
+  "designReference": "docs/UI_SPORT_SYSTEM_20261018.md",
+  "referenceKind": "approved design principles and complete native flow",
+  "pixelComparisonApplicable": false,
+  "device": { "model": "Xiaomi 14", "resolution": [1200, 2670], "densityDpi": 480, "fontScale": 1.25 },
+  "source": { "branch": "codex/ascent-sport-system-20261018", "baseRevision": "40a0948b1dadaf09b47d6e2ec15c2ec88223ea01", "originalDirtyWorkspacePreserved": true, "priorPrototypeStashPreserved": true },
+  "validation": {
+    "fullSuite": { "tests": 617, "passed": 584, "failed": 0, "skipped": 33 },
+    "finalFocusedSuite": { "passed": 22, "failed": 0 },
+    "finalTypecheck": "passed",
+    "diffWhitespaceCheck": "passed",
+    "nativeCaptures": "actual/",
+    "nativeInteractions": ["building picker and start", "workout back guard", "search no results", "clear search restores records"]
+  },
+  "artifact": {
+    "package": "com.zxn.palou",
+    "versionName": "1.1.4",
+    "versionCode": 13,
+    "abi": "arm64-v8a",
+    "debuggable": false,
+    "build": "assembleRelease succeeded",
+    "apkSha256": "b21d0627a2e6ebdf7acae45b5a80b3f9f1bcce220de48cef941359827f6d041a",
+    "signerSha256": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c",
+    "signatureMatchesPreviousInstall": true,
+    "fixtureMarkersAbsentInProductionBundle": true
+  },
+  "upgrade": {
+    "installedOnPhysicalDevice": true,
+    "productionHistoryLists51Records": true,
+    "existingWorkoutDetailOpened": true,
+    "syntheticQaPackageRemovedAfterValidation": true,
+    "method": "adb install -r",
+    "previousVersionName": "1.1.3",
+    "previousVersionCode": 12,
+    "firstInstallTimePreserved": true,
+    "beforeExportAndAfterExportCompared": true,
+    "comparison": "All keys recursively, excluding only exportedAt",
+    "allComparedFieldsEqual": true,
+    "workoutsBefore": 51, "workoutsAfter": 51,
+    "buildingsBefore": 2, "buildingsAfter": 2,
+    "legacyRoutesBefore": 1, "legacyRoutesAfter": 1,
+    "formalDataUninstalledClearedOrImported": false
+  },
+  "limitations": ["No pixel source was selected for a numerical pixel fidelity score", "Raw sensor files and non-exported preferences were not byte-compared", "No new physical stair-climbing accuracy or lock-screen sampling acceptance"]
+}

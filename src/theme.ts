@@ -1,9 +1,5 @@
-// 循阶设计 token（fusion-v1 改版）。
-// - 品牌色：能量橙（brand*）。旧 token 里的 green* 实际是蓝色，已全部更名：
-//   green→brand、greenInk→brandInk、greenSoft→brandSoft、greenBright→brandBright、mint→brandTint、
-//   onPrimary→onBrand、blueSoft/blueInk→infoSoft/infoInk。
-// - 所有页面和训练状态跟随系统主题；训练页保留独立的高对比配色。
-// - 数字统一用等宽数字粗体（numeric），爬楼时一眼读清、跳动不抖。
+// 循阶 · 向上训练。显示层的唯一 token 来源。
+// 钴蓝承担操作与进度，冷灰组织内容；深蓝训练摘要使用独立的成对文字色。
 
 import { TextStyle, useColorScheme } from 'react-native'
 
@@ -29,7 +25,12 @@ export interface Theme {
   line: string
   lineSoft: string
   scrim: string
-  // 品牌（能量橙）
+  heroSurface: string
+  heroInk: string
+  heroMuted: string
+  heroLine: string
+  heroAccent: string
+  // 品牌
   brand: string
   brandInk: string
   brandBright: string
@@ -78,47 +79,52 @@ export interface Theme {
   shadowLifted: ShadowStyle
 }
 
-const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '900', letterSpacing: -0.5, includeFontPadding: false }
+const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '700', letterSpacing: -1, includeFontPadding: false }
 
 const light: Theme = {
   isDark: false,
-  ink: '#1c1917',
-  inkSoft: '#44403c',
-  muted: '#6b635c',
-  mutedStrong: '#57534e',
-  paper: '#f7f5f2',
+  ink: '#152239',
+  inkSoft: '#38475E',
+  muted: '#5E6B7E',
+  mutedStrong: '#4B5B70',
+  paper: '#F7F9FC',
   card: '#ffffff',
-  cardSoft: '#f4f1ed',
-  surfaceSoft: '#ece7e1',
-  line: '#e2dcd5',
-  lineSoft: '#ece7e1',
-  scrim: '#1c1917b3',
-  brand: '#f05a0a',
-  brandInk: '#b8420a',
-  brandBright: '#ff7a2e',
-  brandSoft: '#fff0e6',
-  brandTint: '#ffc9a6',
-  onBrand: '#1a0d05',
-  energy: '#f05a0a',
+  cardSoft: '#F0F4FA',
+  surfaceSoft: '#E8EEF6',
+  line: '#D5DFEC',
+  lineSoft: '#E6ECF4',
+  scrim: '#0B162DB3',
+  heroSurface: '#13294B',
+  heroInk: '#F6FAFF',
+  heroMuted: '#B5C7E2',
+  heroLine: '#385171',
+  heroAccent: '#83BAFF',
+  brand: '#245CD8',
+  brandInk: '#1E50BF',
+  brandBright: '#1D4EB9',
+  brandSoft: '#E9F0FF',
+  brandTint: '#B9CFFF',
+  onBrand: '#FFFFFF',
+  energy: '#245CD8',
   success: '#1f7a55',
   successSoft: '#e4f4ec',
   amber: '#b7791f',
   amberSoft: '#fff7e6',
   amberChip: '#fff0d2',
   amberInk: '#86580d',
-  orange: '#f05a0a',
+  orange: '#b7791f',
   red: '#c8363f',
   redSoft: '#fff0f0',
   redChip: '#fbe3e4',
   redInk: '#a3222d',
   infoSoft: '#e8f0fb',
   infoInk: '#2b5797',
-  radiusSm: 10,
-  radiusMd: 16,
-  radiusLg: 20,
-  radiusXl: 28,
+  radiusSm: 8,
+  radiusMd: 12,
+  radiusLg: 16,
+  radiusXl: 20,
   tapMin: 48,
-  pagePaddingH: 16,
+  pagePaddingH: 20,
   pagePaddingBottom: 32,
   fontBase: 15,
   fontEyebrow: 12,
@@ -131,21 +137,21 @@ const light: Theme = {
   fontSmall: 12,
   numeric: NUMERIC,
   shadowCard: {
-    shadowColor: '#1c1917',
+    shadowColor: '#152239',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 1,
+    elevation: 0,
   },
   shadowSoft: {
-    shadowColor: '#1c1917',
+    shadowColor: '#152239',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 7,
     elevation: 0,
   },
   shadowLifted: {
-    shadowColor: '#c2410c',
+    shadowColor: '#245CD8',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -156,24 +162,24 @@ const light: Theme = {
 const dark: Theme = {
   ...light,
   isDark: true,
-  ink: '#f5f0ea',
-  inkSoft: '#d6cfc7',
-  muted: '#a29a91',
-  mutedStrong: '#bdb5ac',
-  paper: '#121110',
-  card: '#1c1a18',
-  cardSoft: '#24211e',
-  surfaceSoft: '#2c2824',
-  line: '#3a3530',
-  lineSoft: '#2e2a26',
+  ink: '#F2F6FE',
+  inkSoft: '#D0DBED',
+  muted: '#A5B5CE',
+  mutedStrong: '#B7C6DC',
+  paper: '#0E192B',
+  card: '#17253B',
+  cardSoft: '#1C2D46',
+  surfaceSoft: '#233650',
+  line: '#384D69',
+  lineSoft: '#293D58',
   scrim: '#000000cc',
-  brand: '#ff7a2e',
-  brandInk: '#ffa46b',
-  brandBright: '#ff9450',
-  brandSoft: '#3a2214',
-  brandTint: '#7a3a14',
-  onBrand: '#1a0d05',
-  energy: '#ff8a45',
+  brand: '#8AB7FF',
+  brandInk: '#A3C7FF',
+  brandBright: '#A7CAFF',
+  brandSoft: '#1D355B',
+  brandTint: '#375F98',
+  onBrand: '#102440',
+  energy: '#8AB7FF',
   success: '#6fd6a5',
   successSoft: '#163428',
   amber: '#e8b86a',
@@ -255,22 +261,21 @@ const workoutLight: WorkoutPalette = {
   estimate: light.amberInk,
 }
 
-// Keep the approved dark training appearance; pressed fills remain legible.
 const workoutDark: WorkoutPalette = {
   isDark: true,
-  bg: '#0b0b0c',
-  surface: '#17171a',
-  surfaceHigh: '#222226',
+  bg: dark.paper,
+  surface: dark.card,
+  surfaceHigh: dark.surfaceSoft,
   failureSurface: dark.card,
-  line: '#2e2e33',
-  ink: '#ffffff',
-  inkSoft: '#d9d6d2',
-  muted: '#9b968f',
-  brand: '#ff6b1a',
-  brandInk: '#ff6b1a',
-  brandPressed: '#ee641a',
-  brandDim: '#4a230c',
-  onBrand: '#140800',
+  line: dark.line,
+  ink: dark.ink,
+  inkSoft: dark.inkSoft,
+  muted: dark.muted,
+  brand: dark.brand,
+  brandInk: dark.brandInk,
+  brandPressed: dark.brandBright,
+  brandDim: dark.brandSoft,
+  onBrand: dark.onBrand,
   good: '#3ddc84',
   warn: '#ffc542',
   danger: '#ff5a52',
@@ -292,11 +297,20 @@ export function useWorkoutPalette(): WorkoutPalette {
 
 export { light, dark }
 
-/** Approved 1.1.2 redraw geometry, in density-independent pixels. */
+/** Shared geometry, in density-independent pixels. */
 export const visual = {
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, page: 20, section: 24, xl: 32 },
-  radius: { control: 14, card: 20, hero: 28, sheet: 28, pill: 999 },
-  type: { title: 30, heading: 19, body: 16, secondary: 14, caption: 12, numericWeight: '900' as const },
+  radius: { control: 12, card: 16, hero: 20, sheet: 24, pill: 999 },
+  type: { title: 28, heading: 18, body: 16, secondary: 14, caption: 12, numericWeight: '700' as const },
   controlHeight: 52,
-  poster: { background: '#f7f2e9', ink: '#171411', muted: '#817a72', orange: '#f56616', line: '#d8d0c5' },
+  // `orange` is the legacy export key used by existing poster templates.
+  poster: { background: '#F2F6FC', ink: '#152239', muted: '#5E6B7E', orange: '#245CD8', line: '#D5DFEC', tint: '#DCE8FF' },
+} as const
+
+export const sport = {
+  space: { xs: 4, sm: 8, md: 12, lg: 16, page: 20, section: 24, xl: 32, xxl: 40 },
+  type: { micro: 10, caption: 12, secondary: 13, body: 15, label: 16, heading: 20, title: 28, display: 36, number: 64, live: 112 },
+  radius: { small: 8, control: 12, panel: 16, hero: 20, pill: 999 },
+  control: 52,
+  opacity: { pressed: 0.76, disabled: 0.42 },
 } as const

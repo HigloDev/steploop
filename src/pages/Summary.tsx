@@ -1,6 +1,6 @@
 // 结算页（fusion-v1）：整次训练结束时统一查看、修改各轮层数（训练中不做每轮确认）。
 // - 总爬升、总层数、轮数、用时、热量
-// - 各轮柱状图：点任一轮改层数，估算轮虚线标出
+// - 各趟记录：紧凑显示层数与用时，估算/待确认清晰标出，点按可核对层数
 // - 新楼标定结果：命名并保存为楼栋模板（重新标定时覆盖原模板）
 // - 分享卡片：复用 ShareStudio 与 assets/share 插画
 // 旧记录（motion-v3 等）同样可以打开，只是没有逐层识别明细。
@@ -14,6 +14,7 @@ import { Header } from '../components/Header'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { FlowSheet } from '../components/flow-sheet'
 import { CompletionCelebration } from '../components/completion-celebration'
+import { RoundBreakdown } from '../components/training-visuals'
 import { BuildingTemplate, floorCount } from '../core/building-template'
 import { formatCalories } from '../core/calories'
 import { floorAfter, getRoundAchievementCount } from '../core/floors'
@@ -30,7 +31,7 @@ import {
   saveBuilding,
 } from '../services/building-storage'
 import { getWorkout, saveWorkout } from '../services/workout-storage'
-import { Theme, useTheme } from '../theme'
+import { sport, Theme, useTheme } from '../theme'
 
 function dateText(timestamp: number): string {
   const date = new Date(timestamp)
@@ -98,8 +99,6 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
       calories: workoutCalories(workout),
     }
   }, [workout, rounds])
-
-  const maxFloors = Math.max(1, ...rounds.map(round => getRoundAchievementCount(round)))
 
   const openEdit = (round: WorkoutRound) => {
     setEditing(round)
@@ -188,21 +187,14 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
       {route.params.fresh && !celebrationDone && totals.floors > 0 ? <CompletionCelebration floors={totals.floors} ascentM={totals.ascent} onDone={() => setCelebrationDone(true)} /> : null}
       <Header title={route.params.fresh ? '训练完成' : '训练详情'} align={pending || savedTemplate ? 'left' : 'center'} back rightLabel="完成" onRightPress={() => navigation.navigate('Main', { screen: 'Train' })} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-        {pending || savedTemplate ? <View style={styles.compactMetrics}>
-          {[
-            ['总高度', String(totals.ascent), '米'], ['总层数', String(totals.floors), '层'],
-            ['完成轮次', String(totals.rounds), '轮'], ['用时', formatDuration(totals.elapsed), ''],
-          ].map(([label, value, unit], i) => <View key={label} style={[styles.metric, i > 0 && { borderLeftWidth: 1, borderLeftColor: theme.line }]} accessible accessibilityLabel={`${label} ${value}${unit}`}>
-            <Text style={{ ...theme.numeric, color: theme.ink, fontSize: 28 }} numberOfLines={1} adjustsFontSizeToFit>{value}<Text style={{ fontSize: 16 }}> {unit}</Text></Text>
-            <Text style={styles.metricLabel}>{label}</Text>
-          </View>)}
-        </View> : <>
         <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
+        <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上了一程。' : '每一程，都留下高度。'}</Text>
         <View style={styles.hero} accessible accessibilityLabel={`总爬升 ${totals.ascent} 米，${totals.floors} 层`}>
-          <Text style={styles.heroLabel}>总爬升</Text>
+          <Text style={styles.heroLabel}>累计爬升 <Text style={styles.englishLabel}> / TOTAL ASCENT</Text></Text>
           <View style={styles.heroRow}>
-            <Text style={styles.heroValue}>{totals.ascent}</Text>
+            <Text selectable style={styles.heroValue}>{totals.ascent}</Text>
             <Text style={styles.heroUnit}>米</Text>
+            <MaterialCommunityIcons name="stairs-up" size={52} color={theme.brandTint} style={{ marginLeft: 'auto' }} accessible={false} />
           </View>
         <View style={styles.metrics}>
           <Metric styles={styles} label="总层数" value={String(totals.floors)} unit="层" />
@@ -211,37 +203,13 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
           <Metric styles={styles} label="千卡" value={formatCalories(totals.calories)} divider />
         </View>
         </View>
-        </>}
-        <View style={[styles.roundCard, (pending || savedTemplate) && { backgroundColor: 'transparent', padding: 0, marginTop: 24 }]}>
+        <View style={styles.roundCard}>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}><Text style={styles.section}>各轮层数</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}><Text style={styles.section}>每趟的节奏</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 }}>
-          <MaterialCommunityIcons name="information-outline" size={14} color={theme.muted} accessible={false} />
-          <Text style={styles.hint}>{fusion ? (rounds.some(r => r.estimated || r.floorConfirmation === 'pending') ? '虚线为估算 · 点按修改' : '点任意一轮可修改层数') : '旧版成绩'}</Text>
+          <Text style={styles.hint}>{fusion ? '点按核对层数' : '旧版成绩'}</Text>
         </View></View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={(pending || savedTemplate) ? { backgroundColor: theme.card, borderRadius: 20, marginTop: 8 } : undefined} contentContainerStyle={[styles.bars, (pending || savedTemplate) && { minHeight: 160, paddingHorizontal: 16 }]}>
-          {rounds.map(round => {
-            const floors = getRoundAchievementCount(round)
-            const estimated = round.estimated === true || round.floorConfirmation === 'pending'
-            const corrected = (round.corrections?.length ?? 0) > 0
-            const height = 20 + (floors / maxFloors) * 60
-            return (
-              <Pressable
-                key={round.id}
-                accessibilityRole={fusion ? 'button' : 'text'}
-                accessibilityLabel={`${roundLabel(round)}，${floors} 层${estimated ? '，估算' : ''}${corrected ? '，已修改' : ''}${fusion ? '，点按修改' : ''}`}
-                disabled={!fusion || busy}
-                onPress={() => openEdit(round)}
-                style={[styles.barCol, (pending || savedTemplate) && { width: 60 }]}
-              >
-                <Text style={[styles.barValue, estimated && { color: theme.amberInk }]}>{floors}<Text style={{ fontSize: 15 }}> 层</Text></Text>
-                <View style={[styles.bar, { height, width: (pending || savedTemplate) ? 60 : 88 }, estimated ? styles.barEstimated : null, corrected ? styles.barCorrected : null]} />
-                <Text style={styles.barLabel}>{roundLabel(round)}</Text>
-                {estimated ? <Text style={styles.barTag}>估算</Text> : corrected ? <Text style={[styles.barTag, { color: theme.brandInk }]}>已改</Text> : null}
-              </Pressable>
-            )
-          })}
-        </ScrollView>
+        <RoundBreakdown rounds={rounds} onEdit={fusion ? openEdit : undefined} disabled={busy} />
 
         </View>
 
@@ -291,12 +259,12 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
             <Text style={styles.savedText}>已保存「{template?.name}」，首页可直接选用。</Text>
           </View>
         ) : <View style={styles.savedCard}>
-          <MaterialCommunityIcons name="check-circle" size={36} color={theme.brand} />
-          <View style={{ flex: 1 }}><Text style={styles.savedTitle}>成绩已保存</Text><Text style={styles.muted}>继续加油，保持向上的力量！</Text></View>
+          <MaterialCommunityIcons name="check-circle-outline" size={20} color={theme.success} />
+          <View style={{ flex: 1 }}><Text style={styles.savedTitle}>成绩已保存</Text><Text style={styles.muted}>按照自己的节奏，下次继续。</Text></View>
         </View>}
 
-        <Pressable accessibilityRole="button" onPress={() => navigation.navigate('ShareStudio', { id: workout.id })} style={({ pressed }) => [pending ? styles.secondary : styles.primary, { marginTop: 20, flexDirection: 'row', gap: 8, minHeight: pending ? 48 : 64 }, pressed && { opacity: 0.85 }]}>
-          {pending ? <MaterialCommunityIcons name="export-variant" size={24} color={theme.brand} /> : null}
+        <Pressable accessibilityRole="button" onPress={() => navigation.navigate('ShareStudio', { id: workout.id })} style={({ pressed }) => [pending ? styles.secondary : styles.primary, { marginTop: 20, flexDirection: 'row', gap: 8, minHeight: 52 }, pressed && { opacity: 0.85 }]}>
+          <MaterialCommunityIcons name="export-variant" size={21} color={pending ? theme.brand : theme.onBrand} />
           <Text style={pending ? styles.secondaryText : styles.primaryText}>生成分享卡片</Text>
         </Pressable>
         {!fusion ? <Text style={styles.legacy}>这是旧版识别（{workout.recognitionVersion ?? 'motion-v3'}）的记录，没有逐层识别明细。</Text> : null}
@@ -342,24 +310,26 @@ function makeStyles(theme: Theme) {
   return StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 4 },
-    date: { color: theme.muted, fontSize: 14, fontWeight: '500', textAlign: 'center' },
-    hero: { marginTop: 20, padding: 20, borderRadius: theme.radiusXl, backgroundColor: theme.card },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 20 },
+    date: { color: theme.muted, fontSize: 12, fontWeight: '400' },
+    completionTitle: { color: theme.ink, fontSize: 24, lineHeight: 34, fontWeight: '700', marginTop: 12 },
+    englishLabel: { color: theme.muted, fontSize: 10, fontWeight: '400', letterSpacing: 1 },
+    hero: { marginTop: 24, paddingBottom: 24, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.line },
     compactMetrics: { marginTop: 12, paddingVertical: 20, paddingHorizontal: 8, flexDirection: 'row', backgroundColor: theme.card, borderRadius: 20 },
-    roundCard: { marginTop: 16, backgroundColor: theme.card, borderRadius: theme.radiusXl, padding: 20 },
+    roundCard: { marginTop: 24 },
     metricHint: { fontSize: 11, color: theme.muted, marginTop: 2 },
-    savedTitle: { color: theme.ink, fontSize: 18, fontWeight: '900', marginBottom: 4 },
-    heroLabel: { color: theme.inkSoft, fontSize: 20, fontWeight: '800' },
-    heroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center',},
-    heroValue: { ...theme.numeric, color: theme.brand, fontSize: 110, lineHeight: 110,},
-    heroUnit: { color: theme.inkSoft, fontSize: 28, fontWeight: '800', marginBottom: 14, marginLeft: 6 },
-    metrics: { flexDirection: 'row', backgroundColor: 'transparent', borderRadius: 0, paddingVertical: 6, marginTop: 8, borderTopWidth: 1, borderTopColor: theme.line,},
-    metric: { flex: 1, alignItems: 'center' },
+    savedTitle: { color: theme.inkSoft, fontSize: 13, fontWeight: '600', marginBottom: 4 },
+    heroLabel: { color: theme.muted, fontSize: 13, fontWeight: '500' },
+    heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 },
+    heroValue: { ...theme.numeric, color: theme.brand, fontSize: 80, lineHeight: 94, letterSpacing: -3, flexShrink: 1 },
+    heroUnit: { color: theme.muted, fontSize: 20, fontWeight: '400' },
+    metrics: { flexDirection: 'row', paddingTop: 20, marginTop: 8 },
+    metric: { flex: 1, alignItems: 'center', paddingHorizontal: 4 },
     metricDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: theme.line },
-    metricValue: { ...theme.numeric, color: theme.ink, fontSize: 28, lineHeight: 32, marginTop: 6,},
-    metricLabel: { color: theme.muted, fontSize: 14, fontWeight: '700', marginTop: 2 },
-    section: { color: theme.ink, fontSize: 20, fontWeight: '900', marginTop: 0,},
-    hint: { color: theme.muted, fontSize: 13, marginTop: 4 },
+    metricValue: { ...theme.numeric, color: theme.ink, fontSize: 22, lineHeight: 28, marginTop: 6 },
+    metricLabel: { color: theme.muted, fontSize: 12, fontWeight: '400', marginTop: 2 },
+    section: { color: theme.ink, fontSize: 18, fontWeight: '700' },
+    hint: { color: theme.muted, fontSize: 12, marginTop: 4 },
     bars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', gap: 24, paddingVertical: 6, minHeight: 140, flexGrow: 1,},
     barCol: { alignItems: 'center', width: 88,},
     barValue: { ...theme.numeric, color: theme.ink, fontSize: 20, marginBottom: 6 },
@@ -378,14 +348,14 @@ function makeStyles(theme: Theme) {
     inputField: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderRadius: theme.radiusMd, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.cardSoft },
     input: { flex: 1, minHeight: 48, paddingHorizontal: 14, color: theme.ink, fontSize: 20 },
     clearButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
-    primary: { minHeight: 54, borderRadius: 20, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },
-    primaryText: { color: theme.onBrand, fontSize: 20, fontWeight: '900' },
+    primary: { minHeight: 54, borderRadius: sport.radius.control, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },
+    primaryText: { color: theme.onBrand, fontSize: 16, fontWeight: '700' },
     secondary: {
       minHeight: 52, borderRadius: 26, borderWidth: 1.5, borderColor: theme.brand, flexDirection: 'row',
       alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20,
     },
-    secondaryText: { color: theme.brandInk, fontSize: 20, fontWeight: '800' },
-    savedCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderRadius: theme.radiusLg, marginTop: 16, padding: 16, minHeight: 78, gap: 14,},
+    secondaryText: { color: theme.brandInk, fontSize: 16, fontWeight: '600' },
+    savedCard: { flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingVertical: 12, minHeight: 60, gap: 12 },
     savedText: { flex: 1, color: theme.ink, fontSize: 14, fontWeight: '700' },
     legacy: { color: theme.muted, fontSize: 12, textAlign: 'center', marginTop: 16 },
     stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginVertical: 8 },

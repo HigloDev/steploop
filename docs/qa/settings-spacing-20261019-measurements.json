@@ -1,0 +1,58 @@
+{
+  "deviceDensityDpi": 480,
+  "fontScale": 1.25,
+  "before": {
+    "choiceGroups": {
+      "mode": {
+        "rows": 2,
+        "buttonHeightDp": [
+          48.0,
+          48.0,
+          48.0,
+          48.0
+        ]
+      },
+      "volume": {
+        "rows": 2,
+        "buttonHeightDp": [
+          48.0,
+          48.0,
+          48.0,
+          48.0
+        ]
+      }
+    },
+    "permissionRowHeightsDp": [
+      48.0,
+      48.0,
+      48.0
+    ]
+  },
+  "after": {
+    "choiceGroups": {
+      "mode": {
+        "rows": 1,
+        "buttonHeightDp": [
+          48.0,
+          48.0,
+          48.0,
+          48.0
+        ]
+      },
+      "volume": {
+        "rows": 1,
+        "buttonHeightDp": [
+          48.0,
+          48.0,
+          48.0,
+          48.0
+        ]
+      }
+    },
+    "permissionRowHeightsDp": [
+      75.66666666666667,
+      76.33333333333333,
+      76.0
+    ]
+  }
+}
