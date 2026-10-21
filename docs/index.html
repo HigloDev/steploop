@@ -2,137 +2,89 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#11100f">
-  <meta name="description" content="循阶 Steploop，把日常爬楼变成看得见的进步。记录训练、自动计层、探索 37 种高度参照，生成自己的成果卡片。下载 Android 1.1.3 公开试用版。">
-  <meta name="steploop-site-version" content="1.1.3-20261010">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f9fc">
+  <meta name="description" content="循阶 Steploop，把日常爬楼变成看得见的进步。全新冷白与深蓝界面，记录楼层、爬升和每一轮训练。下载 Android 1.1.5 公开试用版。">
+  <meta name="steploop-site-version" content="1.1.5-20261021">
   <meta property="og:type" content="website">
-  <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="循阶 · 每一步向上，都算数。">
-  <meta property="og:description" content="把日常爬楼变成看得见的进步。Android 1.1.3 公开试用版现已开放下载。">
-  <meta property="og:url" content="https://higlodev.github.io/steploop/">
-  <meta property="og:image" content="https://higlodev.github.io/steploop/assets/site/social-icon.png">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:description" content="Android 1.1.5 公开试用版。找到自己的节奏，看见每一次向上。">
+  <meta property="og:image" content="https://higlodev.github.io/steploop/assets/site115/home-light.png">
   <link rel="canonical" href="https://higlodev.github.io/steploop/">
-  <link rel="icon" type="image/png" href="assets/site/favicon.png">
-  <link rel="apple-touch-icon" href="assets/site/social-icon.png">
-  <link rel="preload" as="image" href="assets/site/home-1.1.3.png">
-  <link rel="stylesheet" href="site.css">
-  <script src="site.js" defer></script>
-  <title>循阶 Steploop · 每一步向上，都算数。</title>
+  <link rel="icon" href="assets/site115/logo.svg">
+  <link rel="stylesheet" href="site.css?v=115-20261021">
+  <title>循阶 Steploop · 每一步向上，都算数</title>
+  <script src="site.js?v=115-20261021" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">跳到正文</a>
-  <svg class="symbol-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 16v5h14v-5"/></symbol>
-    <symbol id="i-qr" viewBox="0 0 24 24"><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h3v3h3v3h-6v-6M21 12v3M12 3v3M12 12h3M12 18v3"/></symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
-    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1-4-2-6-2m12 5v-4c0-1-.4-2-1-2 3-.4 6-1.5 6-6a5 5 0 0 0-1-3c.2-1 .1-2.1-.4-3-1.5-.1-3 1-3.6 1a13 13 0 0 0-6 0c-.6 0-2.1-1.1-3.6-1-.5.9-.6 2-.4 3a5 5 0 0 0-1 3c0 4.5 3 5.6 6 6-.6 0-1 1-1 2v4"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
-  </svg>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <svg class="svg-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="icon-steps" viewBox="0 0 24 24"><path d="M3 21h6v-6h6V9h6V3M3 3h9m0 0v9m0-9L3 12"/></symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/></symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10Z"/></symbol>
+  </defs></svg>
 
-  <header class="site-header">
-    <nav class="nav wrap" aria-label="主导航">
-      <a class="brand" href="#" aria-label="循阶首页"><img src="assets/site/logo.webp" width="44" height="44" alt=""><span>循阶<small>STEPLOOP</small></span></a>
-      <div class="nav-links"><a href="#height">每层的意义</a><a href="#experience">界面预览</a><a href="#guide">开始使用</a></div>
-      <a class="button button-small" href="#download">下载 App <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-    </nav>
+  <header class="header wrap">
+    <a class="brand" href="#" aria-label="循阶首页"><img src="assets/site115/logo.svg" alt="" width="42" height="42"><span>循阶<small>STEPLOOP</small></span></a>
+    <nav class="navigation" aria-label="主导航"><a href="#experience">新版体验</a><a href="#getting-started">开始使用</a><a href="#questions">常见问题</a></nav>
+    <a class="nav-download" href="#download">下载 Android <svg class="icon"><use href="#icon-arrow"/></svg></a>
   </header>
 
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="release-badge"><span class="status-dot"></span> 1.1.3 公开试用版 <span class="badge-divider">/</span> ANDROID</p>
-        <h1 id="hero-title">每一步向上，<br><em>都算数。</em></h1>
-        <p class="hero-description">家里的楼梯，也能通向更高的地方。<br>用循阶记录每一层，让今天的努力看得见。</p>
-        <div class="hero-actions">
-          <a class="button" href="https://github.com/HigloDev/steploop/releases/download/v1.1.3-preview.1/steploop-1.1.3-android.apk"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>下载 Android 版</a>
-          <button class="text-button" type="button" data-open-qr><svg class="icon" aria-hidden="true"><use href="#i-qr"/></svg>手机扫码</button>
-        </div>
-        <p class="download-meta">Android 7.0+ <span>·</span> 79.6 MB <span>·</span> 免费下载</p>
-        <a class="hero-explore" href="#height">从一层开始，看看能走多远 <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="release-label" href="https://github.com/HigloDev/steploop/releases/tag/v1.1.5-preview.1"><span class="status-dot"></span>1.1.5 公开试用版<span class="label-new">全新界面</span><svg class="icon"><use href="#icon-arrow"/></svg></a>
+        <p class="eyebrow">A LITTLE HIGHER. EVERY DAY.</p>
+        <h1 id="hero-title">每一步向上，<br><span>都算数。</span></h1>
+        <p class="hero-description">从一次爬楼，到一周的坚持。<br>用清晰的楼层、爬升和训练记录，<br class="desktop-break">看见自己的节奏。</p>
+        <div class="hero-actions"><a class="button button-primary" data-apk href="https://github.com/HigloDev/steploop/releases/download/v1.1.5-preview.1/steploop-1.1.5-android.apk"><svg class="icon"><use href="#icon-download"/></svg>下载 Android 版</a><a class="text-link" href="#experience">看看新界面 <svg class="icon"><use href="#icon-arrow"/></svg></a></div>
+        <p class="download-meta">Android 7.0+ <span>·</span> <span data-release-size>75.7 MB</span> <span>·</span> 免费下载</p>
+        <div class="hero-assurance"><svg class="icon"><use href="#icon-shield"/></svg><span>无需注册，训练数据保存在本机。</span></div>
       </div>
-      <div class="hero-art" aria-label="循阶首页和训练记录的真实界面">
-        <div class="orbit orbit-one" aria-hidden="true"></div><div class="orbit orbit-two" aria-hidden="true"></div>
-        <span class="art-word" aria-hidden="true">UP.</span>
-        <div class="phone phone-back"><img src="assets/site/history-1.1.3.png" width="390" height="844" alt="记录页：本周成果、筛选和训练历史" fetchpriority="low"></div>
-        <div class="phone phone-front"><img src="assets/site/home-1.1.3.png" width="400" height="890" alt="循阶首页：开始爬楼、本周累计和我的楼栋" fetchpriority="high"></div>
-        <div class="floating-label"><span class="mini-stairs" aria-hidden="true"></span><div>每一层，都有回响。<small>YOUR EVERYDAY CLIMB</small></div></div>
-        <p class="hero-image-note">App 实际界面 · 演示数据</p>
+      <div class="hero-visual">
+        <span class="vertical-caption" aria-hidden="true">KEEP YOUR OWN PACE / 01</span>
+        <div class="stair-sculpture" aria-hidden="true"><i></i><i></i><i></i></div>
+        <figure class="hero-phone phone"><img src="assets/site115/home-light.png" width="1200" height="2670" alt="新版训练首页：本周爬升、七天训练趋势、楼栋选择与开始爬楼按钮" fetchpriority="high"></figure>
+        <div class="visual-caption"><span class="caption-line"></span><p>找到自己的节奏。<small>原生界面截图 · 演示训练数据</small></p><span class="caption-arrow" aria-hidden="true">↗</span></div>
       </div>
     </section>
 
-    <div class="proof-strip wrap">
-      <div><span class="proof-number">37</span><p>种高度参照<small>从球门到珠穆朗玛峰</small></p></div>
-      <div><span class="proof-number">7</span><p>档楼栋图标<small>随每次爬升生长</small></p></div>
-      <div><svg class="icon proof-lock" aria-hidden="true"><use href="#i-lock"/></svg><p>记录留在本机<small>无需注册，即可开始</small></p></div>
-    </div>
+    <div class="principles wrap" aria-label="产品特点"><p><span>01</span>专注一次训练</p><p><span>02</span>看见每周积累</p><p><span>03</span>数据留在本机</p><a href="#experience" aria-label="向下查看新版体验">向下探索 <span aria-hidden="true">↓</span></a></div>
 
-    <section class="height-section" id="height" aria-labelledby="height-title">
-      <div class="wrap height-grid">
-        <div class="section-copy">
-          <p class="eyebrow">01 / 给努力一个参照</p>
-          <h2 id="height-title">小小的楼梯，<br>大大的<span>世界。</span></h2>
-          <p>爬了多少米，听起来有点抽象。<br>如果这份努力，已经和一座地标一样高呢？</p>
-          <p>37 种高度参照，让日常的累积有了新的模样。从熟悉的球门、城市的高塔，一路看到珠峰的高度。</p>
-          <a class="inline-link" href="#experience">看看 App 里的样子 <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        </div>
-        <div class="landmark-card">
-          <div class="landmark-top"><span>下一座，新的高度</span><span>HEIGHT REFERENCE</span></div>
-          <div class="landmark-view" data-landmark-view>
-            <svg class="landmark-illustration" viewBox="0 0 540 260" role="img" aria-label="珠峰山形示意" data-landmark-art="everest"><path class="mountain-back" d="M0 236 82 156 133 185 213 103 273 173 331 123 403 186 469 152 540 236Z"/><path class="mountain-main" d="m88 236 182-195 183 195Z"/><path class="mountain-snow" d="m231 83 39-42 50 54-26-7-22 13-19-18-16 9Z"/><path class="landmark-line" d="m270 42 16 92-21 30 37 72M0 236h540"/><circle class="summit-dot" cx="270" cy="41" r="5"/><path class="summit-line" d="M285 41h178"/></svg>
-            <svg class="landmark-illustration" viewBox="0 0 540 260" role="img" aria-label="埃菲尔铁塔示意" data-landmark-art="eiffel" hidden><path class="city-background" d="M0 236V184h48v52h36V161h35v75h302v-56h40v56h33V194h46v42Z"/><path class="tower-outline" d="M181 236c41-49 58-94 68-174h42c10 80 27 125 68 174h-37c-3-29-20-46-52-46s-49 17-52 46Zm68-174 12-28h18l12 28M270 34V11M232 115h76M216 156h108M194 207h152M249 63l42 51m-42 0 57 42m-57 0 66 49m-24-141-42 50m42 0-57 42m57 0-66 49"/><path class="landmark-line" d="M0 236h540"/></svg>
-            <svg class="landmark-illustration" viewBox="0 0 540 260" role="img" aria-label="伦敦钟塔示意" data-landmark-art="elizabeth" hidden><path class="city-background" d="M0 236v-47h88v-29h60v76h244v-50h61v50h87Z"/><path class="tower-outline" d="M235 236V74h70v162M229 74h82l-13-12h-56Zm17-12V49l24-26 24 26v13M270 23V10M237 122h66M246 145v71m16-71v71m16-71v71m16-71v71"/><circle class="tower-outline" cx="270" cy="97" r="17"/><path class="tower-outline" d="M270 85v12l9 6"/><path class="landmark-line" d="M0 236h540"/></svg>
-          </div>
-          <div class="landmark-caption"><div><span class="landmark-name" data-landmark-name>珠穆朗玛峰</span><span class="landmark-note" data-landmark-note>峰顶雪面海拔</span></div><p><strong data-landmark-height>8,848.86</strong><span>米</span></p></div>
-          <div class="landmark-controls" aria-label="切换高度参照示例"><button type="button" data-landmark="elizabeth" aria-pressed="false">伦敦钟塔</button><button type="button" data-landmark="eiffel" aria-pressed="false">埃菲尔铁塔</button><button type="button" data-landmark="everest" aria-pressed="true">珠穆朗玛峰</button></div>
-          <p class="landmark-footnote">高度参照示意；山峰采用海拔，不代表实际登顶。</p>
-        </div>
-      </div>
-      <div class="wrap building-story"><div><p class="eyebrow">进步，也可以看得见</p><h3>今天的小屋，<br>明天的高楼。</h3><p>每次训练完成的楼层越多，记录里的楼栋图标就越高。7 档变化，为每次认真爬楼留下一枚小小的纪念。</p></div><figure><img src="assets/site/building-tiers.webp" width="840" height="144" alt="7 档实际楼栋图标示例：2、10、30、60、100、200 和 300 层" loading="lazy"><figcaption>App 实际图标 · 示例楼层数</figcaption></figure></div>
-    </section>
-
-    <section class="experience wrap" id="experience" aria-labelledby="experience-title">
-      <div class="section-heading"><div><p class="eyebrow">02 / 简单开始，认真记录</p><h2 id="experience-title">专心向上。<br><span>其他的，交给循阶。</span></h2></div><p>从开始一轮，到保存成果。<br>让每一次爬楼，都有清楚的来路。</p></div>
+    <section class="experience section wrap" id="experience" aria-labelledby="experience-title">
+      <div class="section-top"><p class="eyebrow">THE NEW STEPLOOP / 新版体验</p><p class="section-index">01 — 03</p></div>
       <div class="experience-grid">
-        <div class="experience-steps" role="tablist" aria-label="App 界面预览" aria-orientation="vertical">
-          <button class="experience-tab" id="tab-workout" role="tab" aria-selected="true" aria-controls="panel-workout" type="button"><span class="step-number">01</span><span><strong>看见每一层的进度</strong><span>步数、楼层频率、热量与高度，实时呈现。<br>每到新楼层，震动提醒一次向上。</span></span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-          <button class="experience-tab" id="tab-summary" role="tab" aria-selected="false" aria-controls="panel-summary" tabindex="-1" type="button"><span class="step-number">02</span><span><strong>把一次努力，认真留下</strong><span>保存成果后，看楼栋从地基一层层建起。<br>配合原创铃声，留下这次向上的回响。</span></span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-          <button class="experience-tab" id="tab-share" role="tab" aria-selected="false" aria-controls="panel-share" tabindex="-1" type="button"><span class="step-number">03</span><span><strong>把一周的向上，分享出去</strong><span>点击周累计查看高度完成情况。<br>用独立周成果海报，分享这一周的进步。</span></span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-          <p class="preview-note">截图来自 App 实际界面，数值均为演示数据。<br><a class="inline-link" href="qa/xiaomi14-improvements-20261010/index.html">查看 26 组浅深色原生对照与动画录像</a></p>
+        <div class="experience-copy"><h2 id="experience-title">把注意力，<br>留给下一层。</h2><p class="section-intro">更清晰的信息，更从容的留白。<br>从出发到完成，每个阶段各有重点。</p>
+          <div class="flow-tabs" role="tablist" aria-label="训练流程" aria-orientation="vertical">
+            <button id="tab-home" class="flow-tab" role="tab" aria-selected="true" aria-controls="flow-panel" data-screen="home" tabindex="0"><span class="tab-number">01</span><span><strong>准备好，就出发。</strong><small>选择常用楼栋，一眼看见本周积累。</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+            <button id="tab-climbing" class="flow-tab" role="tab" aria-selected="false" aria-controls="flow-panel" data-screen="climbing" tabindex="-1"><span class="tab-number">02</span><span><strong>眼前是这一层。</strong><small>大号楼层、进度刻度与训练指标，主次分明。</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+            <button id="tab-summary" class="flow-tab" role="tab" aria-selected="false" aria-controls="flow-panel" data-screen="summary" tabindex="-1"><span class="tab-number">03</span><span><strong>回头看，又向上一程。</strong><small>逐轮核对成绩，保存这一趟的努力。</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+          </div>
+          <p class="demo-note">界面中的数值为演示数据。自动计层仍在试用阶段，训练后可核对、修正楼层。</p>
         </div>
-        <div class="experience-stage">
-          <div class="stage-stairs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="preview-panel" id="panel-workout" role="tabpanel" aria-labelledby="tab-workout" tabindex="0"><div class="phone preview-phone"><img src="assets/site/workout-1.1.3.png" width="400" height="890" alt="爬楼界面：当前楼层、实时步数、频率、热量、高度及操作按钮" loading="lazy"></div></div>
-          <div class="preview-panel" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" tabindex="0" hidden><div class="phone preview-phone"><img src="assets/site/summary-1.1.3.png" width="400" height="890" alt="训练完成界面：爬升高度、楼层和每轮成绩" loading="lazy"></div></div>
-          <div class="preview-panel" id="panel-share" role="tabpanel" aria-labelledby="tab-share" tabindex="0" hidden><div class="phone preview-phone"><img src="assets/site/share-1.1.3.png" width="400" height="890" alt="独立周成果分享页：成果海报、模板选择、保存和分享按钮" loading="lazy"></div></div>
-          <span class="stage-caption">DESIGNED FOR YOUR EVERYDAY CLIMB.</span>
+        <div class="screen-stage" data-theme="light">
+          <div class="stage-top"><span data-screen-title>训练首页</span><div class="theme-switch" role="group" aria-label="界面主题"><button type="button" data-theme-choice="light" aria-pressed="true" aria-label="浅色界面"><svg class="icon"><use href="#icon-sun"/></svg></button><button type="button" data-theme-choice="dark" aria-pressed="false" aria-label="深色界面"><svg class="icon"><use href="#icon-moon"/></svg></button></div></div>
+          <div id="flow-panel" class="screen-panel" role="tabpanel" aria-labelledby="tab-home" tabindex="0"><figure class="preview-phone phone"><img data-preview src="assets/site115/home-light.png" width="1200" height="2670" loading="lazy" alt="浅色训练首页，展示演示数据"></figure></div>
+          <p class="stage-foot"><span data-screen-counter>01</span> / 03 <span>浅色与深色，同样清晰。</span></p>
         </div>
       </div>
-      <div class="local-note"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg><p><strong>你的记录，留在你的手机里。</strong>训练数据本地保存；可在设置里导出备份，换机前记得保存一份。</p><a href="https://github.com/HigloDev/steploop/tree/v1.1.3-preview.1" target="_blank" rel="noopener noreferrer">查看源码 <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+      <noscript><p class="noscript-note">更多界面：<a href="assets/site115/climbing-light.png">查看训练中</a>、<a href="assets/site115/summary-dark.png">查看深色结算</a>。</p></noscript>
     </section>
 
-    <section class="guide-section" id="guide" aria-labelledby="guide-title"><div class="wrap">
-      <div class="section-heading"><div><p class="eyebrow">03 / 第一步，很简单</p><h2 id="guide-title">从熟悉的楼梯，<br>开始新的习惯。</h2></div></div>
-      <ol class="guide-list"><li><span>01</span><h3>下载并安装</h3><p>下载 Android 安装包，按手机提示允许安装。首次打开时，完成 App 内的权限设置。</p></li><li><span>02</span><h3>标定你的楼栋</h3><p>在新楼栋开始第一轮，每到一层点一下。结束后保存楼栋，让循阶认识这段楼梯。</p></li><li><span>03</span><h3>下次，直接向上</h3><p>选择已经保存的楼栋开始训练，体验自动计层。结束保存成果，在记录页回看进步。</p></li></ol>
-    </div></section>
+    <section class="local-section" aria-labelledby="local-title"><div class="wrap local-grid"><div><p class="eyebrow">YOUR PROGRESS. YOURS TO KEEP.</p><h2 id="local-title">按照自己的节奏，<br>积累自己的进步。</h2><p>不必先创建账户，也不必把每次训练交给云端。<br>你的记录，留在自己手中。</p></div><div class="local-details"><div><span>01 / 记录</span><h3>回看每一次训练</h3><p>按楼栋和日期查找，查看逐轮成绩与本周爬升。</p></div><div><span>02 / 备份</span><h3>重要的积累，记得保存</h3><p>在设置里导出备份，换机或更新前，给记录留一份副本。</p></div><div><span>03 / 分享</span><h3>给这一周，一张成果卡</h3><p>把爬升与坚持做成分享卡片，愿意分享时再分享。</p></div></div></div></section>
 
-    <section class="download-section wrap" id="download" aria-labelledby="download-title">
-      <div class="download-card"><div><p class="eyebrow">循阶 STEPLOOP / ANDROID</p><h2 id="download-title">下一层，<br>现在开始。</h2><p>1.1.3 公开试用版 · 2026.10.10</p></div><div class="download-side"><a class="button button-dark" href="https://github.com/HigloDev/steploop/releases/download/v1.1.3-preview.1/steploop-1.1.3-android.apk"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>免费下载 Android 版</a><p>Android 7.0+ · ARM64 / x86_64 · 79.6 MB</p><button class="download-qr-link" type="button" data-open-qr><svg class="icon" aria-hidden="true"><use href="#i-qr"/></svg>在电脑浏览？用手机扫码打开</button></div><div class="download-stairs" aria-hidden="true"></div></div>
-      <div class="download-links"><a href="https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1" target="_blank" rel="noopener noreferrer">更新说明与所有下载 <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a><a href="https://github.com/HigloDev/steploop/releases/download/v1.1.3-preview.1/SHA256SUMS.txt">安装包校验文件 <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
-      <div class="faq"><h3>开始前，你可能想知道</h3><div>
-        <details><summary>已经装过循阶，怎么保留记录更新？<span aria-hidden="true">+</span></summary><p>先到 App「设置 → 备份与导出 → 保存备份到下载」，保存一份更新前的备份。公开版 1.0.5 / 1.0.7 / 1.1.2 可以用本页安装包覆盖更新。</p><p>如果你安装的是内部测试版，签名可能不同，需要对应的内部安装包。遇到签名冲突，请保留现有 App 和数据，先<a href="https://github.com/HigloDev/steploop/issues" target="_blank" rel="noopener noreferrer">反馈问题</a>，不要卸载或清空数据。</p></details>
-        <details><summary>下载后，手机提示不能安装怎么办？<span aria-hidden="true">+</span></summary><p>本页下载的是 APK 安装包。请在 Android 7.0 或更高版本的手机上打开，按系统提示为下载所用的浏览器或文件管理器允许「安装未知应用」，再继续安装。安装包由 GitHub Releases 提供。</p></details>
-        <details><summary>我的记录会上传吗？需要登录吗？<span aria-hidden="true">+</span></summary><p>开始训练无需注册。训练记录保存在本机，导出备份由你主动操作。更换手机、卸载 App 或清空应用数据前，请先保存备份。普通备份主要用于恢复训练记录，不包含完整原始传感器日志。</p></details>
-        <details><summary>自动计层，适合所有手机和楼梯吗？<span aria-hidden="true">+</span></summary><p>目前是公开试用版。自动计层受手机传感器、楼栋标定和后台设置影响，首次使用建议在熟悉的楼梯上短程试用，并对照实际楼层核对记录。发现误差可以修正层数，并在 GitHub 反馈。</p><p>界面的热量数值为估算。高度参照用于展示累计爬升，山峰使用海拔，不代表真实登顶。</p></details>
-      </div></div>
-    </section>
+    <section class="section wrap getting-started" id="getting-started" aria-labelledby="start-title"><div class="section-top"><p class="eyebrow">READY WHEN YOU ARE / 开始使用</p><span class="section-index">简单三步</span></div><h2 id="start-title">下一次爬楼，<br class="mobile-break">从这里开始。</h2><ol class="start-steps"><li><span>01</span><h3>下载并安装</h3><p>在 Android 手机浏览器下载安装包，按系统提示允许该浏览器安装应用。已安装旧版时，先保存备份，再覆盖更新。</p></li><li><span>02</span><h3>选好你的楼栋</h3><p>新建楼栋、设置起止楼层，按应用引导准备训练。首次使用时，允许运动识别及训练通知。</p></li><li><span>03</span><h3>开始，然后回顾</h3><p>照常爬楼，结束后核对每轮楼层并保存。返回记录页，下一次打开仍能继续回看。</p></li></ol></section>
+
+    <section class="download-section" id="download" aria-labelledby="download-title"><div class="wrap download-grid"><div><p class="eyebrow">STEP INTO YOUR NEXT CHAPTER.</p><h2 id="download-title">向上，<br>从现在开始。</h2><p>循阶 1.1.5 · Android 公开试用版</p></div><div class="download-package"><div class="package-header"><img src="assets/site115/logo.svg" alt="" width="52" height="52"><div><strong>循阶 Steploop</strong><span>1.1.5 / 2026.10.21</span></div><span class="package-type">APK</span></div><dl class="package-details"><div><dt>支持系统</dt><dd>Android 7.0 及以上</dd></div><div><dt>安装包</dt><dd><span data-release-size>75.7 MB</span> · ARM64 / x86_64</dd></div><div><dt>发布状态</dt><dd>公开试用 · 持续完善</dd></div></dl><a class="button button-white" data-apk href="https://github.com/HigloDev/steploop/releases/download/v1.1.5-preview.1/steploop-1.1.5-android.apk"><svg class="icon"><use href="#icon-download"/></svg>下载最新安装包<svg class="icon end-arrow"><use href="#icon-arrow"/></svg></a><button class="qr-trigger" type="button" data-open-qr>在电脑上？扫码用手机下载 <span aria-hidden="true">↗</span></button><div class="package-links"><a href="https://github.com/HigloDev/steploop/releases/tag/v1.1.5-preview.1">更新说明 ↗</a><a href="https://github.com/HigloDev/steploop/releases/download/v1.1.5-preview.1/SHA256SUMS.txt">校验文件 ↗</a></div></div></div></section>
+
+    <section class="section wrap faq" id="questions" aria-labelledby="faq-title"><div><p class="eyebrow">A FEW THINGS TO KNOW</p><h2 id="faq-title">出发前，<br>你可能想知道。</h2><a class="text-link" href="https://github.com/HigloDev/steploop/issues" target="_blank" rel="noopener noreferrer">反馈使用问题 <svg class="icon"><use href="#icon-arrow"/></svg></a></div><div class="faq-list"><details><summary>旧版本可以直接更新吗？<span aria-hidden="true">+</span></summary><p>从本网站下载的旧公开版可使用相同发布签名覆盖更新。更新前，请在“设置 → 备份与导出 → 保存备份到下载”保存一份备份。1.1.5 补全了楼栋模板备份，升级后建议重新导出。内部测试签名可能不同；遇到签名冲突时请保留原应用与数据，通过问题反馈联系维护者。</p></details><details><summary>自动计层的结果准确吗？<span aria-hidden="true">+</span></summary><p>自动计层仍处于试用阶段，结果受手机传感器、携带位置和环境影响。请在训练结束后核对、修正楼层。真实运动、锁屏连续记录和耗电仍需更多验证；页面演示不代表准确率承诺，热量为估算。</p></details><details><summary>需要注册或者联网吗？<span aria-hidden="true">+</span></summary><p>无需注册。训练与记录保存在本机，可在设置中导出备份。下载安装和打开外部链接需要网络；公开包未配置在线地图，按楼栋设置即可开始训练。</p></details><details><summary>支持哪些手机？有 iPhone 版吗？<span aria-hidden="true">+</span></summary><p>本次提供 Android 7.0 及以上的 ARM64 与 x86_64 安装包。自动计层体验取决于机型传感器能力，请根据应用提示使用。目前没有可公开下载的 iPhone 版。</p></details></div></section>
   </main>
 
-  <footer class="site-footer wrap"><a class="brand footer-brand" href="#"><img src="assets/site/logo.webp" width="40" height="40" alt=""><span>循阶<small>每一步向上。</small></span></a><p>给日常一点向上的力量。</p><div><a href="https://github.com/HigloDev/steploop" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-github"/></svg>GitHub</a><a href="https://github.com/HigloDev/steploop/issues" target="_blank" rel="noopener noreferrer">问题反馈</a><a href="https://github.com/HigloDev/steploop/releases/download/v1.1.3-preview.1/APP_LICENSE.txt">使用许可</a></div></footer>
+  <footer class="footer wrap"><a class="brand" href="#"><img src="assets/site115/logo.svg" alt="" width="36" height="36"><span>循阶<small>STEPLOOP</small></span></a><p>按照自己的节奏，下次继续。</p><div><a href="https://github.com/HigloDev/steploop" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://github.com/HigloDev/steploop/releases/download/v1.1.5-preview.1/APP_LICENSE.txt">使用许可</a><a href="https://github.com/HigloDev/steploop/releases">历史版本</a></div><small>© 2026 Steploop · 为日常的每一步。</small></footer>
 
-  <dialog class="qr-dialog" id="qr-dialog" aria-labelledby="qr-title"><button class="dialog-close" type="button" data-close-qr aria-label="关闭扫码窗口">×</button><img class="dialog-logo" src="assets/site/logo.webp" width="56" height="56" alt=""><h2 id="qr-title">在手机上，开始向上。</h2><p>用手机相机或扫码工具打开下载页。</p><div class="qr-image"><img src="assets/site/download-qr.svg" width="220" height="220" alt="循阶官方下载页二维码：https://higlodev.github.io/steploop/"></div><p class="qr-tip">在微信中打开后，可选择「在浏览器打开」再下载。</p><button class="button" id="copy-url" type="button">复制下载页链接</button><input class="copy-fallback" id="copy-fallback" aria-label="下载页链接，请选择后复制" value="https://higlodev.github.io/steploop/" readonly hidden><p class="copy-status" id="copy-status" role="status" aria-live="polite"></p></dialog>
-  <noscript><style>.landmark-controls,[data-open-qr]{display:none}.preview-panel[hidden]{display:block}.experience-stage{display:flex;flex-wrap:wrap;gap:24px;padding:30px}.preview-phone{width:200px}.experience-tab{cursor:default}</style></noscript>
+  <dialog class="qr-dialog" id="qr-dialog" aria-labelledby="qr-title"><button class="dialog-close" type="button" data-close-qr aria-label="关闭二维码">×</button><p class="eyebrow">TAKE THE NEXT STEP</p><h2 id="qr-title">在手机上，继续。</h2><p>扫描二维码打开下载页，<br>点击下载 Android 1.1.5 安装包。</p><img class="qr-image" src="assets/site115/download-qr.svg" width="220" height="220" alt="指向循阶公开下载页的二维码"><button class="button button-primary" id="copy-url" type="button">复制下载页链接</button><input id="copy-fallback" class="copy-fallback" type="text" value="https://higlodev.github.io/steploop/" aria-label="下载页链接" readonly hidden><p class="copy-status" id="copy-status" role="status" aria-live="polite"></p></dialog>
 </body>
 </html>
