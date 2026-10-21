@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { AppState, Linking, Pressable, Text, View } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Button } from './ui'
-import { useTheme } from '../theme'
+import { sport, useTheme } from '../theme'
 import {
   BackgroundTrainingStatus,
   getBackgroundTrainingStatus,
@@ -86,11 +86,11 @@ export function BackgroundTrainingReadiness({ compact = false, grouped = false, 
     ] as const).map(([label, icon, allowed, accessibilityLabel], index) => <Pressable key={label}
       accessibilityRole="button" accessibilityLabel={accessibilityLabel} disabled={opening}
       onPress={() => { if (index === 2) void open(!status?.batteryOptimizationIgnored); else void Linking.openSettings().catch(() => setError('无法打开系统页面，请在手机设置中检查循阶的权限。')) }}
-      style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 16,
+      style={{ minHeight: 64, paddingVertical: sport.space.md, flexDirection: 'row', alignItems: 'center', gap: sport.space.md,
         borderTopWidth: index ? 0.5 : 0, borderTopColor: theme.line }}>
       <MaterialCommunityIcons name={icon} size={24} color={theme.ink} />
-      <View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 16, lineHeight: 22, fontWeight: '800' }}>{label}</Text>
-        <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 16 }}>{allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}</Text></View>
+      <View style={{ flex: 1, gap: sport.space.xs }}><Text style={{ color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' }}>{label}</Text>
+        <Text style={{ color: theme.mutedStrong, fontSize: sport.type.secondary, lineHeight: 20 }}>{allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}</Text></View>
       <MaterialCommunityIcons name={index === 2 ? 'chevron-right' : allowed ? 'check-circle' : 'alert-circle-outline'}
         size={24} color={index === 2 ? theme.brand : allowed ? theme.success : theme.amberInk} />
     </Pressable>)}

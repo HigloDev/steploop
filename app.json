@@ -2,7 +2,7 @@
   "expo": {
     "name": "循阶",
     "slug": "steploop",
-    "version": "1.1.3",
+    "version": "1.1.5",
     "orientation": "portrait",
     "icon": "./assets/brand/audit-icon.png",
     "userInterfaceStyle": "automatic",
@@ -17,10 +17,10 @@
     },
     "android": {
       "package": "com.zxn.palou",
-      "versionCode": 12,
+      "versionCode": 14,
       "adaptiveIcon": {
-        "backgroundColor": "#11100F",
-        "foregroundImage": "./assets/brand/audit-adaptive.png",
+        "backgroundColor": "#245CD8",
+        "foregroundImage": "./assets/brand/audit-monochrome.png",
         "monochromeImage": "./assets/brand/audit-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -50,13 +50,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F7F5F2",
-          "image": "./assets/brand/audit-splash.png",
+          "backgroundColor": "#245CD8",
+          "image": "./assets/brand/audit-monochrome.png",
           "dark": {
-            "backgroundColor": "#11100F",
-            "image": "./assets/brand/audit-splash.png"
+            "backgroundColor": "#245CD8",
+            "image": "./assets/brand/audit-monochrome.png"
           },
-          "imageWidth": 180,
+          "imageWidth": 256,
           "resizeMode": "contain"
         }
       ],

@@ -23,7 +23,7 @@ export function Disclosure({ title, summary, children, initiallyOpen = false, co
         {title === '趋势与最佳成绩' ? <MaterialIcons name="bar-chart" size={24} color={theme.inkSoft} /> : ['备份与导出', '帮助与关于', '修正最终楼层', '单层用时'].includes(title) ? <MaterialCommunityIcons
           name={title === '备份与导出' ? 'database' : title === '修正最终楼层' ? 'stairs' : title === '单层用时' ? 'clock-outline' : 'help-circle'} size={24} color={theme.inkSoft} /> : null}
         <View style={{ flex: 1, flexDirection: compact ? 'row' : 'column', justifyContent: 'space-between', alignItems: compact ? 'center' : undefined, gap: compact ? 8 : 0 }}>
-          <Text style={{ color: theme.ink, fontSize: 18, fontWeight: '800' }}>{title}</Text>
+          <Text style={{ color: theme.ink, fontSize: 15, fontWeight: '600' }}>{title}</Text>
           {summary ? <Text style={{ color: theme.mutedStrong, fontSize: 13, marginTop: compact ? 0 : 4, flexShrink: 1 }}>{summary}</Text> : null}
         </View>
         <Ionicons name={open ? dense ? 'chevron-down' : 'chevron-up' : 'chevron-forward'} color={theme.mutedStrong} size={18} />

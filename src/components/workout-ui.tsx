@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { triggerHaptic } from '../services/preferences'
 
-import { useWorkoutPalette, WorkoutPalette } from '../theme'
+import { sport, useWorkoutPalette, WorkoutPalette } from '../theme'
 import { useReduceMotion } from './ui'
 
 // ---------------- FlipNumber ----------------
@@ -74,8 +74,7 @@ export function StairGauge({ cells, height = 360, style, maxVisible = 24, startF
   const completed = cells.filter(cell => cell.state === 'done' || cell.state === 'current').length
   const first = Math.max(0, Math.min(cells.length - maxVisible, currentIndex < 0 ? completed === 0 ? 0 : cells.length - maxVisible : currentIndex - 3))
   const visible = cells.slice(first, first + maxVisible)
-  const gap = 5
-  const cellH = Math.max(6, Math.min(26, (height - gap * visible.length) / Math.max(1, visible.length)))
+  const cellH = height / Math.max(1, visible.length)
   return (
     <View
       style={[{ height, justifyContent: 'flex-end' }, style]}
@@ -83,25 +82,13 @@ export function StairGauge({ cells, height = 360, style, maxVisible = 24, startF
       accessibilityLabel={`楼层刻度，已完成 ${completed} 层`}
     >
       {[...visible].reverse().map((cell, index) => {
-        const offset = 0
         const done = cell.state === 'done'
         const current = cell.state === 'current'
         return (
-          <View key={`${cell.floor}-${index}`} style={{ flexDirection: 'row', alignItems: 'center', marginTop: gap }}>
-            <View
-              style={{
-                height: cellH,
-                width: 40 + offset,
-                borderRadius: 4,
-                backgroundColor: done ? (cell.estimated ? 'transparent' : P.brand) : current ? P.brandDim : P.surfaceHigh,
-                borderWidth: done && cell.estimated ? 2 : current ? 2 : 0,
-                borderStyle: done && cell.estimated ? 'dashed' : 'solid',
-                borderColor: done && cell.estimated ? P.estimate : P.brand,
-              }}
-            />
-            {(current || (done && index === 0)) && cellH >= 12 ? (
-              <Text style={styles.gaugeLabel}>{cell.floor}F</Text>
-            ) : null}
+          <View key={`${cell.floor}-${index}`} style={{ height: cellH, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+            {current || index === 0 || index === visible.length - 1 ? <Text style={[styles.gaugeLabel, current && { color: P.brandInk, fontWeight: '700' }]}>{cell.floor}</Text> : null}
+            <View style={{ height: current ? 5 : 2, width: current ? 36 : done ? 24 : 16, borderRadius: 2,
+              backgroundColor: current || done ? cell.estimated ? P.estimate : P.brand : P.line }} />
           </View>
         )
       })}
@@ -194,7 +181,7 @@ function useWorkoutStyles() {
 const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
   flip: {
     fontVariant: ['tabular-nums'],
-    fontWeight: '900',
+    fontWeight: '600',
     letterSpacing: -4,
     textAlign: 'center',
     includeFontPadding: false,
@@ -202,7 +189,7 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
   gaugeLabel: {
     color: P.inkSoft,
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '400',
     fontVariant: ['tabular-nums'],
     marginLeft: 6,
   },
@@ -210,17 +197,16 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    minHeight: 48,
-    paddingHorizontal: 16,
-    borderRadius: 22,
-    backgroundColor: P.surface,
-   paddingVertical: 6,},
-  statusDot: { width: 10, height: 10, borderRadius: 5 },
-  statusText: { flexShrink: 1, fontSize: 15, fontWeight: '800', color: P.ink,},
-  statusExtra: { color: P.muted, fontSize: 12, fontWeight: '600' },
+    minHeight: 38,
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+   paddingVertical: 0 },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { flexShrink: 1, fontSize: 13, fontWeight: '500', color: P.inkSoft },
+  statusExtra: { color: P.muted, fontSize: 11, fontWeight: '400' },
   hold: {
     minHeight: 58,
-    borderRadius: 29,
+    borderRadius: sport.radius.control,
     borderWidth: 1.5,
     borderColor: P.muted,
     alignItems: 'center',
@@ -229,8 +215,8 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
     paddingHorizontal: 18,
   },
   holdFill: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: P.surfaceHigh },
-  holdText: { color: P.inkSoft, fontSize: 17, fontWeight: '800' },
+  holdText: { color: P.inkSoft, fontSize: 15, fontWeight: '600' },
   mini: { flex: 1, alignItems: 'center' },
-  miniValue: { color: P.ink, fontSize: 28, fontWeight: '900', fontVariant: ['tabular-nums'] },
-  miniLabel: { color: P.muted, fontSize: 14, fontWeight: '700', marginTop: 2 },
+  miniValue: { color: P.ink, fontSize: 24, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  miniLabel: { color: P.muted, fontSize: 12, fontWeight: '400', marginTop: 4 },
 })

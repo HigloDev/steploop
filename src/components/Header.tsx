@@ -48,7 +48,7 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
             <Feather name="chevron-left" size={26} color={theme.ink} />
           </Pressable>
         ) : (
-          large ? <MaterialCommunityIcons name={title === '记录' ? 'history' : title === '设置' ? 'cog' : 'stairs-up'} size={32} color={theme.brand} style={{ marginRight: 12 }} /> : <View style={styles.backPlaceholder} />
+          large ? null : <View style={styles.backPlaceholder} />
         )}
         <Text accessibilityRole="header" style={[styles.title, large && styles.largeTitle, align === 'left' && { textAlign: 'left' }]}>
           {title}
@@ -79,8 +79,8 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       paddingHorizontal: 12,
     },
-    largeBar: { minHeight: 76, paddingHorizontal: theme.pagePaddingH, paddingTop: 32, paddingBottom: 4,},
-    largeTitle: { textAlign: 'left', fontSize: 30, lineHeight: 38, fontWeight: '900', marginHorizontal: 0 },
+    largeBar: { minHeight: 72, paddingHorizontal: theme.pagePaddingH, paddingTop: 12, paddingBottom: 12 },
+    largeTitle: { textAlign: 'left', fontSize: 28, lineHeight: 38, fontWeight: '700', marginHorizontal: 0 },
     backAction: {
       minWidth: 48,
       minHeight: 48,
@@ -99,8 +99,8 @@ const makeStyles = (theme: Theme) =>
     title: {
       flex: 1,
       color: theme.ink,
-      fontSize: 20,
-      fontWeight: '900',
+      fontSize: 17,
+      fontWeight: '600',
       textAlign: 'center',
       marginHorizontal: 8,
     },

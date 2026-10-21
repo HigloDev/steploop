@@ -59,6 +59,42 @@ const native = {
   useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1 }),
 }
 const icons = { Feather: 'Feather', Ionicons: 'Ionicons', MaterialCommunityIcons: 'MaterialCommunityIcons' }
+const themeTokens = load('src/theme.ts', { 'react-native': { useColorScheme: () => 'light' } })
+
+test('choice controls fit measured labels at larger font sizes and reflow when the actual space runs out', () => {
+  const hooks = runtime()
+  let fontScale = 1.25
+  const changes = []
+  const { NativeChoice } = load('src/components/native-choice.tsx', {
+    react: hooks.react,
+    'react-native': { ...native, Platform: { OS: 'android' }, useWindowDimensions: () => ({ width: 400, height: 890, fontScale }) },
+    '@expo/ui/community/segmented-control': { default: 'SegmentedControl' },
+    '../theme': themeTokens,
+    '../services/preferences': { triggerHaptic: async () => {} },
+  })
+  const options = ['精简', '标准', '教练', '关闭'].map(value => ({ value, label: value }))
+  const render = () => hooks.render(() => NativeChoice({ options, value: '标准', onChange: value => changes.push(value) }))
+  const all = (tree, predicate) => !tree || typeof tree !== 'object' ? []
+    : [...(predicate(tree) ? [tree] : []), ...(tree.props?.children ?? []).flat(Infinity).flatMap(child => all(child, predicate))]
+  const rows = tree => all(tree, node => node.props.style?.flexDirection === 'row')
+  const measure = width => all(render(), node => typeof node.props.onTextLayout === 'function')
+    .forEach(node => node.props.onTextLayout({ nativeEvent: { lines: [{ width }] } }))
+  render().props.onLayout({ nativeEvent: { layout: { width: 326 } } })
+  measure(38)
+  assert.equal(rows(render()).length, 1, 'four short labels fit at 1.25 scale without forced two-row layout')
+  let radios = all(render(), node => node.props.accessibilityRole === 'radio')
+  assert.equal(radios.length, 4)
+  assert.equal(radios.filter(node => node.props.accessibilityState.checked).length, 1)
+  assert.ok(radios.every(node => node.props.style({ pressed: false }).minHeight >= 48))
+  fontScale = 2
+  measure(95)
+  assert.equal(rows(render()).length, 2, 'larger measured labels use balanced rows')
+  render().props.onLayout({ nativeEvent: { layout: { width: 180 } } })
+  assert.equal(rows(render()).length, 4, 'a narrow container can grow vertically instead of clipping labels')
+  radios = all(render(), node => node.props.accessibilityRole === 'radio')
+  radios.find(node => node.props.accessibilityLabel === '教练').props.onPress()
+  assert.deepEqual(changes, ['教练'], 'layout measurements never change the selected preference')
+})
 
 for (const failed of [false, true]) test(failed
   ? 'home blocks a new workout after cleanup persistence fails and allows a safe retry'
@@ -82,6 +118,8 @@ for (const failed of [false, true]) test(failed
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' },
     '../components/ascent-references': { AscentReferences: 'AscentReferences' },
     '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
+    '../components/sport-ui': { SportButton: 'SportButton', SectionHeading: 'SectionHeading', StatPair: 'StatPair' },
+    '../components/training-visuals': { WeekBars: 'WeekBars' },
     '../core/building-template': {},
     '../core/floors': { normalizeFloorNumber: value => value },
     '../core/landmarks': { describeAscent: () => '' },
@@ -94,7 +132,7 @@ for (const failed of [false, true]) test(failed
       loadFusionCheckpoint: async () => { reads++; return stored },
     },
     '../services/workout-storage': { listWorkouts: async () => [], loadActiveCheckpoint: async () => null },
-    '../theme': { useTheme: () => ({}) },
+    '../theme': themeTokens,
   })
   const navigation = { navigate: (...args) => navigations.push(args) }
   const render = () => hooks.render(() => Screen({ navigation }))
@@ -152,7 +190,7 @@ function holdHarness({ immediate = false, holdMs = 1200 } = {}) {
     },
     'react-native-worklets': { scheduleOnRN: fn => fn() },
     '../services/preferences': { triggerHaptic: async () => { haptics++ } },
-    '../theme': { useWorkoutPalette: () => ({}) }, './ui': { useReduceMotion: () => immediate },
+    '../theme': themeTokens, './ui': { useReduceMotion: () => immediate },
   })
   const button = hooks.render(() => HoldToConfirm({ label: '长按放弃本次', holdMs, onConfirm: () => confirmations++ }))
   return { button: button.props, finishVisuals: () => visuals.forEach(fn => fn()), get confirmations() { return confirmations }, get haptics() { return haptics } }
@@ -282,8 +320,10 @@ test('editing an old workout preserves its training date and chronological posit
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../components/disclosure': { Disclosure: 'Disclosure' }, '../components/Header': { Header: 'Header' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' }, '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
+    '../components/sport-ui': { StatPair: 'StatPair' },
+    '../components/training-visuals': { TrendChart: 'TrendChart' },
     '../components/ui': { Button: 'Button', Card: 'Card', EmptyState: 'EmptyState', Notice: 'Notice', Pill: 'Pill' },
-    '../theme': { useTheme: () => ({}) }, '../services/building-storage': { loadFusionCheckpoint: async () => null },
+    '../theme': themeTokens, '../services/building-storage': { loadFusionCheckpoint: async () => null },
     '../services/storage': { listSessions: async () => [] },
     '../services/workout-storage': { listWorkouts: async () => items, loadActiveCheckpoint: async () => null },
     '../services/history-repository': { historyRepository: { summarize: async () => ({}) } },

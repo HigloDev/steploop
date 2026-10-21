@@ -15,7 +15,7 @@ import { formatDuration } from '../core/math'
 import type { FusionSnapshot } from '../core/fusion-engine'
 import { useFusionWorkout } from '../hooks/useFusionWorkout'
 import type { RootStackScreen } from '../navigation/types'
-import { useWorkoutPalette, WorkoutPalette } from '../theme'
+import { sport, useWorkoutPalette, WorkoutPalette } from '../theme'
 
 function baroLabel(baro: FusionSnapshot['baro']): string {
   switch (baro) {
@@ -194,20 +194,25 @@ export function WorkoutContent({ navigation, session }: {
   }
 
   const showManualNext = (phase === 'calibration_top' || (phase === 'climbing' && snapshot.baro !== 'ok'))
-  const heroHeight = calibrating ? (compact ? 150 : 200) : compact ? 180 : Math.min(310, Math.max(220, height * 0.29))
+  const heroHeight = calibrating ? (compact ? 170 : 210) : compact ? 200 : Math.min(290, Math.max(230, height * 0.28))
   const climbingMinutes = (snapshot.ascentMs ?? snapshot.activeMs) / 60000
   const frequency = climbingMinutes > 0 ? snapshot.totalFloors / climbingMinutes : 0
   const ascent = snapshot.ascentM ?? snapshot.totalFloors * 3
   const metrics = [
-    { label: '当前步数', value: String(snapshot.steps), unit: '步', icon: 'shoe-print' as const },
-    { label: '平均爬楼频率', value: frequency.toFixed(1), unit: '层/分钟', icon: 'speedometer' as const },
-    { label: '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
     { label: '累计爬升', value: Math.round(ascent).toString(), unit: '米', icon: 'stairs-up' as const },
+    { label: '平均爬楼频率', value: frequency.toFixed(1), unit: '层/分钟', icon: 'speedometer' as const },
+    { label: '当前步数', value: String(snapshot.steps), unit: '步', icon: 'shoe-print' as const },
+    { label: '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
   ]
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + (compact ? 12 : 20), paddingBottom: insets.bottom + 8 }]}>
       <StatusBar style={P.isDark ? 'light' : 'dark'} />
+      <View style={styles.liveHeader}>
+        <Text accessibilityRole="header" style={styles.liveTitle}>向上训练</Text>
+        <View style={styles.liveBadge}><View style={styles.liveDot} /><Text style={styles.liveBadgeText}>LIVE</Text></View>
+        <Text style={styles.roundBadge}>第 {snapshot.roundNumber} 轮</Text>
+      </View>
       <View style={styles.topRow}>
         <View style={{ flex: 1 }}>
           <PhaseStatusBar tone={snapshot.status.tone} text={snapshot.status.text} extra={baroLabel(snapshot.baro)} />
@@ -217,16 +222,16 @@ export function WorkoutContent({ navigation, session }: {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.liveContent, { gap: compact ? 10 : 16 }]} showsVerticalScrollIndicator={false}>
       <View style={[styles.hero, { minHeight: heroHeight }]}>
-        <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 150 : Math.min(240, heroHeight - 12)} maxVisible={10} style={styles.gauge} />
         <View style={styles.heroCenter}>
-          <Text style={[styles.eyebrow, compact && { fontSize: 16 }]}>{eyebrow}</Text>
+          <Text style={styles.eyebrow}>{calibrating ? '记住这段楼梯' : phase === 'climbing' ? '当前楼层' : eyebrow}</Text>
           {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brand} style={{ marginTop: 12 }} /> : null}
           <View style={styles.bigRow}>
-            <FlipNumber value={bigValue} size={calibrating ? (compact ? 80 : 112) : compact ? 102 : 144} accessibilityLabel={`${bigValue} ${unit}`} />
-            <Text style={[styles.unit, compact && { fontSize: 26, marginBottom: 16 }]}>{unit}</Text>
+            <FlipNumber value={bigValue} color={P.brandInk} size={calibrating ? (compact ? 88 : 112) : compact ? 112 : 136} accessibilityLabel={`${bigValue} ${unit}`} />
+            <Text style={[styles.unit, compact && { fontSize: 22, marginBottom: 18 }]}>{unit}</Text>
           </View>
-          <Text style={[styles.caption, compact && { fontSize: 16, lineHeight: 22, marginTop: 4 }, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
+          <Text style={[styles.caption, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
         </View>
+        <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 160 : 210} maxVisible={10} style={styles.gauge} />
       </View>
 
       {calibrating ? (
@@ -269,12 +274,17 @@ export function WorkoutContent({ navigation, session }: {
             accessibilityLabel={`${metric.label} ${metric.value} ${metric.unit}`}>
             <View style={styles.liveMetricTitle}><MaterialCommunityIcons name={metric.icon} size={16} color={P.brandInk} accessible={false} />
               <Text style={styles.liveMetricLabel}>{metric.label}</Text></View>
-            <View style={styles.liveMetricNumber}><Text style={[styles.liveMetricValue, compact && { fontSize: 24 }]} numberOfLines={1} adjustsFontSizeToFit>{metric.value}</Text>
+            <View style={styles.liveMetricNumber}><Text style={[styles.liveMetricValue, metric.label === '累计爬升' && { color: P.brandInk }]} numberOfLines={1} adjustsFontSizeToFit>{metric.value}</Text>
               <Text style={styles.liveMetricUnit}>{metric.unit}</Text></View>
           </View>)}
         </View>
         <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
       </View>
+
+      {snapshot.completedRounds > 0 ? <View style={styles.completedStrip}>
+        <MaterialCommunityIcons name="check-circle-outline" size={18} color={P.good} accessible={false} />
+        <Text style={styles.completedText}>已完成 {snapshot.completedRounds} 轮{lastRound ? ` · 上轮 ${lastRound.floors} 层 / ${formatDuration(lastRound.activeMs ?? lastRound.durationMs)}` : ''}</Text>
+      </View> : null}
 
       </ScrollView>
 
@@ -293,7 +303,15 @@ export function WorkoutContent({ navigation, session }: {
 }
 
 const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
-  root: { flex: 1, backgroundColor: P.bg, paddingHorizontal: 20,},
+  root: { flex: 1, backgroundColor: P.bg, paddingHorizontal: sport.space.page },
+  liveHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 12 },
+  liveTitle: { color: P.ink, fontSize: 22, fontWeight: '700' },
+  liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6, backgroundColor: P.brandDim },
+  liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: P.brandInk },
+  liveBadgeText: { color: P.brandInk, fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  roundBadge: { color: P.muted, marginLeft: 'auto', fontSize: 13 },
+  completedStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P.line },
+  completedText: { flex: 1, color: P.inkSoft, fontSize: 12, lineHeight: 18 },
   center: { alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 32 },
   failureCard: { padding: 18, backgroundColor: P.failureSurface, borderRadius: 20, gap: 6, alignSelf: 'stretch', marginVertical: 12 },
   failureValue: { color: P.ink, fontSize: 22, fontWeight: '900', textAlign: 'center' },
@@ -307,31 +325,31 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   warning: { color: P.warn, fontSize: 13, fontWeight: '700', marginTop: 8, marginHorizontal: 4 },
-  liveContent: { flexGrow: 1, justifyContent: 'space-evenly', paddingVertical: 12 },
+  liveContent: { flexGrow: 1, paddingVertical: 12 },
   hero: { flexDirection: 'row', alignItems: 'center' },
   liveMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  liveMetric: { width: '48%', flexGrow: 1, minHeight: 82, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: P.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: P.line },
+  liveMetric: { width: '46%', flexGrow: 1, minHeight: 82, paddingHorizontal: 4, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P.line },
   liveMetricTitle: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  liveMetricLabel: { color: P.inkSoft, fontSize: 12, fontWeight: '700', flexShrink: 1 },
+  liveMetricLabel: { color: P.muted, fontSize: 12, fontWeight: '400', flexShrink: 1 },
   liveMetricNumber: { flexDirection: 'row', alignItems: 'baseline', gap: 5, marginTop: 4 },
-  liveMetricValue: { color: P.ink, fontSize: 30, fontWeight: '900', fontVariant: ['tabular-nums'], flexShrink: 1 },
+  liveMetricValue: { color: P.ink, fontSize: 28, fontWeight: '600', fontVariant: ['tabular-nums'], letterSpacing: -0.8, flexShrink: 1 },
   liveMetricUnit: { color: P.muted, fontSize: 11, fontWeight: '700' },
   metricHint: { color: P.muted, fontSize: 11, lineHeight: 16, marginTop: 8, textAlign: 'center' },
-  phaseHint: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 14, borderRadius: 16, backgroundColor: P.surface },
-  phaseHintText: { flex: 1, color: P.inkSoft, fontSize: 13, lineHeight: 20 },
-  gauge: { width: 60,},
-  heroCenter: { flex: 1, alignItems: 'center', paddingRight: 0,},
-  eyebrow: { color: P.brandInk, fontSize: 20, fontWeight: '900', letterSpacing: 1 },
+  phaseHint: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, backgroundColor: P.surface },
+  phaseHintText: { flex: 1, color: P.inkSoft, fontSize: 12, lineHeight: 19 },
+  gauge: { width: 76, marginRight: 8 },
+  heroCenter: { flex: 1, alignItems: 'flex-start' },
+  eyebrow: { color: P.muted, fontSize: 14, fontWeight: '400', letterSpacing: 1 },
   bigRow: { flexDirection: 'row', alignItems: 'flex-end', maxWidth: '100%' },
-  unit: { color: P.inkSoft, fontSize: 34, fontWeight: '900', marginBottom: 26, marginLeft: 4 },
-  caption: { color: P.inkSoft, fontSize: 18, lineHeight: 26, fontWeight: '700', marginTop: 6, textAlign: 'center' },
+  unit: { color: P.muted, fontSize: 26, fontWeight: '400', marginBottom: 24, marginLeft: 8 },
+  caption: { color: P.inkSoft, fontSize: 14, lineHeight: 22, fontWeight: '400', marginTop: 6 },
   calArea: { flex: 0, justifyContent: 'flex-end', gap: 12, marginTop: 0,},
   bigButton: {
-    flex: 0, minHeight: 76, borderRadius: 24, backgroundColor: P.brand,
+    flex: 0, minHeight: 76, borderRadius: sport.radius.control, backgroundColor: P.brand,
     alignItems: 'center', justifyContent: 'center',
   },
   bigButtonPressed: { backgroundColor: P.brandPressed, transform: [{ scale: 0.985 }] },
-  bigButtonText: { color: P.onBrand, fontSize: 30, fontWeight: '900', letterSpacing: 0,},
+  bigButtonText: { color: P.onBrand, fontSize: 24, fontWeight: '700' },
   bigButtonSub: { color: P.onBrand, fontSize: 14, fontWeight: '800', marginTop: 4, fontVariant: ['tabular-nums'] },
   calRow: { flexDirection: 'row', gap: 12 },
   secondary: {
@@ -339,7 +357,7 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', gap: 8,
    borderWidth: 1, borderColor: P.muted,},
   topButton: { borderWidth: 1.5, borderColor: P.muted,},
-  secondaryText: { color: P.inkSoft, fontSize: 18, fontWeight: '900' },
+  secondaryText: { color: P.inkSoft, fontSize: 16, fontWeight: '600' },
   nextButton: {
     minHeight: 72, borderRadius: 24, backgroundColor: P.brand, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'center', gap: 8,
