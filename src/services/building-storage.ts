@@ -105,8 +105,24 @@ export async function deleteBuilding(id: string): Promise<void> {
   const legacy = id.startsWith('legacy_') ? await getBuilding(id) : undefined
   await runSerial(async () => {
     const own = await readOwn()
-    if (own.some(item => item.id === id)) {
-      await writeOwn(own.filter(item => item.id !== id))
+    const target = own.find(item => item.id === id)
+    if (target) {
+      const previousHidden = target.legacyRouteId ? await AsyncStorage.getItem(HIDDEN_LEGACY_KEY) : null
+      if (target.legacyRouteId) {
+        const hidden = await hiddenLegacy()
+        // Hide the source first: even a process stop between these two writes must
+        // never resurrect the original route after removing its replacement.
+        await AsyncStorage.setItem(HIDDEN_LEGACY_KEY, JSON.stringify([...new Set([...hidden, target.legacyRouteId])]))
+      }
+      try {
+        await writeOwn(own.filter(item => item.id !== id))
+      } catch (error) {
+        if (target.legacyRouteId) {
+          if (previousHidden === null) await AsyncStorage.removeItem(HIDDEN_LEGACY_KEY)
+          else await AsyncStorage.setItem(HIDDEN_LEGACY_KEY, previousHidden)
+        }
+        throw error
+      }
       return
     }
     // Only hide the legacy route; retain the original data for backup/export.

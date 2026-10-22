@@ -114,6 +114,11 @@ export class ElevatorDetector {
     return this.downSince
   }
 
+  /** Onset of the sustained upward-speed window, before the confirmation delay. */
+  get ascentStartedAt(): number | undefined {
+    return this.upSince
+  }
+
   reset(): void {
     this.downSince = undefined
     this.upSince = undefined

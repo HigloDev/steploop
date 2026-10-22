@@ -1,6 +1,6 @@
 // 设置页：震动/声音反馈开关 + 数据导出/导入 + 关于。
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import appConfig from '../../app.json'
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -32,12 +32,18 @@ import {
   importBackupPayload,
   pickBackupPayload,
   previewBackupImport,
+  restorePreImportSnapshot,
+  hasPreImportSnapshot,
+  listPreUndoSnapshots,
+  exportUndoSafetyBackup,
 } from '../services/backup'
 import { exportWorkoutCsv } from '../services/export-csv'
 import { isLocalDownloadExportAvailable } from '../services/local-download-export'
 import { isBackgroundTrainingSupported } from '../services/background-training'
 
 const APP_VERSION = appConfig.expo.version
+const UNDO_PAGE_SIZE = 5
+const snapshotTime = (savedAt: number) => new Date(savedAt).toLocaleString('zh-CN', { hour12: false })
 
 export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>) {
   const theme = useTheme()
@@ -47,19 +53,59 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   const [exporting, setExporting] = useState(false)
   const [exportingCsv, setExportingCsv] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [undoing, setUndoing] = useState(false)
+  const [exportingUndo, setExportingUndo] = useState(false)
+  const [canUndoImport, setCanUndoImport] = useState(false)
+  const [undoBackups, setUndoBackups] = useState<Awaited<ReturnType<typeof listPreUndoSnapshots>>>([])
+  const [showUndoBackups, setShowUndoBackups] = useState(false)
+  const [undoBackupPage, setUndoBackupPage] = useState(0)
+  const [recoveryLoading, setRecoveryLoading] = useState(true)
+  const [recoveryError, setRecoveryError] = useState('')
+  const dataOperationRef = useRef(false)
+  const recoveryRequestRef = useRef(0)
+  const mountedRef = useRef(true)
+  const dataBusy = importing || undoing || exporting || exportingCsv || exportingUndo
   const [exportMessage, setExportMessage] = useState('')
   const [importMessage, setImportMessage] = useState('')
   const [prefsWriteError, setPrefsWriteError] = useState('')
   const [previewCompletion, setPreviewCompletion] = useState(false)
 
+  const refreshRecovery = async (duringOperation = false) => {
+    if (dataOperationRef.current && !duringOperation) return
+    const request = ++recoveryRequestRef.current
+    setRecoveryLoading(true)
+    try {
+      const [canUndo, snapshots] = await Promise.all([hasPreImportSnapshot(), listPreUndoSnapshots()])
+      if (!mountedRef.current || request !== recoveryRequestRef.current) return
+      setCanUndoImport(canUndo)
+      setUndoBackups(snapshots)
+      setUndoBackupPage(page => Math.min(page, Math.max(0, Math.ceil(snapshots.length / UNDO_PAGE_SIZE) - 1)))
+      setRecoveryError('')
+    } catch {
+      if (mountedRef.current && request === recoveryRequestRef.current) {
+        setCanUndoImport(false)
+        setRecoveryError('暂时无法读取恢复副本，请重试。')
+      }
+    } finally {
+      if (mountedRef.current && request === recoveryRequestRef.current) setRecoveryLoading(false)
+    }
+  }
+
+  const invalidateRecoveryRead = () => {
+    recoveryRequestRef.current += 1
+    setRecoveryLoading(false)
+  }
+
   useEffect(() => {
+    mountedRef.current = true
     let mounted = true
     const loadPreferences = () => {
       getPreferences().then(value => { if (mounted) setPrefs(value) }).catch(() => undefined)
+      void refreshRecovery()
     }
     loadPreferences()
     const unsubscribe = navigation.addListener('focus', loadPreferences)
-    return () => { mounted = false; unsubscribe() }
+    return () => { mounted = false; mountedRef.current = false; recoveryRequestRef.current += 1; unsubscribe() }
   }, [navigation])
 
 
@@ -84,7 +130,8 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   }
 
   const handleExport = async (destination: 'share' | 'downloads' = 'share') => {
-    if (exporting) return
+    if (dataOperationRef.current) return
+    dataOperationRef.current = true
     setExporting(true)
     setExportMessage('正在生成备份文件…')
     try {
@@ -93,12 +140,14 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     } catch (err) {
       setExportMessage(`导出失败：${err instanceof Error ? err.message : '未知错误'}`)
     } finally {
+      dataOperationRef.current = false
       setExporting(false)
     }
   }
 
   const handleExportCsv = async () => {
-    if (exportingCsv) return
+    if (dataOperationRef.current) return
+    dataOperationRef.current = true
     setExportingCsv(true)
     setExportMessage('正在生成 CSV…')
     try {
@@ -107,11 +156,13 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     } catch (err) {
       setExportMessage(`CSV 导出失败：${err instanceof Error ? err.message : '未知错误'}`)
     } finally {
+      dataOperationRef.current = false
       setExportingCsv(false)
     }
   }
 
   const handleImport = () => {
+    if (dataOperationRef.current) return
     Alert.alert(
       '导入备份',
       '导入前会自动创建恢复快照。合并导入保留本机已有内容；覆盖导入会替换备份包含的路线、楼栋模板与成绩，请核对下一步预览。',
@@ -143,7 +194,9 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
   }
 
   const runImport = async (mode: 'merge' | 'replace') => {
-    if (importing) return
+    if (dataOperationRef.current) return
+    dataOperationRef.current = true
+    invalidateRecoveryRead()
     setImporting(true)
     setImportMessage('请选择备份文件…')
     try {
@@ -152,7 +205,6 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
       const payload = await pickBackupPayload()
       setImportMessage('正在核对备份内容…')
       const preview = await previewBackupImport(payload, { mode })
-      setImporting(false)
       const lines = [
         `路线 ${preview.incoming.routes} 条、会话 ${preview.incoming.sessions} 条、训练 ${preview.incoming.workouts} 条`,
         `导入后保留：路线 ${preview.kept.routes} 条、会话 ${preview.kept.sessions} 条、训练 ${preview.kept.workouts} 条`,
@@ -160,18 +212,29 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
       if (preview.warnings.length) {
         lines.push('', ...preview.warnings.map((line) => `· ${line}`))
       }
+      let decided = false
       Alert.alert(
         mode === 'replace' ? '确认覆盖导入' : '确认合并导入',
         lines.join('\n'),
         [
-          { text: '取消', style: 'cancel', onPress: () => setImportMessage('') },
+          { text: '取消', style: 'cancel', onPress: () => {
+            if (decided) return
+            decided = true
+            dataOperationRef.current = false
+            setImporting(false)
+            setImportMessage('')
+            void refreshRecovery()
+          } },
           {
             text: '确认导入',
             onPress: () => {
+              if (decided) return
+              decided = true
               void performImport(payload, mode)
             },
           },
         ],
+        { cancelable: false },
       )
     } catch (err) {
       const message = err instanceof Error ? err.message : '未知错误'
@@ -182,6 +245,8 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         Alert.alert('导入失败', message)
       }
       setImporting(false)
+      dataOperationRef.current = false
+      void refreshRecovery()
     }
   }
 
@@ -193,6 +258,8 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     setImportMessage('正在导入…')
     try {
       const result = await importBackupPayload(payload, { mode })
+      setCanUndoImport(result.snapshotCreated)
+      await refreshRecovery(true)
       const trimmedNote =
         (result.sessionsTruncated ?? 0) + (result.workoutsTruncated ?? 0) > 0
           ? `；按容量上限裁剪了 ${result.sessionsTruncated ?? 0} 条会话、${result.workoutsTruncated ?? 0} 条训练（已归档为统计）`
@@ -200,16 +267,64 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
       setImportMessage(
         `已${mode === 'replace' ? '覆盖' : '合并'}导入 ${result.routesCount} 条旧版路线、${result.sessionsCount} 条单轮记录、${result.workoutsCount} 次训练${trimmedNote}`,
       )
-      Alert.alert('导入成功', '建议重新打开应用以确保所有页面刷新最新数据。', [
+      Alert.alert('导入成功', '返回训练或记录页即可查看。需要回退时，可在这里选择“撤销上次导入”。', [
         { text: '知道了' },
       ])
     } catch (err) {
       const message = err instanceof Error ? err.message : '未知错误'
       setImportMessage(`导入失败：${message}`)
       Alert.alert('导入失败', message)
+      await refreshRecovery(true)
     } finally {
+      dataOperationRef.current = false
       setImporting(false)
     }
+  }
+
+  const performUndo = async () => {
+    if (dataOperationRef.current) return
+    dataOperationRef.current = true
+    invalidateRecoveryRead()
+    setUndoing(true)
+    setImportMessage('正在保留当前数据并恢复导入前记录…')
+    try {
+      const result = await restorePreImportSnapshot()
+      if (!result) {
+        setCanUndoImport(false)
+        setImportMessage('没有可撤销的导入。')
+        return
+      }
+      setCanUndoImport(false)
+      setUndoBackupPage(0)
+      setImportMessage(`已恢复导入前的 ${result.workoutsCount} 次训练和 ${result.sessionsCount} 条单轮记录。撤销前的数据已另存，可通过下方入口导出。`)
+      await refreshRecovery(true)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '未知错误'
+      setImportMessage(`撤销失败：${message}。恢复副本仍保留，请重试。`)
+      Alert.alert('撤销失败', message)
+    } finally {
+      dataOperationRef.current = false
+      setUndoing(false)
+    }
+  }
+
+  const confirmUndo = () => {
+    if (dataOperationRef.current || recoveryLoading || !canUndoImport) return
+    Alert.alert('撤销上次导入？', '将恢复到上次导入之前的楼栋、路线与训练记录。导入后新增或修改的内容也会回退；应用会先保留当前数据副本，可通过“导出撤销前备份”取出。', [
+      { text: '取消', style: 'cancel' },
+      { text: '保留副本并撤销', style: 'destructive', onPress: () => { void performUndo() } },
+    ])
+  }
+
+  const exportUndoBackup = async (snapshotId: string) => {
+    if (dataOperationRef.current) return
+    dataOperationRef.current = true
+    setExportingUndo(true)
+    try {
+      const result = await exportUndoSafetyBackup({ destination: isLocalDownloadExportAvailable() ? 'downloads' : 'share', snapshotId })
+      setExportMessage(result.message)
+    } catch (err) { setExportMessage(`导出失败：${err instanceof Error ? err.message : '未知错误'}`) }
+    finally { dataOperationRef.current = false; setExportingUndo(false) }
   }
 
   return (
@@ -332,7 +447,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>数据与帮助</Text></View>
         <Disclosure title="备份与导出" dense marginTop={0}>
         <View>
-          <Pressable accessibilityRole="button" accessibilityLabel="导出备份" accessibilityHint="导出楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={exporting}>
+          <Pressable accessibilityRole="button" accessibilityLabel="导出备份" accessibilityHint="导出楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={dataBusy}>
             <Feather name="download" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出备份</Text>
@@ -340,7 +455,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             {exporting ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           {isLocalDownloadExportAvailable() ? <>
-            <Pressable accessibilityRole="button" accessibilityLabel="保存备份到下载" accessibilityHint="保存到本机 Download/循阶，包含楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={exporting}>
+            <Pressable accessibilityRole="button" accessibilityLabel="保存备份到下载" accessibilityHint="保存到本机 Download/循阶，包含楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={dataBusy}>
               <Feather name="download" size={22} color={theme.ink} />
               <View style={styles.rowText}>
                 <Text style={styles.dataTitle}>保存备份到下载</Text>
@@ -351,20 +466,61 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           {exportMessage ? (
             <Text style={styles.messageText}>{exportMessage}</Text>
           ) : null}
-          <Pressable accessibilityRole="button" accessibilityLabel="导出成绩表 Excel" accessibilityHint="训练记录表格，可用 Excel 打开" style={styles.dataRow} onPress={handleExportCsv} disabled={exportingCsv}>
+          <Pressable accessibilityRole="button" accessibilityLabel="导出成绩表 Excel" accessibilityHint="训练记录表格，可用 Excel 打开" style={styles.dataRow} onPress={handleExportCsv} disabled={dataBusy}>
             <MaterialCommunityIcons name="table" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出成绩表 Excel</Text>
             </View>
             {exportingCsv ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="导入备份" accessibilityHint="从备份文件恢复楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={handleImport} disabled={importing}>
+          <Pressable accessibilityRole="button" accessibilityLabel="导入备份" accessibilityHint="从备份文件恢复楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={handleImport} disabled={dataBusy}>
             <Feather name="upload" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导入备份</Text>
             </View>
             {importing ? <Text style={styles.rowAction}>导入中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="撤销上次导入" accessibilityHint="保留当前数据副本，然后恢复到上次导入前的记录"
+            style={styles.dataRow} onPress={confirmUndo} disabled={dataBusy || recoveryLoading || !canUndoImport}>
+            <Feather name="rotate-ccw" size={22} color={canUndoImport ? theme.ink : theme.mutedStrong} />
+            <View style={styles.rowText}>
+              <Text style={styles.dataTitle}>撤销上次导入</Text>
+              <Text style={styles.rowDesc}>{recoveryLoading ? '正在读取恢复副本…' : recoveryError ? '恢复副本暂时无法读取' : canUndoImport ? '恢复导入前记录，当前数据另存副本' : '没有可撤销的导入'}</Text>
+            </View>
+            {undoing ? <ActivityIndicator color={theme.brand} /> : null}
+          </Pressable>
+          {undoBackups.length > 0 ? <Pressable accessibilityRole="button" accessibilityLabel="导出撤销前备份"
+            accessibilityState={{ expanded: showUndoBackups }}
+            style={styles.dataRow} onPress={() => { setShowUndoBackups(value => !value) }} disabled={dataBusy || recoveryLoading}>
+            <Feather name="shield" size={22} color={theme.ink} />
+            <View style={styles.rowText}><Text style={styles.dataTitle}>导出撤销前备份</Text><Text style={styles.rowDesc}>{undoBackups.length} 份历史副本，按撤销时间选择</Text></View>
+            {exportingUndo ? <ActivityIndicator color={theme.brand} /> : null}
+          </Pressable> : null}
+          {showUndoBackups && undoBackups.length > 0 ? <View style={styles.undoBackups}>
+            <Text style={styles.rowDesc}>每次撤销前的数据都单独保留。选择时间，将该副本导出为备份文件。</Text>
+            {undoBackups.slice(undoBackupPage * UNDO_PAGE_SIZE, (undoBackupPage + 1) * UNDO_PAGE_SIZE).map(snapshot => <Pressable
+              key={snapshot.id} accessibilityRole="button" accessibilityLabel={`导出撤销前备份 ${snapshotTime(snapshot.savedAt)}`}
+              testID={`undo-backup-${snapshot.id}`} disabled={dataBusy} style={styles.dataRow}
+              onPress={() => { void exportUndoBackup(snapshot.id) }}>
+              <View style={styles.rowText}><Text style={styles.dataTitle}>{snapshotTime(snapshot.savedAt)}</Text><Text style={styles.rowDesc}>撤销前的训练、路线与楼栋数据</Text></View>
+              <Text style={styles.rowAction}>导出</Text>
+            </Pressable>)}
+            {undoBackups.length > UNDO_PAGE_SIZE ? <View style={styles.row}>
+              <Pressable accessibilityRole="button" accessibilityLabel="较新的撤销前备份" disabled={dataBusy || undoBackupPage === 0}
+                style={styles.previewAction} onPress={() => setUndoBackupPage(page => Math.max(0, page - 1))}>
+                <Text style={[styles.previewActionText, { opacity: undoBackupPage === 0 ? 0.45 : 1 }]}>较新</Text>
+              </Pressable>
+              <Text style={styles.rowDesc}>{undoBackupPage + 1} / {Math.ceil(undoBackups.length / UNDO_PAGE_SIZE)}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="较早的撤销前备份" disabled={dataBusy || (undoBackupPage + 1) * UNDO_PAGE_SIZE >= undoBackups.length}
+                style={styles.previewAction} onPress={() => setUndoBackupPage(page => Math.min(Math.ceil(undoBackups.length / UNDO_PAGE_SIZE) - 1, page + 1))}>
+                <Text style={[styles.previewActionText, { opacity: (undoBackupPage + 1) * UNDO_PAGE_SIZE >= undoBackups.length ? 0.45 : 1 }]}>较早</Text>
+              </Pressable>
+            </View> : null}
+          </View> : null}
+          {recoveryError ? <View><Text accessibilityRole="alert" style={styles.messageText}>{recoveryError}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="重新读取恢复副本" style={styles.dataRow} disabled={dataBusy || recoveryLoading} onPress={() => { void refreshRecovery() }}>
+              <Text style={styles.dataTitle}>重新读取恢复副本</Text>
+            </Pressable></View> : null}
           {importMessage ? (
             <Text style={styles.messageText}>{importMessage}</Text>
           ) : null}
@@ -459,6 +615,7 @@ const makeStyles = (theme: Theme) =>
     previewActionText: { color: theme.brandInk, fontSize: sport.type.secondary, lineHeight: 20, fontWeight: '600' },
     dataRow: { flexDirection: 'row', alignItems: 'center', gap: sport.space.md, minHeight: 56, paddingVertical: sport.space.md },
     dataTitle: { color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' },
+    undoBackups: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft, paddingHorizontal: sport.space.sm },
     footerNote: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, paddingTop: 12 },
     appFooter: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center', paddingTop: 12 },
     row: {

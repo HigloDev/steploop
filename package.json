@@ -82,7 +82,7 @@
     "test:legacy-ui": "node --test scripts/test-legacy-ui.cjs",
     "test:xiaomi14": "node --test scripts/xiaomi14-improvements.test.cjs",
     "typecheck": "tsc --noEmit",
-    "test:audit-regressions": "node --test scripts/test-ui-safety.cjs scripts/test-building-storage.cjs scripts/test-fusion-lifecycle-regressions.cjs scripts/test-sensor-timestamps.cjs scripts/test-error-boundary.cjs scripts/test-toolchain-compat.cjs"
+    "test:audit-regressions": "node --test scripts/test-ui-safety.cjs scripts/test-building-storage.cjs scripts/test-fusion-lifecycle-regressions.cjs scripts/test-sensor-timestamps.cjs scripts/test-error-boundary.cjs scripts/test-toolchain-compat.cjs scripts/test-audit-native-fixes.cjs scripts/test-audit-storage-fixes.cjs scripts/test-audit-settings-ui.cjs"
   },
   "private": true,
   "overrides": {

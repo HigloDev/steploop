@@ -120,6 +120,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const [error, setError] = useState<string>()
   const [warning, setWarning] = useState<string>()
   const [evidenceWarning, setEvidenceWarning] = useState<string>()
+  const [sensorWarning, setSensorWarning] = useState<string>()
+  const [captureGapWarning, setCaptureGapWarning] = useState<string>()
   const [snapshot, setSnapshot] = useState<FusionSnapshot>()
   const [rounds, setRounds] = useState<FusionRoundResult[]>([])
   const [template, setTemplate] = useState<BuildingTemplate>()
@@ -146,6 +148,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const persistCheckpoint = useCallback(() => {
     const engine = engineRef.current
     if (!engine || closedRef.current) return checkpointWriteRef.current
+    const recovery = engine.getRecoveryState()
     const checkpoint = {
       schemaVersion: 1 as const,
       workoutId: workoutIdRef.current,
@@ -155,10 +158,10 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       // frozen engine is a complete result that may safely be saved later.
       endedAt: engine.getPhase() === 'finished' ? endedAtRef.current : undefined,
       startFloor: engine.snapshot().startFloor,
-      template: engine.getTemplate(),
+      template: recovery.template,
       calibrated: calibratedRef.current,
       replaceTemplateId: replaceTemplateIdRef.current,
-      rounds: engine.getRounds(),
+      rounds: recovery.rounds,
     }
     checkpointWriteRef.current = checkpointWriteRef.current.then(async () => {
       await saveFusionCheckpoint(checkpoint)
@@ -200,6 +203,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     closedRef.current = false
     setStatus('starting')
     setError(undefined)
+    setSensorWarning(undefined)
+    setCaptureGapWarning(undefined)
     const previousCleanup = waitForFusionCleanup()
     const startup = (async () => {
       try {
@@ -288,7 +293,20 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           onGap: gap => {
             if (cancelled) return
             const origin = recorder.getStartedAt()
-            evidence.gap(origin + gap.startMs, origin + gap.endMs)
+            const startAt = origin + gap.startMs
+            const endAt = Math.min(origin + gap.endMs, endedAtRef.current ?? Infinity)
+            if (endAt <= startAt) return
+            engine.recordGap(startAt, endAt, gap.reason)
+            evidence.gap(startAt, endAt, gap.reason)
+            setCaptureGapWarning(previous => gap.reason === 'native_journal_loss'
+              ? '部分后台运动数据已缺失，已保留可读取的成绩并标为估算，请核对层数。'
+              : previous || '训练中存在采样中断，成绩已标为估算，请核对层数。')
+          },
+          onStatus: signal => {
+            if (cancelled) return
+            setSensorWarning(signal.signal === 'interrupted'
+              ? '运动采样暂未更新，请保持应用在前台并检查手机状态；缺失期间可能漏计。'
+              : undefined)
           },
         })
         recorderRef.current = recorder
@@ -405,7 +423,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       const recorder = recorderRef.current
       if (recorder) {
         if (isBackgroundTrainingSupported()) await stopBackgroundTraining()
-        await recorder.flush?.()
+        await recorder.flush?.(endedAt)
       }
       const finalRounds = engine.finish(endedAt)
       setSnapshot(engine.snapshot(endedAt))
@@ -489,7 +507,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const calories = snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
 
   return {
-    status, error, warning: evidenceWarning || warning, snapshot, rounds, template, calories, workoutId: workoutIdRef.current, canSaveLater,
+    status, error, warning: captureGapWarning || sensorWarning || evidenceWarning || warning, snapshot, rounds, template, calories, workoutId: workoutIdRef.current, canSaveLater,
     markFloor, undoMark, markTop, nextRound, finish, discard, retry,
   }
 }

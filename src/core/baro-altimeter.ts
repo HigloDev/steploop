@@ -61,6 +61,15 @@ export class BaroAltimeter {
   private lastEventAt = 0
   private events = 0
   private rejected = 0
+  private speedSince = -Infinity
+
+  /** Keep recorded heights for calibration, but do not interpolate across missing acquisition. */
+  breakContinuity(): void {
+    this.raw = []
+    this.medians = []
+    this.rejected = 0
+    this.speedSince = Infinity
+  }
 
   /** 送入一个气压事件。返回新的平滑点（被丢弃时返回 undefined）。 */
   push(t: number, pressureHpa: number): AltitudePoint | undefined {
@@ -86,6 +95,7 @@ export class BaroAltimeter {
     this.rejected = 0
     this.lastEventAt = t
     this.events += 1
+    if (this.speedSince === Infinity) this.speedSince = t
     this.raw.push({ t, altM })
     while (this.raw.length && this.raw[0].t < t - BARO_MEDIAN_WINDOW_MS) this.raw.shift()
     const med = median(this.raw.map(point => point.altM))
@@ -121,7 +131,7 @@ export class BaroAltimeter {
 
   /** 对最近 4s 平滑高度做最小二乘线性回归，返回斜率（米/秒）。 */
   speedAt(now: number, windowMs = BARO_SPEED_WINDOW_MS): number | undefined {
-    const points = this.smoothed.filter(point => point.t >= now - windowMs && point.t <= now)
+    const points = this.smoothed.filter(point => point.t >= Math.max(this.speedSince, now - windowMs) && point.t <= now)
     if (points.length < 4 || points.at(-1)!.t - points[0].t < windowMs * 0.5) return undefined
     const t0 = points[0].t
     let sx = 0, sy = 0, sxx = 0, sxy = 0

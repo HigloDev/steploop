@@ -16,6 +16,10 @@ import {
   type ImportPreview,
   ImportMode,
   restorePreImportSnapshot,
+  hasPreImportSnapshot,
+  hasPreUndoSnapshot,
+  listPreUndoSnapshots,
+  exportPreUndoData,
 } from './storage'
 
 const FILE_NAME = 'palou-backup.json'
@@ -33,8 +37,20 @@ export interface ExportResult {
 /** 导出备份，优先分享，分享不可用时退回写入文档目录返回路径。 */
 export async function exportBackup(options: { destination?: 'share' | 'downloads' } = {}): Promise<ExportResult> {
   const payload = await exportRawData()
+  return exportPayload(payload, options)
+}
+
+/** The safety copy is immutable application data captured atomically before Undo. */
+export async function exportUndoSafetyBackup(options: { destination?: 'share' | 'downloads'; snapshotId?: string } = {}): Promise<ExportResult> {
+  const payload = await exportPreUndoData(options.snapshotId)
+  if (!payload) throw new Error('没有可导出的撤销前备份。')
+  const snapshotSuffix = options.snapshotId ? `-${options.snapshotId.replace(/[^a-zA-Z0-9_-]/g, '_')}` : ''
+  return exportPayload(payload, options, `palou-before-undo-${payload.exportedAt}${snapshotSuffix}.json`)
+}
+
+async function exportPayload(payload: BackupPayload, options: { destination?: 'share' | 'downloads' }, filename = FILE_NAME): Promise<ExportResult> {
   const json = buildPayloadJson(payload)
-  const file = new File(Paths.document, FILE_NAME)
+  const file = new File(Paths.document, filename)
 
   try {
     file.write(json)
@@ -48,7 +64,7 @@ export async function exportBackup(options: { destination?: 'share' | 'downloads
   const filePath = file.uri
 
   if (options.destination === 'downloads') {
-    const saved = await saveLocalFileToDownloads(filePath, `palou-backup-${Date.now()}.json`, 'application/json')
+    const saved = await saveLocalFileToDownloads(filePath, `${filename.replace(/\.json$/, '')}-${Date.now()}.json`, 'application/json')
     return { mode: 'file', filePath: saved.uri, message: `备份已保存到 ${saved.directory}/${saved.displayName}。请妥善保管其中的路线与训练数据。` }
   }
 
@@ -176,7 +192,7 @@ export async function importBackup(options?: {
   return importBackupPayload(payload, options)
 }
 
-export { restorePreImportSnapshot }
+export { restorePreImportSnapshot, hasPreImportSnapshot, hasPreUndoSnapshot, listPreUndoSnapshots }
 
 /** 仅做格式校验，不写入。用于导入预览。 */
 export function peekBackupPayload(json: string): BackupPayload | null {

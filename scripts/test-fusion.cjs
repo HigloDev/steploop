@@ -6,7 +6,7 @@ const assert = require('node:assert/strict')
 const path = require('node:path')
 const core = name => require(path.join(__dirname, '../node_modules/.cache/steploop-core', `${name}.js`))
 const engineModule = core('fusion-engine')
-const { synthesize, runEngine } = require('./fusion-synth.cjs')
+const { synthesize, runEngine, altToPressure } = require('./fusion-synth.cjs')
 const { buildingFromLegacyRoute, ascentForFloors } = core('building-template')
 const { buildTemplateFromCalibration } = core('fusion-calibration')
 const { fusionRoundToWorkoutRound, buildFusionWorkout, correctRoundFloors, workoutCalories } = core('fusion-workout')
@@ -57,6 +57,20 @@ test('场景1 标定轮：1→15 楼每层点一次，到顶坐电梯 → 生成
   // 顶层停留 8s 不计入本轮用时：用时 = 起点到“到顶了”
   const climbMs = 14 * 3 / 0.25 * 1000
   assert.ok(round.durationMs < climbMs + 5000 + 1500, `用时 ${round.durationMs}`)
+})
+
+test('标定完成回调中的恢复点也不能重复投影同一轮', () => {
+  const engine = new engineModule.FusionWorkoutEngine({ startedAt: 1000 })
+  engine.markFloor(4000)
+  engine.markTop(4000)
+  const topCheckpoint = engine.getRecoveryState()
+  const observed = []
+  engine.onRound(() => observed.push(engine.getRecoveryState()))
+  engine.nextRound(10000)
+  assert.equal(observed.length, 1)
+  assert.equal(observed[0].rounds.length, 1)
+  assert.equal(observed[0].rounds[0].id, topCheckpoint.rounds[0].id)
+  assert.equal(observed[0].template.id, topCheckpoint.template.id)
 })
 
 for (const speed of [0.06, 0.1, 0.15, 0.35]) {
@@ -147,6 +161,67 @@ test('场景8 电梯上行（无步数）：不计层、不开始新一轮', () 
   assert.equal(rounds.length, 0)
 })
 
+for (const [height, walkMs] of [[30, 45000], [31, 5000]]) {
+  test(`电梯上行 ${height} 米后平走 ${walkMs / 1000} 秒：不能把电梯高度兑换成爬楼`, () => {
+    const { rounds } = autoRun([
+      { type: 'elevator', deltaM: height, speedMps: 1.5 },
+      { type: 'stand', durMs: 8000 }, { type: 'walk', durMs: walkMs },
+      { type: 'stand', durMs: 4000 },
+    ], { seed: 8 })
+    assert.deepEqual(rounds, [])
+  })
+}
+
+test('电梯到站后真正上爬，后续轮次仍可计层且不带入电梯位移', () => {
+  const { rounds } = autoRun([
+    { type: 'elevator', deltaM: 30, speedMps: 1.5 }, { type: 'stand', durMs: 12000 },
+    { type: 'walk', durMs: 5000 }, { type: 'climb', floors: 4, speedMps: 0.06 },
+    ...DOWN(-12), { type: 'climb', floors: 4, speedMps: 0.25 }, ...DOWN(-12),
+  ], { seed: 8 })
+  assert.deepEqual(rounds.map(round => round.floors), [4, 4])
+})
+
+test('已爬两层后改乘上行电梯：保留两层，不把随后电梯及平走加进成绩', () => {
+  const { rounds } = autoRun([
+    { type: 'climb', floors: 2 }, { type: 'stand', durMs: 8000 },
+    { type: 'elevator', deltaM: 31 }, { type: 'stand', durMs: 10000 },
+    { type: 'walk', durMs: 45000 }, { type: 'stand', durMs: 4000 },
+  ], { seed: 8 })
+  assert.deepEqual(rounds.map(round => round.floors), [2])
+})
+
+test('采集中断期间的五层高度不得在恢复时自动补成已爬成绩', () => {
+  const data = synthesize([{ type: 'stand', durMs: 6000 }, { type: 'walk', durMs: 4000 },
+    { type: 'climb', floors: 14 }, ...DOWN()], { seed: 15 })
+  data.samples = data.samples.filter(sample => sample.t < data.start + 60000 || sample.t >= data.start + 120000)
+  const { engine } = runEngine(engineModule, data, { template: calibratedTemplate() })
+  const rounds = engine.finish(data.end)
+  assert.equal(rounds.length, 1)
+  assert.ok(rounds[0].floors <= 10, `missing five floors must not be recreated: ${rounds[0].floors}`)
+  assert.equal(rounds[0].estimated, true)
+  assert.equal(rounds[0].interruptions.length, 1)
+})
+
+test('等待起爬期间漏掉电梯行程：恢复后平走不能沿用旧楼下基线补层', () => {
+  const data = synthesize([{ type: 'stand', durMs: 6000 }, { type: 'walk', durMs: 4000 },
+    { type: 'elevator', deltaM: 30 }, { type: 'stand', durMs: 8000 },
+    { type: 'walk', durMs: 45000 }, { type: 'stand', durMs: 4000 }], { seed: 8 })
+  data.samples = data.samples.filter(sample => sample.t < data.start + 10000 || sample.t >= data.start + 41000)
+  const { engine } = runEngine(engineModule, data, { template: calibratedTemplate() })
+  assert.deepEqual(engine.finish(data.end), [])
+})
+
+test('等待期间缺段后重新起爬：只保留恢复后的真实爬升并标估算', () => {
+  const data = synthesize([{ type: 'stand', durMs: 6000 }, { type: 'walk', durMs: 4000 },
+    { type: 'elevator', deltaM: 30 }, { type: 'stand', durMs: 8000 },
+    { type: 'climb', floors: 3, speedMps: 0.15 }, ...DOWN(-9)], { seed: 8 })
+  data.samples = data.samples.filter(sample => sample.t < data.start + 10000 || sample.t >= data.start + 39000)
+  const { engine } = runEngine(engineModule, data, { template: calibratedTemplate() })
+  const rounds = engine.finish(data.end)
+  assert.deepEqual(rounds.map(round => round.floors), [3])
+  assert.equal(rounds[0].estimated, true)
+})
+
 test('场景9 走楼梯下楼代替电梯：识别为本轮结束（stairs_down）', () => {
   const { rounds, engine } = autoRun([
     { type: 'climb', floors: 14, floorHeight: 3, speedMps: 0.25 }, { type: 'rest', durMs: 5000 },
@@ -217,16 +292,16 @@ test('场景13 开门压力跳变噪声：瞬时 ±0.15hPa 不推进楼层、不
   assert.equal(idle.rounds.length, 0)
 })
 
-test('场景14 传感器短暂中断 3s：只记录中断，不让整轮降级', () => {
+test('场景14 传感器短暂中断 3s：保留已观察楼层，明确标记缺段和估算', () => {
   const data = synthesize([{ type: 'stand', durMs: 6000 }, { type: 'walk', durMs: 4000 },
     { type: 'climb', floors: 14, floorHeight: 3, speedMps: 0.25 }, ...DOWN()], { seed: 17 })
   const gapFrom = data.start + 60000
   data.samples = data.samples.filter(sample => sample.t < gapFrom || sample.t > gapFrom + 3000)
   const { engine } = runEngine(engineModule, data, { template: calibratedTemplate() })
   const rounds = engine.finish(data.end)
-  assert.equal(rounds[0].floors, 14)
+  assert.ok(rounds[0].floors >= 13 && rounds[0].floors <= 14)
   assert.equal(rounds[0].interruptions.length, 1)
-  assert.equal(rounds[0].estimated, false)
+  assert.equal(rounds[0].estimated, true)
 })
 
 test('多轮：标定 + 两个自动轮连续切轮，总层数 42', () => {
@@ -252,6 +327,34 @@ test('气压时间戳：重复的“旧值 + 新时间戳”不会被当作新�
   // 2s 后仍是 pressureT=0 的同一事件 → stale
   for (let t = 2020; t <= 5000; t += 20) engine.pushSample({ t, ax: 0, ay: 0, az: 1, gx: 0, gy: 0, gz: 0, alpha: 0, beta: 0, gamma: 0, pressure: 1000, pressureT: 0 })
   assert.equal(engine.snapshot(5000).baro, 'stale')
+})
+
+test('缺段后的高度窗口独立重建，已采集标定高度仍可读取', () => {
+  const baro = new BaroAltimeter()
+  for (let t = 0; t <= 5000; t += 200) baro.push(t, altToPressure(0))
+  const priorHeight = baro.altitudeCentered(4000, 500)
+  baro.breakContinuity()
+  const next = baro.push(5080, altToPressure(3))
+  assert.ok(Math.abs(next.altM - 3) < 0.001, '新样本不与缺段前高度平均')
+  assert.equal(baro.speedAt(5080), undefined, '不能跨缺段拟合电梯或楼梯速度')
+  assert.equal(baro.altitudeCentered(4000, 500), priorHeight, '已完成标定的高度证据保留')
+})
+
+test('短序列缺口后继续慢速爬楼：保留真实层数，缺段仅降低可信度', () => {
+  const data = synthesize([{ type: 'stand', durMs: 6000 },
+    { type: 'climb', floors: 4, floorHeight: 3, speedMps: 0.06 }, ...DOWN(-12)], { seed: 44 })
+  const engine = new engineModule.FusionWorkoutEngine({ startedAt: data.start, template: calibratedTemplate() })
+  const gapStart = data.start + 45000, gapEnd = gapStart + 80
+  let marked = false
+  for (const sample of data.samples) {
+    if (sample.t > gapStart && sample.t < gapEnd) continue
+    if (!marked && sample.t >= gapEnd) { engine.recordGap(gapStart, gapEnd, 'native_journal_loss'); marked = true }
+    engine.pushSample(sample)
+  }
+  const rounds = engine.finish(data.end)
+  assert.deepEqual(rounds.map(round => round.floors), [4])
+  assert.equal(rounds[0].estimated, true)
+  assert.equal(rounds[0].interruptions.length, 1)
 })
 
 test('慢速爬楼：旧 PressureTrend 不再把 0.06 m/s 判为 level', () => {
