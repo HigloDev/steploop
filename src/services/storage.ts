@@ -44,6 +44,8 @@ const LEGACY_ROUTES_KEY = 'palou.routes.v1'
 const SESSIONS_KEY = HISTORY_SESSIONS_KEY
 const WORKOUTS_KEY = HISTORY_WORKOUTS_KEY
 const PRE_IMPORT_KEY = 'palou.backup.preImport.v1'
+const PRE_UNDO_KEY = 'palou.backup.preUndo.v1'
+const PRE_UNDO_SNAPSHOT_PREFIX = 'palou.backup.preUndo.snapshot.'
 const STORAGE_META_KEY = 'palou.storageMeta.v1'
 
 // 集合键的唯一来源是 storage-journal（日志必须覆盖到每一个被改写的键）。
@@ -528,6 +530,8 @@ export interface ImportPlan {
   routes: RouteTemplate[]
   sessions: ClimbSession[]
   workouts: ClimbWorkout[]
+  allSessions: ClimbSession[]
+  allWorkouts: ClimbWorkout[]
   sessionsTruncated: number
   workoutsTruncated: number
   adoptCarried: boolean
@@ -548,19 +552,22 @@ export function computeImportPlan(input: ImportPlanInput): ImportPlan {
   } = input
 
   let routes: RouteTemplate[]
-  let sessions: ClimbSession[]
-  let workouts: ClimbWorkout[]
+  // Retention follows the History screen's occurrence date, not a later edit's updatedAt.
+  const byRecordTime = <T extends { id: string; startedAt?: number; endedAt?: number; createdAt?: number; updatedAt?: number }>(rows: T[], collection: 'sessions' | 'workouts'): T[] =>
+    rows.map((item, order) => ({ item, order })).sort((a, b) => {
+      const time = (item: T) => (collection === 'workouts'
+        ? [item.startedAt, item.endedAt, item.createdAt, item.updatedAt]
+        : [item.endedAt, item.startedAt]).find(value => typeof value === 'number' && Number.isFinite(value) && value > 0) ?? 0
+      return time(b.item) - time(a.item) || a.order - b.order
+    }).map(({ item }) => item)
+  const allSessions = byRecordTime(mode === 'replace' ? incomingSessions : mergeById(previousSessions, incomingSessions), 'sessions')
+  const allWorkouts = byRecordTime(mode === 'replace' ? incomingWorkouts : mergeById(previousWorkouts, incomingWorkouts), 'workouts')
+  const sessions = allSessions.slice(0, SESSIONS_LIMIT)
+  const workouts = allWorkouts.slice(0, HISTORY_WORKOUT_LIMIT)
   if (mode === 'replace') {
     routes = incomingRoutes
-    sessions = incomingSessions.slice(0, SESSIONS_LIMIT)
-    workouts = incomingWorkouts.slice(0, HISTORY_WORKOUT_LIMIT)
   } else {
     routes = sortRoutesByUpdatedAt(mergeById(previousRoutes, incomingRoutes))
-    sessions = mergeById(previousSessions, incomingSessions).slice(0, SESSIONS_LIMIT)
-    workouts = mergeById(previousWorkouts, incomingWorkouts).slice(
-      0,
-      HISTORY_WORKOUT_LIMIT,
-    )
   }
 
   const mergedSessions =
@@ -585,6 +592,8 @@ export function computeImportPlan(input: ImportPlanInput): ImportPlan {
     routes,
     sessions,
     workouts,
+    allSessions,
+    allWorkouts,
     sessionsTruncated: Math.max(0, mergedSessions - SESSIONS_LIMIT),
     workoutsTruncated: Math.max(0, mergedWorkouts - HISTORY_WORKOUT_LIMIT),
     adoptCarried,
@@ -699,12 +708,12 @@ export interface ImportRawResult {
 }
 
 async function readSnapshot(): Promise<PreImportSnapshot | null> {
+  const raw = await readTextStrict(PRE_IMPORT_KEY)
+  if (raw === null) return null
   try {
-    const raw = await AsyncStorage.getItem(PRE_IMPORT_KEY)
-    if (!raw) return null
     const value = JSON.parse(raw) as PreImportSnapshot
     if (!value || !Array.isArray(value.routes) || !Array.isArray(value.sessions)) {
-      return null
+      throw new Error('集合格式无效')
     }
     return {
       ...(value.extraKeys && typeof value.extraKeys === 'object' ? {
@@ -718,25 +727,28 @@ async function readSnapshot(): Promise<PreImportSnapshot | null> {
       sessions: value.sessions,
       workouts: Array.isArray(value.workouts) ? value.workouts : [],
     }
-  } catch {
-    return null
+  } catch (error) {
+    throw new Error(`导入前快照无法读取，原始副本已保留，请重试：${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
 const SNAPSHOT_EXTRA_KEYS = [BUILDINGS_KEY, HIDDEN_LEGACY_KEY, HISTORY_AGG_KEY, STORAGE_META_KEY] as const
 
-/** 写导入前快照（覆盖式）。快照覆盖在导入失败时不应丢失，因此不在此处清理旧快照。 */
-async function writePreImportSnapshotUnsafe(): Promise<void> {
+/** Build without replacing an earlier undo point; imports commit the snapshot with their data. */
+async function capturePreImportSnapshotUnsafe(): Promise<PreImportSnapshot> {
   const extraKeys: Record<string, string | null> = {}
   for (const key of SNAPSHOT_EXTRA_KEYS) extraKeys[key] = await readTextStrict(key)
-  const snapshot: PreImportSnapshot = {
+  return {
     extraKeys,
     savedAt: Date.now(),
     routes: await listRoutesUnsafe(),
     sessions: await readArray<ClimbSession>(SESSIONS_KEY, true),
     workouts: await readArray<ClimbWorkout>(WORKOUTS_KEY, true),
   }
-  await setItemUnsafe(PRE_IMPORT_KEY, snapshot)
+}
+
+async function writePreImportSnapshotUnsafe(): Promise<void> {
+  await setItemUnsafe(PRE_IMPORT_KEY, await capturePreImportSnapshotUnsafe())
 }
 
 export async function preImportSnapshot(): Promise<void> {
@@ -746,7 +758,104 @@ export async function preImportSnapshot(): Promise<void> {
 
 export async function hasPreImportSnapshot(): Promise<boolean> {
   await ensureRecovered()
-  return (await readSnapshot()) !== null
+  return runSerial(async () => (await readSnapshot()) !== null)
+}
+
+interface PreUndoSnapshot {
+  id: string
+  savedAt: number
+  keys: Record<string, string | null>
+}
+
+type PreUndoReference = Pick<PreUndoSnapshot, 'id' | 'savedAt'>
+
+function parsePreUndoSnapshot(entry: unknown, legacyIndex = 0): PreUndoSnapshot {
+  const snapshot = entry as PreUndoSnapshot
+  if (!snapshot || !Number.isFinite(snapshot.savedAt) || !snapshot.keys ||
+      typeof snapshot.keys !== 'object' || Array.isArray(snapshot.keys) ||
+      Object.values(snapshot.keys).some(content => content !== null && typeof content !== 'string')) {
+    throw new Error('快照格式无效')
+  }
+  const id = snapshot.id === undefined ? `undo-${snapshot.savedAt}-legacy-${legacyIndex}` : snapshot.id
+  if (typeof id !== 'string' || !id) throw new Error('快照标识无效')
+  return { id, savedAt: snapshot.savedAt, keys: snapshot.keys }
+}
+
+/** The index stays small; reading/listing history never loads all historical workout arrays. */
+async function readPreUndoState(): Promise<{
+  raw: string | null
+  entries: PreUndoReference[]
+  legacySnapshots: PreUndoSnapshot[]
+}> {
+  const raw = await readTextStrict(PRE_UNDO_KEY)
+  if (raw === null) return { raw, entries: [], legacySnapshots: [] }
+  try {
+    const value = JSON.parse(raw)
+    // The original single snapshot (and pre-release array format) migrates on the next undo.
+    const legacySnapshots = value?.version === 2 ? []
+      : (Array.isArray(value) ? value : [value]).map(parsePreUndoSnapshot)
+    const references: unknown = value?.version === 2 ? value.snapshots : legacySnapshots
+    if (!Array.isArray(references)) throw new Error('索引格式无效')
+    const ids = new Set<string>()
+    const entries = references.map(entry => {
+      if (!entry || typeof entry.id !== 'string' || !entry.id || !Number.isFinite(entry.savedAt) || ids.has(entry.id)) {
+        throw new Error('快照标识无效')
+      }
+      ids.add(entry.id)
+      return { id: entry.id, savedAt: entry.savedAt }
+    })
+    return { raw, entries, legacySnapshots }
+  } catch {
+    throw new Error('撤销前安全备份无法读取，原始副本已保留。')
+  }
+}
+
+export async function hasPreUndoSnapshot(): Promise<boolean> {
+  await ensureRecovered()
+  return runSerial(async () => (await readPreUndoState()).entries.length > 0)
+}
+
+/** Newest first. Every successful undo remains exportable; entries are never silently pruned. */
+export async function listPreUndoSnapshots(): Promise<{ id: string; savedAt: number }[]> {
+  await ensureRecovered()
+  return runSerial(async () => (await readPreUndoState()).entries)
+}
+
+/** Export the state displaced by Undo through the same portable backup format. */
+export async function exportPreUndoData(id?: string): Promise<BackupPayload | null> {
+  await ensureRecovered()
+  return runSerial(async () => {
+    const state = await readPreUndoState()
+    const reference = id === undefined ? state.entries[0] : state.entries.find(entry => entry.id === id)
+    if (!reference) return null
+    let snapshot = state.legacySnapshots.find(entry => entry.id === reference.id)
+    if (!snapshot) {
+      const raw = await readTextStrict(PRE_UNDO_SNAPSHOT_PREFIX + reference.id)
+      try {
+        snapshot = parsePreUndoSnapshot(raw === null ? null : JSON.parse(raw))
+        if (snapshot.id !== reference.id || snapshot.savedAt !== reference.savedAt) throw new Error('快照索引不匹配')
+      } catch {
+        throw new Error('撤销前安全备份无法读取，原始副本已保留。')
+      }
+    }
+    const array = <T>(key: string): T[] => {
+      const raw = snapshot.keys[key]
+      const items = raw === null || raw === undefined ? [] : JSON.parse(raw)
+      if (!Array.isArray(items)) throw new Error('撤销前安全备份集合格式无效，原始副本已保留。')
+      return items as T[]
+    }
+    const archiveRaw = snapshot.keys[HISTORY_AGG_KEY]
+    return {
+      version: 2,
+      exportedAt: snapshot.savedAt,
+      routes: array<RouteTemplate>(ROUTES_KEY),
+      sessions: array<ClimbSession>(SESSIONS_KEY),
+      workouts: array<ClimbWorkout>(WORKOUTS_KEY),
+      buildings: array<BuildingTemplate>(BUILDINGS_KEY),
+      hiddenLegacyRouteIds: array<string>(HIDDEN_LEGACY_KEY),
+      ...(archiveRaw ? { archiveAggregate: JSON.parse(archiveRaw) as ArchiveAggregate } : {}),
+    }
+  })
 }
 
 /**
@@ -806,6 +915,35 @@ export async function restorePreImportSnapshot(): Promise<{
       before[key] = await readTextStrict(key)
       after[key] = value
     }
+    // Save the displaced state and consume the undo token in the same transaction.
+    // A failed undo restores both snapshots; a second click cannot overwrite the safety copy.
+    const safetyKeys: Record<string, string | null> = {}
+    for (const key of [ROUTES_KEY, SESSIONS_KEY, WORKOUTS_KEY, ...SNAPSHOT_EXTRA_KEYS]) {
+      safetyKeys[key] = await readTextStrict(key)
+    }
+    const safetyState = await readPreUndoState()
+    before[PRE_UNDO_KEY] = safetyState.raw
+    const savedAt = Date.now()
+    const previousIds = new Set(safetyState.entries.map(entry => entry.id))
+    let suffix = 0
+    while (previousIds.has(`undo-${savedAt}-${suffix}`) ||
+           await readTextStrict(`${PRE_UNDO_SNAPSHOT_PREFIX}undo-${savedAt}-${suffix}`) !== null) suffix++
+    const safetySnapshot: PreUndoSnapshot = { id: `undo-${savedAt}-${suffix}`, savedAt, keys: safetyKeys }
+    // Each complete snapshot has its own key. Ordinary undo writes only the new snapshot
+    // and a small index; neither an index nor a journal grows by all old training payloads.
+    for (const entry of [...safetyState.legacySnapshots, safetySnapshot]) {
+      const key = PRE_UNDO_SNAPSHOT_PREFIX + entry.id
+      const raw = await readTextStrict(key)
+      const next = JSON.stringify(entry)
+      if (raw !== null && raw !== next) throw new Error('安全备份标识冲突，原始副本已保留。')
+      before[key] = raw
+      after[key] = next
+    }
+    after[PRE_UNDO_KEY] = JSON.stringify({ version: 2, snapshots: [
+      { id: safetySnapshot.id, savedAt: safetySnapshot.savedAt }, ...safetyState.entries,
+    ] })
+    before[PRE_IMPORT_KEY] = await readTextStrict(PRE_IMPORT_KEY)
+    after[PRE_IMPORT_KEY] = null
     await writeJournaledKeys('restore', before, after)
     if (!snapshot.extraKeys || !(STORAGE_META_KEY in snapshot.extraKeys)) await syncLegacyTrimMirror(plan.doc)
     if (previousSessions.rawCorrupt || previousSessions.corrupt > 0) {
@@ -864,9 +1002,8 @@ export async function importRawData(
   const mode: ImportMode = options?.mode === 'replace' ? 'replace' : 'merge'
 
   return runSerial(async () => {
-    // 1) 先写导入前快照（用户可见的「撤销导入」依据）
-    await writePreImportSnapshotUnsafe()
-
+    // Complete any legacy-route migration before capturing transaction-before bytes.
+    const undoSnapshot = await capturePreImportSnapshotUnsafe()
     const incomingRoutes = checked.payload.routes.map((route) => migrateRouteToV3(route))
     const incomingSessions = checked.payload.sessions
     const incomingWorkouts = checked.payload.workouts ?? []
@@ -895,8 +1032,8 @@ export async function importRawData(
     const workoutsTruncated = importPlan.workoutsTruncated
     const adoptCarried = importPlan.adoptCarried
     const archiveAggregateNote = importPlan.archiveAggregateNote
-    const sessionsLedgerPrevious = adoptCarried ? sessions : previousSessions.rows
-    const workoutsLedgerPrevious = adoptCarried ? workouts : previousWorkouts.rows
+    const sessionsLedgerPrevious = adoptCarried ? incomingSessions : previousSessions.rows
+    const workoutsLedgerPrevious = adoptCarried ? incomingWorkouts : previousWorkouts.rows
 
     const plan = await planHistoryLedgerChanges(
       [
@@ -904,6 +1041,7 @@ export async function importRawData(
         collection: 'sessions',
         previous: sessionsLedgerPrevious,
         next: sessions,
+        beforeTrim: importPlan.allSessions,
         policyTrimmed: sessionsTruncated,
         corruptReasons: previousSessions.reasons,
         corruptDropped: previousSessions.rawCorrupt ? 1 : 0,
@@ -912,12 +1050,13 @@ export async function importRawData(
         collection: 'workouts',
         previous: workoutsLedgerPrevious,
         next: workouts,
+        beforeTrim: importPlan.allWorkouts,
         policyTrimmed: workoutsTruncated,
         corruptReasons: previousWorkouts.reasons,
         corruptDropped: previousWorkouts.rawCorrupt ? 1 : 0,
       },
       ],
-      adoptCarried ? { adoptAggregate: carriedAggregate } : undefined,
+      { ...(adoptCarried ? { adoptAggregate: carriedAggregate } : {}), requireArchiveIdentity: true },
     )
 
     const before: Record<string, string | null> = {
@@ -944,6 +1083,8 @@ export async function importRawData(
       after[HIDDEN_LEGACY_KEY] = JSON.stringify(mode === 'replace'
         ? checked.payload.hiddenLegacyRouteIds : [...new Set([...existing, ...checked.payload.hiddenLegacyRouteIds])])
     }
+    before[PRE_IMPORT_KEY] = await readTextStrict(PRE_IMPORT_KEY)
+    after[PRE_IMPORT_KEY] = JSON.stringify(undoSnapshot)
     await writeJournaledKeys('import', before, after)
     await syncLegacyTrimMirror(plan.doc)
 

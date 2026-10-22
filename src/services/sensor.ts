@@ -25,6 +25,12 @@ export interface SensorStatus {
   lastSampleAt: number
 }
 
+export interface SensorGap {
+  startMs: number
+  endMs: number
+  reason?: 'sensor_interrupted' | 'native_journal_loss'
+}
+
 export interface SensorRecorderOptions {
   retainSamples?: boolean
   keepRunningInBackground?: boolean
@@ -32,7 +38,7 @@ export interface SensorRecorderOptions {
   lowPowerMode?: boolean
   onSample?: (sample: SensorSample) => void
   onStatus?: (status: SensorStatus) => void
-  onGap?: (gap: { startMs: number; endMs: number }) => void
+  onGap?: (gap: SensorGap) => void
   // 气压计状态回调：每次气压样本到达时触发，UI 据此显示气压/海拔/楼层变化
   onBarometer?: (status: BarometerStatus) => void
   /** 传感器驱动；默认走 expo-sensors，测试可注入 fake。 */
@@ -42,7 +48,7 @@ export interface SensorRecorderOptions {
 /** recorder 向外发出的事件（供 RoundRecognitionCoordinator 消费）。 */
 export interface SensorRecorderEvents extends Record<string, unknown> {
   sample: SensorSample
-  gap: { startMs: number; endMs: number }
+  gap: SensorGap
   status: SensorStatusLike
   barometer: BarometerStatus
 }
@@ -137,6 +143,8 @@ export class SensorRecorder {
   private nativeReplay?: () => Promise<void>
   private lastRetainedAt = 0
   private sensorClockOffset?: number
+  private finalizedAt?: number
+  private lastReportedGap?: SensorGap
 
   /** Keep acquisition intervals when the JS bridge delivers a delayed batch.
    * Adapted from snapshot/mobile-1.1.0; fusion retains the pressureT contract. */
@@ -194,6 +202,8 @@ export class SensorRecorder {
     this.latestMotion = { alpha: 0, beta: 0, gamma: 0 }
     this.lastNativePressure = undefined
     this.gapStartedAt = undefined
+    this.finalizedAt = undefined
+    this.lastReportedGap = undefined
     this.startedAt = Date.now()
     this.lastSampleAt = 0
     this.gyroSampleAt = 0
@@ -225,8 +235,9 @@ export class SensorRecorder {
           if (this.lastSampleAt && now <= this.lastSampleAt) return
           // A delayed bridge callback is not a sensor gap. Compare acquisition
           // times just as the native journal replay path does.
-          if (this.lastSampleAt > 0 && now - this.lastSampleAt > 1500) {
-            this.emitGap({ startMs: this.lastSampleAt - this.startedAt, endMs: now - this.startedAt })
+          const previousAt = this.lastSampleAt || this.startedAt
+          if (now - previousAt > 1500) {
+            this.emitGap({ startMs: previousAt - this.startedAt, endMs: now - this.startedAt })
           }
           this.gapStartedAt = undefined
           const sample: SensorSample = {
@@ -359,6 +370,7 @@ export class SensorRecorder {
     const pending: BackgroundTrainingSample[] = []
     const deliver = (sample: BackgroundTrainingSample) => {
       if (!this.isActiveGeneration(generation) || sample.sessionId !== sessionId || sample.seq <= lastSequence) return
+      const missingSequence = sample.seq > lastSequence + 1
       lastSequence = sample.seq
       if (sample.t < this.startedAt) return
       // Native acquisition time, rather than delayed JS delivery, decides whether
@@ -366,8 +378,10 @@ export class SensorRecorder {
       // marker; only a measured timestamp gap below is retained. Otherwise stop()
       // would extend an already recovered gap or invent one after continuous replay.
       if (sample.t > this.lastSampleAt) this.gapStartedAt = undefined
-      if (this.lastSampleAt > 0 && sample.t - this.lastSampleAt > 1500) {
-        this.emitGap({ startMs: this.lastSampleAt - this.startedAt, endMs: sample.t - this.startedAt })
+      const previousAt = this.lastSampleAt || this.startedAt
+      if (missingSequence || sample.t - previousAt > 1500) {
+        this.emitGap({ startMs: previousAt - this.startedAt, endMs: sample.t - this.startedAt,
+          ...(missingSequence ? { reason: 'native_journal_loss' as const } : {}) })
       }
       this.lastSampleAt = sample.t
       this.gyroSampleAt = sample.t
@@ -391,6 +405,14 @@ export class SensorRecorder {
       this.options.onSample?.(sample)
       this.emitter.emit('sample', sample)
     }
+    const deliverPending = () => {
+      const ordered = pending.splice(0).sort((a, b) => a.seq - b.seq)
+      for (const sample of ordered) {
+        if (sample.seq <= lastSequence) continue
+        if (sample.seq === lastSequence + 1) deliver(sample)
+        else pending.push(sample)
+      }
+    }
     const replay = (): Promise<void> => {
       if (replayTask) return replayTask
       if (closed || !this.isActiveGeneration(generation)) return Promise.resolve()
@@ -402,7 +424,34 @@ export class SensorRecorder {
             if (closed || !this.isActiveGeneration(generation)) return
             if (page.sessionId !== sessionId) throw new Error('后台采样日志已切换到另一场训练，请重试保存。')
             latestReplaySequence = Math.max(latestReplaySequence, page.latestSequence)
-            for (const sample of page.samples) deliver(sample)
+            // Live events already queued in JS can still fill a range whose disk
+            // part was rotated. Only an unread range is loss; the native cumulative
+            // droppedSamples counter also includes already-consumed old samples.
+            deliverPending()
+            if (Number.isFinite(page.earliestSequence) && page.earliestSequence > lastSequence + 1) {
+              const lostThrough = Math.min(page.earliestSequence - 1, page.latestSequence)
+              // A missing prefix does not invalidate later live events already
+              // queued in JS. Recover each readable island before acknowledging
+              // the remaining evicted range; deliver() labels only actual holes.
+              for (const sample of pending.filter(sample => sample.seq <= lostThrough).sort((a, b) => a.seq - b.seq)) deliver(sample)
+              if (lostThrough > lastSequence) {
+                const next = page.samples.find(sample => sample.seq > lostThrough)
+                this.emitGap({ startMs: (this.lastSampleAt || this.startedAt) - this.startedAt,
+                  endMs: Math.max(this.startedAt, next?.t ?? Date.now()) - this.startedAt,
+                  reason: 'native_journal_loss' })
+                // This range no longer exists. Retain and label the remaining
+                // measured result instead of leaving finish in an endless retry.
+                lastSequence = lostThrough
+                deliverPending()
+              }
+            }
+            // A queued live sample may also fill a hole inside this disk page.
+            // Do not consume a later live suffix beyond the page yet: a future
+            // page can still contain its missing prefix.
+            const pageThrough = page.samples.at(-1)?.seq ?? lastSequence
+            const readable = [...page.samples, ...pending.filter(sample => sample.seq <= pageThrough)]
+              .sort((a, b) => a.seq - b.seq)
+            for (const sample of readable) deliver(sample)
             if (page.samples.length < 2000 || lastSequence >= page.latestSequence) break
           }
           succeeded = true
@@ -417,12 +466,7 @@ export class SensorRecorder {
           // Even a successful page can predate queued live events: only deliver
           // their contiguous prefix, and leave sequence gaps for the next drain.
           if (succeeded) {
-            const ordered = pending.splice(0).sort((a, b) => a.seq - b.seq)
-            for (const sample of ordered) {
-              if (sample.seq <= lastSequence) continue
-              if (sample.seq === lastSequence + 1) deliver(sample)
-              else pending.push(sample)
-            }
+            deliverPending()
           }
         }
       })().finally(() => { replayTask = undefined })
@@ -446,7 +490,9 @@ export class SensorRecorder {
     })
     const subscription = this.nativeSub
     this.nativeSub = { remove: () => { closed = true; pending.length = 0; subscription.remove() } }
-    this.nativePoll = setInterval(() => { void replay().catch(() => undefined); this.checkSignal() }, 500)
+    // Inspect acquisition freshness only after replay. A delayed bridge can have
+    // a complete native journal and must not be reported as a recording failure.
+    this.nativePoll = setInterval(() => { void replay().then(() => this.checkSignal()).catch(() => undefined) }, 500)
     await replay()
     if (!this.isActiveGeneration(generation)) return
     await this.waitForRequiredSamples(generation)
@@ -466,8 +512,18 @@ export class SensorRecorder {
   /** Drain queued native samples before the consumer freezes its final result.
    * The caller stops native acquisition first and keeps this recorder attached
    * until flush completes. Errors remain retryable; no sequence is acknowledged. */
-  async flush(): Promise<void> {
+  async flush(throughAt = Date.now()): Promise<void> {
     await this.nativeReplay?.()
+    // A trailing interruption has no next sample to close it. Freeze this gap
+    // before the consumer freezes its rounds, using the user's finish time.
+    if (!this.lowPowerMode && Number.isFinite(throughAt)) {
+      const previousAt = this.lastSampleAt || this.startedAt
+      if (throughAt - previousAt > 1500) {
+        this.emitGap({ startMs: previousAt - this.startedAt, endMs: throughAt - this.startedAt })
+      }
+      this.finalizedAt = throughAt
+      this.gapStartedAt = undefined
+    }
   }
 
   async stop(): Promise<SensorSample[]> {
@@ -487,7 +543,7 @@ export class SensorRecorder {
     if (this.gapStartedAt) {
       this.emitGap({
         startMs: this.gapStartedAt - this.startedAt,
-        endMs: Date.now() - this.startedAt,
+        endMs: (this.finalizedAt ?? Date.now()) - this.startedAt,
       })
       this.gapStartedAt = undefined
     }
@@ -510,7 +566,12 @@ export class SensorRecorder {
     return this.running && this.currentGeneration === generation && this.generation === generation
   }
 
-  private emitGap(gap: { startMs: number; endMs: number }): void {
+  private emitGap(gap: SensorGap): void {
+    if (!Number.isFinite(gap.startMs) || !Number.isFinite(gap.endMs) || gap.endMs <= gap.startMs) return
+    const previous = this.lastReportedGap
+    if (previous?.startMs === gap.startMs && previous.endMs === gap.endMs &&
+        (previous.reason === 'native_journal_loss' || gap.reason !== 'native_journal_loss')) return
+    this.lastReportedGap = gap
     this.options.onGap?.(gap)
     this.emitter.emit('gap', gap)
   }
@@ -539,7 +600,7 @@ export class SensorRecorder {
   }
 
   private checkSignal(): void {
-    if (!this.running) return
+    if (!this.running || this.finalizedAt !== undefined) return
     const now = Date.now()
     if (!this.lastSampleAt) {
       this.emitStatus('waiting')

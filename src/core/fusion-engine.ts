@@ -190,6 +190,8 @@ interface RoundTracker {
   observedMs: number
   usedFallback: boolean
   notes: string[]
+  calibrationTemplateId?: string
+  rebaseAfterGapAlt?: number
 }
 
 const FRAME_MS = 500
@@ -229,6 +231,10 @@ export class FusionWorkoutEngine {
   private bottomAlt?: number
   private closurePending = false
   private lastTransit?: VerticalTransit
+  // Keep the elevator's displacement excluded after its velocity falls to zero.
+  private elevatorUpPending = false
+  private elevatorUpPlateauSince?: number
+  private sessionGaps: Array<{ startMs: number; endMs: number }> = []
   private calibrationWarnings: string[] = []
   private readonly templateName?: string
   private onRoundListeners: Array<(round: FusionRoundResult) => void> = []
@@ -261,6 +267,55 @@ export class FusionWorkoutEngine {
     this.onRoundListeners.push(listener)
   }
 
+  /** Acquisition gaps use wall-clock time, including a missing final native batch. */
+  recordGap(startAt: number, endAt: number, _reason?: string): void {
+    if (!Number.isFinite(startAt) || !Number.isFinite(endAt) || endAt <= startAt) return
+    const gap = { startMs: Math.max(this.startedAt, startAt), endMs: endAt }
+    if (gap.endMs <= gap.startMs) return
+    const merge = (gaps: Array<{ startMs: number; endMs: number }>) => {
+      const merged: typeof gaps = []
+      for (const item of [...gaps, gap].sort((a, b) => a.startMs - b.startMs)) {
+        const last = merged.at(-1)
+        if (last && item.startMs <= last.endMs) last.endMs = Math.max(last.endMs, item.endMs)
+        else merged.push({ ...item })
+      }
+      return merged
+    }
+    this.sessionGaps = merge(this.sessionGaps)
+    this.frame = undefined
+    this.previousPoint = undefined
+    this.turnGate.reset()
+    this.elevator.reset()
+    this.lastTransit = undefined
+    this.baro.breakContinuity()
+    this.elevatorUpPending = false
+    this.elevatorUpPlateauSince = undefined
+    this.closurePending = false
+    if (!this.round && (this.phase === 'waiting' || this.phase === 'descending')) {
+      // The user may have changed floors while acquisition was missing. The
+      // next observed platform is a new origin, never a rise from the old one.
+      this.enterWaiting(endAt)
+      this.plateauSince = undefined
+    }
+    if (this.round) {
+      this.round.interruptions = merge(this.round.interruptions)
+      this.round.usedFallback = true
+      this.round.aboveSince = undefined
+      if (this.round.kind === 'auto') this.round.rebaseAfterGapAlt ??= this.baro.latest()?.altM
+      this.round.lastAdvanceSteps = this.stepsTotal
+      this.round.lastAdvanceTurns = this.turnsTotal
+      if (!this.round.notes.includes('传感器采集存在缺段，请核对实际层数')) this.round.notes.push('传感器采集存在缺段，请核对实际层数')
+    } else if (this.rounds.length) {
+      // A missing tail can conceal another ascent even when the last known phase
+      // was waiting. Preserve that uncertainty on the saved result.
+      const last = this.rounds.at(-1)!
+      const updated = { ...last, interruptions: merge(last.interruptions), estimated: true,
+        notes: [...new Set([...last.notes, '传感器采集存在缺段，请核对实际层数'])] }
+      this.rounds[this.rounds.length - 1] = updated
+      for (const listener of this.onRoundListeners) listener(updated)
+    }
+  }
+
   /**
    * 送入一个传感器样本（加速度/陀螺仪）。
    * 若样本带 pressureT（原生端气压事件自身时间戳），只有 pressureT 递增时才算新的气压事件；
@@ -270,7 +325,7 @@ export class FusionWorkoutEngine {
     if (!Number.isFinite(sample.t)) return
     if (this.lastSampleAt !== undefined && sample.t <= this.lastSampleAt) return
     if (this.lastSampleAt !== undefined && sample.t - this.lastSampleAt > 1500) {
-      this.round?.interruptions.push({ startMs: this.lastSampleAt, endMs: sample.t })
+      this.recordGap(this.lastSampleAt, sample.t)
       this.closeFrame(this.lastSampleAt)
       this.previousPoint = undefined
     }
@@ -386,6 +441,16 @@ export class FusionWorkoutEngine {
 
   getTemplate(): BuildingTemplate | undefined {
     return this.template
+  }
+
+  /** A completed calibration must be recoverable before the user rides down. */
+  getRecoveryState(): { template?: BuildingTemplate; rounds: FusionRoundResult[] } {
+    if (this.phase === 'calibration_top' && this.round?.marks.length &&
+        !this.rounds.some(completed => completed.id === this.round!.id)) {
+      const completed = this.buildCalibrationResult(this.round, 'manual', this.round.topAt ?? this.now)
+      return { template: completed.template, rounds: [...this.getRounds(), completed.round] }
+    }
+    return { template: this.template, rounds: this.getRounds() }
   }
 
   getCalibrationWarnings(): string[] {
@@ -506,13 +571,19 @@ export class FusionWorkoutEngine {
   private newRound(kind: FusionRoundKind, startedAt: number): RoundTracker {
     const steps = this.stepsAt(startedAt)
     const turns = this.turnsAt(startedAt)
+    // The first missing batch may contain the user's initial movement, before
+    // automatic start could be recognized. Carry that session uncertainty once.
+    const interruptions = this.sessionGaps.filter(gap => this.rounds.length === 0 || gap.endMs >= startedAt)
     return {
       id: uid('round'), number: this.rounds.length + 1, kind, startedAt,
       baselineFrozen: false, driftOffset: 0,
       stepsAtStart: steps, turnsAtStart: turns, activeAtStart: this.activeAt(startedAt),
       lastAdvanceSteps: steps, lastAdvanceTurns: turns,
-      floors: [], maxRelH: 0, maxAt: startedAt, marks: [], interruptions: [],
-      baroFreshMs: 0, observedMs: 0, usedFallback: false, notes: [],
+      floors: [], maxRelH: 0, maxAt: startedAt, marks: [],
+      interruptions: interruptions.map(gap => ({ ...gap })),
+      baroFreshMs: 0, observedMs: 0,
+      usedFallback: interruptions.length > 0,
+      notes: interruptions.length ? ['传感器采集存在缺段，请核对实际层数'] : [],
     }
   }
 
@@ -536,8 +607,27 @@ export class FusionWorkoutEngine {
   private onAltitude(t: number, altM: number): void {
     const speed = this.baro.speedAt(t)
     this.lastTransit = this.elevator.observe(t, speed)
+    if (this.lastTransit === 'elevator_up' && (this.phase === 'waiting' || this.phase === 'climbing')) {
+      if (this.phase === 'climbing') {
+        // The detector confirms only after a sustained-speed hold. Revoke any
+        // floor credited during that hold before committing the real ascent.
+        const elevatorStartedAt = this.elevator.ascentStartedAt ?? t
+        if (this.round) this.round.floors = this.round.floors.filter(floor => floor.reachedAt < elevatorStartedAt)
+        this.endAutoRound('manual', t)
+      }
+      if (!this.elevatorUpPending) this.enterWaiting(t)
+      this.elevatorUpPending = true
+      this.elevatorUpPlateauSince = undefined
+    }
     const round = this.round
     if (round && (this.phase === 'calibrating' || this.phase === 'calibration_top' || this.phase === 'climbing')) {
+      if (round.rebaseAfterGapAlt !== undefined) {
+        // A pressure change across missing acquisition is unknown movement, not
+        // evidence of climbed floors. Resume from the last observed height.
+        if (round.baselineAlt !== undefined) round.baselineAlt += altM - round.rebaseAfterGapAlt
+        round.rebaseAfterGapAlt = undefined
+        round.lastDriftAlt = altM
+      }
       // 基线：起爬前持续跟随，出现第一步（或已回溯起点）后冻结。
       if (round.baselineAlt === undefined || !round.baselineFrozen) {
         if (round.kind === 'calibration') {
@@ -656,7 +746,17 @@ export class FusionWorkoutEngine {
       this.enterDescending(t)
       return
     }
-    const recent = this.baro.altitudeBetween(t - 3000, t) ?? altM
+    if (this.elevatorUpPending) {
+      if (speed !== undefined && Math.abs(speed) < PLATEAU_SPEED_MPS) this.elevatorUpPlateauSince ??= t
+      else this.elevatorUpPlateauSince = undefined
+      if (this.elevatorUpPlateauSince !== undefined && t - this.elevatorUpPlateauSince >= PLATEAU_MS) {
+        this.elevatorUpPending = false
+        this.enterWaiting(t, this.baro.altitudeBetween(this.elevatorUpPlateauSince, t) ?? altM)
+        this.closurePending = false
+      }
+      return
+    }
+    const recent = this.baro.altitudeBetween(Math.max(this.waitingSince, t - 3000), t) ?? altM
     if (this.bottomAlt === undefined) this.bottomAlt = recent
     // 楼下基线：比基线更低时立即跟随；只有站立不动（近 8s 无步数）时才允许向上跟随，
     // 否则慢速起爬（0.06 m/s）会被基线“追着走”，永远达不到起爬门限。
@@ -727,7 +827,7 @@ export class FusionWorkoutEngine {
       }
       return
     }
-    if (this.phase === 'waiting' && !baroOk && this.template) {
+    if (this.phase === 'waiting' && !baroOk && this.template && !this.elevatorUpPending) {
       const earliest = Math.max(this.waitingSince, t - 6000)
       const freshSteps = this.stepTimes.filter(time => time > earliest && time <= t)
       if (freshSteps.length >= AUTO_START_STEPS_NO_BARO) {
@@ -790,6 +890,18 @@ export class FusionWorkoutEngine {
       this.enterWaiting(t)
       return
     }
+    const completed = this.buildCalibrationResult(round, reason, t)
+    this.template = completed.template
+    this.calibrationWarnings = completed.warnings
+    this.pushRound(completed.round)
+    this.round = undefined
+    if (reason === 'elevator_down' || reason === 'stairs_down') this.enterDescending(t)
+    else this.enterWaiting(t)
+  }
+
+  private buildCalibrationResult(round: RoundTracker, reason: FusionRoundEndReason, t: number): {
+    template: BuildingTemplate; warnings: string[]; round: FusionRoundResult
+  } {
     const topAt = round.topAt ?? round.marks.at(-1)!.t
     const baseline = round.baselineAlt
     const heightAt = (time: number): number | undefined => {
@@ -805,8 +917,9 @@ export class FusionWorkoutEngine {
     const result = buildTemplateFromCalibration({
       startFloor: this.startFloor, boundaries, barometer: this.baro.hasData, name: this.templateName, now: t,
     })
-    this.template = result.template
-    this.calibrationWarnings = result.warnings
+    // Checkpoint projections and the later descent must keep the same identity.
+    round.calibrationTemplateId ??= result.template.id
+    result.template.id = round.calibrationTemplateId
     const floors = result.template.floors
     let cursor = round.startedAt
     const floorRecords: FusionFloorRecord[] = floors.map((floor, index) => {
@@ -821,8 +934,8 @@ export class FusionWorkoutEngine {
     const steps = this.stepsAt(topAt) - round.stepsAtStart
     const activeMs = this.activeAt(topAt) - round.activeAtStart
     const ascentM = templateTotalAscentM(result.template)
-    const estimated = result.splitFloors > 0
-    this.pushRound({
+    const estimated = result.splitFloors > 0 || round.interruptions.length > 0
+    return { template: result.template, warnings: result.warnings, round: {
       id: round.id, roundNumber: round.number, kind: 'calibration', startedAt: round.startedAt, topAt, endedAt: t,
       startFloor: this.startFloor, finalFloor: floorAfter(this.startFloor, floors.length), floors: floors.length,
       ascentM, steps: Math.max(0, steps), activeMs: Math.max(0, activeMs),
@@ -831,10 +944,7 @@ export class FusionWorkoutEngine {
       floorRecords, endReason: reason, interruptions: round.interruptions,
       baroCoverage: round.observedMs ? round.baroFreshMs / round.observedMs : 0,
       notes: [...round.notes, ...result.warnings, ...(!result.template.barometer ? ['无气压数据，层高按 3 米估算'] : [])],
-    })
-    this.round = undefined
-    if (reason === 'elevator_down' || reason === 'stairs_down') this.enterDescending(t)
-    else this.enterWaiting(t)
+    } }
   }
 
   private endAutoRound(reason: FusionRoundEndReason, t: number): void {
@@ -882,13 +992,13 @@ export class FusionWorkoutEngine {
       id: round.id, roundNumber: round.number, kind: 'auto', startedAt: round.startedAt, topAt, endedAt: t,
       startFloor: this.startFloor, finalFloor: floorAfter(this.startFloor, floors), floors,
       ascentM: this.ascentFor(floors), steps, activeMs, durationMs: Math.max(0, topAt - round.startedAt),
-      estimated: records.some(r => r.estimated),
+      estimated: round.interruptions.length > 0 || records.some(r => r.estimated),
       confidence: Number((records.reduce((s, r) => s + r.confidence, 0) / floors).toFixed(2)),
       floorRecords: records, endReason: reason, interruptions: round.interruptions,
       baroCoverage: round.observedMs ? Number((round.baroFreshMs / round.observedMs).toFixed(2)) : 0,
       notes: round.notes,
     })
-    if (round.baselineAlt !== undefined && round.maxRawAlt !== undefined && (reason === 'elevator_down' || reason === 'stairs_down')) {
+    if (!round.interruptions.length && round.baselineAlt !== undefined && round.maxRawAlt !== undefined && (reason === 'elevator_down' || reason === 'stairs_down')) {
       this.closurePending = true
       this.closureRound = { baselineAlt: round.baselineAlt, startedAt: round.startedAt, maxAt: round.maxAt, maxRawAlt: round.maxRawAlt }
     }
