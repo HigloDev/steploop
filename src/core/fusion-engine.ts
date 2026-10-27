@@ -80,6 +80,7 @@ export interface FusionFloorRecord {
 }
 
 export interface FusionRoundResult {
+  calorieSegments?: import('./segmented-calories').StairCalorieSegment[]
   id: string
   roundNumber: number
   kind: FusionRoundKind

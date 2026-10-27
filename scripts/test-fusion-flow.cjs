@@ -57,7 +57,11 @@ async function sessionHarness(options = {}) {
     pendingFailures = options.pendingFailures ?? 0, clearFailures = options.clearFailures ?? 0,
     completedCheckpointFailures = options.completedCheckpointFailures ?? 0
   class TaskDate extends Date { static now() { return now } }
-  class Recorder { async start() { state.starts++ } async stop() {} }
+  class Recorder {
+    constructor(settings) { state.recording = settings }
+    async start() { state.starts++ }
+    async stop() {}
+  }
   const buildings = {
     loadFusionCheckpoint: async () => state.checkpoint,
     getBuilding: async () => undefined,
@@ -79,7 +83,7 @@ async function sessionHarness(options = {}) {
     'expo-keep-awake': { activateKeepAwakeAsync: async () => {}, deactivateKeepAwake() {} },
     '../services/building-storage': buildings,
     '../services/background-training': { isBackgroundTrainingSupported: () => false },
-    '../services/preferences': { getPreferences: async () => ({ bodyWeightKg: 65 }), triggerHaptic: async () => {}, triggerHapticPattern: async pattern => { state.feedback.push(pattern) } },
+    '../services/preferences': { getPreferences: async () => ({ bodyWeightKg: 65, ...options.preferences }), triggerHaptic: async () => {}, triggerHapticPattern: async pattern => { state.feedback.push(pattern) } },
     '../services/sensor': { SensorRecorder: Recorder, sensorStartErrorMessage: e => e.message },
     '../services/voice-feedback': { createWorkoutVoiceService: () => ({ observe() {}, finish: async () => {}, dispose: async () => {} }) },
     '../services/workout-voice-settings': { workoutVoiceSettings: () => ({}) },
@@ -98,7 +102,13 @@ async function sessionHarness(options = {}) {
   const render = () => api = runtime.render(() => exports.useFusionWorkout(options.params ?? {}))
   const settle = async () => { await new Promise(resolve => setImmediate(resolve)); return render() }
   render(); await settle(); interval?.(); render()
-  return { state, get api() { return api }, render, settle, advance(ms) { now += ms }, tick() { interval?.(); render() }, mark() { now += 3000; api.markFloor(); render() } }
+  return { state, get api() { return api }, render, settle, advance(ms) { now += ms }, tick() { interval?.(); render() }, mark() { now += 3000; api.markFloor(); render() },
+    motion(ms = 6000) {
+      const data = require('./fusion-synth.cjs').synthesize([{ type: 'walk', durMs: ms }], { start: now, noBaro: true, seed: 91 })
+      for (const sample of data.samples) { now = sample.t; state.recording.onSample(sample) }
+      interval?.(); render()
+    },
+  }
 }
 
 test('a marked floor vibrates immediately once; repeated timer snapshots do not repeat it', async () => {
@@ -111,16 +121,21 @@ test('a marked floor vibrates immediately once; repeated timer snapshots do not 
   assert.deepEqual(h.state.feedback, ['floor', 'floor'])
 })
 
-test('live calories include the current unfinished calibration round and remain visible at the top', async () => {
+test('live calories require recorded motion and include the unfinished calibration round', async () => {
   const h = await sessionHarness()
   h.mark(); h.mark()
   assert.equal(h.api.rounds.length, 0)
   assert.equal(h.api.snapshot.ascentM, 6)
-  assert.ok(h.api.calories > 0)
+  assert.equal(h.api.calories, 0, 'manual floor marks alone must not invent metabolic time')
+  h.motion()
+  assert.ok(h.api.calorieEstimate.kilocalories > 0, 'recorded movement earns unrounded activity energy')
+  assert.equal(h.api.calories, Math.round(h.api.calorieEstimate.kilocalories))
   const climbingMs = h.api.snapshot.ascentMs
-  h.api.markTop(); h.render(); h.advance(60000); h.tick()
+  h.api.markTop(); h.render()
+  const toppedAscent = h.api.snapshot.ascentM
+  h.advance(60000); h.tick()
   assert.equal(h.api.snapshot.ascentMs, climbingMs)
-  assert.equal(h.api.snapshot.ascentM, 6)
+  assert.equal(h.api.snapshot.ascentM, toppedAscent)
 })
 
 test('标定到顶后立即重启：已完成层数、模板与训练身份均可恢复', async () => {
@@ -175,6 +190,29 @@ test('failed workout save retains completed rounds and retries without duplicate
   assert.equal(h.state.workouts.get(id).totalFloorsCompleted, 2)
   assert.equal(h.state.checkpoint, null)
   assert.equal(h.api.status, 'done')
+})
+
+test('MET pace changes retain earlier portions and checkpoint recovery keeps the workout weight', async () => {
+  const h = await sessionHarness({ preferences: { bodyWeightKg: 60, stairPace: 'slow' } })
+  h.motion(20000); h.mark()
+  h.api.setStairPace('fast'); h.render()
+  h.motion(20000); h.mark()
+  h.api.markTop(); h.render(); h.api.nextRound(); await h.settle()
+  const checkpoint = structuredClone(h.state.checkpoint)
+  assert.equal(checkpoint.calorieProfile.bodyWeightKg, 60)
+  assert.equal(checkpoint.calorieProfile.pace, 'fast')
+  assert.ok(checkpoint.rounds[0].calorieSegments.some(segment => segment.pace === 'slow'))
+  assert.ok(checkpoint.rounds[0].calorieSegments.some(segment => segment.pace === 'fast'))
+  const before = h.api.calorieEstimate.kilocalories
+  const recovered = await sessionHarness({ checkpoint, params: { resume: true }, preferences: { bodyWeightKg: 99, stairPace: 'general' } })
+  assert.equal(recovered.api.calorieProfile.bodyWeightKg, 60)
+  assert.equal(recovered.api.calorieProfile.pace, 'fast')
+  assert.equal(recovered.api.calorieEstimate.kilocalories, before)
+  const id = await recovered.api.finish()
+  const saved = recovered.state.workouts.get(id)
+  assert.equal(saved.bodyWeightKg, 60)
+  assert.deepEqual(saved.rounds[0].calorieSegments, checkpoint.rounds[0].calorieSegments)
+  assert.equal(core('fusion-workout').workoutCalories(saved), before)
 })
 
 test('successful evidence writes clear only evidence errors and preserve recovery guidance', async () => {

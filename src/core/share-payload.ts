@@ -11,12 +11,13 @@
 //   - 路线名称（`routeSnapshot.name`）不是地点字段，仅在 `includeRouteName` 显式开启时输出；
 //   - 本次训练时长（`activeDurationMs`）是「时长」，不是墙上时钟时间，按 `X小时Y分Z秒`
 //     输出，不含冒号形式，避免与日期时间混淆；
-//   - 本模块只 `import type`，编译后没有任何运行时依赖（node:test 可直接加载源码）。
+//   - 热量使用与实时和结果页相同的纯函数，不读取设置或设备信息。
 //
 // 分享结果三态（合同 D10 验收 2）：只有 'success' 才算「已分享」；
 // 'cancelled'（用户取消 / 面板未回报）与 'failed' 都不得写成成功。
 
 import type { ClimbWorkout } from './types'
+import { calorieMetricLabel, formatCalories, getWorkoutCalorieEstimate } from './segmented-calories'
 
 export interface SharePayloadInput {
   workout: ClimbWorkout
@@ -189,6 +190,8 @@ export function buildSharePayload(input: SharePayloadInput): SharePayload {
     lines.push(`完成轮数：${workout.totalRoundsCompleted}轮`)
   }
 
+  const estimate = getWorkoutCalorieEstimate(workout)
+  lines.push(`${calorieMetricLabel(estimate)}：${formatCalories(estimate.kilocalories)}千卡（估算）`)
   return {
     title: mode === 'poster' ? '循阶 · 爬楼成果海报' : '我的爬楼训练',
     body: lines.join('\n'),

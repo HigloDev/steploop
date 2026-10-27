@@ -1,5 +1,7 @@
 # 循阶项目入口
 
+本分支开发试用版为 **1.1.6 / Android versionCode 15**，仅移植已授权的分段 MET 热量功能。公开基准仍是下述 1.1.5；以 `project-state.json` 区分开发候选与公开版本。
+
 ## 开始工作前
 
 1. 先读取根目录 `project-state.json` 和 `PROJECT_STATUS.md`，确认当前开发版本、公开版本及未合入修改。不要从旧报告、旧工作目录或会话记忆推断当前版本。

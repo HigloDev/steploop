@@ -1,5 +1,7 @@
 # 循阶 · 每一步向上，每一层都算数
 
+本分支开发试用版：**1.1.6 / Android code 15**，新增分段 MET 活动热量与计算依据保存；公开版本仍为 1.1.5。见 [试用说明](docs/CALORIES_PREVIEW_20261028.md) 和 `project-state.json`。
+
 循阶是一款本地保存成绩的 Android 爬楼训练应用。1.1.5 使用冷白、深蓝与钴蓝界面，集中展示楼层、爬升、逐轮训练与每周积累。
 
 维护与 AI 接续请先看 [当前项目状态](PROJECT_STATUS.md) 和 [版本信息](project-state.json)，运行 `npm run check:project-state`。当前主版本为 **1.1.5 / Android code 14**；[旧版本归档](docs/archive/README.md) 与独立修复分支不代表当前已发布功能。

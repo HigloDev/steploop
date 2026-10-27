@@ -17,6 +17,8 @@ import { buildFusionWorkout, fusionRoundToWorkoutRound } from '../core/fusion-wo
 import { uid } from '../core/math'
 import { liveWorkoutMetrics } from '../core/live-workout-metrics'
 import { WorkoutFeedbackTracker } from '../core/workout-feedback'
+import { FusionCalorieTracker } from '../core/fusion-calories'
+import { calorieDisplayValue, createStairCalorieProfile, StairCalorieProfile, StairPace, WorkoutCalorieEstimate } from '../core/segmented-calories'
 import type { VoiceObservation } from '../core/voice-events'
 import {
   FusionCheckpoint,
@@ -59,6 +61,9 @@ export interface FusionWorkoutApi {
   rounds: FusionRoundResult[]
   template?: BuildingTemplate
   calories: number
+  calorieEstimate?: WorkoutCalorieEstimate
+  calorieProfile?: StairCalorieProfile
+  setStairPace?(pace: StairPace): void
   workoutId: string
   /** Completed rounds have a durable recovery point, so leaving is safe. */
   canSaveLater: boolean
@@ -135,6 +140,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const evidenceRef = useRef<WorkoutEvidenceJournal | undefined>(undefined)
   const voiceRef = useRef<WorkoutVoiceService | undefined>(undefined)
   const prefsRef = useRef<Preferences | undefined>(undefined)
+  const calorieTrackerRef = useRef<FusionCalorieTracker | undefined>(undefined)
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const feedbackRef = useRef<WorkoutFeedbackTracker | undefined>(undefined)
   const calibratedRef = useRef(false)
@@ -149,6 +155,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     const engine = engineRef.current
     if (!engine || closedRef.current) return checkpointWriteRef.current
     const recovery = engine.getRecoveryState()
+    const energy = calorieTrackerRef.current
+    energy?.observe(engine.snapshot(endedAtRef.current ?? Date.now()), recovery.rounds)
     const checkpoint = {
       schemaVersion: 1 as const,
       workoutId: workoutIdRef.current,
@@ -161,7 +169,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       template: recovery.template,
       calibrated: calibratedRef.current,
       replaceTemplateId: replaceTemplateIdRef.current,
-      rounds: recovery.rounds,
+      rounds: energy?.decorate(recovery.rounds) ?? recovery.rounds,
+      ...(energy?.profile ? { calorieProfile: energy.profile, bodyWeightKg: energy.profile.bodyWeightKg } : {}),
     }
     checkpointWriteRef.current = checkpointWriteRef.current.then(async () => {
       await saveFusionCheckpoint(checkpoint)
@@ -212,6 +221,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         if (cancelled) return
         const prefs = await getPreferences()
         prefsRef.current = prefs
+        let calorieProfile: StairCalorieProfile | undefined = createStairCalorieProfile(prefs.bodyWeightKg, prefs.stairPace)
         let selected: BuildingTemplate | undefined
         let resumeRounds: FusionRoundResult[] | undefined
         let pendingEndAt: number | undefined
@@ -223,6 +233,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
             startedAtRef.current = checkpoint.startedAt
             selected = checkpoint.template
             resumeRounds = checkpoint.rounds
+            calorieProfile = checkpoint.calorieProfile
+            prefsRef.current = { ...prefs, bodyWeightKg: checkpoint.calorieProfile?.bodyWeightKg ?? checkpoint.bodyWeightKg ?? prefs.bodyWeightKg }
             startFloor = checkpoint.startFloor
             calibratedRef.current = checkpoint.calibrated
             replaceTemplateIdRef.current = checkpoint.replaceTemplateId
@@ -239,8 +251,11 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         })
         if (!selected) calibratedRef.current = true
         engineRef.current = engine
+        const energy = new FusionCalorieTracker(calorieProfile, resumeRounds)
+        calorieTrackerRef.current = energy
+        energy.observe(engine.snapshot(), engine.getRounds())
         setTemplate(engine.getTemplate())
-        setRounds(engine.getRounds())
+        setRounds(energy.decorate(engine.getRounds()))
         feedbackRef.current = new WorkoutFeedbackTracker(engine.snapshot())
         if (pendingEndAt !== undefined) {
           endedAtRef.current = pendingEndAt
@@ -252,7 +267,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           return
         }
         engine.onRound(() => {
-          setRounds(engine.getRounds())
+          energy.observe(engine.snapshot(), engine.getRounds())
+          setRounds(energy.decorate(engine.getRounds()))
           setTemplate(engine.getTemplate())
           void persistCheckpoint()
         })
@@ -283,6 +299,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
                 (endedAtRef.current !== undefined && sample.t > endedAtRef.current)) return
             engine.pushSample(sample)
             const next = engine.snapshot(sample.t)
+            energy.observe(next, engine.getRounds())
             const feedback = feedbackRef.current?.observe(next)
             if (feedback) {
               setSnapshot(next)
@@ -321,18 +338,18 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           const now = Date.now()
           engine.tick(now)
           const next = engine.snapshot(now)
+          energy.observe(next, engine.getRounds())
           setSnapshot(next)
           const feedback = feedbackRef.current?.observe(next)
           if (feedback) void triggerHapticPattern(feedback)
           const done = engine.getRounds()
-          const metrics = liveWorkoutMetrics(next, done, prefsRef.current?.bodyWeightKg)
           const observation: VoiceObservation = {
             workoutId: workoutIdRef.current,
             mode: 'full_auto',
             phase: voicePhase(next.phase),
             currentRoundNumber: next.roundNumber,
             elapsedMs: next.elapsedMs,
-            calories: metrics.calories,
+            calories: energy.display(next, done, prefsRef.current?.bodyWeightKg),
             cumulativeFloors: next.totalFloors,
             cumulativeSteps: next.steps,
             startFloor: next.startFloor,
@@ -378,6 +395,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     const engine = engineRef.current
     if (engine) {
       const next = engine.snapshot(Date.now())
+      calorieTrackerRef.current?.observe(next, engine.getRounds())
       setSnapshot(next)
       const feedback = feedbackRef.current?.observe(next)
       if (feedback) void triggerHapticPattern(feedback)
@@ -405,6 +423,16 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     void persistCheckpoint()
   }, [persistCheckpoint])
 
+  const setStairPace = useCallback((pace: StairPace) => {
+    const engine = engineRef.current
+    const energy = calorieTrackerRef.current
+    if (!engine || !energy?.profile || endedAtRef.current !== undefined) return
+    const next = engine.snapshot(Date.now())
+    energy.setPace(pace, next, engine.getRounds())
+    setSnapshot(next)
+    void persistCheckpoint()
+  }, [persistCheckpoint])
+
   const finish = useCallback((): Promise<string | undefined> => {
     if (finishPromiseRef.current) return finishPromiseRef.current
     const engine = engineRef.current
@@ -426,8 +454,9 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         await recorder.flush?.(endedAt)
       }
       const finalRounds = engine.finish(endedAt)
+      calorieTrackerRef.current?.observe(engine.snapshot(endedAt), finalRounds)
       setSnapshot(engine.snapshot(endedAt))
-      setRounds(finalRounds)
+      setRounds(calorieTrackerRef.current?.decorate(finalRounds) ?? finalRounds)
       // Keep a completed checkpoint until every required save has succeeded.
       await persistCheckpoint()
       await stopSensors()
@@ -443,8 +472,9 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         const finalTemplate = engine.getTemplate()
         const workout = buildFusionWorkout({
           id: workoutIdRef.current, startedAt: startedAtRef.current, endedAt, status: 'completed',
-          template: finalTemplate, rounds: finalRounds.map(fusionRoundToWorkoutRound),
+          template: finalTemplate, rounds: (calorieTrackerRef.current?.decorate(finalRounds) ?? finalRounds).map(fusionRoundToWorkoutRound),
           bodyWeightKg: prefsRef.current?.bodyWeightKg,
+          calorieProfile: calorieTrackerRef.current?.profile,
         })
         await saveWorkout(workout)
         if (calibratedRef.current && finalTemplate) {
@@ -504,10 +534,13 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
 
   const retry = useCallback(() => setAttempt(value => value + 1), [])
 
-  const calories = snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
+  const calorieEstimate = snapshot ? calorieTrackerRef.current?.estimate(snapshot, rounds, prefsRef.current?.bodyWeightKg) : undefined
+  const calories = calorieEstimate ? calorieDisplayValue(calorieEstimate.kilocalories) :
+    snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
 
   return {
-    status, error, warning: captureGapWarning || sensorWarning || evidenceWarning || warning, snapshot, rounds, template, calories, workoutId: workoutIdRef.current, canSaveLater,
+    status, error, warning: captureGapWarning || sensorWarning || evidenceWarning || warning, snapshot, rounds, template, calories, calorieEstimate,
+    calorieProfile: calorieTrackerRef.current?.profile, setStairPace, workoutId: workoutIdRef.current, canSaveLater,
     markFloor, undoMark, markTop, nextRound, finish, discard, retry,
   }
 }

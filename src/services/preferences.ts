@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { isStairPace, StairPace } from '../core/segmented-calories'
 import * as Haptics from 'expo-haptics'
 import { Platform, Vibration } from 'react-native'
 import { SavedWorkoutSetup } from '../core/workout-setup'
@@ -19,6 +20,7 @@ export interface Preferences {
   /** 上次使用的携带方式，用于在设置/确认时回显。 */
   lastCarryMode?: 'pocket' | 'waist'
   bodyWeightKg: number
+  stairPace?: StairPace
   /**
    * D11 选项 C：是否已看过「训练中锁屏/切后台不会记录」的一次性说明。
    * 默认 false → 首次进入训练页时提示一次；用户关掉后不再打扰。
@@ -90,6 +92,7 @@ export async function getPreferences(): Promise<Preferences> {
 export async function savePreferences(next: Partial<Preferences>): Promise<Preferences> {
   const merged = { ...(await readPrefs()), ...next }
   merged.voiceSpeaker = normalizeVoiceSpeaker(merged.voiceSpeaker)
+  if (!isStairPace(merged.stairPace)) delete merged.stairPace
   cached = merged
   try {
     await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(merged))

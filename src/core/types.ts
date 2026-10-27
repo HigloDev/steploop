@@ -1,3 +1,5 @@
+import type { StairCalorieProfile, StairCalorieSegment, WorkoutCalorieEstimate } from './segmented-calories'
+
 export type CarryMode = 'pocket' | 'waist'
 export type MarkerType = 'turn' | 'landing' | 'pause' | 'manual_turn' | 'manual_floor'
 export type TurnDirection = 'left' | 'right'
@@ -410,6 +412,7 @@ export interface FusionFloorDetail {
 }
 
 export interface WorkoutRound {
+  calorieSegments?: StairCalorieSegment[]
   floorConfirmation?: 'automatic' | 'manual' | 'pending'
   recognitionVersion?: 'motion-v3' | 'fusion-v1'
   /** fusion-v1：标定轮（用户点击）或自动轮。 */
@@ -476,6 +479,8 @@ export interface ClimbWorkout {
   trackingMode?: TrackingMode
   floorCounting?: 'transitions'
   bodyWeightKg?: number
+  calorieProfile?: StairCalorieProfile
+  calorieEstimate?: WorkoutCalorieEstimate
   /** 语音观察/播放日志单独落盘，记录这里只保留引用。 */
   voiceJournalId?: string
   templateId: string

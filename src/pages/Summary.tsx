@@ -17,6 +17,9 @@ import { CompletionCelebration } from '../components/completion-celebration'
 import { RoundBreakdown } from '../components/training-visuals'
 import { BuildingTemplate, floorCount } from '../core/building-template'
 import { formatCalories } from '../core/calories'
+import { getWorkoutCalorieEstimate } from '../core/segmented-calories'
+import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
+import { Disclosure } from '../components/disclosure'
 import { floorAfter, getRoundAchievementCount } from '../core/floors'
 import { correctRoundFloors, isFusionWorkout, workoutCalories } from '../core/fusion-workout'
 import { formatDuration } from '../core/math'
@@ -203,6 +206,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
           <Metric styles={styles} label="千卡" value={formatCalories(totals.calories)} divider />
         </View>
         </View>
+        <Disclosure compact title="热量估算依据"><CalorieEstimateDetails estimate={getWorkoutCalorieEstimate(workout)} /></Disclosure>
         <View style={styles.roundCard}>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}><Text style={styles.section}>每趟的节奏</Text>

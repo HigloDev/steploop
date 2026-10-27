@@ -12,6 +12,7 @@ import { Disclosure } from '../components/disclosure'
 import { VoiceModeSelector } from '../components/voice-mode-selector'
 import { VoiceSpeakerSelector } from '../components/voice-speaker-selector'
 import { NativeChoice } from '../components/native-choice'
+import { StairPaceSelector } from '../components/stair-pace-selector'
 import { BackgroundTrainingReadiness } from '../components/background-training-readiness'
 import { voiceModeChoice, voiceModePreferences } from '../services/workout-voice-settings'
 import { Header } from '../components/Header'
@@ -439,6 +440,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           </View>
           </View>
           <Text style={styles.rowDesc} accessibilityHint="历史成绩保留训练时的体重。">用于估算本次训练热量。</Text>
+          <StairPaceSelector value={prefs?.stairPace} disabled={!prefs} onChange={pace => { void update({ stairPace: pace }) }} />
         </Card>
 
         <Card style={[styles.group, styles.nextGroup]}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>锁屏与后台</Text>

@@ -21,10 +21,7 @@ import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { BrandMark } from '../components/brand-mark'
 import { Button } from '../components/ui'
-import {
-  DEFAULT_BODY_WEIGHT_KG,
-  formatCalories,
-} from '../core/calories'
+import { formatCalories } from '../core/segmented-calories'
 import { formatDuration } from '../core/math'
 import { workoutCalories } from '../core/fusion-workout'
 import { ClimbWorkout, WorkoutSummary } from '../core/types'
@@ -39,7 +36,6 @@ import {
 import { calculateWorkoutSummary } from '../core/workout-summary'
 import { deriveTrainingProgress } from '../core/training-progress'
 import { RootStackScreen } from '../navigation/types'
-import { getPreferences } from '../services/preferences'
 import { getWorkout, listWorkouts, saveWorkout } from '../services/workout-storage'
 import { Theme, useTheme, visual } from '../theme'
 
@@ -159,7 +155,6 @@ export default function ShareStudioScreen({
   const [busyAction, setBusyAction] = useState<'save' | 'share' | null>(null)
   const [lastAction, setLastAction] = useState<ShareAction | null>(null)
   const [lastOutcome, setLastOutcome] = useState<ShareOutcome | null>(null)
-  const [bodyWeightKg, setBodyWeightKg] = useState(DEFAULT_BODY_WEIGHT_KG)
   const posterRef = useRef<View>(null)
   const [readyTheme, setReadyTheme] = useState<boolean | null>(null)
   const [loadError, setLoadError] = useState('')
@@ -195,12 +190,6 @@ export default function ShareStudioScreen({
     void load()
     return () => { mounted = false }
   }, [screenRoute.params.id, loadAttempt])
-
-  useEffect(() => {
-    getPreferences()
-      .then((prefs) => setBodyWeightKg(prefs.bodyWeightKg))
-      .catch(() => undefined)
-  }, [])
 
   const capturePoster = async () => {
     if (!posterRef.current) throw new Error('海报还没有准备好')
@@ -360,7 +349,7 @@ export default function ShareStudioScreen({
 
   const posterWidth = Math.min(328, windowWidth - 64)
   // 热量按爬升机械功 + 活动/休息代谢估算（与结算页同一口径）。
-  const calories = workoutCalories({ ...workout, bodyWeightKg: workout.bodyWeightKg ?? bodyWeightKg })
+  const calories = workoutCalories(workout)
   // D10：页面不再自己拼分享文案；隐私剔除结果（redacted）由纯函数给出，UI 只负责展示。
   const sharePayload = buildSharePayload({
     workout,

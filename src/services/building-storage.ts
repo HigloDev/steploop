@@ -144,6 +144,8 @@ export async function recordBuildingResult(id: string, result: BuildingLastResul
 // ===================== 训练检查点 =====================
 
 export interface FusionCheckpoint {
+  calorieProfile?: import('../core/segmented-calories').StairCalorieProfile
+  bodyWeightKg?: number
   schemaVersion: 1
   workoutId: string
   startedAt: number

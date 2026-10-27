@@ -5,6 +5,7 @@
 import { ascentForFloors, BuildingTemplate } from './building-template'
 import { applyRoundCorrection } from './corrections'
 import { estimateClimbCalories } from './calories'
+import { getWorkoutCalorieEstimate, StairCalorieProfile, WorkoutCalorieEstimate } from './segmented-calories'
 import { floorAfter, getRoundAchievementCount } from './floors'
 import type { FusionRoundResult } from './fusion-engine'
 import { FUSION_RECOGNITION_VERSION } from './sensor-params'
@@ -65,6 +66,7 @@ export function fusionRoundToWorkoutRound(round: FusionRoundResult): WorkoutRoun
     userCorrectionCount: 0,
     // 活动时间单独保存：用于热量（durationMs 是墙钟用时）。
     activeMs: round.activeMs,
+    ...(round.calorieSegments ? { calorieSegments: round.calorieSegments } : {}),
   }
 }
 
@@ -81,6 +83,8 @@ export interface BuildFusionWorkoutInput {
   template?: BuildingTemplate
   rounds: WorkoutRound[]
   bodyWeightKg?: number
+  calorieProfile?: StairCalorieProfile
+  calorieEstimate?: WorkoutCalorieEstimate
   createdAt?: number
 }
 
@@ -97,6 +101,8 @@ export function buildFusionWorkout(input: BuildFusionWorkoutInput): ClimbWorkout
     trackingMode: 'full_auto',
     floorCounting: 'transitions',
     bodyWeightKg: input.bodyWeightKg,
+    ...(input.calorieProfile ? { calorieProfile: input.calorieProfile } : {}),
+    ...(input.calorieEstimate ? { calorieEstimate: input.calorieEstimate } : {}),
     templateId: template?.id ?? 'fusion-unsaved',
     templateVersion: template?.version ?? 1,
     routeSnapshot: {
@@ -163,7 +169,10 @@ export function correctRoundFloors(
 }
 
 /** 训练热量：爬升机械功 + 活动/休息代谢（详见 calories.ts）。 */
-export function workoutCalories(workout: Pick<ClimbWorkout, 'rounds' | 'bodyWeightKg' | 'startedAt' | 'endedAt' | 'totalElapsedMs'>): number {
+export function workoutCalories(workout: Pick<ClimbWorkout, 'rounds' | 'bodyWeightKg' | 'startedAt' | 'endedAt' | 'totalElapsedMs' | 'calorieProfile' | 'calorieEstimate'>): number {
+  if (workout.calorieProfile || workout.calorieEstimate) return getWorkoutCalorieEstimate({
+    ...workout, activeDurationMs: workout.rounds.reduce((sum, round) => sum + roundActiveMs(round), 0),
+  }).kilocalories
   const ascentM = workout.rounds.reduce((sum, round) => sum + (round.floorConfirmation === 'pending' ? 0 : round.ascentM), 0)
   const activeMs = workout.rounds.reduce((sum, round) => sum + roundActiveMs(round), 0)
   const elapsed = workout.totalElapsedMs || Math.max(0, (workout.endedAt ?? Date.now()) - workout.startedAt)

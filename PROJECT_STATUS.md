@@ -1,5 +1,7 @@
 # 当前项目状态
 
+2026-10-28 开发候选：**1.1.6 / Android versionCode 15**（本地试用，未公开发布）。在已核验的 1.1.5 主版本基线上单独移植分段 MET 活动热量，未合入教练分支或下述审计修复分支。以 `project-state.json` 区分当前开发候选和已公开版本。
+
 更新日期：2026-10-27。机器可读版本信息见 [project-state.json](project-state.json)；开始工作先运行 `npm run check:project-state`。
 
 ## 当前基准

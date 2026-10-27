@@ -3,8 +3,8 @@
   "project": "steploop",
   "repository": "https://github.com/HigloDev/steploop",
   "defaultBranch": "main",
-  "currentVersion": "1.1.5",
-  "androidVersionCode": 14,
+  "currentVersion": "1.1.6",
+  "androidVersionCode": 15,
   "publishedRelease": {
     "version": "1.1.5",
     "androidVersionCode": 14,
@@ -26,5 +26,6 @@
   "archives": {
     "documentationIndex": "docs/archive/README.md",
     "privateLocalIndex": ".project-local.json"
-  }
+  },
+  "developmentChannel": "local-preview"
 }

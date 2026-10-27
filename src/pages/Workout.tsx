@@ -10,6 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { FlipNumber, GaugeCell, HoldToConfirm, MiniStat, PhaseStatusBar, StairGauge } from '../components/workout-ui'
+import { Disclosure } from '../components/disclosure'
+import { StairPaceSelector } from '../components/stair-pace-selector'
+import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
+import { calorieMetricLabel } from '../core/segmented-calories'
 import { floorAfter } from '../core/floors'
 import { formatDuration } from '../core/math'
 import type { FusionSnapshot } from '../core/fusion-engine'
@@ -202,7 +206,7 @@ export function WorkoutContent({ navigation, session }: {
     { label: '累计爬升', value: Math.round(ascent).toString(), unit: '米', icon: 'stairs-up' as const },
     { label: '平均爬楼频率', value: frequency.toFixed(1), unit: '层/分钟', icon: 'speedometer' as const },
     { label: '当前步数', value: String(snapshot.steps), unit: '步', icon: 'shoe-print' as const },
-    { label: '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
+    { label: session.calorieEstimate ? calorieMetricLabel(session.calorieEstimate) : '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
   ]
 
   return (
@@ -280,6 +284,12 @@ export function WorkoutContent({ navigation, session }: {
         </View>
         <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
       </View>
+      {session.calorieEstimate ? <Disclosure compact title="热量估算依据">
+        {session.calorieProfile && session.setStairPace ? <StairPaceSelector
+          value={session.calorieProfile.paceSource === 'user' ? session.calorieProfile.pace : undefined}
+          onChange={session.setStairPace} disabled={status !== 'running'} /> : null}
+        <CalorieEstimateDetails estimate={session.calorieEstimate} />
+      </Disclosure> : null}
 
       {snapshot.completedRounds > 0 ? <View style={styles.completedStrip}>
         <MaterialCommunityIcons name="check-circle-outline" size={18} color={P.good} accessible={false} />

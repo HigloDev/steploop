@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ActiveWorkoutCheckpoint, ClimbWorkout } from '../core/types'
 import { uid } from '../core/math'
+import { getWorkoutCalorieEstimate } from '../core/segmented-calories'
 import { recoverPendingJournal, runSerial } from './storage-journal'
 import {
   HISTORY_WORKOUT_LIMIT,
@@ -59,6 +60,9 @@ export interface SaveWorkoutResult {
 }
 
 export async function saveWorkout(workout: ClimbWorkout): Promise<SaveWorkoutResult> {
+  if (workout.status === 'completed' && workout.calorieProfile && !workout.calorieEstimate) {
+    workout.calorieEstimate = getWorkoutCalorieEstimate(workout)
+  }
   // 保持既有语义：保存时刷新 updatedAt（列表按它倒序）。
   workout.updatedAt = Date.now()
   const { trimmed, total } = await historyRepository.saveWorkout(workout)

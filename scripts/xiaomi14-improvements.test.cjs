@@ -134,6 +134,7 @@ test('Android floor pulse reaches the vibration service; turning feedback off su
     'expo-haptics': haptics,
     'react-native': { Platform: { OS: 'android' }, Vibration: { vibrate: pattern => calls.push(pattern) } },
     '../core/voice-speaker': { normalizeVoiceSpeaker: () => 'serena' },
+    '../core/segmented-calories': require(path.join(root, 'node_modules/.cache/steploop-core/segmented-calories.js')),
   }
   const module = { exports: {} }
   const js = ts.transpileModule(fs.readFileSync(path.join(root, 'src/services/preferences.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true } }).outputText
