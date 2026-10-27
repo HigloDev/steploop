@@ -2,6 +2,8 @@
 
 使用 Expo SDK 57。依赖安装用 `npm ci`，不要随意升级 SDK 或原生依赖。
 
+开始前阅读 [当前项目状态](../PROJECT_STATUS.md)，运行 `npm run check:project-state`。该检查无需先安装依赖，会核对版本文件、发布标签及主仓库地址；使用完整 Git 克隆以保留发布标签。历史工作目录与待合入分支不代替当前 `main`。
+
 ## 环境
 
 - Node.js 22.13+（22.x）、npm。
@@ -13,6 +15,7 @@
 
 ```sh
 npm ci
+npm run check:project-state
 npm test
 npx tsc --noEmit
 npx expo-doctor

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "project": "steploop",
+  "repository": "https://github.com/HigloDev/steploop",
+  "defaultBranch": "main",
+  "currentVersion": "1.1.5",
+  "androidVersionCode": 14,
+  "publishedRelease": {
+    "version": "1.1.5",
+    "androidVersionCode": 14,
+    "tag": "v1.1.5-preview.1",
+    "sourceCommit": "77c148a63c35c179fbaa1537b422cd3a8f33fb5c",
+    "publishedDate": "2026-10-21",
+    "channel": "public-preview"
+  },
+  "pendingChanges": [
+    {
+      "branch": "codex/fix-115-audit-20261023",
+      "commit": "f11687d200bd4478991aecf6a665b662c3691735",
+      "baseRelease": "v1.1.5-preview.1",
+      "status": "preserved-not-merged",
+      "includesInterfaceChanges": true,
+      "description": "1.1.5 审计后的训练、备份恢复和设置页修复；单独保留，未合入主版本或公开 APK。"
+    }
+  ],
+  "archives": {
+    "documentationIndex": "docs/archive/README.md",
+    "privateLocalIndex": ".project-local.json"
+  }
+}

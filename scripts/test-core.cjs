@@ -3221,7 +3221,7 @@ test('F12 reducer 是时间的纯函数：时间戳由动作提供，缺失即�
 })
 
 test('D14-guard 发布说明的关键声明与实现一致（防止声明漂移）', () => {
-  const notes = readSource('docs/release-notes-draft.md')
+  const notes = readSource('docs/archive/1.0.x/release-notes-draft.md')
   const repo = readSource('src/services/history-repository.ts')
   const tabs = readSource('src/navigation/MainTabs.tsx')
   const share = readSource('src/pages/ShareStudio.tsx')

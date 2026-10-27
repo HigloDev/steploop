@@ -1,3 +1,5 @@
+> 历史归档：仅记录当时的版本、路径与验收范围；当前基准见 [项目状态](../../../PROJECT_STATUS.md)。文中的代码路径和文字结论保留当时口径。
+
 # 循阶 1.1.2 视觉实施交付
 
 2026-10-10。计划内的10个页面、23个代表状态已落实到现有原生应用，Android 内部包已构建并完成本报告范围内的验收。
@@ -6,10 +8,10 @@
 
 ## 直接查看和使用
 
-- [原生界面与视觉稿对照图册](qa/ui-redraw-20261010/index.html)，本机浏览地址：<http://127.0.0.1:8792/docs/qa/ui-redraw-20261010/index.html>。
-- [最终视觉验收报告](../design-qa.md)：`final result: passed`；记录每轮修正、剩余P3和验收边界。
+- [原生界面与视觉稿对照图册](../../qa/ui-redraw-20261010/index.html)，本机浏览地址：<http://127.0.0.1:8792/docs/qa/ui-redraw-20261010/index.html>。
+- [最终视觉验收报告](design-qa.md)：`final result: passed`；记录每轮修正、剩余P3和验收边界。
 - [Android独立内部APK](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)。不需要电脑上的Metro服务。
-- [交付清单](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)、[原生操作结果](qa/ui-redraw-20261010/runtime-checks.json)、[安装和数据保留结果](qa/ui-redraw-20261010/release-checks.json)、[源码一致性](qa/ui-redraw-20261010/source-integrity.json)。
+- [交付清单](https://github.com/HigloDev/steploop/releases/tag/v1.1.3-preview.1)、[原生操作结果](../../qa/ui-redraw-20261010/runtime-checks.json)、[安装和数据保留结果](../../qa/ui-redraw-20261010/release-checks.json)、[源码一致性](../../qa/ui-redraw-20261010/source-integrity.json)。
 
 APK：`com.zxn.palou`，1.1.2 / versionCode11，最低Android24，targetSDK36，arm64-v8a / x86_64，75,568,635字节。SHA-256：
 
