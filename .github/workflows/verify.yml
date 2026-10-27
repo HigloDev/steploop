@@ -31,7 +31,13 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
-      - run: npx expo install --check
+      - name: Check dependencies against the installed Expo SDK
+        run: npx expo install --check
+        env:
+          EXPO_OFFLINE: '1'
+      - name: Report newer Expo patch recommendations
+        run: npx expo install --check
+        continue-on-error: true
       - run: npx expo export --platform android --output-dir .expo-export-check/android-ci
       - name: Retain Android bundle evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
