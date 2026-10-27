@@ -6,13 +6,10 @@ const crypto = require('node:crypto')
 const root = path.resolve(__dirname, '..')
 const selected = [
   'src', 'native', 'plugins', 'scripts', 'assets', '.github',
-  'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', '.gitignore', '.env.example',
+  'README.md', 'AGENTS.md', 'CLAUDE.md', 'PROJECT_STATUS.md', 'project-state.json',
+  'LICENSE', 'THIRD_PARTY_NOTICES.md', '.gitignore', '.env.example',
   'App.tsx', 'index.ts', 'app.json', 'package.json', 'package-lock.json',
-  'tsconfig.json', 'metro.config.js',
-  'docs/USER_GUIDE.md', 'docs/BUILDING.md', 'docs/FIRST_RELEASE.md',
-  'docs/RELEASE_1.0.4.md',
-  'docs/RELEASE_1.0.5.md', 'docs/RELEASE_1.0.7.md', 'docs/VOICE_FEEDBACK.md',
-  'docs/release-notes-draft.md',
+  'tsconfig.json', 'metro.config.js', 'index.uiqa.ts', 'design-qa.md', 'docs',
 ]
 const files = []
 function visit(relative) {
@@ -59,7 +56,7 @@ fs.writeFileSync(path.join(output, 'SOURCE_MANIFEST.json'), JSON.stringify({
   schemaVersion: 1, createdAt: new Date().toISOString(), version: require('../package.json').version,
   status: 'LOCAL_CANDIDATE_NOT_PUBLISHED',
   limitations: ['No Git history included', 'Known-secret matching is not a full security audit',
-    'Real-motion and background acceptance remain pending; this is an Android experimental preview; see docs/FIRST_RELEASE.md'],
+    'Real-motion and background acceptance remain pending; this is an Android experimental preview; see PROJECT_STATUS.md and docs/RELEASE_READINESS_20261021.md'],
   files: records,
 }, null, 2) + '\n')
 console.log(JSON.stringify({ output, files: records.length, status: 'local_candidate' }, null, 2))

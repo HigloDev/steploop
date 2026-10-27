@@ -86,3 +86,6 @@ signing.properties
 
 # Local Python caches from native UI verification scripts.
 __pycache__/
+
+# Private local archive/recovery index; never publish workstation paths or backups.
+/.project-local.json

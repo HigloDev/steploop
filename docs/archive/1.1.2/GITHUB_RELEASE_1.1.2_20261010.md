@@ -1,3 +1,5 @@
+> 历史归档：仅记录当时的版本、路径与验收范围；当前基准见 [项目状态](../../../PROJECT_STATUS.md)。文中的代码路径和文字结论保留当时口径。
+
 # GitHub 1.1.2 发布记录
 
 2026-10-10 已发布 Android 公开试用版 [v1.1.2-preview.1](https://github.com/HigloDev/steploop/releases/tag/v1.1.2-preview.1)。

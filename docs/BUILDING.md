@@ -2,6 +2,10 @@
 
 使用 Expo SDK 57。依赖安装用 `npm ci`，不要随意升级 SDK 或原生依赖。
 
+开始前阅读 [当前项目状态](../PROJECT_STATUS.md)，运行 `npm run check:project-state`。该检查无需先安装依赖，会核对版本文件、发布标签及主仓库地址；使用完整 Git 克隆以保留发布标签。历史工作目录与待合入分支不代替当前 `main`。
+
+维护已发布的1.1.5时保留锁文件中的依赖。CI使用 `EXPO_OFFLINE=1 npx expo install --check` 对照已安装Expo自带的兼容表，在线补丁建议另作提示；离线检查不覆盖后来发布的补丁建议或安全审计。2026-10-27在线目录已建议更新 `@expo/ui`、`expo`、`expo-location`、`expo-sharing`，本轮版本归档不升级它们。依赖升级应单独验证并更新锁文件。[Expo CLI环境变量说明](https://docs.expo.dev/more/expo-cli/#environment-variables)
+
 ## 环境
 
 - Node.js 22.13+（22.x）、npm。
@@ -13,6 +17,7 @@
 
 ```sh
 npm ci
+npm run check:project-state
 npm test
 npx tsc --noEmit
 npx expo-doctor

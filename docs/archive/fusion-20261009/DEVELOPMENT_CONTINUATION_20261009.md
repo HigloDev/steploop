@@ -1,3 +1,5 @@
+> 历史归档：仅记录当时的版本、路径与验收范围；当前基准见 [项目状态](../../../PROJECT_STATUS.md)。文中的代码路径和文字结论保留当时口径。
+
 # 循阶 fusion-v1 开发接续（2026-10-09）
 
 ## 基线与工作区
@@ -102,7 +104,7 @@
 
 截图与界面树保存在本机 `.expo-export-check/fusion-ui/`，其中“UI-Test-Building”“UI-Renamed”和各项成绩全部是模拟器流程测试数据。用于审查的精选截图见 `docs/qa/fusion-flow-20261009/`。
 
-[首页](qa/fusion-flow-20261009/home.png) · [训练页](qa/fusion-flow-20261009/workout.png) · [起始楼层弹窗](qa/fusion-flow-20261009/floor-sheet.png) · [小屏大字体管理](qa/fusion-flow-20261009/manage-small-large-text.png) · [重命名键盘](qa/fusion-flow-20261009/rename-keyboard.png) · [分享预览](qa/fusion-flow-20261009/share-preview.png)
+[首页](../../qa/fusion-flow-20261009/home.png) · [训练页](../../qa/fusion-flow-20261009/workout.png) · [起始楼层弹窗](../../qa/fusion-flow-20261009/floor-sheet.png) · [小屏大字体管理](../../qa/fusion-flow-20261009/manage-small-large-text.png) · [重命名键盘](../../qa/fusion-flow-20261009/rename-keyboard.png) · [分享预览](../../qa/fusion-flow-20261009/share-preview.png)
 
 这一阶段的内部 APK 为 x86_64 模拟器验证产物，位于 `android/app/build/outputs/apk/release/app-release.apk`。随后另行构建 ARM64 手机包并完成覆盖升级。两个阶段均未清除或导入真实手机数据，也没有提交到远端或公开发布版本。
 
