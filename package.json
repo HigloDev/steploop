@@ -80,7 +80,7 @@
     "evidence:replay-motion": "npm run build:core && node scripts/replay-motion-evidence.cjs",
     "test:height-references": "node --test scripts/test-height-references.cjs",
     "test:uiqa-isolation": "node --test scripts/uiqa-native-isolation.test.cjs",
-    "test:theme": "node --test scripts/theme-palette.test.cjs",
+    "test:theme": "node --test scripts/theme-palette.test.cjs scripts/appearance.test.cjs",
     "test:legacy-ui": "node --test scripts/test-legacy-ui.cjs",
     "test:xiaomi14": "node --test scripts/xiaomi14-improvements.test.cjs",
     "typecheck": "tsc --noEmit",

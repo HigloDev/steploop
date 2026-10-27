@@ -1,0 +1,422 @@
+[
+  {
+    "file": "classic-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "classic",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "classic-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "classic",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "classic-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "classic",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "classic-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "classic",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "classic-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "classic",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "classic-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "classic",
+    "mode": "dark",
+    "screen": "summary"
+  },
+  {
+    "file": "night-run-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "night-run",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "night-run-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "night-run",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "night-run-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "night-run",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "night-run-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "night-run",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "night-run-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "night-run",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "night-run-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "night-run",
+    "mode": "dark",
+    "screen": "summary"
+  },
+  {
+    "file": "woodland-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "woodland",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "woodland-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "woodland",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "woodland-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "woodland",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "woodland-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "woodland",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "woodland-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "woodland",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "woodland-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "woodland",
+    "mode": "dark",
+    "screen": "summary"
+  },
+  {
+    "file": "eva-unit-01-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "eva-unit-01-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "eva-unit-01-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "eva-unit-01-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "eva-unit-01-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "eva-unit-01-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "screen": "summary"
+  },
+  {
+    "file": "eva-unit-02-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "eva-unit-02-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "eva-unit-02-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "eva-unit-02-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "eva-unit-02-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "eva-unit-02-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "screen": "summary"
+  },
+  {
+    "file": "pikachu-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "pikachu",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "pikachu-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "pikachu",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "pikachu-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "pikachu",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "pikachu-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "pikachu",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "pikachu-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "pikachu",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "pikachu-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "pikachu",
+    "mode": "dark",
+    "screen": "summary"
+  },
+  {
+    "file": "k-on-light-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "k-on",
+    "mode": "light",
+    "screen": "home"
+  },
+  {
+    "file": "k-on-light-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "k-on",
+    "mode": "light",
+    "screen": "climbing"
+  },
+  {
+    "file": "k-on-light-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "k-on",
+    "mode": "light",
+    "screen": "summary"
+  },
+  {
+    "file": "k-on-dark-home.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "k-on",
+    "mode": "dark",
+    "screen": "home"
+  },
+  {
+    "file": "k-on-dark-climbing.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "k-on",
+    "mode": "dark",
+    "screen": "climbing"
+  },
+  {
+    "file": "k-on-dark-summary.png",
+    "size": [
+      1080,
+      2400
+    ],
+    "skin": "k-on",
+    "mode": "dark",
+    "screen": "summary"
+  }
+]

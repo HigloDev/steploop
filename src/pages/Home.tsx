@@ -196,7 +196,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
     <View style={styles.page}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: 32 }]}>
         <View style={styles.brandRow}>
-          <BrandMark size={28} color={theme.brand} />
+          <BrandMark size={28} color={theme.brandText} />
           <Text style={styles.brand}>循阶</Text>
           <Text style={styles.wordmark}>STEPLOOP</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="打开训练设置" onPress={() => navigation.navigate('Profile')} style={styles.settingsButton}>
@@ -269,7 +269,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
         </View>
 
         <SectionHeading title="今天，继续向上" action="我的楼栋" onPress={() => setBuildingPicker(true)} />
-        {loading ? <View style={styles.loadState}><ActivityIndicator color={theme.brand} /><Text style={styles.empty}>正在读取本机记录…</Text>
+        {loading ? <View style={styles.loadState}><ActivityIndicator color={theme.brandText} /><Text style={styles.empty}>正在读取本机记录…</Text>
           <SportButton title="开始爬楼" disabled accessibilityLabel={`开始爬楼，从 ${startFloor} 楼出发，第一轮标定`} onPress={startNew} />
         </View>
         : loadError ? <View style={styles.loadState}><Text selectable style={{ color: theme.redInk }}>{loadError}</Text>
@@ -312,7 +312,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
             onPress={() => { setSelectedBuildingId(building.id); setBuildingPicker(false) }} style={styles.pickerSelect}>
             <BuildingThumb floors={floorCount(building)} size={32} />
             <View style={{ flex: 1 }}><Text style={styles.buildingName} numberOfLines={2}>{building.name}</Text><Text style={styles.buildingMeta}>{floorCount(building)} 层 · {Math.round(templateTotalAscentM(building))} 米</Text></View>
-            {selected?.id === building.id ? <MaterialCommunityIcons name="check-circle" size={23} color={theme.brand} accessible={false} /> : null}
+            {selected?.id === building.id ? <MaterialCommunityIcons name="check-circle" size={23} color={theme.brandText} accessible={false} /> : null}
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`管理 ${building.name}`} onPress={() => { setBuildingPicker(false); manage(building) }} style={styles.more}><MaterialCommunityIcons name="dots-horizontal" size={23} color={theme.muted} /></Pressable>
         </View>)}
@@ -419,7 +419,7 @@ function makeStyles(theme: Theme) {
     weekUnit: { color: theme.heroMuted, fontSize: 15, fontWeight: '400' },
     weekLandmark: { color: theme.heroAccent, fontSize: 12, lineHeight: 18, marginTop: 4 },
     referencesButton: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 48, alignSelf: 'flex-start' },
-    referencesText: { color: theme.brand, fontSize: 13, fontWeight: '700' },
+    referencesText: { color: theme.brandText, fontSize: 13, fontWeight: '700' },
     streak: { alignItems: 'center', paddingLeft: 18, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: theme.line },
     streakValue: { ...theme.numeric, color: theme.ink, fontSize: 30 },
     streakLabel: { color: theme.muted, fontSize: 12, fontWeight: '700' },
@@ -442,7 +442,7 @@ function makeStyles(theme: Theme) {
     stepText: { color: theme.brandInk, fontSize: 30, fontWeight: '900' },
     stepValue: { ...theme.numeric, color: theme.ink, fontSize: 88, lineHeight: 96, minWidth: 90, flexShrink: 1, textAlign: 'center' },
     input: {
-      minHeight: 60, borderRadius: theme.radiusMd, borderWidth: 1, borderColor: theme.brand, paddingHorizontal: 14,
+      minHeight: 60, borderRadius: theme.radiusMd, borderWidth: 1, borderColor: theme.brandText, paddingHorizontal: 14,
       color: theme.ink, fontSize: 22, backgroundColor: theme.cardSoft,
     },
     modalPrimary: { minHeight: 54, borderRadius: 18, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },

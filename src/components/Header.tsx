@@ -113,7 +113,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: 12,
     },
     rightText: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 16,
       fontWeight: '800',
     },

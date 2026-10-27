@@ -46,6 +46,7 @@ export type RootStackParamList = {
   CoachSession: { sessionId: string }
   CoachRecords: { tab?: 'weight' | 'workouts' | 'reviews' } | undefined
   CoachReview: { enrollmentId: string; weekStart?: string }
+  Appearance: undefined
   /** 旧版单轮会话记录（只读）。 */
   Result: { id: string; roundId?: string }
   DiagnosticCapture: undefined

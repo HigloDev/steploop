@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "baselineVersion": "1.1.5",
+  "baselineCommit": "6282e28be1230d4a5f711bdc19912a24cce1cd01",
+  "defaultSkinId": "classic",
+  "defaultMode": "system",
+  "appearanceModes": [
+    "system",
+    "light",
+    "dark"
+  ],
+  "requiredPalettes": [
+    "light",
+    "dark"
+  ],
+  "requiredScreens": [
+    "home",
+    "workout",
+    "summary"
+  ],
+  "tokenEntry": "src/theme.ts",
+  "runtimeCatalog": "src/skin-catalog.ts",
+  "constructionGuide": "docs/skins/CONSTRUCTION.md",
+  "evidence": {
+    "automated": "docs/skins/VALIDATION.md",
+    "native": "docs/skins/VALIDATION.md",
+    "release": null,
+    "gallery": "docs/skins/preview.html",
+    "captureInventory": "docs/skins/evidence/20261028/inventory.json"
+  },
+  "skins": [
+    {
+      "id": "classic",
+      "name": "原版钴蓝",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "1.1.5冷白钴蓝与深蓝周卡",
+      "darkDirection": "1.1.5深蓝与浅蓝强调",
+      "designReferences": [
+        "docs/assets/site115/home-light.png",
+        "docs/assets/site115/home-dark.png",
+        "docs/assets/site115/climbing-light.png",
+        "docs/assets/site115/climbing-dark.png",
+        "docs/assets/site115/summary-light.png",
+        "docs/assets/site115/summary-dark.png"
+      ],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/classic-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/classic-light-home.png",
+          "workout": "docs/skins/evidence/20261028/classic-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/classic-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/classic-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/classic-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/classic-dark-summary.png"
+        }
+      }
+    },
+    {
+      "id": "night-run",
+      "name": "夜跑竞技",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "冷白、深炭周卡、黄绿操作",
+      "darkDirection": "炭黑与荧光黄绿",
+      "designReferences": [],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/night-run-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/night-run-light-home.png",
+          "workout": "docs/skins/evidence/20261028/night-run-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/night-run-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/night-run-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/night-run-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/night-run-dark-summary.png"
+        }
+      }
+    },
+    {
+      "id": "woodland",
+      "name": "山野自然",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "米白、松绿、鼠尾草",
+      "darkDirection": "深森林绿与浅鼠尾草",
+      "designReferences": [],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/woodland-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/woodland-light-home.png",
+          "workout": "docs/skins/evidence/20261028/woodland-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/woodland-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/woodland-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/woodland-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/woodland-dark-summary.png"
+        }
+      }
+    },
+    {
+      "id": "eva-unit-01",
+      "name": "EVA 初号机",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "淡紫白、机体紫、荧光绿",
+      "darkDirection": "深紫黑、亮紫、荧光绿",
+      "designReferences": [],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/eva-unit-01-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/eva-unit-01-light-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-01-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-01-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/eva-unit-01-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-01-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-01-dark-summary.png"
+        }
+      }
+    },
+    {
+      "id": "eva-unit-02",
+      "name": "EVA 二号机",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "暖白、机体红、橙黄",
+      "darkDirection": "深炭红、珊瑚红、橙黄",
+      "designReferences": [],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/eva-unit-02-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/eva-unit-02-light-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-02-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-02-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/eva-unit-02-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-02-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-02-dark-summary.png"
+        }
+      }
+    },
+    {
+      "id": "pikachu",
+      "name": "皮卡丘",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "奶黄、明黄、深棕",
+      "darkDirection": "深棕黑、明黄、暖米白",
+      "designReferences": [],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/pikachu-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/pikachu-light-home.png",
+          "workout": "docs/skins/evidence/20261028/pikachu-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/pikachu-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/pikachu-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/pikachu-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/pikachu-dark-summary.png"
+        }
+      }
+    },
+    {
+      "id": "k-on",
+      "name": "K-On",
+      "stage": "native-verified",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "奶油白、莓粉、茶褐",
+      "darkDirection": "可可棕、柔粉、奶油白",
+      "designReferences": [],
+      "nativeEvidence": {
+        "comparison": "docs/skins/evidence/20261028/k-on-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/k-on-light-home.png",
+          "workout": "docs/skins/evidence/20261028/k-on-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/k-on-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/k-on-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/k-on-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/k-on-dark-summary.png"
+        }
+      }
+    }
+  ]
+}

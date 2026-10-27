@@ -20,7 +20,7 @@ export function WeekBars({ days, inverted = false }: { days: WeeklyAchievement['
       return <View key={day.at} style={styles.day} accessible={false}>
         <View style={styles.track}>
           <View style={[styles.bar, { height: day.floors ? 10 + day.floors / maximum * 46 : 2,
-            backgroundColor: day.floors ? inverted ? theme.heroAccent : theme.brand : inverted ? theme.heroLine : theme.line }]} />
+            backgroundColor: day.floors ? inverted ? theme.heroAccent : theme.brandText : inverted ? theme.heroLine : theme.line }]} />
         </View>
         <View style={[styles.dayLabel, current && { backgroundColor: inverted ? theme.heroAccent : theme.brand }]}>
           <Text style={[styles.dayText, { color: current ? inverted ? theme.heroSurface : theme.onBrand : ink }]}>{day.label}</Text>
@@ -59,7 +59,7 @@ export function RoundBreakdown({ rounds, onEdit, disabled = false }: {
             <Text style={{ ...theme.numeric, color: theme.ink, fontSize: sport.type.label }}>{pending ? '待确认' : `${floors} 层`}</Text>
           </View>
           <View style={[styles.roundTrack, { backgroundColor: theme.lineSoft }]}>
-            <View style={{ height: '100%', width: `${Math.max(0, Math.min(100, floors / maximum * 100))}%`, backgroundColor: estimated || pending ? theme.amber : theme.brand, borderRadius: sport.radius.pill }} />
+            <View style={{ height: '100%', width: `${Math.max(0, Math.min(100, floors / maximum * 100))}%`, backgroundColor: estimated || pending ? theme.amber : theme.brandText, borderRadius: sport.radius.pill }} />
           </View>
           <View style={styles.roundHeading}>
             <Text style={{ color: pending || estimated ? theme.amberInk : theme.muted, fontSize: sport.type.caption }}>{detail}</Text>
@@ -89,7 +89,7 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
         style={{ flex: 1, minWidth: 32, alignItems: 'center', gap: sport.space.sm }}>
         <View style={{ height: 76, width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
           <View style={{ width: 14, borderRadius: 3, height: point.ascentM > 0 ? 6 + point.ascentM / maximum * 70 : 2,
-            backgroundColor: selected.bucketStart === point.bucketStart ? theme.brand : point.ascentM > 0 ? theme.brandTint : theme.line }} />
+            backgroundColor: selected.bucketStart === point.bucketStart ? theme.brandText : point.ascentM > 0 ? theme.brandTint : theme.line }} />
         </View>
         <Text style={{ color: theme.muted, fontSize: sport.type.micro, textAlign: 'center' }} numberOfLines={2}>{point.label}</Text>
       </Pressable>)}

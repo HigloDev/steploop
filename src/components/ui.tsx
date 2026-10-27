@@ -99,7 +99,7 @@ export function Button({
       onPress={event => { void triggerHaptic(variant === 'danger' ? 'medium' : 'light'); rest.onPress?.(event) }}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? theme.onBrand : theme.brand} />
+        <ActivityIndicator color={variant === 'primary' ? theme.onBrand : theme.brandText} />
       ) : (
         <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'danger' && { color: theme.redInk }, labelStyle]}>{title}</Text>
       )}
@@ -301,12 +301,12 @@ const makeStyles = (theme: Theme) =>
     },
     secondary: {
       backgroundColor: 'transparent',
-     borderWidth: 1.5, borderColor: theme.brand,},
+     borderWidth: 1.5, borderColor: theme.brandText,},
     danger: {
       backgroundColor: theme.redChip,
     },
     label: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 16,
       fontWeight: '600',
     },

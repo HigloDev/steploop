@@ -328,7 +328,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
           <View style={styles.checkpointCopy}><Text style={styles.checkpointTitle}>有一场未结束的训练</Text><Text style={styles.checkpointSub}>{PHASE_LABEL[checkpoint.phase]} · 返回训练页继续处理</Text></View>
           <Feather name="chevron-right" size={20} color={theme.amberInk} />
         </Pressable> : null}
-        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.brand} accessibilityLabel="正在读取记录" /> : null}
+        {loading && cards.length === 0 ? <ActivityIndicator style={styles.loading} color={theme.brandText} accessibilityLabel="正在读取记录" /> : null}
         {loadError ? <><Notice tone="danger">{loadError}</Notice><Button title="重新读取" onPress={() => { void refresh() }} /></> : null}
         {/* 归档说明（D09 验收 4b）：不再有与事实不符的容量文案（旧文案声称超限即删）。
             文案与数字来自 historyRepository.summarize() 的 trimmedTotal /
@@ -712,7 +712,7 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '600',
     },
     checkpointAction: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 13,
       fontWeight: '700',
       textDecorationLine: 'underline',
