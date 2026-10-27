@@ -156,7 +156,7 @@ function PrivacySection({ number, title, summary, children }: { number: string; 
   return <View style={{ backgroundColor: theme.card, borderRadius: 20, marginBottom: 6, paddingHorizontal: 18 }}>
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}，查看完整协议`} accessibilityState={{ expanded: open }}
       accessibilityHint="点开查看完整协议正文" onPress={() => setOpen(value => !value)} style={{ flexDirection: 'row', gap: 18, paddingVertical: 8, minHeight: 66, alignItems: 'flex-start' }}>
-      <Text style={{ ...theme.numeric, color: theme.brand, fontSize: 28, lineHeight: 32, marginTop: 4 }}>{number}</Text>
+      <Text style={{ ...theme.numeric, color: theme.brandText, fontSize: 28, lineHeight: 32, marginTop: 4 }}>{number}</Text>
       <View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 19, lineHeight: 24, fontWeight: '900' }}>{title}</Text>
         <Text style={{ color: theme.mutedStrong, fontSize: 15, lineHeight: 20, marginTop: 2 }}>{summary}</Text></View>
     </Pressable>
@@ -171,7 +171,7 @@ const makeStyles = (theme: Theme) =>
     content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
     hero: { marginBottom: 8, gap: 8 },
     eyebrow: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },

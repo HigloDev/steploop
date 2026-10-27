@@ -14,6 +14,6 @@ export function ThemeSwitch({ value, disabled, onValueChange, label }: {
   const change = (next: boolean) => { if (label !== '震动反馈') void triggerHaptic('selection'); onValueChange(next) }
   if (Platform.OS !== 'android') return <UniversalSwitch value={value} disabled={disabled} onValueChange={change} />
   return <ComposeSwitch value={value} enabled={!disabled} onCheckedChange={change} modifiers={[semantics({ contentDescription: label })]}
-    colors={{ checkedTrackColor: theme.brand, checkedThumbColor: theme.onBrand, checkedBorderColor: theme.brand,
+    colors={{ checkedTrackColor: theme.brand, checkedThumbColor: theme.onBrand, checkedBorderColor: theme.brandText,
       uncheckedTrackColor: theme.surfaceSoft, uncheckedThumbColor: theme.mutedStrong, uncheckedBorderColor: theme.line }} />
 }

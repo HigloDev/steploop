@@ -363,7 +363,7 @@ export default function DiagnosticCaptureScreen({
           ].map(([icon, label, value]) => <Pressable key={label} disabled={recording} accessibilityRole="button"
             accessibilityLabel={`修改${label}`} accessibilityHint={`参考路线：${selectedRoute?.name ?? '请选择参考楼梯'}`} onPress={() => setConfigOpen(true)}
             style={{ flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.line }}>
-            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brand} /><Text style={{ flex: 1, color: theme.mutedStrong, fontSize: 16 }}>{label}</Text>
+            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brandText} /><Text style={{ flex: 1, color: theme.mutedStrong, fontSize: 16 }}>{label}</Text>
             <Text style={{ color: theme.ink, fontSize: 16, fontWeight: '800', flexShrink: 1 }}>{value}</Text>
             {!recording ? <MaterialCommunityIcons name="chevron-right" size={18} color={theme.muted} /> : null}
           </Pressable>)}
@@ -506,7 +506,7 @@ export default function DiagnosticCaptureScreen({
         <Card raised style={styles.liveCard}>
           <View style={styles.liveHead}>
             <Text style={styles.annotationTitle}>采集状态</Text>
-            <Text style={{ color: recording ? theme.brand : theme.mutedStrong, fontSize: 17, fontWeight: '800' }}>{recording ? '● 采集中' : exporting ? '正在导出' : '待机'}</Text>
+            <Text style={{ color: recording ? theme.brandText : theme.mutedStrong, fontSize: 17, fontWeight: '800' }}>{recording ? '● 采集中' : exporting ? '正在导出' : '待机'}</Text>
           </View>
           <Text style={{ ...theme.numeric, color: theme.ink, fontSize: 62, lineHeight: 74, textAlign: 'center', marginVertical: 8 }}>{formatDuration(elapsedMs)}</Text>
           <View style={[styles.metrics, { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10, marginTop: 0 }]}>
@@ -562,7 +562,7 @@ const makeStyles = (theme: Theme) =>
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 16, gap: 12 },
     hero: { gap: 8 },
     eyebrow: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: theme.fontSmall,
       fontWeight: '900',
     },
@@ -588,7 +588,7 @@ const makeStyles = (theme: Theme) =>
     optionCard: { padding: 16, marginBottom: 12 },
     optionCardActive: {
       borderWidth: 1,
-      borderColor: theme.brand,
+      borderColor: theme.brandText,
       backgroundColor: theme.brandSoft,
     },
     optionHead: {
@@ -600,7 +600,7 @@ const makeStyles = (theme: Theme) =>
     },
     optionTitle: { flex: 1, minWidth: 140, color: theme.ink, fontSize: theme.fontBase, lineHeight: 22, fontWeight: '800' },
     optionDesc: { marginTop: 8, color: theme.mutedStrong, fontSize: theme.fontSubtitle, lineHeight: 21 },
-    optionSelected: { color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '800' },
+    optionSelected: { color: theme.brandText, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '800' },
     emptyText: { color: theme.muted, fontSize: theme.fontSubtitle, lineHeight: 21 },
     chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: {
@@ -614,9 +614,9 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    chipActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
+    chipActive: { borderColor: theme.brandText, backgroundColor: theme.brandSoft },
     chipText: { color: theme.inkSoft, fontSize: theme.fontSubtitle, lineHeight: 21, fontWeight: '800' },
-    chipTextActive: { color: theme.brand, fontWeight: '900' },
+    chipTextActive: { color: theme.brandText, fontWeight: '900' },
     segmented: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -692,13 +692,13 @@ const makeStyles = (theme: Theme) =>
       minHeight: 56,
       borderRadius: 14,
       borderWidth: 1,
-      borderColor: theme.brand,
+      borderColor: theme.brandText,
       backgroundColor: theme.brandSoft,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    annotationButtonValue: { color: theme.brand, fontSize: 21, fontWeight: '900' },
-    annotationButtonLabel: { marginTop: 4, color: theme.brand, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '800' },
+    annotationButtonValue: { color: theme.brandText, fontSize: 21, fontWeight: '900' },
+    annotationButtonLabel: { marginTop: 4, color: theme.brandText, fontSize: theme.fontSmall, lineHeight: 18, fontWeight: '800' },
     message: { marginTop: 12, color: theme.muted, fontSize: theme.fontSmall, lineHeight: 18 },
     footer: { backgroundColor: theme.paper, borderTopWidth: 0, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
   })

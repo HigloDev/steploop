@@ -19,6 +19,8 @@ import { Card } from '../components/ui'
 import { CompletionCelebration } from '../components/completion-celebration'
 import { sport, useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
+import { useAppearance } from '../appearance'
+import { APPEARANCE_MODE_LABELS, skinName } from '../skin-catalog'
 import {
   getPreferences,
   savePreferences,
@@ -41,6 +43,7 @@ const APP_VERSION = appConfig.expo.version
 
 export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>) {
   const theme = useTheme()
+  const appearance = useAppearance()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const [prefs, setPrefs] = useState<Prefs | null>(null)
@@ -221,9 +224,17 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
         <Text style={styles.intro}>找到自己的节奏。</Text>
+        <Card style={[styles.group, { marginBottom: sport.space.lg }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel={`皮肤与外观，${skinName(appearance.skinId)}，${APPEARANCE_MODE_LABELS[appearance.mode]}`}
+            onPress={() => navigation.navigate('Appearance')} style={[styles.dataRow, { paddingVertical: 0 }]}>
+            <Feather name="sliders" size={22} color={theme.brandText} />
+            <View style={styles.rowText}><Text style={styles.rowTitle}>皮肤与外观</Text><Text style={styles.rowDesc}>{skinName(appearance.skinId)} · {APPEARANCE_MODE_LABELS[appearance.mode]}</Text></View>
+            <Feather name="chevron-right" size={20} color={theme.mutedStrong} />
+          </Pressable>
+        </Card>
         <Card style={styles.group}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>运动播报</Text>
-          {!prefs ? <ActivityIndicator color={theme.brand} accessibilityLabel="正在读取设置" /> : null}
+          {!prefs ? <ActivityIndicator color={theme.brandText} accessibilityLabel="正在读取设置" /> : null}
           <VoiceModeSelector
             value={voiceModeChoice(prefs ?? {})}
             disabled={!prefs}
@@ -258,7 +269,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               <Text style={styles.rowTitle}>震动反馈</Text>
               <Text style={styles.rowDesc}>每上一层提示，操作轻触反馈</Text>
             </View>
-            <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+            <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
               <Switch label="震动反馈" disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
             </Host>
           </View>
@@ -269,7 +280,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           <View style={[styles.divider, { marginVertical: 0 }]} />
           <View style={styles.row}>
             <View style={styles.rowText}><Text style={styles.rowTitle}>结算音效</Text><Text style={styles.rowDesc}>盖楼完成时播放柔和铃声</Text></View>
-            <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+            <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
               <Switch label="结算音效" disabled={!prefs} value={Boolean(prefs?.completionSound)} onValueChange={value => { void update({ completionSound: value }) }} />
             </Host>
           </View>
@@ -288,7 +299,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             <View style={[styles.divider, { marginVertical: 0 }]} />
             <View style={styles.row}>
               <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
-              <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+              <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
                 <Switch label={label} disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
               </Host>
             </View>
@@ -305,7 +316,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               {index > 0 ? <View style={[styles.divider, { marginVertical: 0 }]} /> : null}
               <View style={styles.row}>
                 <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
-                <Host matchContents seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+                <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
                   <Switch label={label} disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
                 </Host>
               </View>
@@ -450,7 +461,7 @@ const makeStyles = (theme: Theme) =>
     sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sport.space.md, marginTop: sport.space.page, marginBottom: sport.space.sm },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     sectionTitle: { color: theme.ink, fontSize: sport.type.label, lineHeight: 24, fontWeight: '600', marginBottom: sport.space.md },
-    statusText: { color: theme.brand, fontSize: 14, lineHeight: 21, fontWeight: '600' },
+    statusText: { color: theme.brandText, fontSize: 14, lineHeight: 21, fontWeight: '600' },
     group: { padding: sport.space.lg, borderRadius: sport.radius.panel, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft },
     nextGroup: { marginTop: sport.space.lg },
     voiceControl: { gap: sport.space.sm, marginTop: sport.space.lg },
@@ -519,7 +530,7 @@ const makeStyles = (theme: Theme) =>
     weightUnit: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, fontWeight: '400' },
     rowValue: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },
     rowAction: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 14,
       fontWeight: '600',
     },

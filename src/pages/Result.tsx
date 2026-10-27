@@ -302,7 +302,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session && !loadError) {
     return (
       <View style={styles.page}>
-        <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brand, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
+        <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>加载中…</Text>
         </View>
@@ -313,7 +313,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session) {
     return (
       <View style={styles.page}>
-        <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brand, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
+        <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>{loadError || '记录不存在'}</Text>
           <Button title="返回首页" onPress={() => navigation.navigate('Main', { screen: 'Train' })} />
@@ -326,7 +326,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
 
   return (
     <View style={styles.page}>
-      <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brand, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
+      <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
         style={styles.flex}
@@ -334,12 +334,12 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         contentContainerStyle={[styles.content, { paddingBottom: 24 }]}
       >
         <View style={styles.hero}>
-          <MaterialCommunityIcons name="office-building" size={36} color={theme.brand} />
+          <MaterialCommunityIcons name="office-building" size={36} color={theme.brandText} />
           <View style={{ flex: 1 }}><Text style={styles.routeName}>{routeName}</Text>
             <Text style={styles.dateText}>{new Date(session.endedAt).getFullYear()} 年 {new Date(session.endedAt).getMonth() + 1} 月 {new Date(session.endedAt).getDate()} 日</Text></View>
           <View accessible accessibilityLabel={statusTitle} style={{ alignItems: 'center', gap: 4 }}>
-            <MaterialCommunityIcons name={session.complete ? 'check-circle' : 'alert-circle'} size={30} color={session.complete ? theme.brand : theme.amber} />
-            <Text style={{ color: session.complete ? theme.brand : theme.amberInk, fontSize: 14, fontWeight: '800' }}>{statusTitle}</Text>
+            <MaterialCommunityIcons name={session.complete ? 'check-circle' : 'alert-circle'} size={30} color={session.complete ? theme.brandText : theme.amber} />
+            <Text style={{ color: session.complete ? theme.brandText : theme.amberInk, fontSize: 14, fontWeight: '800' }}>{statusTitle}</Text>
           </View>
         </View>
 
@@ -359,7 +359,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
             ['chart-bar', '平均单层', session.averageFloorMs ? `${Number((session.averageFloorMs / 1000).toFixed(1))} 秒` : '—'],
             ['lightning-bolt', '最快单层', session.bestFloorSplitMs ? `${Number((session.bestFloorSplitMs / 1000).toFixed(1))} 秒` : '—'],
           ].map(([icon, label, value]) => <View key={label} style={styles.detailRow}>
-            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brand} />
+            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brandText} />
             <Text style={[styles.detailLabel, { flex: 1 }]}>{label}</Text><Text style={styles.detailValue}>{value}</Text>
           </View>)}
         </Disclosure></View>
@@ -488,7 +488,7 @@ const makeStyles = (theme: Theme) =>
       gap: 12, flexDirection: 'row', alignItems: 'center',
      backgroundColor: theme.card, borderRadius: theme.radiusLg, padding: 14,},
     eyebrow: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },

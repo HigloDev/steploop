@@ -26,7 +26,7 @@ export default function MainTabs() {
       screenListeners={{ tabPress: () => { void triggerHaptic('selection') } }}
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: theme.brand,
+        tabBarActiveTintColor: theme.brandText,
         tabBarInactiveTintColor: theme.muted,
         tabBarAccessibilityLabel: { Train: '训练', History: '记录', Profile: '设置' }[route.name],
         tabBarStyle: {

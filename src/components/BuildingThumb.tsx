@@ -18,7 +18,7 @@ export const BuildingThumb = memo(function BuildingThumb({ floors, size = 48, dy
     const rowWidth = right - left - 10
     const pitch = (42 - top) / (rows + 1)
     return <Svg width={size} height={size} viewBox="0 0 48 48" accessible={false}
-      style={{ flexShrink: 0 }} fill="none" stroke={theme.brand} strokeWidth={2.8} strokeLinejoin="round">
+      style={{ flexShrink: 0 }} fill="none" stroke={theme.brandText} strokeWidth={2.8} strokeLinejoin="round">
       {level < 3 ? <Path d={`M${left} ${top} L24 ${top - 9} L${right} ${top} V44 H${left} Z`} />
         : <Rect x={left} y={top} width={right - left} height={44 - top} rx={1} />}
       {level >= 4 ? <Path d={`M${left + 6} ${top} V${top - 4} H${right - 6} V${top}`} /> : null}
@@ -32,5 +32,5 @@ export const BuildingThumb = memo(function BuildingThumb({ floors, size = 48, dy
     </Svg>
   }
   return <Image source={require('../../assets/icons/building.png')} resizeMode="contain" fadeDuration={0}
-    accessible={false} style={{ width: size, height: size, tintColor: theme.brand, flexShrink: 0 }} />
+    accessible={false} style={{ width: size, height: size, tintColor: theme.brandText, flexShrink: 0 }} />
 })

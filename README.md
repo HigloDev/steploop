@@ -6,6 +6,12 @@
 
 [下载 Android 1.1.5 公开试用版](https://github.com/HigloDev/steploop/releases/tag/v1.1.5-preview.1) · [下载网页](https://higlodev.github.io/steploop/) · [使用与备份](docs/USER_GUIDE.md) · [构建说明](docs/BUILDING.md) · [本版说明](docs/RELEASE_1.1.5.md)
 
+## 当前开发：皮肤系统
+
+`codex/skins-system-20261028` 基于1.1.5增加原版钴蓝、夜跑竞技、山野自然、EVA初号机、EVA二号机、皮卡丘和K-On共7套皮肤，每套具有浅色与暗色，并支持跟随系统。入口为“设置 → 皮肤与外观”，选择立即生效并保存。
+
+后续皮肤统一按 [建设索引](docs/skins/README.md)、[机器目录](docs/skins/registry.json) 和 [建设规范](docs/skins/CONSTRUCTION.md) 开发。实际页面见 [原生对照图册](docs/skins/preview.html)，检查范围见 [验证记录](docs/skins/VALIDATION.md)。这是开发分支功能，尚未进入下方公开1.1.5 APK。
+
 ## 本版变化
 
 当前公开版本为 **1.1.5 / Android code 14 试用版**，包含 [分支整合与可靠性修复](docs/INTEGRATION_AUDIT_20261015.md)、[完整界面重构](docs/UI_SPORT_SYSTEM_20261018.md) 和 [设置页间距修正](docs/qa/SETTINGS_SPACING_20261019.md)。本版本从合并后的源码重新编译，沿用公开发布证书。验收范围与正式稳定版待办见 [发布状态](docs/RELEASE_READINESS_20261021.md)。
