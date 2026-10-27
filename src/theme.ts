@@ -2,6 +2,8 @@
 // 钴蓝承担操作与进度，冷灰组织内容；深蓝训练摘要使用独立的成对文字色。
 
 import { TextStyle, useColorScheme } from 'react-native'
+import { useAppearance } from './appearance'
+import { normalizeSkinId, resolveAppearanceMode, SKIN_CATALOG, SkinId, SkinPaint } from './skin-catalog'
 
 export interface ShadowStyle {
   shadowColor: string
@@ -32,6 +34,8 @@ export interface Theme {
   heroAccent: string
   // 品牌
   brand: string
+  /** Accessible brand foreground; may differ from a bright button fill. */
+  brandText: string
   brandInk: string
   brandBright: string
   brandSoft: string
@@ -100,6 +104,7 @@ const light: Theme = {
   heroLine: '#385171',
   heroAccent: '#83BAFF',
   brand: '#245CD8',
+  brandText: '#245CD8',
   brandInk: '#1E50BF',
   brandBright: '#1D4EB9',
   brandSoft: '#E9F0FF',
@@ -174,6 +179,7 @@ const dark: Theme = {
   lineSoft: '#293D58',
   scrim: '#000000cc',
   brand: '#8AB7FF',
+  brandText: '#8AB7FF',
   brandInk: '#A3C7FF',
   brandBright: '#A7CAFF',
   brandSoft: '#1D355B',
@@ -228,6 +234,7 @@ export interface WorkoutPalette {
   inkSoft: string
   muted: string
   brand: string
+  brandText: string
   brandInk: string
   brandPressed: string
   brandDim: string
@@ -250,6 +257,7 @@ const workoutLight: WorkoutPalette = {
   inkSoft: light.inkSoft,
   muted: light.mutedStrong,
   brand: light.brand,
+  brandText: light.brand,
   brandInk: light.brandInk,
   brandPressed: light.brandBright,
   brandDim: light.brandSoft,
@@ -272,6 +280,7 @@ const workoutDark: WorkoutPalette = {
   inkSoft: dark.inkSoft,
   muted: dark.muted,
   brand: dark.brand,
+  brandText: dark.brand,
   brandInk: dark.brandInk,
   brandPressed: dark.brandBright,
   brandDim: dark.brandSoft,
@@ -285,14 +294,71 @@ const workoutDark: WorkoutPalette = {
 
 export const workoutPalettes = { light: workoutLight, dark: workoutDark } as const
 
+function mix(first: string, second: string, weight: number): string {
+  const a = first.slice(1).match(/../g)!.map(channel => parseInt(channel, 16))
+  const b = second.slice(1).match(/../g)!.map(channel => parseInt(channel, 16))
+  return '#' + a.map((value, index) => Math.round(value * (1 - weight) + b[index] * weight).toString(16).padStart(2, '0')).join('')
+}
+
+function paintTheme(base: Theme, paint: SkinPaint): Theme {
+  const brandSoft = mix(paint.card, paint.brand, 0.08)
+  return { ...base, ...paint,
+    inkSoft: mix(paint.ink, paint.paper, 0.14), mutedStrong: mix(paint.ink, paint.paper, 0.23),
+    cardSoft: mix(paint.card, paint.brand, 0.045), surfaceSoft: mix(paint.card, paint.brand, 0.085),
+    line: mix(paint.card, paint.ink, 0.23), lineSoft: mix(paint.card, paint.ink, 0.12),
+    brandInk: paint.brandText, brandBright: paint.brand, brandSoft, brandTint: mix(paint.card, paint.brand, 0.25),
+    heroLine: mix(paint.heroSurface, paint.heroInk, 0.22), energy: paint.brandText,
+    infoSoft: brandSoft, infoInk: paint.brandText,
+    redInk: paint.dangerInk ?? base.redInk,
+    shadowCard: { ...base.shadowCard, shadowColor: paint.ink }, shadowSoft: { ...base.shadowSoft, shadowColor: paint.ink },
+    shadowLifted: { ...base.shadowLifted, shadowColor: paint.brand },
+  }
+}
+
+const themes = Object.fromEntries(SKIN_CATALOG.map(skin => [skin.id, {
+  light: skin.light ? paintTheme(light, skin.light) : light,
+  dark: skin.dark ? paintTheme(dark, skin.dark) : dark,
+}])) as Record<SkinId, { light: Theme; dark: Theme }>
+const themeKeys = new WeakMap<Theme, string>()
+for (const skin of SKIN_CATALOG) for (const mode of ['light', 'dark'] as const) themeKeys.set(themes[skin.id][mode], `${skin.id}/${mode}`)
+
+/** Stable skin identity also distinguishes future skins that share a few colors. */
+export function getThemeKey(theme: Theme): string { return themeKeys.get(theme)! }
+
+export function getTheme(skinId: unknown, mode: 'light' | 'dark'): Theme {
+  return themes[normalizeSkinId(skinId)][mode]
+}
+
 export function useTheme(): Theme {
   const scheme = useColorScheme()
-  return scheme === 'dark' ? dark : light
+  const selection = useAppearance()
+  return getTheme(selection.skinId, resolveAppearanceMode(selection.mode, scheme))
+}
+
+const workoutThemeCache = new WeakMap<Theme, WorkoutPalette>()
+export function getWorkoutPalette(theme: Theme): WorkoutPalette {
+  if (theme === light) return workoutLight
+  if (theme === dark) return workoutDark
+  const cached = workoutThemeCache.get(theme)
+  if (cached) return cached
+  const palette: WorkoutPalette = { isDark: theme.isDark, bg: theme.paper, surface: theme.card, surfaceHigh: theme.surfaceSoft, failureSurface: theme.card,
+    line: theme.line, ink: theme.ink, inkSoft: theme.inkSoft, muted: theme.mutedStrong,
+    brand: theme.brand, brandText: theme.brandText, brandInk: theme.brandInk, brandPressed: theme.brandBright,
+    brandDim: theme.brandSoft, onBrand: theme.onBrand, good: theme.success, warn: theme.amberInk,
+    danger: theme.redInk, dangerFill: theme.redSoft, estimate: theme.amberInk }
+  workoutThemeCache.set(theme, palette)
+  return palette
 }
 
 /** Resolve in render so a system theme change also updates an active workout. */
 export function useWorkoutPalette(): WorkoutPalette {
-  return useTheme().isDark ? workoutPalettes.dark : workoutPalettes.light
+  return getWorkoutPalette(useTheme())
+}
+
+export interface PosterPalette { background: string; ink: string; muted: string; orange: string; line: string; tint: string }
+export function getPosterPalette(theme: Theme): PosterPalette {
+  return theme === light ? visual.poster : { background: theme.paper, ink: theme.ink, muted: theme.mutedStrong,
+    orange: theme.brandText, line: theme.line, tint: theme.brandSoft }
 }
 
 export { light, dark }

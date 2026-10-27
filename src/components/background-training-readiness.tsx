@@ -92,7 +92,7 @@ export function BackgroundTrainingReadiness({ compact = false, grouped = false, 
       <View style={{ flex: 1, gap: sport.space.xs }}><Text style={{ color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' }}>{label}</Text>
         <Text style={{ color: theme.mutedStrong, fontSize: sport.type.secondary, lineHeight: 20 }}>{allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}</Text></View>
       <MaterialCommunityIcons name={index === 2 ? 'chevron-right' : allowed ? 'check-circle' : 'alert-circle-outline'}
-        size={24} color={index === 2 ? theme.brand : allowed ? theme.success : theme.amberInk} />
+        size={24} color={index === 2 ? theme.brandText : allowed ? theme.success : theme.amberInk} />
     </Pressable>)}
     <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 8 }}>权限就绪不代表后台采样一定连续。</Text>
     {error ? <Text accessibilityRole="alert" style={{ color: theme.amberInk, fontSize: 13, lineHeight: 20 }}>{error}</Text> : null}

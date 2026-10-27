@@ -51,6 +51,7 @@ export function NativeChoice<T extends string>({ options, value, onChange, disab
           onPress={() => { if (!selected) { void triggerHaptic('selection'); onChange(option.value) } }}
           style={({ pressed }) => ({ flex: 1, minWidth: 0, minHeight: 48, paddingHorizontal: sport.space.sm, paddingVertical: sport.space.sm,
             borderRadius: sport.radius.small, alignItems: 'center', justifyContent: 'center',
+            ...(selected && theme.brand !== theme.brandText ? { borderWidth: 1, borderColor: theme.brandText } : {}),
             backgroundColor: selected ? theme.brand : 'transparent', opacity: disabled ? 0.5 : pressed ? 0.75 : 1 })}>
           <Text style={[labelStyle, { color: selected ? theme.onBrand : theme.inkSoft }]}>{option.label}</Text>
         </Pressable>

@@ -104,7 +104,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
         <View style={[styles.card, compact && { paddingVertical: 8 }]}>
           <Text accessibilityLiveRegion="polite" style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
           <View style={[styles.iconWrap, compact && { width: 128, height: 112, marginTop: 12, marginBottom: 16 }]}>
-            {step.key === 'first-climb' ? <BrandMark size={compact ? 108 : 150} color={theme.brand} /> : step.key === 'carry' ? <Feather name="smartphone" size={compact ? 100 : 144} color={theme.brand} /> : <MaterialCommunityIcons name="shield-check-outline" size={compact ? 100 : 144} color={theme.brand} />}
+            {step.key === 'first-climb' ? <BrandMark size={compact ? 108 : 150} color={theme.brandText} /> : step.key === 'carry' ? <Feather name="smartphone" size={compact ? 100 : 144} color={theme.brandText} /> : <MaterialCommunityIcons name="shield-check-outline" size={compact ? 100 : 144} color={theme.brandText} />}
           </View>
           <Text accessibilityRole="header" style={[styles.title, step.title.length > 8 && { fontSize: 36 }, compact && { fontSize: step.title.length > 8 ? 30 : 36, lineHeight: 42, marginBottom: 8 }]}>{step.title}</Text>
           <Text style={[styles.bodyText, compact && { fontSize: 20, lineHeight: 28, marginBottom: 8 }]}>{step.body}</Text>
@@ -172,7 +172,7 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 40,
      marginTop: 24,},
     stepLabel: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 20,
       lineHeight: 26,
       fontWeight: '800',

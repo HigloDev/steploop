@@ -41,7 +41,7 @@ import { deriveTrainingProgress } from '../core/training-progress'
 import { RootStackScreen } from '../navigation/types'
 import { getPreferences } from '../services/preferences'
 import { getWorkout, listWorkouts, saveWorkout } from '../services/workout-storage'
-import { Theme, useTheme, visual } from '../theme'
+import { Theme, useTheme, getPosterPalette, getThemeKey } from '../theme'
 
 type EditorTab = 'template' | 'copy' | 'size'
 type PosterTemplate = 'hero' | 'editorial' | 'report' | 'streak'
@@ -98,7 +98,7 @@ export const SharePoster = React.forwardRef<View, PosterProps>(
     const compact = ratio === '1:1'
     const streak = template === 'streak'
     const unit = width / 320
-    const P = visual.poster
+    const P = getPosterPalette(useTheme())
     const floors = streak ? week?.floors ?? 0 : summary.totalFloors
     const ascent = streak ? week?.ascentM ?? 0 : summary.totalAscentM
     const typography = { color: P.ink, fontSize: 14 * unit }
@@ -161,7 +161,9 @@ export default function ShareStudioScreen({
   const [lastOutcome, setLastOutcome] = useState<ShareOutcome | null>(null)
   const [bodyWeightKg, setBodyWeightKg] = useState(DEFAULT_BODY_WEIGHT_KG)
   const posterRef = useRef<View>(null)
-  const [readyTheme, setReadyTheme] = useState<boolean | null>(null)
+  const [readyPalette, setReadyPalette] = useState<Theme | null>(null)
+  const latestTheme = useRef(theme)
+  latestTheme.current = theme
   const [loadError, setLoadError] = useState('')
   const [loadAttempt, setLoadAttempt] = useState(0)
 
@@ -171,7 +173,7 @@ export default function ShareStudioScreen({
     setWorkout(null)
     setSummary(null)
     setWeek(null)
-    setReadyTheme(null)
+    setReadyPalette(null)
     const load = async () => {
       try {
         const stored = await getWorkout(screenRoute.params.id)
@@ -204,7 +206,7 @@ export default function ShareStudioScreen({
 
   const capturePoster = async () => {
     if (!posterRef.current) throw new Error('海报还没有准备好')
-    if (readyTheme !== theme.isDark) throw new Error('海报正在准备，请稍后再试')
+    if (readyPalette !== theme || latestTheme.current !== theme) throw new Error('海报样式已变化，请等待准备完成后重新导出。')
     return captureRef(posterRef, {
       format: 'png',
       quality: 1,
@@ -352,7 +354,7 @@ export default function ShareStudioScreen({
           {loadError ? <>
             <Button title="重新读取" onPress={() => setLoadAttempt(value => value + 1)} />
             <Button title="返回训练总结" style={{ marginTop: 12 }} variant="secondary" onPress={() => navigation.goBack()} />
-          </> : <ActivityIndicator color={theme.brand} />}
+          </> : <ActivityIndicator color={theme.brandText} />}
         </View>
       </View>
     )
@@ -400,9 +402,9 @@ export default function ShareStudioScreen({
         </View>
         <View style={styles.previewWrap}>
           <SharePoster
-            key={theme.isDark ? 'dark' : 'light'}
+            key={getThemeKey(theme)}
             ref={posterRef}
-            onImageReady={() => setReadyTheme(theme.isDark)}
+            onImageReady={() => setReadyPalette(theme)}
             workout={workout}
             summary={summary}
             quote={quote}
@@ -442,7 +444,7 @@ export default function ShareStudioScreen({
             active={template === value}
             template={value}
             workout={workout} summary={summary} calories={calories} week={week ?? undefined}
-            onPress={() => { if (value !== template) { setReadyTheme(null); setTemplate(value) } }}
+            onPress={() => { if (value !== template) { setReadyPalette(null); setTemplate(value) } }}
           />)}
         </ScrollView> : null}
 
@@ -525,14 +527,14 @@ const makeStyles = (theme: Theme) =>
     thumbnailRow: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8,},
     optionList: { gap: 8 },
     option: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
-    optionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
+    optionActive: { borderColor: theme.brandText, backgroundColor: theme.brandSoft },
     optionText: { flex: 1, color: theme.ink, fontSize: 15, lineHeight: 22 },
-    optionTextActive: { color: theme.brand, fontWeight: '600' },
+    optionTextActive: { color: theme.brandText, fontWeight: '600' },
     sizeRow: { flexDirection: 'row', gap: 12 },
     sizeOption: { flex: 1, minHeight: 88, alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
-    sizeOptionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
+    sizeOptionActive: { borderColor: theme.brandText, backgroundColor: theme.brandSoft },
     sizeValue: { color: theme.ink, fontSize: 24, lineHeight: 32, fontWeight: '600', fontVariant: ['tabular-nums'] },
-    sizeValueActive: { color: theme.brand },
+    sizeValueActive: { color: theme.brandText },
     sizeHint: { marginTop: 4, color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center' },
     copyNote: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, marginBottom: 16 },
     outcomeText: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },

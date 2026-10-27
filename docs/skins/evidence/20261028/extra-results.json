@@ -1,0 +1,122 @@
+[
+  {
+    "name": "extra-light-appearance",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "extra-light-settings",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "extra-light-history",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "extra-light-share",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "extra-light-weekly",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "extra-light-sheet",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "extra-dark-appearance",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "extra-dark-settings",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "extra-dark-history",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "extra-dark-share",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "extra-dark-weekly",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "extra-dark-sheet",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  }
+]

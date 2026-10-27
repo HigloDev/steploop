@@ -284,7 +284,7 @@ const makeStyles = (theme: Theme) =>
     body: {
       width: BUILDING_WIDTH,
       borderWidth: 2,
-      borderColor: theme.brand,
+      borderColor: theme.brandText,
       borderRadius: 4,
       overflow: 'hidden',
       backgroundColor: theme.card,
@@ -343,7 +343,7 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'center',
     },
     statusDone: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 14,
       fontWeight: '800',
     },

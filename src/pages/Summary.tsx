@@ -176,7 +176,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
     )
   }
   if (!workout || !totals) {
-    return <View style={[styles.page, styles.center]}><ActivityIndicator color={theme.brand} /></View>
+    return <View style={[styles.page, styles.center]}><ActivityIndicator color={theme.brandText} /></View>
   }
 
   const fusion = isFusionWorkout(workout)
@@ -264,7 +264,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
         </View>}
 
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('ShareStudio', { id: workout.id })} style={({ pressed }) => [pending ? styles.secondary : styles.primary, { marginTop: 20, flexDirection: 'row', gap: 8, minHeight: 52 }, pressed && { opacity: 0.85 }]}>
-          <MaterialCommunityIcons name="export-variant" size={21} color={pending ? theme.brand : theme.onBrand} />
+          <MaterialCommunityIcons name="export-variant" size={21} color={pending ? theme.brandText : theme.onBrand} />
           <Text style={pending ? styles.secondaryText : styles.primaryText}>生成分享卡片</Text>
         </Pressable>
         {!fusion ? <Text style={styles.legacy}>这是旧版识别（{workout.recognitionVersion ?? 'motion-v3'}）的记录，没有逐层识别明细。</Text> : null}
@@ -321,7 +321,7 @@ function makeStyles(theme: Theme) {
     savedTitle: { color: theme.inkSoft, fontSize: 13, fontWeight: '600', marginBottom: 4 },
     heroLabel: { color: theme.muted, fontSize: 13, fontWeight: '500' },
     heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 },
-    heroValue: { ...theme.numeric, color: theme.brand, fontSize: 80, lineHeight: 94, letterSpacing: -3, flexShrink: 1 },
+    heroValue: { ...theme.numeric, color: theme.brandText, fontSize: 80, lineHeight: 94, letterSpacing: -3, flexShrink: 1 },
     heroUnit: { color: theme.muted, fontSize: 20, fontWeight: '400' },
     metrics: { flexDirection: 'row', paddingTop: 20, marginTop: 8 },
     metric: { flex: 1, alignItems: 'center', paddingHorizontal: 4 },
@@ -333,7 +333,7 @@ function makeStyles(theme: Theme) {
     bars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', gap: 24, paddingVertical: 6, minHeight: 140, flexGrow: 1,},
     barCol: { alignItems: 'center', width: 88,},
     barValue: { ...theme.numeric, color: theme.ink, fontSize: 20, marginBottom: 6 },
-    bar: { width: 72, borderTopLeftRadius: 4, borderTopRightRadius: 4, backgroundColor: theme.brand },
+    bar: { width: 72, borderTopLeftRadius: 4, borderTopRightRadius: 4, backgroundColor: theme.brandText },
     barEstimated: { backgroundColor: theme.amberSoft, borderWidth: 2, borderStyle: 'dashed', borderColor: theme.amber },
     barCorrected: { backgroundColor: theme.brandTint },
     barLabel: { color: theme.mutedStrong, fontSize: 14, fontWeight: '700', marginTop: 6 },
@@ -351,7 +351,7 @@ function makeStyles(theme: Theme) {
     primary: { minHeight: 54, borderRadius: sport.radius.control, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },
     primaryText: { color: theme.onBrand, fontSize: 16, fontWeight: '700' },
     secondary: {
-      minHeight: 52, borderRadius: 26, borderWidth: 1.5, borderColor: theme.brand, flexDirection: 'row',
+      minHeight: 52, borderRadius: 26, borderWidth: 1.5, borderColor: theme.brandText, flexDirection: 'row',
       alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20,
     },
     secondaryText: { color: theme.brandInk, fontSize: 16, fontWeight: '600' },

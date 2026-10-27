@@ -17,6 +17,9 @@ import DiagnosticCapture from '../pages/DiagnosticCapture'
 import Workout, { WorkoutContent } from '../pages/Workout'
 import WeeklyShare from '../pages/WeeklyShare'
 import { useTheme } from '../theme'
+import AppearanceScreen from '../pages/Appearance'
+import { hydrateAppearance, saveAppearance } from '../services/appearance'
+import { normalizeSkinId, normalizeAppearanceMode } from '../skin-catalog'
 import { FusionWorkoutApi } from '../hooks/useFusionWorkout'
 import { FusionPhase, FusionRoundResult, FusionSnapshot } from '../core/fusion-engine'
 import { BuildingTemplate } from '../core/building-template'
@@ -168,14 +171,18 @@ export default function UiQaApp() {
   useEffect(() => { void Linking.getInitialURL().then(async url => {
     const appearance = url?.match(/[?&]theme=(light|dark)/)?.[1]
     Appearance.setColorScheme(appearance === 'light' || appearance === 'dark' ? appearance : 'unspecified')
+    await hydrateAppearance()
+    const skin = url?.match(/[?&]skin=([^&]+)/)?.[1]
+    const mode = url?.match(/[?&]mode=([^&]+)/)?.[1] ?? appearance
+    if (skin || mode) await saveAppearance({ ...(skin ? { skinId: normalizeSkinId(skin) } : {}), ...(mode ? { mode: normalizeAppearanceMode(mode) } : {}) })
     const next = url?.split('state=')[1]?.split('&')[0] ?? 'home'
     await seed(next)
     setState(next)
   }) }, [])
-  if (!state) return <View style={{ flex: 1, backgroundColor: theme.paper, justifyContent: 'center' }}><ActivityIndicator color={theme.brand} /></View>
+  if (!state) return <View style={{ flex: 1, backgroundColor: theme.paper, justifyContent: 'center' }}><ActivityIndicator color={theme.brandText} /></View>
   const target = state.startsWith('summary') || state === 'template' ? 'WorkoutResult' : state === 'share' ? 'ShareStudio'
     : state === 'onboarding' ? 'Onboarding' : state.startsWith('privacy') ? 'Privacy' : state === 'legacy' ? 'Result'
-    : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
+    : state === 'appearance' ? 'Appearance' : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
   const targetParams = target === 'WorkoutResult' ? { id: state === 'template' ? 'uiqa-template' : 'uiqa-summary', fresh: true }
     : target === 'ShareStudio' ? { id: 'uiqa-summary' } : target === 'Result' ? { id: 'uiqa-legacy' }
     : target === 'Onboarding' ? { from: 'settings' } : undefined
@@ -190,6 +197,7 @@ export default function UiQaApp() {
       <Stack.Screen name="WorkoutResult" component={Summary} initialParams={{ id: state === 'template' ? 'uiqa-template' : 'uiqa-summary' }} />
       <Stack.Screen name="ShareStudio" component={ShareStudio} initialParams={{ id: 'uiqa-summary' }} />
       <Stack.Screen name="WeeklyShare" component={WeeklyShare} />
+      <Stack.Screen name="Appearance" component={AppearanceScreen} />
       <Stack.Screen name="Privacy" component={Privacy} /><Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen name="Result" component={Result} initialParams={{ id: 'uiqa-legacy' }} />
       <Stack.Screen name="DiagnosticCapture" component={DiagnosticCapture} />

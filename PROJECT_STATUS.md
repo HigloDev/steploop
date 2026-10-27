@@ -1,6 +1,10 @@
 # 当前项目状态
 
-更新日期：2026-10-27。机器可读版本信息见 [project-state.json](project-state.json)；开始工作先运行 `npm run check:project-state`。
+更新日期：2026-10-28。机器可读版本信息见 [project-state.json](project-state.json)；开始工作先运行 `npm run check:project-state`。
+
+## 当前开发工作：皮肤系统（未发布）
+
+隔离分支 `codex/skins-system-20261028` 基于1.1.5主版本建设7套可切换皮肤，每套具有浅暗配色。规划与状态见 [皮肤建设索引](docs/skins/README.md)。这不表示现有公开1.1.5 APK已经具备皮肤选择；并行教练工作和待合入审计修复保持独立。
 
 ## 当前基准
 
@@ -8,7 +12,7 @@
 - 主仓库：[HigloDev/steploop](https://github.com/HigloDev/steploop)。Gitee `master` 和早期本地工作目录是历史来源。
 - 已公开版本：[v1.1.5-preview.1](https://github.com/HigloDev/steploop/releases/tag/v1.1.5-preview.1)，2026-10-21 发布；发布源码为 `77c148a63c35c179fbaa1537b422cd3a8f33fb5c`。
 - 本次整理从 GitHub `main` 的 `9f01ba87548e4858544abd2a72e5d9c32c528ff4` 开始，该提交已包含 1.1.5 源码和新版下载页。
-- 本次仅整理入口、版本检查和历史资料；不修改应用界面、训练算法、应用依赖或已发布 APK。
+- 2026-10-27的版本归档仅整理入口、版本检查和历史资料。当前皮肤开发另见上文，不修改训练算法、应用依赖或已发布 APK。
 
 当前使用说明见 [用户指南](docs/USER_GUIDE.md)，构建见 [构建说明](docs/BUILDING.md)，发布内容及证据边界见 [1.1.5 说明](docs/RELEASE_1.1.5.md) 和 [发布状态](docs/RELEASE_READINESS_20261021.md)。现有界面依据与图册从 [视觉基准](design-qa.md) 进入。
 
@@ -16,7 +20,7 @@
 
 [codex/fix-115-audit-20261023](https://github.com/HigloDev/steploop/tree/codex/fix-115-audit-20261023) 的提交为 `f11687d200bd4478991aecf6a665b662c3691735`，基于 1.1.5 发布源码，包含训练计层、采样、备份恢复及设置页修复。
 
-该分支单独保留，不能宣称已存在于 `main` 或当前公开 APK。它包含设置页变化；本轮要求“界面先不要改”，因此本次不合入。以后应基于当前 `main` 单独审查该修复提交，保留已发布下载页，完成对应验证后再决定合入及发布。
+该分支单独保留，不能宣称已存在于 `main` 或当前公开 APK。版本归档时未合入此修复；皮肤任务也不顺带合入它。以后应基于当前 `main` 单独审查该修复提交，保留已发布下载页，完成对应验证后再决定合入及发布。
 
 ## 历史与本地资料
 

@@ -105,8 +105,8 @@ export function WorkoutContent({ navigation, session }: {
           <Text style={{ color: P.ink, fontSize: 24, fontWeight: '900' }}>训练结束</Text>
         </View>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: compact ? 24 : 46, paddingBottom: 32, gap: 8 }}>
-        {status === 'finishing' ? <ActivityIndicator size="large" color={P.brand} />
-          : <Feather name="alert-circle" size={132} color={P.brand} />}
+        {status === 'finishing' ? <ActivityIndicator size="large" color={P.brandText} />
+          : <Feather name="alert-circle" size={132} color={P.brandText} />}
         <Text style={[styles.errorTitle, { fontSize: 32, textAlign: 'center' }]}>{status === 'finishing' ? leavingAction === 'discard' ? '正在放弃本次训练…' : '正在保存成绩…' : leavingAction === 'discard' ? '未能放弃本次训练' : '成绩还没有保存完成'}</Text>
         {status === 'finishing' ? <Text style={styles.errorText}>{leavingAction === 'discard' ? '正在安全结束本次采集。' : '请稍等，保存后会自动进入结算页。'}</Text>
           : <Text style={[styles.errorText, { fontSize: 18, lineHeight: 26 }]}>{retainedMessage}</Text>}
@@ -157,7 +157,7 @@ export function WorkoutContent({ navigation, session }: {
     return (
       <View style={[styles.root, styles.center]}>
         <StatusBar style={P.isDark ? 'light' : 'dark'} />
-        <ActivityIndicator size="large" color={P.brand} />
+        <ActivityIndicator size="large" color={P.brandText} />
         <Text style={styles.loading}>正在启动传感器…</Text>
       </View>
     )
@@ -224,7 +224,7 @@ export function WorkoutContent({ navigation, session }: {
       <View style={[styles.hero, { minHeight: heroHeight }]}>
         <View style={styles.heroCenter}>
           <Text style={styles.eyebrow}>{calibrating ? '记住这段楼梯' : phase === 'climbing' ? '当前楼层' : eyebrow}</Text>
-          {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brand} style={{ marginTop: 12 }} /> : null}
+          {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brandText} style={{ marginTop: 12 }} /> : null}
           <View style={styles.bigRow}>
             <FlipNumber value={bigValue} color={P.brandInk} size={calibrating ? (compact ? 88 : 112) : compact ? 112 : 136} accessibilityLabel={`${bigValue} ${unit}`} />
             <Text style={[styles.unit, compact && { fontSize: 22, marginBottom: 18 }]}>{unit}</Text>

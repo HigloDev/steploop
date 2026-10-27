@@ -37,6 +37,7 @@ export type RootStackParamList = {
   WorkoutResult: { id: string; fresh?: boolean }
   ShareStudio: { id: string }
   WeeklyShare: undefined
+  Appearance: undefined
   /** 旧版单轮会话记录（只读）。 */
   Result: { id: string; roundId?: string }
   DiagnosticCapture: undefined
