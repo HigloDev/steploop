@@ -1,5 +1,6 @@
 # 循阶 · 每一步向上，每一层都算数
 
+当前综合联调候选为 **1.1.7 / Android versionCode 16**。公开版本仍为1.1.5；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
 本分支开发试用版：**1.1.6 / Android code 15**，新增分段 MET 活动热量与计算依据保存；公开版本仍为 1.1.5。见 [试用说明](docs/CALORIES_PREVIEW_20261028.md) 和 `project-state.json`。
 
 循阶是一款本地保存成绩的 Android 爬楼训练应用。1.1.5 使用冷白、深蓝与钴蓝界面，集中展示楼层、爬升、逐轮训练与每周积累。

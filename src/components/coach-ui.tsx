@@ -39,7 +39,7 @@ export function CoachSection({ title, children }: { title: string; children: Rea
 export function CoachMessage({ error, loading, retry }: { error: string; loading?: boolean; retry?: () => void }) {
   const t = useTheme()
   return <View style={{ gap: 12 }}>
-    {loading ? <ActivityIndicator accessibilityLabel="正在读取教练数据" color={t.brandBright} /> : null}
+    {loading ? <ActivityIndicator accessibilityLabel="正在读取教练数据" color={t.brandText} /> : null}
     {error ? <CoachText tone="error" accessibilityRole="alert">{error}</CoachText> : null}
     {error && retry ? <Button title="重新加载" variant="secondary" onPress={retry} /> : null}
   </View>
@@ -86,8 +86,8 @@ export function WeightTrend({ readings, target }: { readings: CoachWeighIn[]; ta
   return <View accessible accessibilityLabel={'体重曲线，' + sorted.length + '天记录，从' + values[0] + '到' + values[values.length - 1] + '公斤。'}>
     <Svg width="100%" height={120} viewBox="0 0 320 112">
       {target ? <Line x1={0} x2={320} y1={y(target)} y2={y(target)} stroke={t.muted} strokeDasharray="4 5" /> : null}
-      <Polyline points={sorted.map(w => x(w) + ',' + y(w.weightKg)).join(' ')} fill="none" stroke={t.brandBright} strokeWidth={2.5} />
-      {sorted.map(w => <Circle key={w.id} cx={x(w)} cy={y(w.weightKg)} r={3.5} fill={t.brandBright} />)}
+      <Polyline points={sorted.map(w => x(w) + ',' + y(w.weightKg)).join(' ')} fill="none" stroke={t.brandText} strokeWidth={2.5} />
+      {sorted.map(w => <Circle key={w.id} cx={x(w)} cy={y(w.weightKg)} r={3.5} fill={t.brandText} />)}
     </Svg>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
       <CoachText size="small" tone="muted">{displayDate(sorted[0].date)}</CoachText>

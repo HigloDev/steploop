@@ -42,7 +42,9 @@ function harness(options = {}) {
   const hooks = runtime(), alerts = [], exports = [], state = { snapshot: true, safety: false, snapshots: [], failRead: false, restores: 0, imports: 0, ...options }
   let focus
   const native = { StyleSheet: { create: value => value, hairlineWidth: 1 }, useColorScheme: () => 'light', Alert: { alert: (...args) => alerts.push(args) } }
-  const theme = load('src/theme.ts', { 'react-native': native })
+  const catalog = load('src/skin-catalog.ts', {})
+  const appearance = { useAppearance: () => ({ skinId: 'classic', mode: 'system', hydrated: true }) }
+  const theme = load('src/theme.ts', { 'react-native': native, './appearance': appearance, './skin-catalog': catalog })
   const backups = {
     hasPreImportSnapshot: async () => {
       if (state.readTask) { const task = state.readTask; state.readTask = null; return task.promise }
@@ -77,9 +79,9 @@ function harness(options = {}) {
     '../services/background-training': { isBackgroundTrainingSupported: () => true },
     '../services/workout-voice-settings': { voiceModeChoice: () => 'standard', voiceModePreferences: () => ({}) },
     '../services/preferences': { getPreferences: async () => ({}), savePreferences: async patch => patch, didPreferencesWriteFail: () => false, triggerHaptic: async () => {}, triggerHapticPattern: async () => {} },
-    '../theme': theme,
+    '../theme': theme, '../appearance': appearance, '../skin-catalog': catalog,
   }
-  for (const name of ['theme-switch', 'disclosure', 'voice-mode-selector', 'voice-speaker-selector', 'native-choice', 'background-training-readiness', 'Header', 'ui', 'completion-celebration']) mocks['../components/' + name] = {}
+  for (const name of ['theme-switch', 'disclosure', 'voice-mode-selector', 'voice-speaker-selector', 'native-choice', 'stair-pace-selector', 'background-training-readiness', 'Header', 'ui', 'completion-celebration']) mocks['../components/' + name] = {}
   const Screen = load('src/pages/Settings.tsx', mocks).default
   const navigation = { addListener: (_, cb) => { focus = cb; return () => {} }, navigate() {} }
   const render = () => hooks.render(() => Screen({ navigation }))

@@ -2,7 +2,7 @@
   "expo": {
     "name": "循阶",
     "slug": "steploop",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "orientation": "portrait",
     "icon": "./assets/brand/audit-icon.png",
     "userInterfaceStyle": "automatic",
@@ -17,7 +17,7 @@
     },
     "android": {
       "package": "com.zxn.palou",
-      "versionCode": 15,
+      "versionCode": 16,
       "adaptiveIcon": {
         "backgroundColor": "#245CD8",
         "foregroundImage": "./assets/brand/audit-monochrome.png",

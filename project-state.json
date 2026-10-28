@@ -3,8 +3,8 @@
   "project": "steploop",
   "repository": "https://github.com/HigloDev/steploop",
   "defaultBranch": "main",
-  "currentVersion": "1.1.6",
-  "androidVersionCode": 15,
+  "currentVersion": "1.1.7",
+  "androidVersionCode": 16,
   "publishedRelease": {
     "version": "1.1.5",
     "androidVersionCode": 14,
@@ -13,19 +13,28 @@
     "publishedDate": "2026-10-21",
     "channel": "public-preview"
   },
-  "pendingChanges": [
-    {
-      "branch": "codex/fix-115-audit-20261023",
-      "commit": "f11687d200bd4478991aecf6a665b662c3691735",
-      "baseRelease": "v1.1.5-preview.1",
-      "status": "preserved-not-merged",
-      "includesInterfaceChanges": true,
-      "description": "1.1.5 审计后的训练、备份恢复和设置页修复；单独保留，未合入主版本或公开 APK。"
-    }
-  ],
+  "pendingChanges": [],
   "archives": {
     "documentationIndex": "docs/archive/README.md",
     "privateLocalIndex": ".project-local.json"
   },
-  "developmentChannel": "local-preview"
+  "developmentChannel": "internal-integration",
+  "integratedChanges": [
+    {
+      "source": "codex/fix-115-audit-20261023",
+      "commit": "f11687d200bd4478991aecf6a665b662c3691735"
+    },
+    {
+      "source": "codex/calories-met-isolated-20261028",
+      "commit": "7a91540a3d7c3ed73e29e42539cd032e23616de3"
+    },
+    {
+      "source": "codex/coach-115-migration-20261028",
+      "snapshot": "output/integration-20261028/source-before.json"
+    },
+    {
+      "source": "codex/skins-system-20261028",
+      "commit": "d6e03106a4e718fc4e6a7b91f68e3c930800baa4"
+    }
+  ]
 }

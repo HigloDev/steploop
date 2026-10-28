@@ -23,7 +23,7 @@ export function CalorieEstimateDetails({ estimate }: { estimate: WorkoutCalorieE
           ? `${STAIR_PACE_OPTIONS.find(option => option.value === segment.pace)?.label ?? '一般'}${segment.paceSource === 'default' ? '（默认）' : ''}`
           : ({ walking: '平地步行', stairs_down: '下楼', elevator: '电梯', waiting: '等待' })[segment.activity]} · {formatDuration(segment.durationMs)} · {segment.activity === 'stairs_up' ? `${segment.met} MET` : '不计入爬楼热量'}
       </Text>)}
-      <Text accessibilityRole="link" style={{ ...text, color: theme.brand, textDecorationLine: 'underline', paddingVertical: 8 }}
+      <Text accessibilityRole="link" style={{ ...text, color: theme.brandText, textDecorationLine: 'underline', paddingVertical: 8 }}
         onPress={() => { void Linking.openURL(CALORIE_MET_SOURCE).catch(() => undefined) }}>参考：2024 身体活动汇编</Text>
     </>}
   </View>

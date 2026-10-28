@@ -87,7 +87,7 @@ export default function CoachSession({ navigation, route }: RootStackScreen<'Coa
             { id: '', name: '标定新楼栋', detail: '从 1 楼开始，逐层点按标定；完成后可保存模板。' }].map(b =>
             <Pressable key={b.id || 'new'} accessibilityRole="radio" accessibilityLabel={b.name} accessibilityState={{ checked: selected === b.id }}
               disabled={busy || !buildingsReady} onPress={() => setSelected(b.id)}
-              style={({ pressed }) => ({ padding: 16, minHeight: t.tapMin, borderRadius: t.radiusMd, borderWidth: 1, borderColor: selected === b.id ? t.brandBright : t.line, backgroundColor: selected === b.id ? t.brandSoft : t.card, opacity: pressed ? 0.65 : 1 })}>
+              style={({ pressed }) => ({ padding: 16, minHeight: t.tapMin, borderRadius: t.radiusMd, borderWidth: 1, borderColor: selected === b.id ? t.brandText : t.line, backgroundColor: selected === b.id ? t.brandSoft : t.card, opacity: pressed ? 0.65 : 1 })}>
               <CoachText>{selected === b.id ? '已选 · ' : ''}{b.name}</CoachText><CoachText size="small" tone="muted">{b.detail}</CoachText>
             </Pressable>)}
         </CoachSection>

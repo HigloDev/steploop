@@ -86,7 +86,7 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
         {COACH_COURSES.map(course => <Pressable key={course.id} accessibilityRole="button" accessibilityLabel={course.name + '，' + course.duration}
           onPress={() => navigation.navigate('CoachCourse', { courseId: course.id })}
           style={({ pressed }) => ({ paddingVertical: 16, gap: 8, borderBottomWidth: 1, borderBottomColor: t.lineSoft, opacity: pressed ? 0.6 : 1 })}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name={course.icon} size={24} color={t.brandBright} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><Feather name="chevron-right" size={20} color={t.muted} /></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name={course.icon} size={24} color={t.brandText} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><Feather name="chevron-right" size={20} color={t.muted} /></View>
           <CoachText tone="muted">{course.duration} · {course.description}</CoachText>
         </Pressable>)}
       </CoachSection>

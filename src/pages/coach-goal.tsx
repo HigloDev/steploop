@@ -104,7 +104,7 @@ export default function CoachGoal({ navigation, route }: RootStackScreen<'CoachG
                 if (!selected && values.weekdays.length >= 4) { setError('每周最多安排四天爬楼，给恢复留些时间。'); return }
                 update({ weekdays: selected ? values.weekdays.filter(d => d !== day) : [...values.weekdays, day].sort((a, b) => a - b) })
               }} style={({ pressed }) => ({ minWidth: t.tapMin, minHeight: t.tapMin, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8,
-                borderRadius: t.radiusMd, borderWidth: 1, borderColor: selected ? t.brandBright : t.line, backgroundColor: selected ? t.brandSoft : t.card, opacity: pressed ? 0.65 : 1 })}>
+                borderRadius: t.radiusMd, borderWidth: 1, borderColor: selected ? t.brandText : t.line, backgroundColor: selected ? t.brandSoft : t.card, opacity: pressed ? 0.65 : 1 })}>
               <CoachText tone={selected ? 'accent' : 'normal'}>周{label}</CoachText>
             </Pressable>
           })}

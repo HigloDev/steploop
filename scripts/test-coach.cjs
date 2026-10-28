@@ -28,7 +28,7 @@ function environment(sharedStore = new Map()) {
     if (cache.has(filename)) return cache.get(filename).exports
     const module = { exports: {} }; cache.set(filename, module)
     if (filename.endsWith('.json')) { module.exports = JSON.parse(fs.readFileSync(filename, 'utf8')); return module.exports }
-    const js = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: {
+    const js = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { fileName: filename, compilerOptions: {
       module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true, jsx: ts.JsxEmit.React,
     } }).outputText
     new Function('require', 'module', 'exports', js)(request => {

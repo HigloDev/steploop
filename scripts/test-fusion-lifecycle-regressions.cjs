@@ -345,6 +345,7 @@ test('coach link and measured weight survive failed save, checkpoint remount and
   await assert.rejects(h.api.finish(), /save/)
   assert.deepEqual(h.state.checkpoint.coach, coach)
   assert.equal(h.state.checkpoint.coachBodyWeightKg, 79)
+  assert.equal(h.state.checkpoint.calorieProfile.bodyWeightKg, 79)
   const endedAt = h.state.checkpoint.endedAt
   params.resume = true; delete params.coach; delete params.coachBodyWeightKg
   h.remount(); await h.settle()
@@ -355,8 +356,36 @@ test('coach link and measured weight survive failed save, checkpoint remount and
   const saved = h.state.workouts.get(id)
   assert.deepEqual(saved.coach, coach)
   assert.equal(saved.bodyWeightKg, 79)
+  assert.equal(saved.calorieProfile.bodyWeightKg, 79)
+  assert.equal(core('segmented-calories').getWorkoutCalorieEstimate(saved).metric, 'active')
   assert.equal(saved.endedAt, endedAt, 'retry cannot inflate time')
   assert.equal(saved.rounds.reduce((sum, round) => sum + round.activeMs, 0), 0)
   assert.equal(h.state.checkpoint, null)
+  h.unmount(); await h.settle()
+})
+
+test('calibration-top recovery keeps its round, coach link and selected MET pace before finish', async () => {
+  const coach = { enrollmentId: 'beginner-plan', courseId: 'beginner', sessionId: 'beginner:1970-01-01', scheduledDate: '1970-01-01', targetMinutes: 4 }
+  const params = { coach, coachBodyWeightKg: 72 }
+  const h = await sessionHarness({ params })
+  h.api.setStairPace('fast')
+  h.mark(); h.mark(); h.api.markTop(); await h.settle()
+  const checkpoint = structuredClone(h.state.checkpoint)
+  assert.equal(checkpoint.rounds.length, 1, 'top confirmation must be recoverable before finish')
+  assert.equal(checkpoint.rounds[0].floors, 2)
+  assert.ok(checkpoint.template)
+  assert.deepEqual(checkpoint.coach, coach)
+  assert.equal(checkpoint.calorieProfile.bodyWeightKg, 72)
+  assert.equal(checkpoint.calorieProfile.pace, 'fast')
+  assert.deepEqual(checkpoint.rounds[0].calorieSegments, [])
+  params.resume = true; delete params.coach; delete params.coachBodyWeightKg
+  h.remount(); await h.settle()
+  assert.equal(h.api.rounds.length, 1)
+  assert.equal(h.api.calorieProfile.pace, 'fast')
+  assert.equal(h.api.calorieProfile.bodyWeightKg, 72)
+  const id = await h.api.finish()
+  assert.equal(h.state.workouts.get(id).totalFloorsCompleted, 2)
+  assert.deepEqual(h.state.workouts.get(id).coach, coach)
+  assert.equal(h.state.workouts.get(id).calorieProfile.bodyWeightKg, 72)
   h.unmount(); await h.settle()
 })

@@ -245,7 +245,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
             selected = checkpoint.template
             resumeRounds = checkpoint.rounds
             calorieProfile = checkpoint.calorieProfile
-            prefsRef.current = { ...prefs, bodyWeightKg: checkpoint.calorieProfile?.bodyWeightKg ?? checkpoint.bodyWeightKg ?? prefs.bodyWeightKg }
+            prefsRef.current = { ...prefs, bodyWeightKg: checkpoint.calorieProfile?.bodyWeightKg ?? checkpoint.bodyWeightKg ?? checkpoint.coachBodyWeightKg ?? prefs.bodyWeightKg }
             startFloor = checkpoint.startFloor
             calibratedRef.current = checkpoint.calibrated
             replaceTemplateIdRef.current = checkpoint.replaceTemplateId
