@@ -14,6 +14,7 @@ import { Disclosure } from '../components/disclosure'
 import { StairPaceSelector } from '../components/stair-pace-selector'
 import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
 import { calorieMetricLabel } from '../core/segmented-calories'
+import { courseById } from '../core/coach'
 import { floorAfter } from '../core/floors'
 import { formatDuration } from '../core/math'
 import type { FusionSnapshot } from '../core/fusion-engine'
@@ -225,6 +226,13 @@ export function WorkoutContent({ navigation, session }: {
       {session.warning ? <Text style={styles.warning} numberOfLines={2}>{session.warning}</Text> : null}
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.liveContent, { gap: compact ? 10 : 16 }]} showsVerticalScrollIndicator={false}>
+        {session.coach ? <View style={{ padding: 16, borderRadius: 16, backgroundColor: P.surface, gap: 6 }}>
+          <Text style={{ color: P.ink, fontSize: 17, fontWeight: '700' }}>{courseById(session.coach.courseId)?.name ?? '教练课程'}</Text>
+          <Text accessibilityLiveRegion="polite" style={{ color: P.ink, fontSize: 16 }}>
+            本次有效上爬 {(snapshot.activeMs / 60000).toFixed(1)} 分钟 · 安排 {session.coach.targetMinutes} 分钟
+          </Text>
+          <Text style={{ color: P.muted, fontSize: 14 }}>按自己的节奏分段完成，返回后充分恢复。结束并保存后计入课程，可分次累计。</Text>
+        </View> : null}
       <View style={[styles.hero, { minHeight: heroHeight }]}>
         <View style={styles.heroCenter}>
           <Text style={styles.eyebrow}>{calibrating ? '记住这段楼梯' : phase === 'climbing' ? '当前楼层' : eyebrow}</Text>

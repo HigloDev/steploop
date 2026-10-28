@@ -1,3 +1,4 @@
+import { removeCoachWorkout, syncCoachWorkouts } from './coach-storage'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ActiveWorkoutCheckpoint, ClimbWorkout } from '../core/types'
 import { uid } from '../core/math'
@@ -55,6 +56,7 @@ export async function getWorkout(id: string): Promise<ClimbWorkout | undefined> 
 }
 
 export interface SaveWorkoutResult {
+  coachSyncError?: string
   truncated: boolean
   removed: number
 }
@@ -71,11 +73,19 @@ export async function saveWorkout(workout: ClimbWorkout): Promise<SaveWorkoutRes
       `[workout-storage] workouts trimmed ${trimmed} oldest (limit ${HISTORY_WORKOUT_LIMIT})，已归档为统计`,
     )
   }
-  return { truncated: trimmed > 0, removed: trimmed }
+  let coachSyncError: string | undefined
+  if (workout.coach) {
+    try { await syncCoachWorkouts([workout]) } catch (error) {
+      coachSyncError = error instanceof Error ? error.message : '课程进度暂未同步，请返回教练页重试。'
+      console.warn('[coach] 训练已保存，课程同步稍后重试', error)
+    }
+  }
+  return { truncated: trimmed > 0, removed: trimmed, ...(coachSyncError ? { coachSyncError } : {}) }
 }
 
 export async function deleteWorkout(id: string): Promise<void> {
   await historyRepository.deleteWorkout(id)
+  await removeCoachWorkout(id)
 }
 
 export async function loadActiveCheckpoint(): Promise<ActiveWorkoutCheckpoint | null> {

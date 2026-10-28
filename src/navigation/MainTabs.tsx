@@ -7,12 +7,14 @@ import { MainTabParamList } from './types'
 import { useTheme } from '../theme'
 import { triggerHaptic } from '../services/preferences'
 import TrainHomeScreen from '../pages/Home'
+import CoachHome from '../pages/coach-home'
 import HistoryScreen from '../pages/History'
 import SettingsScreen from '../pages/Settings'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 
 const TAB_ICONS: Record<Exclude<keyof MainTabParamList, 'Train'>, keyof typeof MaterialCommunityIcons.glyphMap> = {
+  Coach: 'account-tie-outline',
   History: 'chart-timeline-variant',
   Profile: 'cog-outline',
 }
@@ -28,7 +30,7 @@ export default function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: theme.brand,
         tabBarInactiveTintColor: theme.muted,
-        tabBarAccessibilityLabel: { Train: '训练', History: '记录', Profile: '设置' }[route.name],
+        tabBarAccessibilityLabel: { Train: '训练', Coach: '教练', History: '记录', Profile: '设置' }[route.name],
         tabBarStyle: {
           backgroundColor: theme.card,
           borderTopColor: theme.lineSoft,
@@ -48,6 +50,7 @@ export default function MainTabs() {
       })}
     >
       <Tab.Screen name="Train" component={TrainHomeScreen} options={{ title: '训练' }} />
+      <Tab.Screen name="Coach" component={CoachHome} options={{ title: '教练' }} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ title: '记录' }} />
       <Tab.Screen name="Profile" component={SettingsScreen} options={{ title: '设置' }} />
     </Tab.Navigator>

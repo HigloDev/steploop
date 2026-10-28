@@ -86,6 +86,7 @@ export interface BuildFusionWorkoutInput {
   calorieProfile?: StairCalorieProfile
   calorieEstimate?: WorkoutCalorieEstimate
   createdAt?: number
+  coach?: ClimbWorkout['coach']
 }
 
 /** 由轮次重新派生训练汇总（总数据永远从轮次计算，修正后不会自相矛盾）。 */
@@ -103,6 +104,7 @@ export function buildFusionWorkout(input: BuildFusionWorkoutInput): ClimbWorkout
     bodyWeightKg: input.bodyWeightKg,
     ...(input.calorieProfile ? { calorieProfile: input.calorieProfile } : {}),
     ...(input.calorieEstimate ? { calorieEstimate: input.calorieEstimate } : {}),
+    ...(input.coach ? { coach: input.coach } : {}),
     templateId: template?.id ?? 'fusion-unsaved',
     templateVersion: template?.version ?? 1,
     routeSnapshot: {
@@ -161,7 +163,7 @@ export function correctRoundFloors(
   })
   const rebuilt = buildFusionWorkout({
     id: workout.id, startedAt: workout.startedAt, endedAt: workout.endedAt, status: workout.status,
-    template, rounds, bodyWeightKg: workout.bodyWeightKg, createdAt: workout.createdAt,
+    template, rounds, bodyWeightKg: workout.bodyWeightKg, createdAt: workout.createdAt, coach: workout.coach,
   })
   // 历史身份属于这次训练；删除或重命名模板不应改变已保存的楼栋名称和关联。
   return { ...workout, ...rebuilt, buildingId: workout.buildingId, templateId: workout.templateId,

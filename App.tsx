@@ -26,6 +26,12 @@ import ShareStudioScreen from './src/pages/ShareStudio'
 import WeeklyShareScreen from './src/pages/WeeklyShare'
 import DiagnosticCaptureScreen from './src/pages/DiagnosticCapture'
 
+import CoachCourse from './src/pages/coach-course'
+import CoachGoal from './src/pages/coach-goal'
+import CoachSession from './src/pages/coach-session'
+import CoachRecords from './src/pages/coach-records'
+import CoachReview from './src/pages/coach-review'
+
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 function AppContent() {
@@ -104,6 +110,11 @@ function AppContent() {
             component={WorkoutScreen}
             options={{ gestureEnabled: false, animation: 'slide_from_bottom', contentStyle: { backgroundColor: workoutPalette.bg } }}
           />
+          <Stack.Screen name="CoachCourse" component={CoachCourse} />
+          <Stack.Screen name="CoachGoal" component={CoachGoal} />
+          <Stack.Screen name="CoachSession" component={CoachSession} />
+          <Stack.Screen name="CoachRecords" component={CoachRecords} />
+          <Stack.Screen name="CoachReview" component={CoachReview} />
           <Stack.Screen name="WorkoutResult" component={SummaryScreen} />
           <Stack.Screen name="ShareStudio" component={ShareStudioScreen} />
           <Stack.Screen name="WeeklyShare" component={WeeklyShareScreen} />

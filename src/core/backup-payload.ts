@@ -1,7 +1,9 @@
+import { CoachState, parseCoachState } from './coach'
 import { ClimbSession, ClimbWorkout, RouteTemplate, WorkoutRound } from './types'
 import { BuildingTemplate, normalizeBuildingTemplate } from './building-template'
 
 export interface BackupPayloadLike {
+  coach?: CoachState
   version: 1 | 2
   exportedAt: number
   routes: RouteTemplate[]
@@ -313,6 +315,11 @@ export function validateBackupPayload(
     workouts: sanitizeWorkoutCorrections(workouts),
     ...(buildings !== undefined ? { buildings } : {}),
     ...(payload.hiddenLegacyRouteIds !== undefined ? { hiddenLegacyRouteIds: [...new Set(payload.hiddenLegacyRouteIds)] } : {}),
+  }
+  if (payload.coach !== undefined) {
+    try { payloadWithoutArchive.coach = parseCoachState(payload.coach) } catch {
+      return { ok: false, error: '备份中的教练数据损坏，未导入任何数据。' }
+    }
   }
   // D09 验收 4c：归档聚合是**可选**字段。
   // - 旧备份没有该字段：结果对象里不出现这两个键（恢复行为与 D06/D08a 时期完全一致）。

@@ -5,6 +5,7 @@
 // - 分享卡片：复用 ShareStudio 与 assets/share 插画
 // 旧记录（motion-v3 等）同样可以打开，只是没有逐层识别明细。
 
+import { CoachWorkoutFeedback } from '../components/coach-workout-feedback'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -207,6 +208,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
         </View>
         </View>
         <Disclosure compact title="热量估算依据"><CalorieEstimateDetails estimate={getWorkoutCalorieEstimate(workout)} /></Disclosure>
+        {workout.coach ? <CoachWorkoutFeedback workout={workout} navigation={navigation} /> : null}
         <View style={styles.roundCard}>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}><Text style={styles.section}>每趟的节奏</Text>

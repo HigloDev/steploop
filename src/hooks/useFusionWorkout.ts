@@ -41,6 +41,8 @@ import { saveWorkout } from '../services/workout-storage'
 import { createWorkoutEvidenceJournal, WorkoutEvidenceJournal } from '../services/workout-evidence'
 
 export interface FusionWorkoutParams {
+  coach?: import('../core/types').CoachWorkoutLink
+  coachBodyWeightKg?: number
   /** 选用已保存的楼栋模板（跳过标定）。 */
   templateId?: string
   /** 新楼标定的起始楼层（默认 1，跳过 0）。 */
@@ -54,6 +56,7 @@ export interface FusionWorkoutParams {
 export type FusionSessionStatus = 'starting' | 'running' | 'finishing' | 'save_failed' | 'done' | 'error'
 
 export interface FusionWorkoutApi {
+  coach?: import('../core/types').CoachWorkoutLink
   status: FusionSessionStatus
   error?: string
   warning?: string
@@ -133,6 +136,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const [attempt, setAttempt] = useState(0)
   const [canSaveLater, setCanSaveLater] = useState(false)
 
+  const coachRef = useRef(params.coach)
+  const coachWeightRef = useRef(params.coachBodyWeightKg)
   const workoutIdRef = useRef<string>(uid('workout'))
   const startedAtRef = useRef<number>(Date.now())
   const engineRef = useRef<FusionWorkoutEngine | undefined>(undefined)
@@ -159,6 +164,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     energy?.observe(engine.snapshot(endedAtRef.current ?? Date.now()), recovery.rounds)
     const checkpoint = {
       schemaVersion: 1 as const,
+      ...(coachRef.current ? { coach: coachRef.current, coachBodyWeightKg: coachWeightRef.current } : {}),
       workoutId: workoutIdRef.current,
       startedAt: startedAtRef.current,
       savedAt: Date.now(),
@@ -220,6 +226,9 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         await previousCleanup
         if (cancelled) return
         const prefs = await getPreferences()
+        if (coachRef.current && !params.resume && coachWeightRef.current !== undefined) {
+          prefs.bodyWeightKg = coachWeightRef.current
+        }
         prefsRef.current = prefs
         let calorieProfile: StairCalorieProfile | undefined = createStairCalorieProfile(prefs.bodyWeightKg, prefs.stairPace)
         let selected: BuildingTemplate | undefined
@@ -229,6 +238,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         if (params.resume) {
           const checkpoint = await loadFusionCheckpoint()
           if (checkpoint) {
+            coachRef.current = checkpoint.coach
+            coachWeightRef.current = checkpoint.coachBodyWeightKg
             workoutIdRef.current = checkpoint.workoutId
             startedAtRef.current = checkpoint.startedAt
             selected = checkpoint.template
@@ -473,8 +484,9 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         const workout = buildFusionWorkout({
           id: workoutIdRef.current, startedAt: startedAtRef.current, endedAt, status: 'completed',
           template: finalTemplate, rounds: (calorieTrackerRef.current?.decorate(finalRounds) ?? finalRounds).map(fusionRoundToWorkoutRound),
-          bodyWeightKg: prefsRef.current?.bodyWeightKg,
           calorieProfile: calorieTrackerRef.current?.profile,
+          coach: coachRef.current,
+          bodyWeightKg: coachRef.current ? coachWeightRef.current ?? prefsRef.current?.bodyWeightKg : prefsRef.current?.bodyWeightKg,
         })
         await saveWorkout(workout)
         if (calibratedRef.current && finalTemplate) {
@@ -539,7 +551,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
 
   return {
-    status, error, warning: captureGapWarning || sensorWarning || evidenceWarning || warning, snapshot, rounds, template, calories, calorieEstimate,
+    coach: coachRef.current, status, error, warning: captureGapWarning || sensorWarning || evidenceWarning || warning, snapshot, rounds, template, calories, calorieEstimate,
     calorieProfile: calorieTrackerRef.current?.profile, setStairPace, workoutId: workoutIdRef.current, canSaveLater,
     markFloor, undoMark, markTop, nextRound, finish, discard, retry,
   }

@@ -1,3 +1,5 @@
+import { CoachState, mergeCoachStates } from '../core/coach'
+import { COACH_STORAGE_KEY, readCoachStateUnsafe } from './coach-storage'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { preparationDeviceKey, scopePreparationToDevice } from './preparation-device'
 import { ClimbSession, ClimbWorkout, RouteTemplate } from '../core/types'
@@ -445,6 +447,7 @@ export async function deleteSession(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export interface BackupPayload {
+  coach?: CoachState
   version: 1 | 2
   exportedAt: number
   routes: RouteTemplate[]
@@ -484,6 +487,7 @@ export async function exportRawData(): Promise<BackupPayload> {
       routes: await listRoutesUnsafe(),
       sessions,
       workouts,
+      coach: await readCoachStateUnsafe(),
       buildings: await readArray<BuildingTemplate>(BUILDINGS_KEY, true),
       hiddenLegacyRouteIds: await readArray<string>(HIDDEN_LEGACY_KEY, true),
       archiveAggregate: archiveAggregate ?? undefined,
@@ -686,6 +690,14 @@ export async function previewImportFromBackup(
     carriedAggregate: checked.payload.archiveAggregate ?? null,
     hasLocalAggregate: localAggregate !== null,
   })
+  if (checked.payload.coach) {
+    preview.warnings.push('教练数据：' + checked.payload.coach.enrollments.length + ' 个计划、' +
+      checked.payload.coach.weighIns.length + ' 次称重、' + checked.payload.coach.reviews.length + ' 次复盘；' +
+      (mode === 'replace' ? '将替换本机教练数据，导入前快照可撤销。' : '将合并记录并保留本机当前课程。'))
+  } else {
+    const coach = await readCoachStateUnsafe()
+    if (coach.enrollments.length || coach.weighIns.length) preview.warnings.push('这个旧备份不含教练数据，将保留本机已有目标、称重和课程记录。')
+  }
   if (checked.payload.buildings !== undefined) {
     preview.warnings.push(`本次将${mode === 'replace' ? '替换' : '合并'} ${checked.payload.buildings.length} 个楼栋模板，导入前快照可撤销。`)
   } else {
@@ -732,7 +744,7 @@ async function readSnapshot(): Promise<PreImportSnapshot | null> {
   }
 }
 
-const SNAPSHOT_EXTRA_KEYS = [BUILDINGS_KEY, HIDDEN_LEGACY_KEY, HISTORY_AGG_KEY, STORAGE_META_KEY] as const
+const SNAPSHOT_EXTRA_KEYS = [COACH_STORAGE_KEY, BUILDINGS_KEY, HIDDEN_LEGACY_KEY, HISTORY_AGG_KEY, STORAGE_META_KEY] as const
 
 /** Build without replacing an earlier undo point; imports commit the snapshot with their data. */
 async function capturePreImportSnapshotUnsafe(): Promise<PreImportSnapshot> {
@@ -1070,6 +1082,11 @@ export async function importRawData(
       [SESSIONS_KEY]: JSON.stringify(sessions),
       [WORKOUTS_KEY]: JSON.stringify(workouts),
       [HISTORY_AGG_KEY]: plan.aggRaw,
+    }
+    if (checked.payload.coach !== undefined) {
+      before[COACH_STORAGE_KEY] = await readTextStrict(COACH_STORAGE_KEY)
+      after[COACH_STORAGE_KEY] = JSON.stringify(mode === 'replace' ? checked.payload.coach :
+        mergeCoachStates(await readCoachStateUnsafe(), checked.payload.coach))
     }
     if (checked.payload.buildings !== undefined) {
       before[BUILDINGS_KEY] = await readTextStrict(BUILDINGS_KEY)

@@ -336,3 +336,27 @@ test('late native events from another workout cannot block the current journal f
   const id = await h.api.finish()
   assert.equal(h.state.workouts.get(id).totalFloorsCompleted, expected.reduce((sum, round) => sum + round.floors, 0))
 })
+
+test('coach link and measured weight survive failed save, checkpoint remount and retry', async () => {
+  const coach = { enrollmentId: 'weight-plan', courseId: 'weight', sessionId: 'weight-plan:1970-01-01', scheduledDate: '1970-01-01', targetMinutes: 4 }
+  const params = { coach, coachBodyWeightKg: 79 }
+  const h = await sessionHarness({ params, saveFailures: 1 })
+  h.mark(); h.mark(); h.api.markTop(); await h.settle()
+  await assert.rejects(h.api.finish(), /save/)
+  assert.deepEqual(h.state.checkpoint.coach, coach)
+  assert.equal(h.state.checkpoint.coachBodyWeightKg, 79)
+  const endedAt = h.state.checkpoint.endedAt
+  params.resume = true; delete params.coach; delete params.coachBodyWeightKg
+  h.remount(); await h.settle()
+  assert.equal(h.api.status, 'save_failed')
+  assert.deepEqual(h.api.coach, coach)
+  h.advance(3600000)
+  const id = await h.api.finish()
+  const saved = h.state.workouts.get(id)
+  assert.deepEqual(saved.coach, coach)
+  assert.equal(saved.bodyWeightKg, 79)
+  assert.equal(saved.endedAt, endedAt, 'retry cannot inflate time')
+  assert.equal(saved.rounds.reduce((sum, round) => sum + round.activeMs, 0), 0)
+  assert.equal(h.state.checkpoint, null)
+  h.unmount(); await h.settle()
+})

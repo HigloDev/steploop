@@ -59,7 +59,7 @@
     "diagnostics:smoke": "npm run build:core && node scripts/make-synthetic-diagnostics.cjs .diagnostics-synthetic && node scripts/replay-diagnostics.cjs --out .diagnostics-synthetic-report.json .diagnostics-synthetic",
     "release:check": "node scripts/release-check.cjs",
     "smoke:android": "powershell -ExecutionPolicy Bypass -File scripts/android-smoke.ps1",
-    "test": "npm run check:project-state && npm run test:project-state && npm run test:core && npm run test:calories && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:theme && npm run test:legacy-ui && npm run test:xiaomi14 && npm run test:audit-regressions",
+    "test": "npm run check:project-state && npm run test:project-state && npm run test:core && npm run test:calories && node --test scripts/test-fusion-flow.cjs && npm run test:data && npm run test:progress && npm run test:d03 && npm run test:gates && npm run test:kit && npm run test:matrix && npm run test:drill && npm run test:deps && npm run test:signing && npm run test:training-automation && npm run test:voice && npm run test:prd && npm run test:height-references && npm run test:uiqa-isolation && npm run test:theme && npm run test:legacy-ui && npm run test:xiaomi14 && npm run test:audit-regressions && npm run test:coach",
     "test:gates": "node scripts/check-release-gates.test.cjs",
     "test:progress": "node --test scripts/test-progress.cjs",
     "test:fusion-flow": "npm run build:core && node --test scripts/test-fusion-flow.cjs",
@@ -85,7 +85,8 @@
     "test:xiaomi14": "node --test scripts/xiaomi14-improvements.test.cjs",
     "typecheck": "tsc --noEmit",
     "test:audit-regressions": "node --test scripts/test-ui-safety.cjs scripts/test-building-storage.cjs scripts/test-fusion-lifecycle-regressions.cjs scripts/test-sensor-timestamps.cjs scripts/test-error-boundary.cjs scripts/test-toolchain-compat.cjs scripts/test-audit-native-fixes.cjs scripts/test-audit-storage-fixes.cjs scripts/test-audit-settings-ui.cjs",
-    "test:calories": "node --test scripts/test-calories.cjs"
+    "test:calories": "node --test scripts/test-calories.cjs",
+    "test:coach": "node --test scripts/test-coach.cjs"
   },
   "private": true,
   "overrides": {

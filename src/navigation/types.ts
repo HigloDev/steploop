@@ -11,11 +11,15 @@ import { CompositeNavigationProp, CompositeScreenProps } from '@react-navigation
 
 export type MainTabParamList = {
   Train: undefined
+  Coach: undefined
   History: undefined
   Profile: undefined
 }
 
 export interface ClimbWorkoutParams {
+  coach?: import('../core/types').CoachWorkoutLink
+  /** 课程开始时最近一次实测体重；检查点保持该值。 */
+  coachBodyWeightKg?: number
   /** 选用已保存的楼栋模板（跳过标定）。 */
   templateId?: string
   /** 新楼标定的起始楼层（默认 1，跳过 0）。 */
@@ -37,6 +41,11 @@ export type RootStackParamList = {
   WorkoutResult: { id: string; fresh?: boolean }
   ShareStudio: { id: string }
   WeeklyShare: undefined
+  CoachCourse: { courseId: import('../core/coach').CoachCourseId }
+  CoachGoal: { courseId: import('../core/coach').CoachCourseId; enrollmentId?: string }
+  CoachSession: { sessionId: string }
+  CoachRecords: { tab?: 'weight' | 'workouts' | 'reviews' } | undefined
+  CoachReview: { enrollmentId: string; weekStart?: string }
   /** 旧版单轮会话记录（只读）。 */
   Result: { id: string; roundId?: string }
   DiagnosticCapture: undefined

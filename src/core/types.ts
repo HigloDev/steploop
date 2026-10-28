@@ -470,7 +470,16 @@ export interface WorkoutRound {
   corrections?: RoundCorrection[]
 }
 
+export interface CoachWorkoutLink {
+  enrollmentId: string
+  courseId: 'weight' | 'beginner' | 'cardio'
+  sessionId: string
+  scheduledDate: string
+  targetMinutes: number
+}
+
 export interface ClimbWorkout {
+  coach?: CoachWorkoutLink
   id: string
   /** fusion-v1 训练写入；旧记录缺省（motion-v3 或更早）。 */
   recognitionVersion?: 'motion-v3' | 'fusion-v1'
