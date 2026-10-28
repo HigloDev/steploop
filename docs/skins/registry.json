@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 1,
-  "baselineVersion": "1.1.5",
-  "baselineCommit": "6282e28be1230d4a5f711bdc19912a24cce1cd01",
+  "schemaVersion": 2,
+  "baselineVersion": "1.1.7",
+  "baselineCommit": "9c7eed9",
   "defaultSkinId": "classic",
   "defaultMode": "system",
   "appearanceModes": [
@@ -15,6 +15,9 @@
   ],
   "requiredScreens": [
     "home",
+    "coach",
+    "history",
+    "settings",
     "workout",
     "summary"
   ],
@@ -22,11 +25,14 @@
   "runtimeCatalog": "src/skin-catalog.ts",
   "constructionGuide": "docs/skins/CONSTRUCTION.md",
   "evidence": {
-    "automated": "docs/skins/VALIDATION.md",
-    "native": "docs/skins/VALIDATION.md",
+    "automated": "docs/skins/GRAPHICS_VALIDATION.md",
+    "native": "docs/skins/GRAPHICS_VALIDATION.md",
     "release": null,
-    "gallery": "docs/skins/preview.html",
-    "captureInventory": "docs/skins/evidence/20261028/inventory.json"
+    "gallery": "docs/skins/graphics-preview.html",
+    "captureInventory": "docs/skins/evidence/20261028-fidelity/inventory.json",
+    "comparison": "docs/skins/fidelity-review.html",
+    "automatedResults": "docs/skins/evidence/20261028-fidelity/automated-results.json",
+    "acceptanceSummary": "docs/skins/evidence/20261028-fidelity/validation-summary.json"
   },
   "skins": [
     {
@@ -47,7 +53,7 @@
         "docs/assets/site115/summary-light.png",
         "docs/assets/site115/summary-dark.png"
       ],
-      "nativeEvidence": {
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/classic-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/classic-light-home.png",
@@ -59,7 +65,26 @@
           "workout": "docs/skins/evidence/20261028/classic-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/classic-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/core/classic-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/core/classic-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/core/classic-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/core/classic-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/classic-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/classic-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/core/classic-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/core/classic-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/core/classic-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/core/classic-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/classic-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/classic-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "original"
     },
     {
       "id": "night-run",
@@ -71,8 +96,10 @@
       ],
       "lightDirection": "冷白、深炭周卡、黄绿操作",
       "darkDirection": "炭黑与荧光黄绿",
-      "designReferences": [],
-      "nativeEvidence": {
+      "designReferences": [
+        "docs/skins/design-references/night-run-four-tabs.png"
+      ],
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/night-run-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/night-run-light-home.png",
@@ -84,7 +111,26 @@
           "workout": "docs/skins/evidence/20261028/night-run-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/night-run-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/night-run-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified"
     },
     {
       "id": "woodland",
@@ -96,8 +142,10 @@
       ],
       "lightDirection": "米白、松绿、鼠尾草",
       "darkDirection": "深森林绿与浅鼠尾草",
-      "designReferences": [],
-      "nativeEvidence": {
+      "designReferences": [
+        "docs/skins/design-references/woodland-four-tabs.png"
+      ],
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/woodland-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/woodland-light-home.png",
@@ -109,7 +157,29 @@
           "workout": "docs/skins/evidence/20261028/woodland-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/woodland-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/woodland-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/woodland-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/woodland-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/woodland-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "darkHeaderOverrides": [
+        "coach"
+      ]
     },
     {
       "id": "eva-unit-01",
@@ -121,8 +191,10 @@
       ],
       "lightDirection": "淡紫白、机体紫、荧光绿",
       "darkDirection": "深紫黑、亮紫、荧光绿",
-      "designReferences": [],
-      "nativeEvidence": {
+      "designReferences": [
+        "docs/skins/design-references/eva-unit-01-four-tabs.png"
+      ],
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/eva-unit-01-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/eva-unit-01-light-home.png",
@@ -134,7 +206,26 @@
           "workout": "docs/skins/evidence/20261028/eva-unit-01-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/eva-unit-01-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified"
     },
     {
       "id": "eva-unit-02",
@@ -146,8 +237,10 @@
       ],
       "lightDirection": "暖白、机体红、橙黄",
       "darkDirection": "深炭红、珊瑚红、橙黄",
-      "designReferences": [],
-      "nativeEvidence": {
+      "designReferences": [
+        "docs/skins/design-references/eva-unit-02-four-tabs.png"
+      ],
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/eva-unit-02-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/eva-unit-02-light-home.png",
@@ -159,7 +252,26 @@
           "workout": "docs/skins/evidence/20261028/eva-unit-02-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/eva-unit-02-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified"
     },
     {
       "id": "pikachu",
@@ -171,8 +283,11 @@
       ],
       "lightDirection": "奶黄、明黄、深棕",
       "darkDirection": "深棕黑、明黄、暖米白",
-      "designReferences": [],
-      "nativeEvidence": {
+      "designReferences": [
+        "docs/skins/design-references/pikachu-four-tabs.png",
+        "docs/skins/design-references/pikachu-training-results.png"
+      ],
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/pikachu-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/pikachu-light-home.png",
@@ -184,7 +299,32 @@
           "workout": "docs/skins/evidence/20261028/pikachu-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/pikachu-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/pikachu-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/pikachu-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/pikachu-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/pikachu-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "darkHeaderOverrides": [
+        "home",
+        "coach",
+        "history",
+        "settings"
+      ]
     },
     {
       "id": "k-on",
@@ -196,8 +336,10 @@
       ],
       "lightDirection": "奶油白、莓粉、茶褐",
       "darkDirection": "可可棕、柔粉、奶油白",
-      "designReferences": [],
-      "nativeEvidence": {
+      "designReferences": [
+        "docs/skins/design-references/k-on-four-tabs.png"
+      ],
+      "palette115Evidence": {
         "comparison": "docs/skins/evidence/20261028/k-on-board.png",
         "light": {
           "home": "docs/skins/evidence/20261028/k-on-light-home.png",
@@ -209,7 +351,72 @@
           "workout": "docs/skins/evidence/20261028/k-on-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028/k-on-dark-summary.png"
         }
-      }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/k-on-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified"
     }
-  ]
+  ],
+  "publishedVersion": "1.1.5",
+  "requiredFlows": [
+    "appearance",
+    "coach-course",
+    "coach-goal",
+    "coach-session",
+    "coach-records",
+    "coach-review",
+    "course-climbing",
+    "summary-coach",
+    "calibrating",
+    "descending",
+    "waiting",
+    "save-failed",
+    "share",
+    "weekly"
+  ],
+  "runtimeArtwork": "src/skin-assets.ts",
+  "artworkManifest": "docs/skins/assets.json",
+  "historicalPaletteEvidence": {
+    "baselineVersion": "1.1.5",
+    "baselineCommit": "6282e28be1230d4a5f711bdc19912a24cce1cd01",
+    "report": "docs/skins/VALIDATION.md",
+    "gallery": "docs/skins/preview.html"
+  },
+  "headerPages": [
+    "home",
+    "coach",
+    "history",
+    "settings"
+  ],
+  "nativeValidation": {
+    "validatedOn": "2026-10-28",
+    "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+    "package": "com.zxn.palou.uiqa",
+    "avd": "steploop_skins_20261028",
+    "syntheticData": true,
+    "coreScreens": 84,
+    "sharedFlowScreens": 30,
+    "smallScreens": 32,
+    "interactionScreens": 14,
+    "shippedPngs": 47,
+    "publicReleaseChanged": false,
+    "pixelIdenticalToConcept": false,
+    "remainingDifferences": "design-qa.md"
+  }
 }

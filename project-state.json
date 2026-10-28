@@ -36,5 +36,14 @@
       "source": "codex/skins-system-20261028",
       "commit": "d6e03106a4e718fc4e6a7b91f68e3c930800baa4"
     }
-  ]
+  ],
+  "uiSkinCandidate": {
+    "branch": "codex/skins-graphics-117-20261028",
+    "baseCommit": "9c7eed9",
+    "status": "native-verified",
+    "registry": "docs/skins/registry.json",
+    "validation": "docs/skins/GRAPHICS_VALIDATION.md",
+    "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+    "published": false
+  }
 }

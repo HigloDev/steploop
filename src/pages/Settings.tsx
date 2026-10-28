@@ -16,9 +16,11 @@ import { StairPaceSelector } from '../components/stair-pace-selector'
 import { BackgroundTrainingReadiness } from '../components/background-training-readiness'
 import { voiceModeChoice, voiceModePreferences } from '../services/workout-voice-settings'
 import { Header } from '../components/Header'
+import { SkinArt } from '../components/skin-art'
+import { SkinPageHeader } from '../components/skin-page-header'
 import { Card } from '../components/ui'
 import { CompletionCelebration } from '../components/completion-celebration'
-import { sport, useTheme, Theme } from '../theme'
+import { getThemeSkinId, sport, useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import { useAppearance } from '../appearance'
 import { APPEARANCE_MODE_LABELS, skinName } from '../skin-catalog'
@@ -48,8 +50,20 @@ const APP_VERSION = appConfig.expo.version
 const UNDO_PAGE_SIZE = 5
 const snapshotTime = (savedAt: number) => new Date(savedAt).toLocaleString('zh-CN', { hour12: false })
 
+function SettingsGroup({ title, spaced = false, rows = false, children }: { title: string; spaced?: boolean; rows?: boolean; children: React.ReactNode }) {
+  const theme = useTheme(), styles = makeStyles(theme)
+  if (getThemeSkinId(theme) === 'classic') return <Card style={[styles.group, spaced && styles.nextGroup]}>
+    <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{children}
+  </Card>
+  return <View style={{ marginTop: spaced ? 12 : 0 }}>
+    <Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 10 }]}>{title}</Text>
+    <Card style={[styles.group, rows && { paddingVertical: 6 }]}>{children}</Card>
+  </View>
+}
+
 export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>) {
   const theme = useTheme()
+  const graphic = getThemeSkinId(theme) !== 'classic'
   const appearance = useAppearance()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
@@ -331,25 +345,34 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     finally { dataOperationRef.current = false; setExportingUndo(false) }
   }
 
+  const hapticPreview = <Pressable accessibilityRole="button" accessibilityLabel="试一下楼层震动" disabled={!prefs?.hapticFeedback}
+            onPress={() => void triggerHapticPattern('floor')} style={[styles.previewAction, { opacity: prefs?.hapticFeedback ? 1 : 0.45 }]}>
+            <Text style={styles.previewActionText}>试一下楼层震动</Text>
+          </Pressable>
+  const completionPreview = <Pressable accessibilityRole="button" accessibilityLabel="预览盖楼结算" disabled={!prefs} onPress={() => setPreviewCompletion(true)} style={styles.previewAction}>
+            <Text style={styles.previewActionText}>预览盖楼动画与音效</Text>
+          </Pressable>
+
   return (
     <View style={styles.page}>
       {previewCompletion ? <CompletionCelebration preview floors={30} ascentM={90} onDone={() => setPreviewCompletion(false)} /> : null}
-      <Header title="设置" back={false} large />
+      {!graphic ? <Header title="设置" back={false} large /> : null}
       <ScrollView
         style={styles.flex}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
       >
-        <Text style={styles.intro}>找到自己的节奏。</Text>
-        <Card style={[styles.group, { marginBottom: sport.space.lg }]}>
+        {graphic ? <SkinPageHeader page="settings" title="设置" subtitle="找到自己的节奏。" /> : <Text style={styles.intro}>找到自己的节奏。</Text>}
+        <Card style={[styles.group, { marginBottom: sport.space.lg }, graphic && { paddingVertical: 0 }]}>
           <Pressable accessibilityRole="button" accessibilityLabel={`皮肤与外观，${skinName(appearance.skinId)}，${APPEARANCE_MODE_LABELS[appearance.mode]}`}
-            onPress={() => navigation.navigate('Appearance')} style={[styles.dataRow, { paddingVertical: 0 }]}>
-            <Feather name="sliders" size={22} color={theme.brandText} />
-            <View style={styles.rowText}><Text style={styles.rowTitle}>皮肤与外观</Text><Text style={styles.rowDesc}>{skinName(appearance.skinId)} · {APPEARANCE_MODE_LABELS[appearance.mode]}</Text></View>
+            onPress={() => navigation.navigate('Appearance')} style={[styles.dataRow, { paddingVertical: 0, minHeight: graphic ? 48 : 56 }]}>
+            {graphic ? <SkinArt kind="mark" width={32} height={32} /> : <Feather name="sliders" size={22} color={theme.brandText} />}
+            {graphic ? <><Text style={[styles.rowTitle, { flex: 1, fontWeight: '700' }]}>皮肤与外观</Text>
+              <Text style={{ color: theme.brandText, fontSize: 13, maxWidth: '40%', textAlign: 'right' }}>{skinName(appearance.skinId)}</Text></> :
+              <View style={styles.rowText}><Text style={styles.rowTitle}>皮肤与外观</Text><Text style={styles.rowDesc}>{skinName(appearance.skinId)} · {APPEARANCE_MODE_LABELS[appearance.mode]}</Text></View>}
             <Feather name="chevron-right" size={20} color={theme.mutedStrong} />
           </Pressable>
         </Card>
-        <Card style={styles.group}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>运动播报</Text>
+        <SettingsGroup title="运动播报">
           {!prefs ? <ActivityIndicator color={theme.brandText} accessibilityLabel="正在读取设置" /> : null}
           <VoiceModeSelector
             value={voiceModeChoice(prefs ?? {})}
@@ -375,11 +398,10 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             />
           </View>
 
-        </Card>
+        </SettingsGroup>
         {prefsWriteError ? <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.amberInk }]}>{prefsWriteError}</Text> : null}
 
-        <Card style={[styles.group, styles.nextGroup]}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>声音与提醒</Text>
+        <SettingsGroup title="声音与提醒" spaced rows>
           <View style={styles.row}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>震动反馈</Text>
@@ -389,10 +411,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               <Switch label="震动反馈" disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
             </Host>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="试一下楼层震动" disabled={!prefs?.hapticFeedback}
-            onPress={() => void triggerHapticPattern('floor')} style={[styles.previewAction, { opacity: prefs?.hapticFeedback ? 1 : 0.45 }]}>
-            <Text style={styles.previewActionText}>试一下楼层震动</Text>
-          </Pressable>
+          {!graphic ? hapticPreview : null}
           <View style={[styles.divider, { marginVertical: 0 }]} />
           <View style={styles.row}>
             <View style={styles.rowText}><Text style={styles.rowTitle}>结算音效</Text><Text style={styles.rowDesc}>盖楼完成时播放柔和铃声</Text></View>
@@ -400,10 +419,9 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               <Switch label="结算音效" disabled={!prefs} value={Boolean(prefs?.completionSound)} onValueChange={value => { void update({ completionSound: value }) }} />
             </Host>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="预览盖楼结算" disabled={!prefs} onPress={() => setPreviewCompletion(true)} style={styles.previewAction}>
-            <Text style={styles.previewActionText}>预览盖楼动画与音效</Text>
-          </Pressable>
+          {!graphic ? completionPreview : null}
           <View style={[styles.divider, { marginVertical: 0 }]} />
+          {graphic ? <Disclosure title="反馈预览" summary="楼层震动 · 盖楼动画与音效" compact>{hapticPreview}{completionPreview}</Disclosure> : null}
           <Disclosure title="播报内容" summary="里程碑与鼓励" compact>
             <Text style={styles.rowDesc}>识别楼层、转向与结束时轻触提醒</Text>
             <VoiceSpeakerSelector prefs={prefs} onChange={voiceSpeaker => { void update({ voiceSpeaker }) }} />
@@ -439,7 +457,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             </React.Fragment>)}
           </View>
           </Disclosure>
-        </Card>
+        </SettingsGroup>
 
         <Card style={[styles.group, styles.nextGroup]}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -618,11 +636,11 @@ const makeStyles = (theme: Theme) =>
     intro: { color: theme.muted, fontSize: sport.type.secondary, lineHeight: 20, marginBottom: sport.space.lg },
     sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sport.space.md, marginTop: sport.space.page, marginBottom: sport.space.sm },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    sectionTitle: { color: theme.ink, fontSize: sport.type.label, lineHeight: 24, fontWeight: '600', marginBottom: sport.space.md },
+    sectionTitle: { color: theme.ink, fontSize: getThemeSkinId(theme) === 'classic' ? sport.type.label : 20, lineHeight: getThemeSkinId(theme) === 'classic' ? 24 : 26, fontWeight: getThemeSkinId(theme) === 'classic' ? '600' : '700', marginBottom: sport.space.md },
     statusText: { color: theme.brandText, fontSize: 14, lineHeight: 21, fontWeight: '600' },
-    group: { padding: sport.space.lg, borderRadius: sport.radius.panel, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft },
+    group: { padding: getThemeSkinId(theme) === 'classic' ? sport.space.lg : 12, borderRadius: sport.radius.panel, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft },
     nextGroup: { marginTop: sport.space.lg },
-    voiceControl: { gap: sport.space.sm, marginTop: sport.space.lg },
+    voiceControl: { gap: sport.space.sm, marginTop: getThemeSkinId(theme) === 'classic' ? sport.space.lg : 8 },
     detailGroup: { paddingTop: sport.space.xs, paddingBottom: 0 },
     previewAction: { minHeight: 48, justifyContent: 'center', paddingBottom: sport.space.xs },
     previewActionText: { color: theme.brandInk, fontSize: sport.type.secondary, lineHeight: 20, fontWeight: '600' },
@@ -636,23 +654,23 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: sport.space.md,
-      paddingVertical: sport.space.md,
-      minHeight: 64,
+      paddingVertical: getThemeSkinId(theme) === 'classic' ? sport.space.md : 6,
+      minHeight: getThemeSkinId(theme) === 'classic' ? 64 : 56,
     },
     rowText: {
       flex: 1,
     },
     rowTitle: {
       color: theme.ink,
-      fontSize: sport.type.body,
+      fontSize: getThemeSkinId(theme) === 'classic' ? sport.type.body : 18,
       lineHeight: 22,
-      fontWeight: '500',
+      fontWeight: getThemeSkinId(theme) === 'classic' ? '500' : '600',
     },
     rowDesc: {
-      marginTop: sport.space.xs,
+      marginTop: getThemeSkinId(theme) === 'classic' ? sport.space.xs : 2,
       color: theme.mutedStrong,
       fontSize: sport.type.secondary,
-      lineHeight: 20,
+      lineHeight: getThemeSkinId(theme) === 'classic' ? 20 : 18,
     },
     weightControl: {
       flexDirection: 'row',

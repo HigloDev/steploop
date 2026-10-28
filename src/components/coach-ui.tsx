@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Line, Polyline } from 'react-native-svg'
 import { Header } from './Header'
 import { Button } from './ui'
-import { useTheme } from '../theme'
+import { getSkinLayout, getThemeSkinId, useTheme } from '../theme'
+import { SkinPageHeader } from './skin-page-header'
 import { CoachState, CoachWeighIn, localDate } from '../core/coach'
 import { syncCoachWorkouts } from '../services/coach-storage'
 import { listWorkouts } from '../services/workout-storage'
@@ -20,19 +21,22 @@ export function CoachText({ tone = 'normal', size = 'body', style, ...props }: T
     ...(size === 'value' ? { fontVariant: ['tabular-nums'] as const } : {}),
   }, style]} />
 }
-export function CoachPage({ title, back = true, children }: { title: string; back?: boolean; children: React.ReactNode }) {
+export function CoachPage({ title, back = true, children, hero }: { title: string; back?: boolean; children: React.ReactNode; hero?: React.ReactNode }) {
   const t = useTheme(), insets = useSafeAreaInsets()
+  const graphicHome = !back && getThemeSkinId(t) !== 'classic'
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.paper }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    <Header title={title} back={back} large={!back} />
+    {!graphicHome ? <Header title={title} back={back} large={!back} /> : null}
     <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ paddingHorizontal: t.pagePaddingH, paddingTop: 16, paddingBottom: insets.bottom + t.pagePaddingBottom, gap: 20 }}>
+      contentContainerStyle={{ paddingHorizontal: t.pagePaddingH, paddingTop: graphicHome ? 0 : 16, paddingBottom: insets.bottom + t.pagePaddingBottom, gap: graphicHome ? getSkinLayout(t).compactCatalog ? 8 : 12 : 20 }}>
+      {graphicHome ? <SkinPageHeader page="coach" title={title}>{hero}</SkinPageHeader> : null}
       {children}
     </ScrollView>
   </KeyboardAvoidingView>
 }
 export function CoachSection({ title, children }: { title: string; children: React.ReactNode }) {
   const t = useTheme()
-  return <View style={{ gap: 12, paddingTop: 16, borderTopWidth: 1, borderTopColor: t.lineSoft }}>
+  const graphic = getThemeSkinId(t) !== 'classic'
+  return <View style={{ gap: graphic ? getSkinLayout(t).compactCatalog ? 6 : 10 : 12, paddingTop: graphic ? 4 : 16, borderTopWidth: graphic ? 0 : 1, borderTopColor: t.lineSoft }}>
     <CoachText size="title" accessibilityRole="header">{title}</CoachText>{children}
   </View>
 }

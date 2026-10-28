@@ -18,6 +18,13 @@ import Workout, { WorkoutContent } from '../pages/Workout'
 import WeeklyShare from '../pages/WeeklyShare'
 import { useTheme } from '../theme'
 import AppearanceScreen from '../pages/Appearance'
+import CoachCourse from '../pages/coach-course'
+import CoachGoal from '../pages/coach-goal'
+import CoachSession from '../pages/coach-session'
+import CoachRecords from '../pages/coach-records'
+import CoachReview from '../pages/coach-review'
+import { buildSessions, emptyCoachState, localDate, CoachEnrollment } from '../core/coach'
+import { COACH_STORAGE_KEY, COACH_DRAFT_KEY } from '../services/coach-storage'
 import { hydrateAppearance, saveAppearance } from '../services/appearance'
 import { normalizeSkinId, normalizeAppearanceMode } from '../skin-catalog'
 import { FusionWorkoutApi } from '../hooks/useFusionWorkout'
@@ -58,7 +65,7 @@ async function seed(state: string) {
   await deleteBuilding('uiqa-unsaved')
   await clearPendingTemplate()
   await AsyncStorage.removeItem('palou.routes.v3')
-  await savePreferences({ bodyWeightKg: 65, voiceMode: 'standard', voiceVolume: 0.65, voiceRate: 1, hapticFeedback: true })
+  await savePreferences({ bodyWeightKg: 65, voiceMode: 'standard', voiceVolume: 0.85, voiceRate: 1, hapticFeedback: true })
   await agreePrivacy()
   if (state === 'privacy-first') {
     await AsyncStorage.removeItem('palou.privacy.agreed.v1')
@@ -132,14 +139,32 @@ async function seed(state: string) {
   if (state === 'home-long') await saveBuilding({ ...building, name: '城市花园北区三期·超长名称办公楼A座' })
   if (state === 'summary-single') await saveWorkout(buildFusionWorkout({ id: 'uiqa-summary', startedAt: START, endedAt: START + 192000,
     status: 'completed', template: building, rounds: [fusionRoundToWorkoutRound(round(15, 1))], bodyWeightKg: 65 }))
+  // This entry is native-package gated to .uiqa. All coach data here is synthetic.
+  const coachState = emptyCoachState()
+  await AsyncStorage.removeItem(COACH_DRAFT_KEY)
+  if (state.startsWith('coach-') || state === 'summary-coach' || state === 'course-climbing') {
+    const enrollment: CoachEnrollment = { id: 'uiqa-skins-coach', courseId: 'weight', status: 'active',
+      startedOn: localDate(NOW), weeks: 24, weekdays: [1, 3, 7], level: 'new',
+      initialWeightKg: 80, targetWeightKg: 76, heightCm: 175, goalMode: 'lose', createdAt: NOW, updatedAt: NOW }
+    coachState.enrollments = [enrollment]
+    coachState.sessions = buildSessions(enrollment)
+    coachState.weighIns = [{ id: localDate(NOW), date: localDate(NOW), weightKg: 80, updatedAt: NOW }]
+    if (state === 'summary-coach') {
+      const session = coachState.sessions[0]
+      await saveWorkout(buildFusionWorkout({ id: 'uiqa-summary', startedAt: START, endedAt: START + 290000,
+        status: 'completed', template: building, rounds: [fusionRoundToWorkoutRound({ ...round(2, 1), activeMs: 0 })], bodyWeightKg: 80,
+        coach: { enrollmentId: enrollment.id, courseId: 'weight', sessionId: session.id, scheduledDate: session.date, targetMinutes: session.targetMinutes } }))
+    }
+  }
+  await AsyncStorage.setItem(COACH_STORAGE_KEY, JSON.stringify(coachState))
   liveAt = performance.now()
 }
 
 const WORKOUT_STATES = ['calibrating', 'calibration_top', 'climbing', 'climbing-long', 'climbing-estimated',
-  'descending', 'waiting', 'save-failed', 'save-failed-no-recovery', 'starting', 'start-error', 'finishing']
+  'descending', 'waiting', 'save-failed', 'save-failed-no-recovery', 'starting', 'start-error', 'finishing', 'course-climbing']
 
 function WorkoutFixture({ navigation, state }: { navigation: any; state: string }) {
-  const [phase, setPhase] = useState<FusionPhase>(state.startsWith('save-failed') || state.startsWith('climbing-') || ['starting', 'start-error', 'finishing'].includes(state) ? 'climbing' : state as FusionPhase)
+  const [phase, setPhase] = useState<FusionPhase>(state.startsWith('save-failed') || state.startsWith('climbing-') || ['starting', 'start-error', 'finishing', 'course-climbing'].includes(state) ? 'climbing' : state as FusionPhase)
   const [floors, setFloors] = useState(state === 'climbing-long' ? 100 : phase === 'calibrating' ? 4 : phase === 'climbing' ? 8 : phase === 'waiting' ? 0 : 15)
   const [saveFailed, setSaveFailed] = useState(state.startsWith('save-failed'))
   const [status, setStatus] = useState<FusionWorkoutApi['status']>(state === 'start-error' ? 'error' : state === 'starting' ? 'starting' : state === 'finishing' ? 'finishing' : 'running')
@@ -155,6 +180,7 @@ function WorkoutFixture({ navigation, state }: { navigation: any; state: string 
     steps: (phase === 'waiting' || phase === 'descending' ? 30 : floors) * 18, baro: estimated ? 'none' : 'ok', estimated, canUndo: floors > 0, canMarkTop: floors > 0,
     status: { text: estimated ? '正在向上 · 按步数估算' : labels[phase], tone: estimated ? 'warn' : 'good' } }
   const api = { snapshot: status === 'starting' || status === 'error' ? null : snapshot, status: saveFailed ? 'save_failed' : status,
+    coach: state === 'course-climbing' ? { enrollmentId: 'uiqa-skins-coach', courseId: 'weight', sessionId: 'uiqa-skins-coach:' + localDate(NOW), scheduledDate: localDate(NOW), targetMinutes: 4 } : undefined,
     error: saveFailed ? '本次训练仍保留在本机，请重试保存。' : status === 'error' ? '传感器暂时未连接，请检查权限后重试。' : undefined,
     warning: estimated ? '此设备无气压计，楼层为步数估算。' : undefined,
     calories: 12 + floors * 0.46, workoutId: 'uiqa-live', rounds: Array.from({ length: saveFailed || status === 'finishing' ? 2 : snapshot.completedRounds }, (_, index) => round(15, index + 1)), canSaveLater: state !== 'save-failed-no-recovery',
@@ -182,12 +208,20 @@ export default function UiQaApp() {
   if (!state) return <View style={{ flex: 1, backgroundColor: theme.paper, justifyContent: 'center' }}><ActivityIndicator color={theme.brandText} /></View>
   const target = state.startsWith('summary') || state === 'template' ? 'WorkoutResult' : state === 'share' ? 'ShareStudio'
     : state === 'onboarding' ? 'Onboarding' : state.startsWith('privacy') ? 'Privacy' : state === 'legacy' ? 'Result'
+    : state === 'coach-course' ? 'CoachCourse' : state === 'coach-goal' ? 'CoachGoal' : state === 'coach-session' ? 'CoachSession'
+    : state === 'coach-records' ? 'CoachRecords' : state === 'coach-review' ? 'CoachReview'
     : state === 'appearance' ? 'Appearance' : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
   const targetParams = target === 'WorkoutResult' ? { id: state === 'template' ? 'uiqa-template' : 'uiqa-summary', fresh: true }
     : target === 'ShareStudio' ? { id: 'uiqa-summary' } : target === 'Result' ? { id: 'uiqa-legacy' }
+    : target === 'CoachCourse' || target === 'CoachGoal' ? { courseId: 'weight' }
+    : target === 'CoachSession' ? { sessionId: 'uiqa-skins-coach:' + localDate(NOW) }
+    : target === 'CoachReview' ? { enrollmentId: 'uiqa-skins-coach' }
+    : target === 'CoachRecords' ? { tab: 'weight' }
     : target === 'Onboarding' ? { from: 'settings' } : undefined
-  const mainScreen = state.startsWith('history') ? 'History' : state === 'settings' ? 'Profile' : 'Train'
-  const mainRoute = { name: 'Main', params: { screen: mainScreen } }
+  const mainScreen = state.startsWith('history') ? 'History' : state === 'settings' ? 'Profile' : state.startsWith('coach') ? 'Coach' : 'Train'
+  const mainTabs = ['Train', 'Coach', 'History', 'Profile']
+  const mainRoute = { name: 'Main', params: { screen: mainScreen },
+    state: { index: mainTabs.indexOf(mainScreen), routes: mainTabs.map(name => ({ name })) } }
   const rootOnly = state === 'privacy-first'
   return <SafeAreaProvider><NavigationContainer initialState={{ index: target === 'Main' || rootOnly ? 0 : 1,
     routes: target === 'Main' ? [mainRoute] : rootOnly ? [{ name: target, params: targetParams }] : [mainRoute, { name: target, params: targetParams }] }} theme={{ ...(theme.isDark ? DarkTheme : DefaultTheme), colors: {
@@ -198,6 +232,11 @@ export default function UiQaApp() {
       <Stack.Screen name="ShareStudio" component={ShareStudio} initialParams={{ id: 'uiqa-summary' }} />
       <Stack.Screen name="WeeklyShare" component={WeeklyShare} />
       <Stack.Screen name="Appearance" component={AppearanceScreen} />
+      <Stack.Screen name="CoachCourse" component={CoachCourse} />
+      <Stack.Screen name="CoachGoal" component={CoachGoal} />
+      <Stack.Screen name="CoachSession" component={CoachSession} />
+      <Stack.Screen name="CoachRecords" component={CoachRecords} />
+      <Stack.Screen name="CoachReview" component={CoachReview} />
       <Stack.Screen name="Privacy" component={Privacy} /><Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen name="Result" component={Result} initialParams={{ id: 'uiqa-legacy' }} />
       <Stack.Screen name="DiagnosticCapture" component={DiagnosticCapture} />

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { MainTabScreen } from '../navigation/types'
 import { Button, Card, Pill } from '../components/ui'
 import { CoachMessage, CoachPage, CoachSection, CoachText, WeightTrend, displayDate, minutesText, todayKey, useCoachData } from '../components/coach-ui'
@@ -9,7 +9,7 @@ import {
   nextSession, sessionProgress, weekStart, weeklySummary, weightGoalReached,
 } from '../core/coach'
 import { setEnrollmentStatus } from '../services/coach-storage'
-import { useTheme } from '../theme'
+import { getSkinLayout, getThemeSkinId, useTheme } from '../theme'
 
 export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
   const t = useTheme(), data = useCoachData(navigation)
@@ -19,6 +19,12 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
   const summary = s && e ? weeklySummary(s, e, today) : undefined
   const next = s && e ? nextSession(s, e, today) : undefined
   const recent = s ? latestWeight(s, today) : undefined
+  const graphic = getThemeSkinId(t) !== 'classic'
+  const compact = getSkinLayout(t).compactCatalog
+  const introduction = <View style={{ gap: 10, marginTop: 12 }}>
+    <CoachText size="value" style={{ fontSize: 25, lineHeight: 34, maxWidth: ['eva-unit-02', 'pikachu'].includes(getThemeSkinId(t)) ? '70%' : '100%' }}>给每一次向上，一个方向。</CoachText>
+    <CoachText tone="muted" style={{ fontSize: 14, lineHeight: 22, maxWidth: getThemeSkinId(t) === 'pikachu' ? '64%' : '100%' }}>选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText>
+  </View>
   const status = async (id: string, value: 'active' | 'paused' | 'completed' | 'maintaining') => {
     if (lock.current) return
     lock.current = true; setBusy(true)
@@ -26,8 +32,8 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
       data.setError(err instanceof Error ? err.message : '操作未保存，请重试。')
     } finally { lock.current = false; setBusy(false) }
   }
-  return <CoachPage title="教练" back={false}>
-    <CoachMessage error={data.error} loading={data.loading && !s} retry={() => void data.refresh()} />
+  return <CoachPage title="教练" back={false} hero={s && !e ? introduction : undefined}>
+    {!graphic || data.error || data.loading && !s ? <CoachMessage error={data.error} loading={data.loading && !s} retry={() => void data.refresh()} /> : null}
     {s ? <>
       {e ? <>
         <View style={{ gap: 8 }}>
@@ -78,16 +84,24 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
           ])} />
         </CoachSection>
       </> : <View style={{ gap: 12 }}>
-        <CoachText size="value">给每一次向上，一个方向。</CoachText>
-        <CoachText tone="muted">选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText>
-        <Button title="设定我的体重目标" onPress={() => navigation.navigate('CoachCourse', { courseId: 'weight' })} />
+        {!graphic ? <><CoachText size="value">给每一次向上，一个方向。</CoachText>
+          <CoachText tone="muted">选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText></> : null}
+        <Button title="设定我的体重目标" style={compact ? { minHeight: 52, paddingVertical: 12 } : undefined} onPress={() => navigation.navigate('CoachCourse', { courseId: 'weight' })} />
       </View>}
       <CoachSection title="选择课程">
         {COACH_COURSES.map(course => <Pressable key={course.id} accessibilityRole="button" accessibilityLabel={course.name + '，' + course.duration}
           onPress={() => navigation.navigate('CoachCourse', { courseId: course.id })}
-          style={({ pressed }) => ({ paddingVertical: 16, gap: 8, borderBottomWidth: 1, borderBottomColor: t.lineSoft, opacity: pressed ? 0.6 : 1 })}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name={course.icon} size={24} color={t.brandText} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><Feather name="chevron-right" size={20} color={t.muted} /></View>
-          <CoachText tone="muted">{course.duration} · {course.description}</CoachText>
+          style={({ pressed }) => ({ paddingVertical: 16, gap: 8, borderBottomWidth: 1, borderBottomColor: t.lineSoft, opacity: pressed ? 0.6 : 1,
+            ...(getThemeSkinId(t) === 'classic' ? {} : { paddingHorizontal: compact ? 12 : 16, paddingVertical: compact ? 12 : 16, backgroundColor: t.card, borderWidth: 1, borderColor: t.lineSoft, borderRadius: t.radiusLg }) })}>
+          {graphic ? <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+            <View style={{ width: compact ? 48 : 52, height: compact ? 60 : 64, borderRadius: 12, backgroundColor: t.brandSoft, alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialCommunityIcons name={course.id === 'weight' ? 'bullseye-arrow' : course.id === 'beginner' ? 'stairs-up' : 'heart-pulse'} size={36} color={t.brandText} accessible={false} />
+            </View>
+            <View style={{ flex: 1 }}><CoachText size="title" style={{ fontSize: 18, lineHeight: 25 }}>{course.name}</CoachText>
+              <CoachText tone="muted" numberOfLines={compact ? 2 : undefined} style={{ fontSize: compact ? 13 : 14, lineHeight: compact ? 18 : 21 }}>{course.duration} · {course.description}</CoachText></View>
+            <Feather name="chevron-right" size={18} color={t.muted} />
+          </View> : <><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name={course.icon} size={24} color={t.brandText} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><Feather name="chevron-right" size={20} color={t.muted} /></View>
+          <CoachText tone="muted">{course.duration} · {course.description}</CoachText></>}
         </Pressable>)}
       </CoachSection>
       {s.enrollments.filter(v => v.status === 'paused' || v.status === 'completed').length ? <CoachSection title="我的其他阶段">

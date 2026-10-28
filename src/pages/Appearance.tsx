@@ -3,6 +3,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Header } from '../components/Header'
+import { SkinArt } from '../components/skin-art'
+import { getSkinArtwork } from '../skin-assets'
 import { NativeChoice } from '../components/native-choice'
 import { useAppearance } from '../appearance'
 import { hydrateAppearance, saveAppearance } from '../services/appearance'
@@ -17,7 +19,10 @@ function SkinPreview({ theme, label }: { theme: Theme; label: string }) {
       <View style={[styles.previewDot, { backgroundColor: theme.brand, borderColor: theme.brandText }]} />
     </View>
     <View style={[styles.previewHero, { backgroundColor: theme.heroSurface }]}>
-      <Text style={[styles.previewMetric, { color: theme.heroInk }]}>150 <Text style={styles.previewUnit}>米</Text></Text>
+      <View style={styles.previewHeroRow}>
+        <Text style={[styles.previewMetric, { color: theme.heroInk }]}>150 <Text style={styles.previewUnit}>米</Text></Text>
+        <SkinArt kind="mark" width={32} height={32} theme={theme} />
+      </View>
       <View style={[styles.previewLine, { backgroundColor: theme.heroAccent }]} />
     </View>
     <View style={[styles.previewButton, { backgroundColor: theme.brand }]}>
@@ -33,7 +38,7 @@ export default function AppearanceScreen() {
   return <View style={{ flex: 1, backgroundColor: theme.paper }}>
     <Header title="皮肤与外观" />
     <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + sport.space.section }]}>
-      <Text style={[styles.intro, { color: theme.mutedStrong }]}>选择喜欢的配色，带着自己的节奏向上。</Text>
+      <Text style={[styles.intro, { color: theme.mutedStrong }]}>选一套喜欢的图案与配色，带着自己的节奏向上。</Text>
       <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.ink }]}>显示模式</Text>
       <NativeChoice testID="appearance-mode" value={appearance.mode}
         options={(Object.keys(APPEARANCE_MODE_LABELS) as AppearanceMode[]).map(value => ({ value, label: APPEARANCE_MODE_LABELS[value] }))}
@@ -58,7 +63,10 @@ export default function AppearanceScreen() {
             onPress={() => { void saveAppearance({ skinId: skin.id }) }}
             style={({ pressed }) => [styles.skin, { backgroundColor: theme.card, borderColor: selected ? theme.brandText : theme.line, opacity: pressed ? sport.opacity.pressed : 1 }]}>
             <View style={styles.skinHeading}>
-              <View style={[styles.skinIcon, { backgroundColor: theme.brandSoft }]}><Feather name={skin.icon} size={21} color={theme.brandText} /></View>
+              <View style={[styles.skinIcon, { backgroundColor: getTheme(skin.id, theme.isDark ? 'dark' : 'light').brandSoft }]}>
+                {!getSkinArtwork(skin.id) ? <Feather name={skin.icon} size={21} color={getTheme(skin.id, theme.isDark ? 'dark' : 'light').brandText} /> :
+                  <SkinArt kind="mark" width={36} height={36} theme={getTheme(skin.id, theme.isDark ? 'dark' : 'light')} />}
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.skinName, { color: theme.ink }]}>{skin.name}</Text>
                 <Text style={[styles.description, { color: theme.mutedStrong }]}>{skin.description}</Text>
@@ -100,6 +108,7 @@ const styles = StyleSheet.create({
   previewLabel: { fontSize: 11, lineHeight: 17 },
   previewDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1 },
   previewHero: { borderRadius: 7, padding: 9, gap: 7 },
+  previewHeroRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' },
   previewMetric: { fontSize: 22, lineHeight: 29, fontWeight: '700', fontVariant: ['tabular-nums'] },
   previewUnit: { fontSize: 10, fontWeight: '500' },
   previewLine: { height: 3, width: '65%', borderRadius: 2 },

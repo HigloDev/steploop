@@ -72,6 +72,8 @@ function harness(options = {}) {
     importBackupPayload: async () => { state.imports++; if (state.importTask) await state.importTask.promise; state.snapshot = true; return { snapshotCreated: true, routesCount: 0, sessionsCount: 0, workoutsCount: 1 } },
   }
   const mocks = {
+    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
+    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
     react: hooks.react, '../../app.json': require('../app.json'), 'react-native': native,
     '@expo/vector-icons': {}, '@expo/ui': {}, 'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../services/backup': backups, '../services/export-csv': { exportWorkoutCsv: async () => ({ message: 'csv' }) },

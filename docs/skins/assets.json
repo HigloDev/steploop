@@ -1,0 +1,1070 @@
+{
+  "schemaVersion": 2,
+  "createdOn": "2026-10-28",
+  "method": "image_gen and user-approved extraction of existing confirmed artwork",
+  "reference": "User-confirmed four-tab light/dark concept boards, 2026-10-28",
+  "roles": [
+    "mark",
+    "scene",
+    "achievement"
+  ],
+  "display": "Local transparent PNGs; same image verified separately on light and dark surfaces; contain; no UI text baked into assets.",
+  "skins": [
+    {
+      "id": "classic",
+      "graphicsStatus": "original",
+      "assets": [],
+      "note": "Existing assets/brand/mark-audit.png retained; no decorative scene added.",
+      "headers": [],
+      "headerOverrides": []
+    },
+    {
+      "id": "night-run",
+      "graphicsStatus": "implemented",
+      "assets": [
+        {
+          "role": "scene",
+          "path": "assets/skins/night-run/scene.png",
+          "sourceOutput": "exec-4f4e66c8-4d52-4ecf-bf8d-ed0f2c325d8d.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1584348,
+          "sha256": "752ca70e64c6bdce1cea7d7c0684533dd4bb705186577de7ec879c9ed1454577",
+          "alphaRange": [
+            0,
+            254
+          ]
+        },
+        {
+          "role": "mark",
+          "path": "assets/skins/night-run/mark.png",
+          "sourceOutput": "exec-7b75b32c-4c4a-41ae-89bf-5c1c18d87e6d.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 490054,
+          "sha256": "927c3d2d0cb4fd8a10b22da8f956c957362e2ffd5e40233aab4b2ea05d53aadd",
+          "alphaRange": [
+            0,
+            255
+          ]
+        },
+        {
+          "role": "achievement",
+          "path": "assets/skins/night-run/achievement.png",
+          "sourceOutput": "exec-60bc5196-80b1-4e56-a6b6-9b61f91dc750.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 881193,
+          "sha256": "1425755c0feb5ba1c91fe82d286b1a158f4406751a0018c456e68f2c5877a9a1",
+          "alphaRange": [
+            0,
+            255
+          ]
+        }
+      ],
+      "headers": [
+        {
+          "page": "home",
+          "path": "assets/skins/night-run/header-home.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1393075,
+          "sha256": "b198e42d9b9d47e63b0f7c6d35b9848276bf62c69cc01714263f06373813a2c8",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/night-run-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-44b7d194-44d1-4e0a-8a39-ebfc9172e2b4.png"
+        },
+        {
+          "page": "coach",
+          "path": "assets/skins/night-run/header-coach.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1592614,
+          "sha256": "d11deed18ace7d33f88cefabf2040fefd74575a2240821f1db643274f1e02455",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/night-run-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-a8df31d0-aed9-4f26-9da3-3cef7e880cdd.png"
+        },
+        {
+          "page": "history",
+          "path": "assets/skins/night-run/header-history.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1457932,
+          "sha256": "23576dbdc6a27833eb1c9954cb1c58ed0654b25a5aa728a888065850c386c248",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/night-run-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-32ef8661-222f-4ba9-a8c3-984a40c327bc.png"
+        },
+        {
+          "page": "settings",
+          "path": "assets/skins/night-run/header-settings.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1325414,
+          "sha256": "078e4f902bc6260d750cfd19461b0f201eba0b7b95b53e10a0a8177a8e5c28c5",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/night-run-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-a3f74aae-0893-4faf-b5ed-c35c45c179f4.png"
+        }
+      ],
+      "headerOverrides": []
+    },
+    {
+      "id": "woodland",
+      "graphicsStatus": "implemented",
+      "assets": [
+        {
+          "role": "scene",
+          "path": "assets/skins/woodland/scene.png",
+          "sourceOutput": "exec-b31b2c12-dc36-41a0-9c9c-6d0c99cc0a85.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2449919,
+          "sha256": "d8938a368ceda76dde42e6832476728116c6d33e9ebeb76ef4762fb3d3123ae3",
+          "alphaRange": [
+            0,
+            254
+          ]
+        },
+        {
+          "role": "mark",
+          "path": "assets/skins/woodland/mark.png",
+          "sourceOutput": "exec-8cb9641f-e7f4-45f9-96b6-ce8a3beaf562.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 789913,
+          "sha256": "877b570dc4908269b31ec74dd13e43ddba5d507efe38b50e49ab8ea510ecf95b",
+          "alphaRange": [
+            0,
+            255
+          ]
+        },
+        {
+          "role": "achievement",
+          "path": "assets/skins/woodland/achievement.png",
+          "sourceOutput": "exec-5b5ec09d-07e1-4f7c-a409-f7d76301351a.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 2348113,
+          "sha256": "c38c2336bf61dab634796307714555565d6377956c5bcb7af8deea812f03edef",
+          "alphaRange": [
+            0,
+            255
+          ]
+        }
+      ],
+      "headers": [
+        {
+          "page": "home",
+          "path": "assets/skins/woodland/header-home.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2424255,
+          "sha256": "029e08b02470db2e6d6a95884ab358013327099074491cf2d41a58602de5a720",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/woodland-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-96132ac6-70df-4f8d-bc7e-4119e44601f0.png"
+        },
+        {
+          "page": "coach",
+          "path": "assets/skins/woodland/header-coach.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2328083,
+          "sha256": "61e7378946b0c6c89ed00a0ba9a402bf023bc731fdfcd4987e7e82de62a9169e",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/woodland-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-de4262a1-79e6-4d7b-8562-9d44dc3f9782.png"
+        },
+        {
+          "page": "history",
+          "path": "assets/skins/woodland/header-history.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2430080,
+          "sha256": "69de4a01eb9fcb3ee0e208687bcc0500768320bf84be53489a2358bc9cbe24cd",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/woodland-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-b569bafb-fc23-43bf-b8cc-9e3143816abf.png"
+        },
+        {
+          "page": "settings",
+          "path": "assets/skins/woodland/header-settings.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1915316,
+          "sha256": "3ded814d529cfe5567c1ab08eadbaf16baf373fbd05d9c91495e92c12a37e7a5",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/woodland-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-4d7d23c0-ee1d-4e66-9499-4c60f1f79a52.png"
+        }
+      ],
+      "headerOverrides": [
+        {
+          "page": "coach",
+          "mode": "dark",
+          "path": "assets/skins/woodland/header-coach-dark.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2155349,
+          "sha256": "d90be58530aca66af922979d910744915540e8b3778d2b7197b2c95bd579e75e",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/woodland-four-tabs.png",
+          "method": "image_gen",
+          "sourceOutput": "exec-00325dfd-abc3-4b0b-862f-5c23f7c2fe93.png",
+          "prompt": "Use case: background-extraction / reference-faithful illustrated asset.\nInput image: the approved woodland four-tab comparison board. Use ONLY the header artwork inside the SECOND phone of the LOWER (dark) row as the visual reference. The source shows a small backpacked hiker standing on the right-hand rocky ledge, looking across layered night mountains and pine woodland.\nProduce one standalone transparent PNG artwork for the dark Coach page, 1536 x 1024 pixels, landscape 3:2. Faithfully preserve this specific dark illustration's forest-green, sage, and pale moonlit-gold watercolor palette, paper-like brush texture, soft layered mountain silhouettes, fine subtle contour lines, dark pines and rocks. Place the hiker with complete head and feet on a rock in the right third, turned away surveying the valley; match the source's standing posture. Night mountain valley and pines occupy the right half and taper through the lower half. Illustration extends naturally to the right canvas edge. Upper-left approximately 55 percent stays genuinely transparent and clear for a real title; any contour-line details there must be extremely faint. Crisp readable hiker silhouette at small mobile banner size, restrained detailing, calm mood. Preserve real alpha around the irregular painted scenery; no solid rectangular background and no opaque sky panel. This is the one page header illustration, not the whole phone screen.\nNo UI text, no headings, no labels, no numbers, no buttons, no cards, no navigation bars, no logos, no signpost, no gear, no phone frame. Do not reproduce any page layout, app text or comparison-board labels."
+        }
+      ]
+    },
+    {
+      "id": "eva-unit-01",
+      "graphicsStatus": "implemented",
+      "assets": [
+        {
+          "role": "scene",
+          "path": "assets/skins/eva-unit-01/scene.png",
+          "sourceOutput": "exec-3c3edb2a-cede-4456-a13f-ac8cf946ca52.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1867910,
+          "sha256": "0066fb32cb65e63b4e7cbda2a061e52ca483e44ba7023c1136c9b95dc55b84e0",
+          "alphaRange": [
+            0,
+            254
+          ]
+        },
+        {
+          "role": "mark",
+          "path": "assets/skins/eva-unit-01/mark.png",
+          "sourceOutput": "exec-fa1cc114-4f3d-4fb3-8804-3cd7715c1bc3.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 318592,
+          "sha256": "7a5749ea1e6f0fb0eddd55ab60c959a8b822101d3cdfc323dbeec7bb26cc4e65",
+          "alphaRange": [
+            0,
+            255
+          ]
+        },
+        {
+          "role": "achievement",
+          "path": "assets/skins/eva-unit-01/achievement.png",
+          "sourceOutput": "exec-00caf53e-3639-4adb-874d-6989a6f32d6b.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 1880209,
+          "sha256": "24ac4879602a52cf22573ae54339c0e63b96610cd564eeee175700234885d378",
+          "alphaRange": [
+            0,
+            255
+          ]
+        }
+      ],
+      "headers": [
+        {
+          "page": "home",
+          "path": "assets/skins/eva-unit-01/header-home.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1383319,
+          "sha256": "34b9819799b1d2a4bf6ca2722a9cb101733b4111f5d4955ac3c432b6d7de5f48",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-01-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-50ef61ba-ac48-4bb0-bb34-ecf3d65ebeea.png"
+        },
+        {
+          "page": "coach",
+          "path": "assets/skins/eva-unit-01/header-coach.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1077858,
+          "sha256": "fcf64a6eb3ceb6926d97517ee0910a1f678e90414a0ddaaf1508b2aeba2bc48d",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-01-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-240d0c5a-867a-49c4-b15d-bfa4721425e9.png"
+        },
+        {
+          "page": "history",
+          "path": "assets/skins/eva-unit-01/header-history.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 782822,
+          "sha256": "3b507e4c5a5218f6e356148912619759bc42df5995c85aaad7323879df05e188",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-01-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-80c580b9-9172-4acc-b0ee-3d74354edc6e.png"
+        },
+        {
+          "page": "settings",
+          "path": "assets/skins/eva-unit-01/header-settings.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1140412,
+          "sha256": "ba2bfe3cb0f07188f40f914070cb79fa22c5765f5590faa6ec93d6f61d97682d",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-01-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-b7269f33-d5e7-4401-aec6-b51ed8f26c77.png"
+        }
+      ],
+      "headerOverrides": []
+    },
+    {
+      "id": "eva-unit-02",
+      "graphicsStatus": "implemented",
+      "assets": [
+        {
+          "role": "scene",
+          "path": "assets/skins/eva-unit-02/scene.png",
+          "sourceOutput": "exec-df045970-6922-416c-828e-c8cf280bb12d.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2157012,
+          "sha256": "d64daa10352454898065653fed061bfa75f625d7b7ea3767f81855fc47d99ba1",
+          "alphaRange": [
+            0,
+            254
+          ]
+        },
+        {
+          "role": "mark",
+          "path": "assets/skins/eva-unit-02/mark.png",
+          "sourceOutput": "exec-7ac81b5f-a3c5-4cfd-a179-13898b4ecbfc.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 616157,
+          "sha256": "feea3f1171a1646e55410c6fa74f5d4c535bd4dbb754b5effc3f0f3acbe943a7",
+          "alphaRange": [
+            0,
+            255
+          ]
+        },
+        {
+          "role": "achievement",
+          "path": "assets/skins/eva-unit-02/achievement.png",
+          "sourceOutput": "exec-348935ec-b51d-48e8-a20e-0ca756c98a53.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 1738556,
+          "sha256": "75ce4eab1c9ff1c67c99c848013a114ffc942d609b5cf89f88f211a36000d1e1",
+          "alphaRange": [
+            0,
+            255
+          ]
+        }
+      ],
+      "headers": [
+        {
+          "page": "home",
+          "path": "assets/skins/eva-unit-02/header-home.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1140540,
+          "sha256": "ef3b9d7667878cb75bdb49c1401f28156e706edbec20b78df17d9998c1c13016",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-02-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-d146cfc6-04f4-43a7-92ed-a45abf1240e2.png"
+        },
+        {
+          "page": "coach",
+          "path": "assets/skins/eva-unit-02/header-coach.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1131468,
+          "sha256": "93111d5db430770453c7a43c9c822fa646662de5dfa361f23ffcf591981a057b",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-02-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-c9b7da85-42d5-4826-8307-e37cd24e2260.png"
+        },
+        {
+          "page": "history",
+          "path": "assets/skins/eva-unit-02/header-history.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 791081,
+          "sha256": "ba0bad02037b79325fa0cbc7105aa600e837366b21339c1308408e8001e5d162",
+          "alphaRange": [
+            0,
+            151
+          ],
+          "reference": "docs/skins/design-references/eva-unit-02-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-d4aa3322-6ddb-4ccd-bda3-aa33f40c571e.png"
+        },
+        {
+          "page": "settings",
+          "path": "assets/skins/eva-unit-02/header-settings.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1171451,
+          "sha256": "45399be13875c4ff04b1f475eb9113fcee040ed88571eee6384bd0a7b3821f82",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/eva-unit-02-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-36033233-6181-472d-b3db-09de785044f0.png"
+        }
+      ],
+      "headerOverrides": []
+    },
+    {
+      "id": "pikachu",
+      "graphicsStatus": "implemented",
+      "assets": [
+        {
+          "role": "mark",
+          "path": "assets/skins/pikachu/mark.png",
+          "sourceReference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "sourceCrop": [
+            40,
+            6,
+            103,
+            77
+          ],
+          "sourcePixels": [
+            63,
+            71
+          ],
+          "width": 1254,
+          "height": 1254,
+          "bytes": 359267,
+          "sha256": "86ade636c1893779dc8c0ebda808b5c95c68227868da7118470ecba3edd9f418",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "processing": "Local crop, foreground segmentation, removal of paper/UI surroundings, light edge feathering and Lanczos scaling; no new details generated."
+        },
+        {
+          "role": "scene",
+          "path": "assets/skins/pikachu/scene.png",
+          "sourceReference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "sourceCrop": [
+            478,
+            166,
+            592,
+            318
+          ],
+          "sourcePixels": [
+            114,
+            152
+          ],
+          "width": 1536,
+          "height": 1024,
+          "bytes": 358928,
+          "sha256": "907e7551ef2d20480d33d6eb61e1f5c7818940af34d73b9f5b23671fbf37c62f",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "processing": "Local crop, foreground segmentation, removal of paper/UI surroundings, light edge feathering and Lanczos scaling; no new details generated."
+        },
+        {
+          "role": "achievement",
+          "path": "assets/skins/pikachu/achievement.png",
+          "sourceReference": "docs/skins/design-references/pikachu-training-results.png",
+          "sourceCrop": [
+            1004,
+            120,
+            1143,
+            318
+          ],
+          "sourcePixels": [
+            139,
+            198
+          ],
+          "width": 1254,
+          "height": 1254,
+          "bytes": 488000,
+          "sha256": "5ffa5459bb58b26bbfc2f7c82a16cf5eb4bd03789ad9298ceb3807750805d965",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "processing": "Local crop, foreground segmentation, removal of paper/UI surroundings, light edge feathering and Lanczos scaling; no new details generated.",
+          "alphaCleanup": {
+            "reason": "Two original pale page-background gaps enclosed between body and lightning tail, visually confirmed against the approved light training-result source.",
+            "previousSha256": "5b124659ddfe97e97fc863180e2c71833ee00e62d69862cbb1ad3e413757c16b",
+            "regions": [
+              {
+                "selectionBoxExclusive": [
+                  738,
+                  724,
+                  806,
+                  832
+                ],
+                "seed": [
+                  767,
+                  788
+                ],
+                "changedBoundsExclusive": [
+                  745,
+                  728,
+                  797,
+                  823
+                ],
+                "changedPixels": 2101,
+                "fullyClearedPixels": 1475
+              },
+              {
+                "selectionBoxExclusive": [
+                  748,
+                  860,
+                  788,
+                  911
+                ],
+                "seed": [
+                  767,
+                  889
+                ],
+                "changedBoundsExclusive": [
+                  754,
+                  868,
+                  781,
+                  904
+                ],
+                "changedPixels": 548,
+                "fullyClearedPixels": 296
+              }
+            ],
+            "method": "Within each explicit output ROI, select the neutral-color connected component seeded inside the original background gap (RGB min >90, max-min <70). Reduce alpha to originalAlpha*clamp((190-RGBmin)/100,0,1). RGB channels unchanged; no inpainting, new drawing or extrapolation.",
+            "changedAlphaPixels": 2649,
+            "allRgbUnchanged": true,
+            "pixelsOutsideSelectedGapsUnchanged": true,
+            "eyeAndHighlightsUnchanged": true
+          }
+        }
+      ],
+      "note": "Existing approved character/ear shapes were extracted, not regenerated. Source crops are small; Lanczos scaling does not add detail. Check at actual native size.",
+      "method": "user-approved-local-extraction",
+      "userApproval": "User explicitly approved local extraction of existing Pikachu artwork from the confirmed concept boards.",
+      "headers": [
+        {
+          "page": "home",
+          "path": "assets/skins/pikachu/header-home.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 604066,
+          "sha256": "679f1b38355da8611bc1eaad0605000291992df82a3a4e69d1f250a655ca485b",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of approved four-tab board only; no old three-tab pose used",
+            "Explicit alpha exclusion of original logo/title/subtitle, filter control and weekly-card regions; no inpainting",
+            "Source-silhouette region constraints plus OpenCV GrabCut preserve original visible character pixels",
+            "Keep source lower city towers, golden stairs and green foliage; omit pale distant sky/buildings to avoid disconnected page-background fragments",
+            "0.4px source-edge feather, original edge-color extension and soft fade at existing scene crop boundaries",
+            "Lanczos 4.5x resize278x210 to1251x945, placed260,40 on1536x1024 transparent canvas; no new detail synthesized"
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "first column light home header, happy jumping Pikachu with existing stairs, city and green foliage",
+          "cropBoxExclusive": [
+            20,
+            128,
+            298,
+            338
+          ],
+          "sourceCropPixels": [
+            278,
+            210
+          ],
+          "sourceLimitations": [
+            "The available scene source is278x210 pixels; larger output does not add original detail.",
+            "Source UI occludes some background; those pixels are removed rather than reconstructed.",
+            "The tail approaches the original right edge; every visible original tail pixel is retained, with no invented extension."
+          ]
+        },
+        {
+          "page": "coach",
+          "path": "assets/skins/pikachu/header-coach.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 349892,
+          "sha256": "0532264840f670835c92ba57a8b3a2c6845d6420451a8d381b6374550291d0f6",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of approved four-tab board only",
+            "Explicit subtitle alpha exclusion; original CTA/course cards lie outside crop",
+            "Original character silhouette regions plus OpenCV GrabCut and main connected component",
+            "Original lightning-edge color extraction, connected contours and interior alpha retention; no new bolt drawn",
+            "Warm-color alpha retains selected original pale-gold mountain/stair pixels; page white removed",
+            "0.4px source-edge feather and nearest existing foreground-edge color extension",
+            "Lanczos4.2x resize130x180 to546x756, placed968,180 on1536x1024 transparent canvas; no synthesized detail",
+            "Final alpha-only silhouette cleanup removes lamp-post and upper mountain background remnants connected to original lightning; retains three original lightning shapes and original character/ground RGB; no new scene pixels"
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "second column light coach header, original standing/waving Pikachu, original lightning and restrained pale-gold mountain/stair pixels",
+          "cropBoxExclusive": [
+            460,
+            136,
+            590,
+            316
+          ],
+          "sourceCropPixels": [
+            130,
+            180
+          ],
+          "sourceLimitations": [
+            "Original crop130x180 pixels limits detail; larger output does not increase source resolution.",
+            "Text-obscured pixels were removed rather than reconstructed.",
+            "Only existing visible character/background pixels retained; no added body parts, gestures or scene detail.",
+            "Very pale upper mountain background was omitted during dark-surface QA; only original lower pale-gold/green ground pixels remain."
+          ]
+        },
+        {
+          "page": "history",
+          "path": "assets/skins/pikachu/header-history.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 177416,
+          "sha256": "8ffc85fbc63578fb3469b9f47294d4c4eb4821f41b47a2df84055ca6b0dc36f4",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of approved original raster only",
+            "Explicit source subtitle and search-icon fragment alpha exclusion; no inpainting",
+            "OpenCV GrabCut and main character connected component preserve original Pikachu",
+            "Warm-color alpha retains only existing adjacent staircase/base pixels; distant clipped skyline is omitted for clean transparent boundaries",
+            "0.4px source-edge feather and nearest existing edge-color extension",
+            "Lanczos resize140x82 to584x342, placed930,660 on1536x1024 RGBA canvas; no newly generated detail"
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "third column light history header, original peeking half-body Pikachu with visible ears/tail and adjacent pale-gold stairs",
+          "cropBoxExclusive": [
+            737,
+            162,
+            877,
+            244
+          ],
+          "sourceCropPixels": [
+            140,
+            82
+          ],
+          "sourceLimitations": [
+            "Original is a peeking half-body pose; the lower body is hidden by the statistics card and was not invented.",
+            "The original crop is140x82 pixels; output enlargement does not increase original detail.",
+            "Pixels under source subtitle/search UI were removed, not reconstructed."
+          ]
+        },
+        {
+          "page": "settings",
+          "path": "assets/skins/pikachu/header-settings.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 193428,
+          "sha256": "02ccfe8e18eed3315393755c1cc6218df6cfed4beea32c0536d99dee3a89fc1b",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of existing approved raster only",
+            "OpenCV GrabCut with cream-background exclusion and spatial regions",
+            "Keep main character/gear component and source lightning components; remove page background",
+            "0.4px source-edge feather with nearest existing foreground color extension",
+            "Lanczos resize to570x414 and place at944,70 on1536x1024 transparent canvas; no generated detail"
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "fourth column light settings header, smiling closed-eye Pikachu with right-side gear",
+          "cropBoxExclusive": [
+            1014,
+            130,
+            1164,
+            239
+          ],
+          "sourceCropPixels": [
+            150,
+            109
+          ],
+          "sourceLimitations": [
+            "Original selected pose has no separately visible tail; no tail was invented or borrowed from another pose.",
+            "Original lower torso is occluded by appearance card; only visible source pixels were retained.",
+            "Original crop is150x109 pixels; output enlargement does not add original image detail."
+          ]
+        }
+      ],
+      "headerOverrides": [
+        {
+          "page": "home",
+          "mode": "dark",
+          "path": "assets/skins/pikachu/header-home-dark.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 743273,
+          "sha256": "be0f824955b9c829e1e23059fc1f245f76fffc1e1879b61dbbe709e3a22f5e63",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of approved existing four-tab raster only; lower dark home pose is distinct from light home pose.",
+            "Explicit alpha exclusion of original logo/title/subtitle, filter control and weekly-card regions; no inpainting.",
+            "Source silhouette selections and OpenCV GrabCut preserve visible ears, lightning tail, waving arm and feet.",
+            "Retain existing night skyline/lamps, warm-gold stairs and green foliage; dark page-background pixels outside selected scenery are made transparent.",
+            "Alpha-only soft boundaries around original city silhouette and removed UI areas; no RGB painting or new scene content.",
+            "Lanczos resize278x210 to1251x945; place260,40 on1536x1024 transparent canvas."
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "first column lower dark home header; original winking jumping Pikachu, illuminated night-city buildings, warm-gold staircase and green foliage",
+          "cropBoxExclusive": [
+            20,
+            742,
+            298,
+            952
+          ],
+          "sourceCropPixels": [
+            278,
+            210
+          ],
+          "sourceLimitations": [
+            "Source crop is278x210 pixels; enlarged PNG does not add original image detail.",
+            "Original UI covered portions of scenery; removed regions stay transparent and were not reconstructed.",
+            "Dark city/background remnants are intentionally kept only as source scene pixels with feathered alpha; this header is intended for dark surfaces."
+          ]
+        },
+        {
+          "page": "coach",
+          "mode": "dark",
+          "path": "assets/skins/pikachu/header-coach-dark.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 501199,
+          "sha256": "f09040a11ca53499378bbd4d085b21fb295004eda0fd66eb5651b289cf74b6f6",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of approved existing four-tab board only; original lower dark coach artwork.",
+            "Exclude subtitle fragments at left; heading and CTA/course cards/navigation are outside selected crop.",
+            "Spatial source silhouette selection and OpenCV GrabCut retain original full ears, eyes/cheeks, both extended arms, lightning tail and feet.",
+            "Retain only existing original lightning accents and upper night-city/cloud scenery with luminance-aware alpha and softly feathered crop boundaries.",
+            "Preserve source RGB through alpha selection; no inpainting, recoloring, drawing or synthesized detail.",
+            "Lanczos resize131x177 to557x752; place956,210 on1536x1024 transparent canvas."
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "second column lower dark coach header: both eyes open, both arms extended, standing Pikachu; lightning tail, four lightning accents and warm night-city background",
+          "cropBoxExclusive": [
+            455,
+            744,
+            586,
+            921
+          ],
+          "sourceCropPixels": [
+            131,
+            177
+          ],
+          "sourceLimitations": [
+            "Source crop is131x177 pixels; larger output does not increase original detail.",
+            "Original dark pose is standing with open arms and open eyes; the reference does not contain a checklist or a seated pose.",
+            "Only visible original scene pixels retained. Removed UI-obscured areas remain transparent.",
+            "Night-city scenery is preserved for dark surfaces; this is the dark-mode header asset."
+          ]
+        },
+        {
+          "page": "history",
+          "mode": "dark",
+          "path": "assets/skins/pikachu/header-history-dark.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 177972,
+          "sha256": "26e21a905d34e75f32593bee3ce9f42e1def1815621be9de386985f511af2b31",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of the approved existing four-tab lower dark history image.",
+            "Explicit alpha exclusion of subtitle and search-icon fragments; original title/statistics card/navigation excluded by crop.",
+            "Source-pixel silhouette selection preserves the original head, full black-tipped ears, raised paw, visible torso and lightning tail; 0.35px source alpha feather.",
+            "Warm-color alpha retains adjacent existing gold terrace/stair lines at bottom; distant UI-obscured night skyline is omitted rather than reconstructed.",
+            "Original source RGB is preserved through alpha selection; no inpainting, new drawing or synthesized detail.",
+            "Lanczos resize142x84 to584x345; place930,657 on1536x1024 transparent canvas, corresponding to the light history composition."
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "third column lower dark history header; original eyes-closed half-body Pikachu raising one forepaw, lightning tail and adjacent warm-gold terrace/stair lines",
+          "cropBoxExclusive": [
+            735,
+            766,
+            877,
+            850
+          ],
+          "sourceCropPixels": [
+            142,
+            84
+          ],
+          "sourceLimitations": [
+            "Original crop is142x84 pixels; enlargement does not add original detail.",
+            "Lower body is already hidden by the original statistics card; no unseen body or legs were added.",
+            "Original source UI-covered regions remain transparent and were not reconstructed.",
+            "This asset preserves the dark original color/pose and is intended for dark surfaces."
+          ]
+        },
+        {
+          "page": "settings",
+          "mode": "dark",
+          "path": "assets/skins/pikachu/header-settings-dark.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 202008,
+          "sha256": "f940f66fd73588139048b687b2dac60cf14bcae53049975381e59bfb57125a95",
+          "alphaRange": [
+            0,
+            255
+          ],
+          "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+          "method": [
+            "Pillow crop of approved original lower dark settings illustration only.",
+            "Heading/subtitle and appearance selector/cards/navigation lie outside the selected art silhouette and are excluded.",
+            "Alpha selection follows existing character/gear/tail outlines, with0.35px source-edge feather; source RGB remains unchanged before resizing.",
+            "Original page background inside the gear hole is transparent while the golden inner-rim highlight is retained.",
+            "Original upper-left lightning component selected by its existing gold pixels with0.4px feather.",
+            "Lanczos resize147x94 to570x365; place944,70 on1536x1024 transparent canvas to correspond with the light settings header."
+          ],
+          "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+          "sourceDimensions": [
+            1182,
+            1330
+          ],
+          "sourceSelection": "fourth column lower dark settings header; original smiling eyes-closed Pikachu, gear on its left, lightning tail on its right, one upper-left lightning accent",
+          "cropBoxExclusive": [
+            1016,
+            750,
+            1163,
+            844
+          ],
+          "sourceCropPixels": [
+            147,
+            94
+          ],
+          "sourceLimitations": [
+            "Original crop is147x94 pixels; larger output adds no original detail.",
+            "Lower body is already hidden by the source appearance row; only visible original torso and paws are kept.",
+            "No unseen body, new pose, new decorative icon, color painting or inpainting was added.",
+            "Original dark palette and left-gear/right-tail arrangement are intentionally retained for dark surfaces."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "k-on",
+      "graphicsStatus": "implemented",
+      "assets": [
+        {
+          "role": "scene",
+          "path": "assets/skins/k-on/scene.png",
+          "sourceOutput": "exec-24cdaa64-30a5-489b-969d-49eb39eb45b8.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1767431,
+          "sha256": "712d1738fad9647dd9423acd9d04ff4075b478e376b3f1ab7db0897389c24524",
+          "alphaRange": [
+            0,
+            254
+          ]
+        },
+        {
+          "role": "mark",
+          "path": "assets/skins/k-on/mark.png",
+          "sourceOutput": "exec-aae63cd8-ca65-44cc-95fb-8752fbceea59.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 1048575,
+          "sha256": "90f5bd25f5a45977cfae16d8722589055f96eaf411d002d71f6749b94718ff65",
+          "alphaRange": [
+            0,
+            255
+          ]
+        },
+        {
+          "role": "achievement",
+          "path": "assets/skins/k-on/achievement.png",
+          "sourceOutput": "exec-6bc51a26-f893-4ddb-97de-c00fbb5d2e3d.png",
+          "width": 1254,
+          "height": 1254,
+          "bytes": 1546848,
+          "sha256": "ccf952a2a20ff80c16823a34b44fd2e34053c2259ae2e1b2300f8346724522d9",
+          "alphaRange": [
+            0,
+            255
+          ]
+        }
+      ],
+      "headers": [
+        {
+          "page": "home",
+          "path": "assets/skins/k-on/header-home.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 2029686,
+          "sha256": "5c26e1cd195196081a03c5a9bdeccc3e6dab1ecce8aa42e342185e245c86b197",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/k-on-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-854b7792-f762-4402-ab0f-1a00fd1a227b.png"
+        },
+        {
+          "page": "coach",
+          "path": "assets/skins/k-on/header-coach.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1619210,
+          "sha256": "2c98d8cde370ed5a2fde35ce8d52aab6c6c80d12a4d044c40a743453b83a23dd",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/k-on-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-32cc9475-169d-4218-a422-8639f2843b81.png"
+        },
+        {
+          "page": "history",
+          "path": "assets/skins/k-on/header-history.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 1460045,
+          "sha256": "c6059db56521c3ba94e7f8a59923e3815f738a289b2c1fef4f9d8e9c5e412fa0",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/k-on-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-e36f295d-8f16-40a4-9864-64b5e8fcf4a7.png"
+        },
+        {
+          "page": "settings",
+          "path": "assets/skins/k-on/header-settings.png",
+          "width": 1536,
+          "height": 1024,
+          "bytes": 917763,
+          "sha256": "97e70c081402a8a0ea7e5b4fc9c9062acba048740e1a6a55e5dfffeaa5250adf",
+          "alphaRange": [
+            0,
+            254
+          ],
+          "reference": "docs/skins/design-references/k-on-four-tabs.png",
+          "method": "image_gen reference edit; no local extraction of the concept board",
+          "sourceOutput": "exec-9c5d2b02-dc9b-487a-a43f-b86bbe76ab42.png"
+        }
+      ],
+      "headerOverrides": []
+    }
+  ],
+  "headerPages": [
+    "home",
+    "coach",
+    "history",
+    "settings"
+  ],
+  "referencePolicy": "Five skins use ImageGen reference edits. Pikachu alone uses the explicitly approved local extraction of existing artwork.",
+  "shippedPngCount": 47,
+  "shippedPngBytes": 57308052
+}

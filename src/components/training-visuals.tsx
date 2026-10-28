@@ -6,10 +6,10 @@ import { formatDuration } from '../core/math'
 import type { WorkoutRound } from '../core/types'
 import type { WeeklyAchievement } from '../core/weekly-achievement'
 import type { TrendPoint } from '../core/progress-trends'
-import { sport, useTheme } from '../theme'
+import { getWeekBarFill, sport, useTheme } from '../theme'
 
 /** The same seven actual days are used by Home and the exported weekly summary. */
-export function WeekBars({ days, inverted = false }: { days: WeeklyAchievement['days']; inverted?: boolean }) {
+export function WeekBars({ days, inverted = false, compact = false }: { days: WeeklyAchievement['days']; inverted?: boolean; compact?: boolean }) {
   const theme = useTheme()
   const maximum = Math.max(1, ...days.map(day => day.floors))
   const today = new Date().toDateString()
@@ -20,11 +20,11 @@ export function WeekBars({ days, inverted = false }: { days: WeeklyAchievement['
       return <View key={day.at} style={styles.day} accessible={false}>
         <View style={styles.track}>
           <View style={[styles.bar, { height: day.floors ? 10 + day.floors / maximum * 46 : 2,
-            backgroundColor: day.floors ? inverted ? theme.heroAccent : theme.brandText : inverted ? theme.heroLine : theme.line }]} />
+            backgroundColor: day.floors ? inverted ? getWeekBarFill(theme, current) : theme.brandText : inverted ? theme.heroLine : theme.line }]} />
         </View>
-        <View style={[styles.dayLabel, current && { backgroundColor: inverted ? theme.heroAccent : theme.brand }]}>
+        {!compact ? <View style={[styles.dayLabel, current && { backgroundColor: inverted ? theme.heroAccent : theme.brand }]}>
           <Text style={[styles.dayText, { color: current ? inverted ? theme.heroSurface : theme.onBrand : ink }]}>{day.label}</Text>
-        </View>
+        </View> : null}
       </View>
     })}
   </View>

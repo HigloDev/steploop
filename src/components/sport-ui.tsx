@@ -1,17 +1,18 @@
 import React from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { sport, useTheme } from '../theme'
+import { getPrimaryActionPaint, sport, useTheme } from '../theme'
 
 export function SportButton({ title, onPress, secondary = false, disabled = false, loading = false, icon, style, accessibilityLabel }: {
   title: string; onPress: () => void; secondary?: boolean; disabled?: boolean; loading?: boolean;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap; style?: StyleProp<ViewStyle>; accessibilityLabel?: string
 }) {
   const theme = useTheme()
-  const color = secondary ? theme.brandInk : theme.onBrand
+  const action = getPrimaryActionPaint(theme)
+  const color = secondary ? theme.brandInk : action.ink
   return <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel ?? title}
     accessibilityState={{ disabled: disabled || loading, busy: loading }} disabled={disabled || loading}
-    onPress={onPress} style={({ pressed }) => [styles.button, { backgroundColor: secondary ? theme.brandSoft : theme.brand,
+    onPress={onPress} style={({ pressed }) => [styles.button, { backgroundColor: secondary ? theme.brandSoft : action.fill,
       opacity: disabled ? sport.opacity.disabled : pressed ? sport.opacity.pressed : 1 }, style]}>
     {loading ? <ActivityIndicator color={color} /> : <>
       {icon ? <MaterialCommunityIcons name={icon} size={22} color={color} accessible={false} /> : null}
@@ -20,9 +21,9 @@ export function SportButton({ title, onPress, secondary = false, disabled = fals
   </Pressable>
 }
 
-export function SectionHeading({ title, action, onPress }: { title: string; action?: string; onPress?: () => void }) {
+export function SectionHeading({ title, action, onPress, compact = false }: { title: string; action?: string; onPress?: () => void; compact?: boolean }) {
   const theme = useTheme()
-  return <View style={styles.sectionHeading}>
+  return <View style={[styles.sectionHeading, compact && { marginTop: 8 }]}>
     <Text accessibilityRole="header" style={{ color: theme.ink, fontSize: sport.type.heading, fontWeight: '700', flex: 1 }}>{title}</Text>
     {action && onPress ? <Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onPress} style={({ pressed }) => [styles.textAction, pressed && { opacity: sport.opacity.pressed }]}>
       <Text style={{ color: theme.brandInk, fontSize: sport.type.secondary, fontWeight: '500' }}>{action}</Text>
@@ -31,13 +32,13 @@ export function SectionHeading({ title, action, onPress }: { title: string; acti
   </View>
 }
 
-export function StatPair({ value, label, unit = '', inverted = false }: { value: string; label: string; unit?: string; inverted?: boolean }) {
+export function StatPair({ value, label, unit = '', inverted = false, large = false }: { value: string; label: string; unit?: string; inverted?: boolean; large?: boolean }) {
   const theme = useTheme()
   return <View style={{ flex: 1, gap: sport.space.xs }} accessible accessibilityLabel={`${label} ${value}${unit}`}>
-    <Text style={{ ...theme.numeric, color: inverted ? theme.heroInk : theme.ink, fontSize: sport.type.heading }} numberOfLines={1} adjustsFontSizeToFit>
-      {value}{unit ? <Text style={{ fontSize: sport.type.caption, fontWeight: '400', letterSpacing: 0 }}> {unit}</Text> : null}
+    <Text style={{ ...theme.numeric, color: inverted ? theme.heroInk : theme.ink, fontSize: large ? 30 : sport.type.heading }} numberOfLines={1} adjustsFontSizeToFit>
+      {value}{unit ? <Text style={{ fontSize: large ? 14 : sport.type.caption, fontWeight: '400', letterSpacing: 0 }}> {unit}</Text> : null}
     </Text>
-    <Text style={{ color: inverted ? theme.heroMuted : theme.muted, fontSize: sport.type.caption }}>{label}</Text>
+    <Text style={{ color: inverted ? theme.heroMuted : theme.muted, fontSize: large ? 14 : sport.type.caption }}>{label}</Text>
   </View>
 }
 

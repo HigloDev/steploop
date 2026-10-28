@@ -1,0 +1,30 @@
+{
+  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "recordedAt": "2026-10-28T13:34:16.663231+00:00",
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0
+  },
+  "regression": {
+    "command": "npm test",
+    "exitCode": 0,
+    "tests": 767,
+    "pass": 734,
+    "fail": 0,
+    "skipped": 33
+  },
+  "androidExport": {
+    "command": "npx expo export --platform android --output-dir output/graphics-qa/android-export-final",
+    "entry": "index.ts (ordinary App entry)",
+    "exitCode": 0,
+    "bundle": "index-464191efcbb9c4fb621f2b8d1ef1ca18.hbc",
+    "bytes": 4849055,
+    "sha256": "d7467c4d251c7128815a5a1b33370353d05bfed84e0dc93f542161b88c5f7a1a",
+    "metadataSha256": "54fc25eb1dece0e294d0d2bea9c690441dc193411145cee3fcf05fb8e3ae6df7"
+  },
+  "logHashes": {
+    "typecheck-final.log": "01f59c386f88308a032dabb6c93af9829af664a84a1bf725242395a8ae98bc72",
+    "regression-final.log": "6f0453e6cf1a9e0dc2054a0abb9147efee6bafe1622916c13bbc904989318694",
+    "android-export-final.log": "6f7950f94a5a38108e9b509a8929d6d6f0107599f69253e98a403f73de22fd19"
+  }
+}

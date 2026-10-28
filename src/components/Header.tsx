@@ -6,7 +6,8 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
-import { useTheme, Theme } from '../theme'
+import { getThemeSkinId, useTheme, Theme } from '../theme'
+import { SkinArt } from './skin-art'
 import { RootStackNavigation } from '../navigation/types'
 
 interface HeaderProps {
@@ -50,6 +51,7 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
         ) : (
           large ? null : <View style={styles.backPlaceholder} />
         )}
+        {large && getThemeSkinId(theme) !== 'classic' ? <SkinArt kind="mark" width={28} height={28} style={{ marginRight: 10 }} /> : null}
         <Text accessibilityRole="header" style={[styles.title, large && styles.largeTitle, align === 'left' && { textAlign: 'left' }]}>
           {title}
         </Text>
@@ -58,7 +60,7 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
             <Text style={styles.rightText}>{rightLabel}</Text>
           </Pressable>
         ) : (
-          large ? null : <View style={styles.rightPlaceholder} />
+          large ? null : <View style={styles.rightPlaceholder}><SkinArt kind="mark" width={28} height={28} /></View>
         ))}
       </View>
     </View>
@@ -119,5 +121,6 @@ const makeStyles = (theme: Theme) =>
     },
     rightPlaceholder: {
       minWidth: 48,
+      alignItems: 'center',
     },
   })

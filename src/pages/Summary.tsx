@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { Header } from '../components/Header'
+import { SkinLead } from '../components/skin-art'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { FlowSheet } from '../components/flow-sheet'
 import { CompletionCelebration } from '../components/completion-celebration'
@@ -191,8 +192,10 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
       {route.params.fresh && !celebrationDone && totals.floors > 0 ? <CompletionCelebration floors={totals.floors} ascentM={totals.ascent} onDone={() => setCelebrationDone(true)} /> : null}
       <Header title={route.params.fresh ? '训练完成' : '训练详情'} align={pending || savedTemplate ? 'left' : 'center'} back rightLabel="完成" onRightPress={() => navigation.navigate('Main', { screen: 'Train' })} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-        <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
-        <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上了一程。' : '每一程，都留下高度。'}</Text>
+        <SkinLead kind="achievement" compact>
+          <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
+          <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上了一程。' : '每一程，都留下高度。'}</Text>
+        </SkinLead>
         <View style={styles.hero} accessible accessibilityLabel={`总爬升 ${totals.ascent} 米，${totals.floors} 层`}>
           <Text style={styles.heroLabel}>累计爬升 <Text style={styles.englishLabel}> / TOTAL ASCENT</Text></Text>
           <View style={styles.heroRow}>

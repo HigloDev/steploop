@@ -11,6 +11,7 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { FlipNumber, GaugeCell, HoldToConfirm, MiniStat, PhaseStatusBar, StairGauge } from '../components/workout-ui'
 import { Disclosure } from '../components/disclosure'
+import { SkinArt } from '../components/skin-art'
 import { StairPaceSelector } from '../components/stair-pace-selector'
 import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
 import { calorieMetricLabel } from '../core/segmented-calories'
@@ -214,6 +215,7 @@ export function WorkoutContent({ navigation, session }: {
     <View style={[styles.root, { paddingTop: insets.top + (compact ? 12 : 20), paddingBottom: insets.bottom + 8 }]}>
       <StatusBar style={P.isDark ? 'light' : 'dark'} />
       <View style={styles.liveHeader}>
+        <SkinArt kind="mark" width={28} height={28} />
         <Text accessibilityRole="header" style={styles.liveTitle}>向上训练</Text>
         <View style={styles.liveBadge}><View style={styles.liveDot} /><Text style={styles.liveBadgeText}>LIVE</Text></View>
         <Text style={styles.roundBadge}>第 {snapshot.roundNumber} 轮</Text>
@@ -243,7 +245,10 @@ export function WorkoutContent({ navigation, session }: {
           </View>
           <Text style={[styles.caption, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
         </View>
-        <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 160 : 210} maxVisible={10} style={styles.gauge} />
+        <View style={{ alignItems: 'center' }}>
+          <SkinArt width={compact ? 64 : 88} height={compact ? 48 : 64} />
+          <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 160 : 210} maxVisible={10} style={styles.gauge} />
+        </View>
       </View>
 
       {calibrating ? (

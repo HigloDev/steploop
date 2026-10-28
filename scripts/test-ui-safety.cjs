@@ -120,6 +120,8 @@ for (const failed of [false, true]) test(failed
       if (writeFailed) throw Error('上次训练尚未保存成功')
     } },
     '../components/brand-mark': { BrandMark: 'BrandMark' },
+    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
+    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' },
     '../components/ascent-references': { AscentReferences: 'AscentReferences' },
     '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
@@ -324,6 +326,8 @@ test('editing an old workout preserves its training date and chronological posit
     react: hooks.react, 'react-native': native, '@expo/vector-icons': icons,
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../components/disclosure': { Disclosure: 'Disclosure' }, '../components/Header': { Header: 'Header' },
+    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
+    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' }, '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
     '../components/sport-ui': { StatPair: 'StatPair' },
     '../components/training-visuals': { TrendChart: 'TrendChart' },

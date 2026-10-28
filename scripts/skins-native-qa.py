@@ -16,10 +16,10 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 IDS = ['classic', 'night-run', 'woodland', 'eva-unit-01', 'eva-unit-02', 'pikachu', 'k-on']
 PAPER = {
-    'classic': ['#F7F9FC', '#0E192B'], 'night-run': ['#F7F9F2', '#101411'],
-    'woodland': ['#F5F3EB', '#101C16'], 'eva-unit-01': ['#F7F4FC', '#16111F'],
-    'eva-unit-02': ['#FFF6F1', '#201315'], 'pikachu': ['#FFFBEF', '#201A10'],
-    'k-on': ['#FFF9F1', '#21191F'],
+    'classic': ['#F7F9FC', '#0E192B'], 'night-run': ['#F5FAF4', '#0C1717'],
+    'woodland': ['#F9F7EC', '#0B1B17'], 'eva-unit-01': ['#F7F4FC', '#10101C'],
+    'eva-unit-02': ['#FFF9F6', '#180F12'], 'pikachu': ['#FFF9E7', '#1C190F'],
+    'k-on': ['#FFF8F0', '#211A24'],
 }
 
 
@@ -40,7 +40,13 @@ class Lab:
 
     def tree(self):
         for _ in range(5):
-            result = self.adb('shell', 'uiautomator', 'dump', '--compressed', '/sdcard/steploop-skins-qa.xml')
+            try:
+                result = self.adb('shell', 'uiautomator', 'dump', '--compressed', '/sdcard/steploop-skins-qa.xml')
+            except subprocess.CalledProcessError as error:
+                if error.returncode not in [1, 137]:
+                    raise
+                time.sleep(.3)
+                continue
             if 'dumped to:' not in result:
                 time.sleep(.3)
                 continue  # A failed dump must never reuse the previous screen's XML.
@@ -79,8 +85,9 @@ class Lab:
         while True:
             data = self.adb('exec-out', 'screencap', '-p', binary=True)
             img = Image.open(io.BytesIO(data)).convert('RGB')
-            if not check_paper or img.getpixel((10, 300)) == expected: break
-            assert time.monotonic() < deadline, f'{name}: unexpected page color {img.getpixel((10, 300))}, expected {expected}'
+            sample = (10, min(img.height - 100, max(300, img.height // 2)))
+            if not check_paper or img.getpixel(sample) == expected: break
+            assert time.monotonic() < deadline, f'{name}: unexpected page color {img.getpixel(sample)}, expected {expected}'
             time.sleep(.2)
         (self.out / (name + '.png')).write_bytes(data)
         self.results.append({'name': name, 'skin': skin, 'mode': mode, 'size': list(img.size), 'paper': PAPER[skin][mode == 'dark']})

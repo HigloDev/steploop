@@ -1,0 +1,2252 @@
+{
+  "schemaVersion": 1,
+  "baseVersion": "1.1.7",
+  "baseCommit": "9c7eed9",
+  "package": "com.zxn.palou.uiqa",
+  "avd": "steploop_skins_20261028",
+  "syntheticData": true,
+  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "nativeVisualReview": "docs/skins/GRAPHICS_VALIDATION.md",
+  "frames": [
+    {
+      "file": "evidence/20261028-fidelity/core/classic-dark-climbing.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "c0ab793aaf665b59cb423035c9079aa50adff897b9c9071eb13b32ac695c1510",
+      "capturedAt": "2026-10-28T13:36:26.489896+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-dark-coach.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "f6f219a2f179404623d8ed1d77d175f96a694ed385821476ad9f4abb7d221846",
+      "capturedAt": "2026-10-28T13:35:17.535256+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-dark-history.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "881e3ae62e3373647fbdb6d84d1f0f5af17287b418c3d6c7405b294e6d33fcd5",
+      "capturedAt": "2026-10-28T13:35:42.854058+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-dark-home.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "b0baae602ed9a053899f2089cad63ad295612694aaecf1cd7d0274dc086ff65a",
+      "capturedAt": "2026-10-28T13:34:59.331313+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-dark-settings.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "daaf7474a58646155c515a923b83b6d40f74f8fcbe1dc46b6c32dc7867efc2da",
+      "capturedAt": "2026-10-28T13:36:03.181198+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-dark-summary.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "c0b864da4e071d9919003adbf678477ca7ab03754c8b94442ef51794af450664",
+      "capturedAt": "2026-10-28T13:36:53.317984+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-light-climbing.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "d05559b24e68f8d4d2d1257b7deb33b5922cc4735ca13580e2d54e94059f8e6b",
+      "capturedAt": "2026-10-28T13:34:07.225491+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-light-coach.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "5f031acdb5ca8dbd1344e43296fac52f68896b5309069cefef36f56304f6d5f1",
+      "capturedAt": "2026-10-28T13:32:52.361240+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-light-history.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "e06c9ab99c1ac83e30acf809dcfd2a7b985caf0709f411f8a33dd54250ccb651",
+      "capturedAt": "2026-10-28T13:33:17.832874+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-light-home.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "e4a05d9055cbb9db26c75f0d9b0c715e9b439ee81b24a6f57d0eed54be60bec0",
+      "capturedAt": "2026-10-28T13:32:31.603726+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-light-settings.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "2d383dd6178e5b703a109c5cafd8b3d933d6ef97b40cdf94681bbbe4e283c6e5",
+      "capturedAt": "2026-10-28T13:33:43.868253+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/classic-light-summary.png",
+      "group": "core",
+      "skin": "classic",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "e8e236575e7ccb7c5c29a67b9dcacd815441f6b652f3935ddc69a5b28b3db457",
+      "capturedAt": "2026-10-28T13:34:39.526873+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-01-dark-climbing.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "5e88521a8030549914ea7cc59d6d9b293c284f8a18c569e221eebaeee7d247dd",
+      "capturedAt": "2026-10-28T13:41:10.262950+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-01-dark-summary.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "3be1dbfca49c555639a3c91ef35ecf4c86b9ca8ad93fe4a14cc91c3ad0b6f66e",
+      "capturedAt": "2026-10-28T13:41:37.678057+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-01-light-climbing.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "a406ded898ffb778304ff79037431bf6a69235251f00266aacde6fc3a3aedb5a",
+      "capturedAt": "2026-10-28T13:40:24.673128+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-01-light-summary.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "7003c418c823caa8c757d6dc6076be7906f9a7bc88b4dde172637158c2a82635",
+      "capturedAt": "2026-10-28T13:40:51.879670+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-02-dark-climbing.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "ce9fd8c0e9c8541dca26cdf687d236f7ce0637a8792bcea3c19f5b603807600a",
+      "capturedAt": "2026-10-28T13:42:42.811589+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-02-dark-summary.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "75fae5356040dc8c9e03a9c2b236c0dff2c0360b2861f00ed444cbed1b5d91c4",
+      "capturedAt": "2026-10-28T13:43:04.639623+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-02-light-climbing.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "c9a618a84b569c2d59291da22705101d766edeeae85821f570268be0bf36fb76",
+      "capturedAt": "2026-10-28T13:41:57.146312+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/eva-unit-02-light-summary.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "9d899aeb3fdb9d5940879a7e818dd0e268267811964b56150a52b3edc68d57f3",
+      "capturedAt": "2026-10-28T13:42:21.445130+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/k-on-dark-climbing.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "760d0bfa53f372aa9eafecdeeea8b376a83d05eb3df0e70eaaf633d538fa0601",
+      "capturedAt": "2026-10-28T13:45:14.147617+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/k-on-dark-summary.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "dd6eba4f81b5238648261fa7fa96c93d878135b2ecf29ba180b0d579a5dd41f2",
+      "capturedAt": "2026-10-28T13:45:36.034869+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/k-on-light-climbing.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "9287efa8b20685f4d1484a0b01e5a2a30d52da2e7335800f574b28dbb7ca9e15",
+      "capturedAt": "2026-10-28T13:44:38.037256+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/k-on-light-summary.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "a2eb24e70edbac8f571b729da1ea5d5837d92318becb7b5ce7b500df32d4ce5a",
+      "capturedAt": "2026-10-28T13:44:59.075627+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/night-run-dark-climbing.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "0c564ef320453627a371b5b33b8fa4c1fc5b41dab13a70522c0547ddb7d57acd",
+      "capturedAt": "2026-10-28T13:38:02.000465+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/night-run-dark-summary.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "b85149fbbe23b595d6ffbd41f5a86172786ce8cdd7d39de3bf416dc0db3bfbaa",
+      "capturedAt": "2026-10-28T13:38:30.204619+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/night-run-light-climbing.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "519bc7e47e6f00bdb029a6a03879e7588fb5f7e39f8b27319a065ae910c96bfd",
+      "capturedAt": "2026-10-28T13:37:12.915087+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/night-run-light-summary.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "fb14946be6390351a959a30554e53b52fc707f34f41b151dec6be45d68be4c1a",
+      "capturedAt": "2026-10-28T13:37:42.438955+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/pikachu-dark-climbing.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "2ad1e8a21cbfcad94f173a3d25e6ad1601563e184b80a73949f0d3afe8b892b4",
+      "capturedAt": "2026-10-28T13:43:59.421962+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/pikachu-dark-summary.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "0a0abfdb92a345a8855715e6a6fd7d0a4dfb47b74af4995ddcd8e3c3ef5b33d5",
+      "capturedAt": "2026-10-28T13:44:22.215224+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/pikachu-light-climbing.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "44ed24ef4a3a9aa069f74d28caa09a0965754d5c6281562cd783068cbc9efca3",
+      "capturedAt": "2026-10-28T13:43:19.229737+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/pikachu-light-summary.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "7127b1b1dc682125b7849466bad32f0a234b04d926186e35817dd29bbed2361a",
+      "capturedAt": "2026-10-28T13:43:43.383592+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/woodland-dark-climbing.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "dbf02940a81204892945860f4b04553e48e1c95746ba8738aee7ada70619867b",
+      "capturedAt": "2026-10-28T13:39:37.622004+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/woodland-dark-summary.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "2a00d65d7095dce616803a4b890355fd30bfebd5b0195b783de578756f3345af",
+      "capturedAt": "2026-10-28T13:40:05.677311+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/woodland-light-climbing.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "e243252aabab86286ef8aaf53195c03e7d8d6756d64fdcd6e7aa9b7917f02d04",
+      "capturedAt": "2026-10-28T13:38:49.666124+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/core/woodland-light-summary.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "summary",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "2e607f3e668acf18647bcc9dbeb5d6d530312db931fa3349d8f3184ef04e2e37",
+      "capturedAt": "2026-10-28T13:39:16.609944+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-appearance.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "appearance",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "65897bce44aaa2d9696ac8b5a922646d81b69ff329e80713693b870ed368b063",
+      "capturedAt": "2026-10-28T13:40:47.690759+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-calibrating.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "calibrating",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "49f843ced40bd62fa58b7eb9922b7f45cc1c0e38e1da83d03463c0298c6a4f6d",
+      "capturedAt": "2026-10-28T13:41:06.235927+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-coach-active.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-active",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "79e6fc3a4e264fc6ea41d8c5a2aab542dca840e84828b3d76e6b05cce5f87c2c",
+      "capturedAt": "2026-10-28T13:37:57.860955+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-coach-course.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-course",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "a6118eb46e4e492d46a5777cfd935e125f3124323656e0efe1343fd771e9af15",
+      "capturedAt": "2026-10-28T13:38:17.356313+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-coach-goal.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-goal",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "db3b559c6f1aebd0f1cd7a951307230cb265151f8ee216c9ab595664a9220499",
+      "capturedAt": "2026-10-28T13:38:37.317087+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-coach-records.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-records",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "c337558ac69203b6cec1211eb93038c610d5540d702b99bd6861c872880c60da",
+      "capturedAt": "2026-10-28T13:39:18.807984+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-coach-review.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-review",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "71cfebdd66ea26693e8738e5478feff7d2e1a86ecf1604c344817a61bf7ecb79",
+      "capturedAt": "2026-10-28T13:39:38.825885+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-coach-session.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-session",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "3e90368ba59d89317c222e4e6fc58df3fce723b5eb636a039e89aa740cfa2d85",
+      "capturedAt": "2026-10-28T13:38:59.302212+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-course-climbing.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "course-climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "2db4ef1501330d2dc0b025d683171f562a805c28d5142ae503aa07c389571b54",
+      "capturedAt": "2026-10-28T13:40:27.190145+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-descending.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "descending",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "b6426ac6565ce6b26f82ffe7813dea285968916dc50bca151a2b140b8597a67f",
+      "capturedAt": "2026-10-28T13:41:26.888153+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-save-failed.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "save-failed",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "f2320ccf9344d2fa896fa4b47bd16b9bbcb59d32455f044a84e4569a9ce11142",
+      "capturedAt": "2026-10-28T13:42:03.601392+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-share.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "share",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "72d2c5ce8221c68f5eb1a2e4c335116e1ec7fea08b61b6ec512d1bc4cca77164",
+      "capturedAt": "2026-10-28T13:42:20.695383+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-summary-coach.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "summary-coach",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "71515a2a015e65a50f904fc04c3c8d85cbd5f9a77277b34d2f7cff538d65c919",
+      "capturedAt": "2026-10-28T13:40:07.568712+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-waiting.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "waiting",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "a910ffa3418ace57adc6c62736fe2f9e374469bf9c25af413d69839961e4153c",
+      "capturedAt": "2026-10-28T13:41:45.624756+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-dark-weekly.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "weekly",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "439ef4985d8befe5ba8e4ff00a7a5b0cbd089785ad2bb1555ffbb7e539170132",
+      "capturedAt": "2026-10-28T13:42:41.784201+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-appearance.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "appearance",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "d17e1c6c396c65f93a3d7a6a26e716f16fa270d2d72f5713684cc63e9622c23e",
+      "capturedAt": "2026-10-28T13:35:33.938868+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-calibrating.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "calibrating",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "5f0abf04ebfa2cf931f77b79a914b91d527bc80cd46ddd13e83ed1658774e4e3",
+      "capturedAt": "2026-10-28T13:35:53.513071+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-coach-active.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach-active",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "830a2a9f2e675e0be3a7bef7ceb69c9ff426a57392d834594ba66a59a2423605",
+      "capturedAt": "2026-10-28T13:32:27.998495+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-coach-course.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach-course",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "9f8ffa8c920873e7d30d7c13e3154ce335e7fd22c9624f2e4bfc5fab22cde0b9",
+      "capturedAt": "2026-10-28T13:32:49.870677+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-coach-goal.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach-goal",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "e442337891d2a82979f11190d84dd0396b796d51e8a6c8283576f6a2c260c577",
+      "capturedAt": "2026-10-28T13:33:13.008946+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-coach-records.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach-records",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "0eaa399781a43fa1c2c2370fde503a06318937b0718d208ccd342751a541438b",
+      "capturedAt": "2026-10-28T13:34:05.740829+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-coach-review.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach-review",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "5d1702b67d30593b7d78fb3ee96e0a7c238b3b5a689c41067e9d8ebf19c77cc7",
+      "capturedAt": "2026-10-28T13:34:26.669692+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-coach-session.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach-session",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "fc2c43ac26190ac48e429532d459da6de1594b5187a710fd15154f0bb547509c",
+      "capturedAt": "2026-10-28T13:33:41.966729+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-course-climbing.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "course-climbing",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "a52ed1a6479f6bf1e84fabea54dcd232dc3b737b86b18d6be50db450a3dd33b3",
+      "capturedAt": "2026-10-28T13:35:15.008410+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-descending.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "descending",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "dddb71c30343b336fc1ee85bcee8e97ccfb7a1b458827d13fa2776947cc1cb9e",
+      "capturedAt": "2026-10-28T13:36:14.348546+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-save-failed.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "save-failed",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "b118c38a6d2bb1fe3aabd52b9faf21bd78a2637bfe1371c9ec57df5b3ab880e7",
+      "capturedAt": "2026-10-28T13:36:56.286411+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-share.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "share",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "a9234c2a91f7e220fdf2e179c0bbb4a4231f01cee52464a711a57f2722c9376a",
+      "capturedAt": "2026-10-28T13:37:16.337477+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-summary-coach.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "summary-coach",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "6a1d57e4bb56d0c7d209553f63b2b933a7f9210f66ccc75345cc09384fd5f2fc",
+      "capturedAt": "2026-10-28T13:34:55.520523+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-waiting.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "waiting",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "1a6b64f101d1c765b44ce498cd631297434559737ad2410b7d9972c355bfb22d",
+      "capturedAt": "2026-10-28T13:36:34.952881+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/flows/eva-unit-01-light-weekly.png",
+      "group": "flows",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "weekly",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "0a7cb086656ee4583181c1ace98b6356133d9fe865b132e0c1f92d7eb23f2311",
+      "capturedAt": "2026-10-28T13:37:40.015990+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/eva-unit-01-light-course-feedback-saved.png",
+      "group": "interaction",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "course-feedback-saved",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "9fd6d1c2e209bf3a44ffa4a62ffcf56a85930e6c585aa43ba64e49ef066a222c",
+      "capturedAt": "2026-10-28T13:46:35.427964+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/eva-unit-02-dark-long-hold-result.png",
+      "group": "interaction",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "long-hold-result",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "29d33a4c16d204998de4262ae86fd6b8951b068468ad9f4c834747ed66691033",
+      "capturedAt": "2026-10-28T13:47:49.389268+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/eva-unit-02-dark-short-tap-keeps-training.png",
+      "group": "interaction",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "short-tap-keeps-training",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "7ef51ac1ef4797974dc2d4276df2d525973353627816fa7e82414ed2db72d36b",
+      "capturedAt": "2026-10-28T13:47:37.647380+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/eva-unit-02-dark-tab-roundtrip.png",
+      "group": "interaction",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "tab-roundtrip",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "cf95366eabab431e7b79aedb477440146dcda0fe22584ac8b14afc110781ef37",
+      "capturedAt": "2026-10-28T13:41:02.226883+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/k-on-dark-coach-cold-start.png",
+      "group": "interaction",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "coach-cold-start",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "f5ad5356b2079c24fad9c02405a6490adf6875ef532f3867346a492e0aa33e82",
+      "capturedAt": "2026-10-28T13:46:05.821168+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/k-on-dark-goal-saved.png",
+      "group": "interaction",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "goal-saved",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "66192acac62519895411755c934912619c0132f8ad1acabf395c689b65dfe851",
+      "capturedAt": "2026-10-28T13:44:58.471824+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/k-on-dark-review-saved.png",
+      "group": "interaction",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "review-saved",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "b94693f3f8ade4edfe95a20a636facf1ac65ab21c5cd9f270377e9d8658ea077",
+      "capturedAt": "2026-10-28T13:45:45.866232+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/k-on-dark-weight-saved.png",
+      "group": "interaction",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "weight-saved",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "c0cbed213235a9d4200248cb3f278a098c4e7171d50942246693da711f16f4d5",
+      "capturedAt": "2026-10-28T13:45:17.508650+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/k-on-light-feedback-preview-keeps-record-count.png",
+      "group": "interaction",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "feedback-preview-keeps-record-count",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "ec58989d60bc997b64b5e4b90db29b04ddf2453ad68e87079eab9e36913b8a5a",
+      "capturedAt": "2026-10-28T13:47:19.377628+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/k-on-light-feedback-preview.png",
+      "group": "interaction",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "feedback-preview",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "5b071b69587ed4077d3881f74f0a23a8972a8fa265ca56bb5b8c80973a3078c1",
+      "capturedAt": "2026-10-28T13:47:11.155181+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/woodland-dark-cold-start.png",
+      "group": "interaction",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "cold-start",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "37c896573cd0b89aa75827c5f8c844da8fa5bc33d7bbd51e5c3b44eae21231f9",
+      "capturedAt": "2026-10-28T13:43:17.788322+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/woodland-dark-system.png",
+      "group": "interaction",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "system",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "439fda68a676a6ef23857b4f70a9b8a8d8a039b30d455dd10135b0aa30a9d4ad",
+      "capturedAt": "2026-10-28T13:43:32.326884+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/woodland-light-manual-on-dark-system.png",
+      "group": "interaction",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "manual-on-dark-system",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "eb2e37f080aa0c63a141aa730db21eda6446b51f084569cfd3434c91e844a29f",
+      "capturedAt": "2026-10-28T13:43:36.364478+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/interaction/woodland-light-system.png",
+      "group": "interaction",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "system",
+      "size": [
+        1080,
+        2400
+      ],
+      "sha256": "3f263dc7c73d46a7cddf8866e4fffb7e4d22958e6ffbf32d5f9cdb9c6b46548a",
+      "capturedAt": "2026-10-28T13:43:29.881291+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-dark-coach.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        720,
+        1625
+      ],
+      "sha256": "36f476a586827f0abb604a3f3334096cbf17558f9c1bb2067329ed4e5f5700a8",
+      "capturedAt": "2026-10-28T13:41:20.132486+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-dark-history.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        720,
+        1603
+      ],
+      "sha256": "edd69aa00f5f16641f1f21ef3dd9f906532fe1cb6d8755e98a5175b16d608ed8",
+      "capturedAt": "2026-10-28T13:41:42.023842+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-dark-home.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        720,
+        1608
+      ],
+      "sha256": "44e6918b6b408b6c9513d69379e9fc80c86511ed7f1d5c2f8f0aabe937641e90",
+      "capturedAt": "2026-10-28T13:40:57.791549+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-dark-settings.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        720,
+        1603
+      ],
+      "sha256": "7ea811031968796828aa5c5aa0dacd058e3e4e79e0ce2713424890a18ce46bee",
+      "capturedAt": "2026-10-28T13:42:04.310085+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-light-coach.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        720,
+        1699
+      ],
+      "sha256": "f898937a53f8e902b87678767421cf4acdb734ef0874d42d264a7d1188318887",
+      "capturedAt": "2026-10-28T13:39:47.836185+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-light-history.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        720,
+        1677
+      ],
+      "sha256": "ac01eb1091b2dc58de2e3b7e10d9bfd9c29044ccfd0e29421148f9dfee821412",
+      "capturedAt": "2026-10-28T13:40:10.545992+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-light-home.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        720,
+        1682
+      ],
+      "sha256": "66c176d10ad745ca2cb8e18190de64a15cec8c55f323abef51d22dc5075ae343",
+      "capturedAt": "2026-10-28T13:39:26.417668+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-01-light-settings.png",
+      "group": "core",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        720,
+        1677
+      ],
+      "sha256": "ea1b6e6fa326aa7f826e09ac2ccf68df20587c7354208e226bc771d8b319ae61",
+      "capturedAt": "2026-10-28T13:40:34.481005+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-dark-coach.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        720,
+        1985
+      ],
+      "sha256": "9d4338d9025d3620a548aaab54e88bc1ea138b98934ce09ed22e1f2f395f8bdf",
+      "capturedAt": "2026-10-28T13:44:08.572728+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-dark-history.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        720,
+        2000
+      ],
+      "sha256": "24de1177aca5010529bc0248b59d342d3baf9de4745dae33454a5ce24b245025",
+      "capturedAt": "2026-10-28T13:44:26.956445+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-dark-home.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        720,
+        2008
+      ],
+      "sha256": "fe708cee6560407bd916662d8cc7fbce773840551f2b3941a187ec3eaf29f918",
+      "capturedAt": "2026-10-28T13:43:49.714768+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-dark-settings.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        720,
+        2008
+      ],
+      "sha256": "4cd94dd30e28b93b1710589a4b0ad027a024b381ba2aea89ec21fb11e0c67021",
+      "capturedAt": "2026-10-28T13:44:47.783071+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-light-coach.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        720,
+        1958
+      ],
+      "sha256": "93ed187ff3963c4076a83fa6f62c2cc8310af7350bde594b8adc95c0b105119d",
+      "capturedAt": "2026-10-28T13:42:46.877768+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-light-history.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        720,
+        1973
+      ],
+      "sha256": "80f552dd45b915fbe248b75d303339dbdbc277e03ccd229e135d19416dd9c442",
+      "capturedAt": "2026-10-28T13:43:07.321204+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-light-home.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        720,
+        1981
+      ],
+      "sha256": "2b9f8f71828900808bd68099a9b79a13ee83329bb9282689e68d22f9761b29a3",
+      "capturedAt": "2026-10-28T13:42:25.228631+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/eva-unit-02-light-settings.png",
+      "group": "core",
+      "skin": "eva-unit-02",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        720,
+        1981
+      ],
+      "sha256": "151d2bfc39959aee01f9987fadbd5dd0712203cbf83c44aef7703bf8ca5d712e",
+      "capturedAt": "2026-10-28T13:43:30.197173+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-dark-coach.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        720,
+        1588
+      ],
+      "sha256": "4a903b7be53171d537abbaca22ecd0d9eaa5686636dc3734363de7a40da6c000",
+      "capturedAt": "2026-10-28T13:48:37.659333+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-dark-history.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        720,
+        1588
+      ],
+      "sha256": "030cacd3f6b64624ac2825a297f93f5f2ce756a5ea0c434a91dde99e5aed45d4",
+      "capturedAt": "2026-10-28T13:48:52.547009+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-dark-home.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        720,
+        1595
+      ],
+      "sha256": "055ccf23de5e72fced70987a70ec72774a1339bfb12ad336d86fe35ee1820af4",
+      "capturedAt": "2026-10-28T13:48:23.633688+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-dark-settings.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        720,
+        1599
+      ],
+      "sha256": "98c2330eb125b3e2865a94bf3854777e974b58c60095039b697a11eba8f8a253",
+      "capturedAt": "2026-10-28T13:49:09.081787+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-light-coach.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        720,
+        1662
+      ],
+      "sha256": "92bdb1fb15a7c55f168ced96f0a91b55be5327a599add0d35afbaf1b13836161",
+      "capturedAt": "2026-10-28T13:47:37.079354+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-light-history.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        720,
+        1662
+      ],
+      "sha256": "23f554f2e4ef63bb594ced2b466bb132b146ad0a0a4d237b21e29159089de08c",
+      "capturedAt": "2026-10-28T13:47:52.953900+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-light-home.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        720,
+        1667
+      ],
+      "sha256": "37998e73c19678e7f13bafc88ffea3372fc3688914317e9ee6a8118420ce39d9",
+      "capturedAt": "2026-10-28T13:47:21.687256+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/k-on-light-settings.png",
+      "group": "core",
+      "skin": "k-on",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        720,
+        1673
+      ],
+      "sha256": "a774a7b9780333052256300532111baec16dd7902b9802665f93819e14e23126",
+      "capturedAt": "2026-10-28T13:48:09.646528+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-dark-coach.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        720,
+        2022
+      ],
+      "sha256": "74be1c4c41971d78f606147f594baaeae9cbc1db387fcaf2368e30d2d4734e69",
+      "capturedAt": "2026-10-28T13:35:06.801806+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-dark-history.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        720,
+        2029
+      ],
+      "sha256": "ca588bc757eb9dd4765ecfc5b93080df77c4d23bc9d635bb37f4e56a809fc0b4",
+      "capturedAt": "2026-10-28T13:35:28.523734+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-dark-home.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        720,
+        2014
+      ],
+      "sha256": "1ca2b375ef06211bacbe3fda49097cbb11cb01c5dc267b2dc1133bfd554fb6e4",
+      "capturedAt": "2026-10-28T13:34:45.442143+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-dark-settings.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        720,
+        2022
+      ],
+      "sha256": "af4fb88b66f93cd6a23732ee463014abadc370511c168d22fdcc5fe2ab84a1e0",
+      "capturedAt": "2026-10-28T13:35:52.678343+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-light-coach.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        720,
+        1995
+      ],
+      "sha256": "380ea80c1a824223b5bcbf19084ae800c2f1cdf551240689c5bbc032cfa000f5",
+      "capturedAt": "2026-10-28T13:33:29.621965+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-light-history.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        720,
+        2003
+      ],
+      "sha256": "a9e15a2acbbd2f77473b9c342ce6922216b43472704385b33172b4e8b9bf3207",
+      "capturedAt": "2026-10-28T13:33:55.174052+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-light-home.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        720,
+        1987
+      ],
+      "sha256": "a27e9f54888fa8988b20967e354c55c8649c7b6e86eb338529a015068412c9d2",
+      "capturedAt": "2026-10-28T13:33:03.980639+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/night-run-light-settings.png",
+      "group": "core",
+      "skin": "night-run",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        720,
+        1995
+      ],
+      "sha256": "e710fec3f8bea4d6e4ad663dbc10e851fc2232a4645b636ea08c97b9b7f9d9a6",
+      "capturedAt": "2026-10-28T13:34:21.362684+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-dark-coach.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        720,
+        1636
+      ],
+      "sha256": "de731eb0d0aedb2cf0df6682285ad8765b3d8bd65af342cd4271548b2ec3f432",
+      "capturedAt": "2026-10-28T13:46:31.590534+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-dark-history.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        720,
+        1626
+      ],
+      "sha256": "803a2e7d1f6670fafbdef3fa253e298a78370357d12f3b93e6d2e96d2b17d81e",
+      "capturedAt": "2026-10-28T13:46:47.509534+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-dark-home.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        720,
+        1636
+      ],
+      "sha256": "2b777d8983f840e6c68eadf0405420a65f9e9d52579e45d046ce4b4cd0c46786",
+      "capturedAt": "2026-10-28T13:46:15.600857+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-dark-settings.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        720,
+        1636
+      ],
+      "sha256": "032388afea599519191dce6be628deb4c9249b3a4690b125d04504800c899193",
+      "capturedAt": "2026-10-28T13:47:04.890122+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-light-coach.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        720,
+        1707
+      ],
+      "sha256": "94359d9ba2193cc6dd4468b74b89f3d84baf043362ba86b9e28455ba4b742c4b",
+      "capturedAt": "2026-10-28T13:45:24.185292+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-light-history.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        720,
+        1696
+      ],
+      "sha256": "2d42138b1aa9f1f771811bf8d5de195b3ec251bb8f7a57603dca51d7b8bc28c5",
+      "capturedAt": "2026-10-28T13:45:41.723042+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-light-home.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        720,
+        1707
+      ],
+      "sha256": "9bc193f34c616c99033b400856155fb25b948a8a4e80e2dd00e7bc55b69bbcbf",
+      "capturedAt": "2026-10-28T13:45:06.165766+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/pikachu-light-settings.png",
+      "group": "core",
+      "skin": "pikachu",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        720,
+        1707
+      ],
+      "sha256": "af01678f52067121a6b23a715ae6ff350ef003241ec26eccdcd5e57b9b862fab",
+      "capturedAt": "2026-10-28T13:45:59.487787+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-dark-coach.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "coach",
+      "size": [
+        720,
+        1954
+      ],
+      "sha256": "94d3fec411f97ea19758e5e73a81d5964ab2b0f516795a98c106f5dfacd04955",
+      "capturedAt": "2026-10-28T13:38:14.828484+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-dark-history.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "history",
+      "size": [
+        720,
+        1954
+      ],
+      "sha256": "8dce11645257c68b80619317eba3418034107e1a9abb0067dee0006fbbd03b15",
+      "capturedAt": "2026-10-28T13:38:36.530279+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-dark-home.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "home",
+      "size": [
+        720,
+        1954
+      ],
+      "sha256": "858e218d55f2cf0b4edcc7b5bf49502ab6ccbbbe28280a31a80960dec738a011",
+      "capturedAt": "2026-10-28T13:37:53.243360+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-dark-settings.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "dark",
+      "state": "settings",
+      "size": [
+        720,
+        1954
+      ],
+      "sha256": "21f08bf731c6687f98f20359c2aaf8e9f494b20d512b40bb70e84470e16db5da",
+      "capturedAt": "2026-10-28T13:39:02.363547+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-light-coach.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "coach",
+      "size": [
+        720,
+        2035
+      ],
+      "sha256": "297878454d454b802e88e446f0cc7ffe43d15c2a56714f3551006fd1f05fe611",
+      "capturedAt": "2026-10-28T13:36:38.814124+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-light-history.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "history",
+      "size": [
+        720,
+        2035
+      ],
+      "sha256": "289a6e235908ad7c6c9389a024aa106939d12c8c8c62fb0b79f247e50a32b9a4",
+      "capturedAt": "2026-10-28T13:37:03.285252+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-light-home.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "home",
+      "size": [
+        720,
+        2035
+      ],
+      "sha256": "8a6baa8095cd56e6f9280bd529f56bb4bab2fe5764de2acbc0e4ac6b215e3729",
+      "capturedAt": "2026-10-28T13:36:17.167062+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/round-6/woodland-light-settings.png",
+      "group": "core",
+      "skin": "woodland",
+      "mode": "light",
+      "state": "settings",
+      "size": [
+        720,
+        2035
+      ],
+      "sha256": "51078c72b6110dfd6a2ff213c27c2edd6c13f7cf6e7f2b0fa82c2960531dd26f",
+      "capturedAt": "2026-10-28T13:37:28.796547+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-appearance-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "appearance-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "1f398a89a96a9c300ffc95300009fc9c97071b3c808a5e229feffdbbdf7ad7c7",
+      "capturedAt": "2026-10-28T13:36:30.449896+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-appearance-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "appearance-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "1f398a89a96a9c300ffc95300009fc9c97071b3c808a5e229feffdbbdf7ad7c7",
+      "capturedAt": "2026-10-28T13:36:25.073401+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-climbing-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "climbing-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "ac5a10afd6b04111073bd0191669c1f5e96abfb6b398909b3e567756267376ff",
+      "capturedAt": "2026-10-28T13:35:26.533872+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-climbing-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "climbing-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "ac5a10afd6b04111073bd0191669c1f5e96abfb6b398909b3e567756267376ff",
+      "capturedAt": "2026-10-28T13:35:21.012463+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-active-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-active-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "5ba15b9d5c728f7c2f4af6e3b7102cd487888a9fbef44ec96a7ac4f04ba13e41",
+      "capturedAt": "2026-10-28T13:34:02.287330+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-active-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-active-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "1b4fa02d2730cea063c16039ca67ef1d053c9dde281abf8b324ad6cb7903ea85",
+      "capturedAt": "2026-10-28T13:33:56.337641+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-goal-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-goal-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "d500896f91d254537c6840865fe23aaf3eb14db78cd51fd8229b23a1babb80d1",
+      "capturedAt": "2026-10-28T13:37:12.290860+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-goal-small-keyboard.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-goal-small-keyboard",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "c5867d5257299beacfb8300565a695ebb84973df89eb322cf7875a6abca23c8f",
+      "capturedAt": "2026-10-28T13:36:55.776517+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-goal-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-goal-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "29c4bbe3e7d4f4bc3878a43799f1d5098c5dc57b8977ca880f6aacc79aebb53f",
+      "capturedAt": "2026-10-28T13:36:52.357928+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-records-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-records-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "b18fb2809bfd5616d728361f3a2adc8457d475d68c45b97f8e6b56f545b31670",
+      "capturedAt": "2026-10-28T13:38:26.048848+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-records-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-records-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "b4d13b71804b3c6ce97891f147ec077fe0a883df5646d8e04dcf6bbcbe5ac63a",
+      "capturedAt": "2026-10-28T13:38:17.181073+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-review-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-review-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "6264d3892d41c7b99dedf800fe62809915fa954ff53756283bba38f03a603897",
+      "capturedAt": "2026-10-28T13:39:03.798425+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-review-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-review-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "8954659247541c9c78ba86e335eeeba2890d6f292440a24b951d2774f40bc3c9",
+      "capturedAt": "2026-10-28T13:38:46.446320+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-session-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-session-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "4467d502f41a5afa65e433cd6714e347d74f97122d9793f0406c92be6cef64b2",
+      "capturedAt": "2026-10-28T13:37:55.991609+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-session-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-session-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "e8e5a331e7fabc7ce6e0991dc0decbcb788025c585b34ffa62ef0542dbeb1939",
+      "capturedAt": "2026-10-28T13:37:39.175716+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "2d53383026e0b22a9b0ac8b31a42873bb6224e29b656e5d8eafa605f32069d72",
+      "capturedAt": "2026-10-28T13:33:31.654171+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-coach-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "coach-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "2d53383026e0b22a9b0ac8b31a42873bb6224e29b656e5d8eafa605f32069d72",
+      "capturedAt": "2026-10-28T13:33:23.771125+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-course-climbing-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "course-climbing-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "445b222fc988c2de90f9788b94ca4f8e8c59547ec5d7dec38ce25951e77cfc39",
+      "capturedAt": "2026-10-28T13:40:11.882999+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-course-climbing-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "course-climbing-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "445b222fc988c2de90f9788b94ca4f8e8c59547ec5d7dec38ce25951e77cfc39",
+      "capturedAt": "2026-10-28T13:40:06.830108+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-history-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "history-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "819debd5519dddf8e4f00d9798283f5ae6dd4c74ac3201cfe7b19aee4e8dd1f5",
+      "capturedAt": "2026-10-28T13:34:24.439439+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-home-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "home-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "4f960a1d9c0f02565ec580da30728656b0ab2b57e6084cc69a352953248b0308",
+      "capturedAt": "2026-10-28T13:31:46.151554+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-home-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "home-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "5326440593679442866132a651f0fc6c8118ecb1d3f6838925010b6300f98183",
+      "capturedAt": "2026-10-28T13:31:36.624436+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-settings-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "settings-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "67e4caf54dfdbdb91a541bbf539ebe1019c30a2ff3da353bc2a627d81b4dbcb7",
+      "capturedAt": "2026-10-28T13:34:54.494828+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-settings-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "settings-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "67e4caf54dfdbdb91a541bbf539ebe1019c30a2ff3da353bc2a627d81b4dbcb7",
+      "capturedAt": "2026-10-28T13:34:49.247625+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-summary-coach-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "summary-coach-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "0b6fd7b95054c3fd9f423f931d2af35a642371885f1a7028fa69698a82295739",
+      "capturedAt": "2026-10-28T13:39:42.407758+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-summary-coach-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "summary-coach-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "916ffa39dffd028e277c50f9e9fd1fc72213229cc1f1b304acd9525698624834",
+      "capturedAt": "2026-10-28T13:39:33.538565+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-summary-small-action.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "summary-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "593d028bae460aaa215113be1c2f55eb919c70fc7b3b999db3ae7cabf189841f",
+      "capturedAt": "2026-10-28T13:36:01.416295+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small/eva-unit-01-dark-summary-small.png",
+      "group": "small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "state": "summary-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "fd6b677909f7e27db868a5cd999515cddfd3ac191099a81e0ec59cdff0fb9e0a",
+      "capturedAt": "2026-10-28T13:35:52.712885+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small-k-on/k-on-dark-home-small-action.png",
+      "group": "small",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "home-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "bedeaac155120f98364d1de5a5bbb5fb8aa7be8b5299008210412997dd488db4",
+      "capturedAt": "2026-10-28T13:32:53.517509+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small-k-on/k-on-dark-home-small.png",
+      "group": "small",
+      "skin": "k-on",
+      "mode": "dark",
+      "state": "home-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "dc24f4ed8fecaa6e6e801904ad06aa1310ab9499daee59f02860be059392d109",
+      "capturedAt": "2026-10-28T13:32:42.895220+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small-pikachu/pikachu-dark-home-small-action.png",
+      "group": "small",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "home-small-action",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "27b2f3be9e466af895574dae5b8ac9322ac5a2e6be46a9ea7f7799ca4d0ecf00",
+      "capturedAt": "2026-10-28T13:32:11.473966+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "file": "evidence/20261028-fidelity/small-pikachu/pikachu-dark-home-small.png",
+      "group": "small",
+      "skin": "pikachu",
+      "mode": "dark",
+      "state": "home-small",
+      "size": [
+        720,
+        1600
+      ],
+      "sha256": "37a17541f0ea92b669b8335c41dc5c6244fac90574f54345aa0f56d24346fefe",
+      "capturedAt": "2026-10-28T13:32:01.963801+00:00",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    }
+  ]
+}

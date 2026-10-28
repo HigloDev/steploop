@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "baseVersion": "1.1.7",
+  "publicVersion": "1.1.5",
+  "syntheticNativePackage": "com.zxn.palou.uiqa",
+  "coreScreens": 84,
+  "sourceComparisons": 48,
+  "sharedFlowScreens": 30,
+  "smallScreens": 32,
+  "smallStates": 14,
+  "additionalSmallHomeSkins": [
+    "pikachu",
+    "k-on"
+  ],
+  "interactionPhases": 4,
+  "interactionChecks": [
+    "Four actual bottom tabs navigate and keep the selected graphic skin",
+    "All seven actual skin radios activate in the appearance screen",
+    "Skin/mode persist across cold starts; system follows live changes; manual mode wins",
+    "Real course detail/goal form saves an enrollment; weight and weekly review save; latest weight survives cold start",
+    "Incomplete course result keeps its confirmed floors; effort feedback saves without marking course completed",
+    "Collapsed feedback previews expand; haptic control stays reachable; completion preview closes without generating a workout",
+    "Training short tap does not finish; deliberate 1.6-second hold reaches saved-result UI in synthetic fixture"
+  ],
+  "nativeScreenshots": 160,
+  "shippedPngs": 47,
+  "shippedPngBytes": 57308052,
+  "scope": "Native visual and UI acceptance with synthetic data; no real-device motion or public release claim."
+}

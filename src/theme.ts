@@ -304,7 +304,7 @@ function paintTheme(base: Theme, paint: SkinPaint): Theme {
   const brandSoft = mix(paint.card, paint.brand, 0.08)
   return { ...base, ...paint,
     inkSoft: mix(paint.ink, paint.paper, 0.14), mutedStrong: mix(paint.ink, paint.paper, 0.23),
-    cardSoft: mix(paint.card, paint.brand, 0.045), surfaceSoft: mix(paint.card, paint.brand, 0.085),
+    cardSoft: base.isDark ? mix(paint.card, paint.ink, 0.04) : '#F1F3F7', surfaceSoft: mix(paint.card, paint.brand, 0.085),
     line: mix(paint.card, paint.ink, 0.23), lineSoft: mix(paint.card, paint.ink, 0.12),
     brandInk: paint.brandText, brandBright: paint.brand, brandSoft, brandTint: mix(paint.card, paint.brand, 0.25),
     heroLine: mix(paint.heroSurface, paint.heroInk, 0.22), energy: paint.brandText,
@@ -325,6 +325,69 @@ for (const skin of SKIN_CATALOG) for (const mode of ['light', 'dark'] as const) 
 /** Stable skin identity also distinguishes future skins that share a few colors. */
 export function getThemeKey(theme: Theme): string { return themeKeys.get(theme)! }
 
+/** Artwork uses the same resolved selection as colors, including preview themes. */
+export function getThemeSkinId(theme: Theme): SkinId {
+  return normalizeSkinId(themeKeys.get(theme)?.split('/')[0])
+}
+
+export const skinGeometry = {
+  sceneWidth: 156, sceneHeight: 112, compactWidth: 112, compactHeight: 84,
+  featureWidth: 300, featureHeight: 160, featureSmallHeight: 96,
+  smallWidth: 80, smallHeight: 64, mark: 28, badge: 88, gap: 12,
+} as const
+
+export type SkinPage = 'home' | 'coach' | 'history' | 'settings'
+/** Android bridges its 32-bit font scale (e.g. 1.299999952 at 130%). */
+export function isLargeText(fontScale: number): boolean {
+  return Math.round(fontScale * 100) >= 130
+}
+/** Measurements from the approved four-tab boards, expressed at 360dp content width. */
+const skinPageHeights: Record<SkinId, Record<SkinPage, number>> = {
+  classic: { home: 0, coach: 0, history: 0, settings: 0 },
+  'night-run': { home: 198, coach: 176, history: 198, settings: 160 },
+  woodland: { home: 220, coach: 162, history: 226, settings: 170 },
+  'eva-unit-01': { home: 190, coach: 192, history: 126, settings: 132 },
+  'eva-unit-02': { home: 210, coach: 238, history: 132, settings: 156 },
+  pikachu: { home: 244, coach: 246, history: 160, settings: 150 },
+  'k-on': { home: 290, coach: 312, history: 160, settings: 112 },
+}
+export function getSkinPageHeight(theme: Theme, page: SkinPage, width: number): number {
+  return skinPageHeights[getThemeSkinId(theme)][page] * Math.min(width / 360, 1.22)
+}
+
+export function getPrimaryActionPaint(theme: Theme): { fill: string; ink: string } {
+  return theme.isDark && getThemeSkinId(theme) === 'eva-unit-01'
+    ? { fill: '#AEF638', ink: '#17290B' } : { fill: theme.brand, ink: theme.onBrand }
+}
+
+export function getWeekBarFill(theme: Theme, today: boolean): string {
+  const skin = getThemeSkinId(theme)
+  if (skin === 'eva-unit-01') return today ? '#A9ED3E' : '#9959DB'
+  if (skin === 'pikachu') return theme.brand
+  if (skin === 'woodland' && !theme.isDark) return theme.brand
+  return theme.heroAccent
+}
+
+export function getHistoryFilterPaint(theme: Theme): { fill: string; ink: string } {
+  const skin = getThemeSkinId(theme)
+  const solid = skin !== 'classic' && (theme.isDark || ['eva-unit-02', 'pikachu', 'k-on'].includes(skin))
+  return solid ? { fill: theme.brand, ink: theme.onBrand } : { fill: theme.card, ink: theme.brandInk }
+}
+
+const skinLayouts: Record<SkinId, { tabs: readonly [number, number]; compactCatalog: boolean; compactHistory: boolean; compactWeek: boolean; compactRecent?: 'inline' | 'stacked'; homeOverlap?: readonly [number, number] }> = {
+  classic: { tabs: [64, 64], compactCatalog: false, compactHistory: false, compactWeek: false },
+  'night-run': { tabs: [84, 84], compactCatalog: false, compactHistory: false, compactWeek: false },
+  woodland: { tabs: [82, 82], compactCatalog: false, compactHistory: false, compactWeek: false },
+  'eva-unit-01': { tabs: [72, 74], compactCatalog: false, compactHistory: true, compactWeek: true, compactRecent: 'stacked' },
+  'eva-unit-02': { tabs: [80, 80], compactCatalog: false, compactHistory: false, compactWeek: false },
+  pikachu: { tabs: [78, 74], compactCatalog: true, compactHistory: true, compactWeek: true, compactRecent: 'inline', homeOverlap: [12, 22] },
+  'k-on': { tabs: [64, 74], compactCatalog: true, compactHistory: true, compactWeek: true },
+}
+export function getSkinLayout(theme: Theme) {
+  const layout = skinLayouts[getThemeSkinId(theme)]
+  return { ...layout, tabHeight: layout.tabs[theme.isDark ? 1 : 0], homeOverlap: (layout.homeOverlap ?? [0, 0])[theme.isDark ? 1 : 0] }
+}
+
 export function getTheme(skinId: unknown, mode: 'light' | 'dark'): Theme {
   return themes[normalizeSkinId(skinId)][mode]
 }
@@ -341,10 +404,11 @@ export function getWorkoutPalette(theme: Theme): WorkoutPalette {
   if (theme === dark) return workoutDark
   const cached = workoutThemeCache.get(theme)
   if (cached) return cached
+  const action = getPrimaryActionPaint(theme)
   const palette: WorkoutPalette = { isDark: theme.isDark, bg: theme.paper, surface: theme.card, surfaceHigh: theme.surfaceSoft, failureSurface: theme.card,
     line: theme.line, ink: theme.ink, inkSoft: theme.inkSoft, muted: theme.mutedStrong,
-    brand: theme.brand, brandText: theme.brandText, brandInk: theme.brandInk, brandPressed: theme.brandBright,
-    brandDim: theme.brandSoft, onBrand: theme.onBrand, good: theme.success, warn: theme.amberInk,
+    brand: action.fill, brandText: theme.brandText, brandInk: theme.brandInk, brandPressed: action.fill,
+    brandDim: theme.brandSoft, onBrand: action.ink, good: theme.success, warn: theme.amberInk,
     danger: theme.redInk, dangerFill: theme.redSoft, estimate: theme.amberInk }
   workoutThemeCache.set(theme, palette)
   return palette

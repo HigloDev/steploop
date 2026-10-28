@@ -1,12 +1,13 @@
 // 训练首页：本周向上、选楼开练、最近一次。沿用 fusion-v1 训练与恢复逻辑。
 
 import React, { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { BrandMark } from '../components/brand-mark'
+import { SkinPageHeader } from '../components/skin-page-header'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { AscentReferences } from '../components/ascent-references'
 import { SectionHeading, SportButton, StatPair } from '../components/sport-ui'
@@ -36,7 +37,7 @@ import {
   loadActiveCheckpoint,
   saveWorkout,
 } from '../services/workout-storage'
-import { sport, Theme, useTheme } from '../theme'
+import { getSkinLayout, getThemeSkinId, isLargeText, sport, Theme, useTheme } from '../theme'
 
 type WeekStats = WeeklyAchievement
 
@@ -191,10 +192,17 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
 
   const selected = selectedBuildingId === 'new' ? undefined : buildings.find(building => building.id === selectedBuildingId) ?? buildings[0]
   const latestSummary = latest ? calculateWorkoutSummary(latest.rounds, latest.startedAt, latest.endedAt) : null
+  const graphic = getThemeSkinId(theme) !== 'classic'
+  const { width: screenWidth, fontScale } = useWindowDimensions()
+  const homeOverlap = isLargeText(fontScale) ? 0 : getSkinLayout(theme).homeOverlap * Math.min(screenWidth / 360, 1.22)
+  const compactRecent = getSkinLayout(theme).compactRecent
 
   return (
     <View style={styles.page}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: 32 }]}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingTop: graphic ? 0 : insets.top + 8, paddingBottom: 32 }]}>
+        {graphic ? <SkinPageHeader page="home" right={<Pressable accessibilityRole="button" accessibilityLabel="打开训练设置" onPress={() => navigation.navigate('Profile')} style={styles.settingsButton}>
+          <MaterialCommunityIcons name="tune-variant" size={23} color={theme.inkSoft} accessible={false} />
+        </Pressable>} /> : <>
         <View style={styles.brandRow}>
           <BrandMark size={28} color={theme.brandText} />
           <Text style={styles.brand}>循阶</Text>
@@ -206,6 +214,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
 
         <Text accessibilityRole="header" style={styles.greeting}>每一步，都算数。</Text>
         <Text style={styles.greetingSub}>{week.workouts ? `这周已经出发 ${week.workouts} 次，继续自己的节奏。` : '从熟悉的楼梯，开始今天的向上。'}</Text>
+        </>}
 
         {checkpoint && !loading && !loadError ? (
           <View style={styles.resume}>
@@ -242,9 +251,9 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
           </View>
         ) : null}
 
-        <View style={styles.weekCard}>
+        <View style={[styles.weekCard, homeOverlap ? { marginTop: -homeOverlap } : undefined]}>
           <View style={styles.weekTop}>
-            <Text style={styles.weekLabel}>本周向上 <Text style={styles.weekEnglish}> / THIS WEEK</Text></Text>
+            <Text style={styles.weekLabel}>本周向上{graphic ? null : <Text style={styles.weekEnglish}> / THIS WEEK</Text>}</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="分享本周成果" disabled={loading || !!loadError}
               onPress={() => navigation.navigate('WeeklyShare')} style={styles.heroIcon}>
               <MaterialCommunityIcons name="export-variant" size={19} color={theme.heroMuted} accessible={false} />
@@ -260,15 +269,15 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
               </View>
               <Text style={styles.weekLandmark}>{loading ? '正在读取训练记录' : loadError ? '训练记录暂未读到' : week.ascentM > 0 ? describeAscent(week.ascentM) : '每一层，都是新的积累'}</Text>
             </Pressable>
-            <View style={styles.weekChart}><WeekBars days={week.days} inverted /></View>
+            <View style={styles.weekChart}><WeekBars days={week.days} inverted compact={graphic} /></View>
           </View>
           <View style={styles.weekFooter}>
             <Text style={styles.weekFooterText}>{loading || loadError ? '— 层爬升 / — 次训练' : `${week.floors} 层爬升 / ${week.workouts} 次训练`}</Text>
-            <Text style={styles.weekFooterText}>{new Date(week.weekStart).getMonth() + 1}.{new Date(week.weekStart).getDate()} — {new Date(week.weekEnd).getMonth() + 1}.{new Date(week.weekEnd).getDate()}</Text>
+            {!graphic ? <Text style={styles.weekFooterText}>{new Date(week.weekStart).getMonth() + 1}.{new Date(week.weekStart).getDate()} — {new Date(week.weekEnd).getMonth() + 1}.{new Date(week.weekEnd).getDate()}</Text> : null}
           </View>
         </View>
 
-        <SectionHeading title="今天，继续向上" action="我的楼栋" onPress={() => setBuildingPicker(true)} />
+        <SectionHeading title="今天，继续向上" action="我的楼栋" onPress={() => setBuildingPicker(true)} compact={Boolean(compactRecent)} />
         {loading ? <View style={styles.loadState}><ActivityIndicator color={theme.brandText} /><Text style={styles.empty}>正在读取本机记录…</Text>
           <SportButton title="开始爬楼" disabled accessibilityLabel={`开始爬楼，从 ${startFloor} 楼出发，第一轮标定`} onPress={startNew} />
         </View>
@@ -293,14 +302,23 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
           {!selected || selected.needsCalibration ? <Text style={styles.startHint}>{selected ? '旧楼栋可重新标定，让下一次记录更准确' : '第一轮每到一层点一下，到顶后可以保存楼栋'}</Text> : null}
         </View>}
 
-        <SectionHeading title="最近一次" action="全部记录" onPress={() => navigation.navigate('History')} />
+        {compactRecent !== 'inline' ? <SectionHeading title="最近一次" action={compactRecent ? undefined : '全部记录'} onPress={() => navigation.navigate('History')} compact={Boolean(compactRecent)} /> : null}
         {latest && latestSummary ? <Pressable accessibilityRole="button" accessibilityLabel={`查看最近训练 ${latest.routeSnapshot.name}`}
-          onPress={() => navigation.navigate('WorkoutResult', { id: latest.id })} style={({ pressed }) => [styles.latest, pressed && { opacity: sport.opacity.pressed }]}>
+          onPress={() => navigation.navigate('WorkoutResult', { id: latest.id })} style={({ pressed }) => [styles.latest,
+            compactRecent && { marginTop: compactRecent === 'inline' ? 12 : 0, padding: 10, minHeight: 56 }, pressed && { opacity: sport.opacity.pressed }]}>
+          {graphic ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            {compactRecent === 'inline' ? <Text style={{ color: theme.ink, fontSize: 12, fontWeight: '700' }}>最近一次</Text> : null}
+            <View style={[styles.buildingIcon, compactRecent && { width: 32, height: 36 }]}>{compactRecent ? <BrandMark size={28} /> : <MaterialCommunityIcons name="stairs-up" size={27} color={theme.brandInk} accessible={false} />}</View>
+            <View style={{ flex: 1 }}><Text style={[styles.latestName, compactRecent && { fontSize: 14 }]} numberOfLines={2}>{latest.routeSnapshot.locationName || latest.routeSnapshot.name}</Text>
+              <Text style={[styles.buildingMeta, compactRecent && { fontSize: 12 }]}>{latestSummary.totalFloors} 层 · {Math.round(latestSummary.totalAscentM)} 米 · {formatDuration(latestSummary.totalElapsedMs)}</Text></View>
+            <MaterialCommunityIcons name="chevron-right" size={21} color={theme.muted} accessible={false} />
+          </View> : <>
           <View style={styles.latestHead}><Text style={styles.latestName} numberOfLines={2}>{latest.routeSnapshot.locationName || latest.routeSnapshot.name}</Text>
             <Text style={styles.latestDate}>{new Date(latest.startedAt).getMonth() + 1}.{String(new Date(latest.startedAt).getDate()).padStart(2, '0')}</Text></View>
           <View style={styles.latestStats}><StatPair label="爬升" value={String(Math.round(latestSummary.totalAscentM))} unit="米" />
             <StatPair label="楼层" value={String(latestSummary.totalFloors)} unit="层" /><StatPair label="用时" value={formatDuration(latestSummary.totalElapsedMs)} />
             <MaterialCommunityIcons name="arrow-top-right" size={21} color={theme.brandInk} accessible={false} /></View>
+          </>}
         </Pressable> : <View style={styles.firstRun}><MaterialCommunityIcons name="flag-outline" size={22} color={theme.brandInk} accessible={false} /><Text style={styles.empty}>{loading ? '正在读取最近训练…' : '第一段向上的记录，就从今天开始。'}</Text></View>}
       </ScrollView>
 
@@ -363,6 +381,9 @@ function floorAfterLabel(building: BuildingTemplate): number {
 }
 
 function makeStyles(theme: Theme) {
+  const graphic = getThemeSkinId(theme) !== 'classic'
+  const compact = getSkinLayout(theme).compactWeek
+  const compactRecent = getSkinLayout(theme).compactRecent
   return StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     content: { paddingHorizontal: theme.pagePaddingH },
@@ -373,16 +394,17 @@ function makeStyles(theme: Theme) {
     greeting: { color: theme.ink, fontSize: 26, fontWeight: '700', letterSpacing: -0.5 },
     greetingSub: { color: theme.muted, fontSize: sport.type.secondary, lineHeight: 21, marginTop: 8, marginBottom: 16 },
     weekEnglish: { fontSize: sport.type.micro, color: theme.heroMuted, letterSpacing: 0.8, fontWeight: '400' },
-    heroIcon: { width: 44, height: 44, alignItems: 'flex-end', justifyContent: 'center' },
-    weekMain: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 0, paddingBottom: 12 },
+    heroIcon: { width: 44, height: graphic ? 36 : 44, alignItems: 'flex-end', justifyContent: 'center', ...(compact ? { position: 'absolute', right: 0, top: -4, height: 44 } as const : {}) },
+    weekMain: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 0, paddingBottom: compact ? 8 : 12 },
     weekChart: { width: '42%', maxWidth: 150, paddingTop: 16 },
-    weekFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.heroLine, paddingTop: 10 },
-    weekFooterText: { color: theme.heroMuted, fontSize: sport.type.caption },
-    trainingCard: { backgroundColor: theme.card, borderRadius: sport.radius.panel, padding: 16, gap: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line },
-    selectedBuilding: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54 },
+    weekFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.heroLine, paddingTop: compact ? 8 : 10 },
+    weekFooterText: { color: theme.heroMuted, fontSize: compact ? 12 : graphic ? 14 : sport.type.caption },
+    trainingCard: { backgroundColor: theme.card, borderRadius: sport.radius.panel, padding: compactRecent ? 12 : 16, gap: compactRecent ? 8 : 12, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line },
+    selectedBuilding: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: compactRecent ? 48 : 54 },
     buildingIcon: { width: 48, height: 48, borderRadius: 12, backgroundColor: theme.brandSoft, alignItems: 'center', justifyContent: 'center' },
     startHint: { color: theme.muted, fontSize: sport.type.caption, lineHeight: 18, textAlign: 'center' },
-    latest: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, paddingTop: 12, paddingBottom: 8, gap: 8 },
+    latest: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line, paddingTop: 12, paddingBottom: 8, gap: 8,
+      ...(graphic ? { backgroundColor: theme.card, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft, borderRadius: 14, padding: 12 } : {}) },
     latestHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
     latestName: { flex: 1, color: theme.ink, fontSize: sport.type.body, fontWeight: '600' },
     latestDate: { color: theme.muted, fontSize: sport.type.caption, fontVariant: ['tabular-nums'] },
@@ -411,13 +433,13 @@ function makeStyles(theme: Theme) {
       backgroundColor: theme.heroSurface, borderRadius: theme.radiusXl,
       paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
     weekTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-    weekLabel: { color: theme.heroInk, fontSize: 13, fontWeight: '600' },
+    weekLabel: { color: theme.heroInk, fontSize: compact ? 14 : graphic ? 16 : 13, fontWeight: '600' },
     weekRow: { flexDirection: 'row', alignItems: 'baseline', columnGap: 6, marginTop: 2 },
     weekMetric: { flexDirection: 'row', alignItems: 'flex-end', maxWidth: '100%' },
     weekValue: { ...theme.numeric, color: theme.heroInk, fontSize: 56, lineHeight: 64, letterSpacing: -2, flexShrink: 1 },
     weekValueSmall: { fontSize: 40, lineHeight: 48 },
     weekUnit: { color: theme.heroMuted, fontSize: 15, fontWeight: '400' },
-    weekLandmark: { color: theme.heroAccent, fontSize: 12, lineHeight: 18, marginTop: 4 },
+    weekLandmark: { color: graphic ? theme.heroMuted : theme.heroAccent, fontSize: compact ? 12 : graphic ? 14 : 12, lineHeight: compact ? 18 : graphic ? 20 : 18, marginTop: 4 },
     referencesButton: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 48, alignSelf: 'flex-start' },
     referencesText: { color: theme.brandText, fontSize: 13, fontWeight: '700' },
     streak: { alignItems: 'center', paddingLeft: 18, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: theme.line },

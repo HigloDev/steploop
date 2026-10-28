@@ -11,9 +11,9 @@
 
 ## 当前开发：皮肤系统
 
-`codex/skins-system-20261028` 基于1.1.5增加原版钴蓝、夜跑竞技、山野自然、EVA初号机、EVA二号机、皮卡丘和K-On共7套皮肤，每套具有浅色与暗色，并支持跟随系统。入口为“设置 → 皮肤与外观”，选择立即生效并保存。
+当前图形皮肤分支`codex/skins-graphics-117-20261028`基于1.1.7综合候选`9c7eed9`，提供原版钴蓝及夜跑竞技、山野自然、EVA初号机、EVA二号机、皮卡丘、K-On共7套可选皮肤及独立明暗选择。六套图形皮肤均接入Logo、场景插画和完成图案，原版保留原标志。入口为“设置 → 皮肤与外观”，选择立即生效并保存。
 
-后续皮肤统一按 [建设索引](docs/skins/README.md)、[机器目录](docs/skins/registry.json) 和 [建设规范](docs/skins/CONSTRUCTION.md) 开发。实际页面见 [原生对照图册](docs/skins/preview.html)，检查范围见 [验证记录](docs/skins/VALIDATION.md)。这是开发分支功能，尚未进入下方公开1.1.5 APK。
+后续皮肤统一按 [建设索引](docs/skins/README.md)、[机器目录](docs/skins/registry.json) 和 [建设规范](docs/skins/CONSTRUCTION.md) 开发，覆盖训练／教练／记录／设置四个一级入口及深页。当前检查见 [图形版验证记录](docs/skins/GRAPHICS_VALIDATION.md)，早期配色证据保留在 [旧图册](docs/skins/preview.html)。这是开发分支功能，尚未进入下方公开1.1.5 APK。
 
 ## 本版变化
 

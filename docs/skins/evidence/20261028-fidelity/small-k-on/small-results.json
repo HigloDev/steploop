@@ -1,0 +1,45 @@
+{
+  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "skin": "k-on",
+  "viewport": "320dp, 130% font",
+  "checks": [
+    {
+      "state": "home",
+      "control": "开始爬楼",
+      "bounds": [
+        82,
+        826,
+        638,
+        948
+      ],
+      "enabled": true
+    }
+  ],
+  "passedStates": [
+    "home"
+  ],
+  "frames": [
+    {
+      "name": "k-on-dark-home-small",
+      "skin": "k-on",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#211A24",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    },
+    {
+      "name": "k-on-dark-home-small-action",
+      "skin": "k-on",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#211A24",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+    }
+  ]
+}

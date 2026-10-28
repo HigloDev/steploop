@@ -27,7 +27,17 @@ vm.runInNewContext(ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText, context)
 const { useTheme, useWorkoutPalette, workoutPalettes, light, dark } = context.exports
-const { getTheme, getWorkoutPalette, getPosterPalette, getThemeKey } = context.exports
+const { getTheme, getWorkoutPalette, getPosterPalette, getThemeKey, getThemeSkinId } = context.exports
+
+test('130 percent accessibility layout accepts the Android float32 font-scale value', () => {
+  const native130 = new Float32Array([1.3])[0]
+  assert.ok(native130 < 1.3, 'Exercise the actual float precision boundary')
+  assert.equal(context.exports.isLargeText(native130), true)
+  assert.equal(context.exports.isLargeText(1.3), true)
+  assert.equal(context.exports.isLargeText(1.5), true)
+  assert.equal(context.exports.isLargeText(1.29), false)
+  assert.equal(context.exports.isLargeText(1), false)
+})
 
 function rgb(hex) {
   assert.match(hex, /^#[0-9a-f]{6}$/i)
@@ -127,6 +137,7 @@ for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
   test(`${skin.id}/${mode}: text, buttons, hero, workout and exported poster are readable`, () => {
     const theme = getTheme(skin.id, mode), p = getWorkoutPalette(theme), poster = getPosterPalette(theme)
     assert.equal(getThemeKey(theme), `${skin.id}/${mode}`)
+    assert.equal(getThemeSkinId(theme), skin.id, 'colors and artwork share the same resolved skin')
     assert.equal(getWorkoutPalette(theme), p, 'palette identity is stable between sensor renders')
     for (const surface of ['paper', 'card', 'cardSoft', 'surfaceSoft']) {
       for (const text of ['ink', 'inkSoft', 'muted', 'mutedStrong', 'brandText']) readable(theme[text], theme[surface], `${text} on ${surface}`)
