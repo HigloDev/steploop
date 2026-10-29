@@ -11,7 +11,7 @@
 
 来源工作区与未提交内容保留原位。本目录为基于`9c7eed9`的独立图形皮肤分支，不覆盖并行教练、热量和整合分支。
 
-当前图形改动：七套皮肤均支持浅暗与跟随系统；本轮60张素材已全部接入，图片边缘、页头裁切、K-On文字遮挡和课程/楼栋图案完成整改。当前源码770项回归737通过、0失败、33原有跳过；160张原生截图、全部56种四入口浅暗组合与四阶段实际交互验收通过。使用、证据和仍存在的原画细节差异见[图形版验证记录](docs/skins/GRAPHICS_VALIDATION.md)和[复查清单](docs/skins/GRAPHICS_REAUDIT.md)，机器入口为`project-state.json.uiSkinCandidate`。旧提交`3db9cdb`的截图与passed只作为历史证据。本分支未安装到实体手机或公开发布。
+当前图形改动：七套皮肤均支持浅暗与跟随系统；本轮60张素材已全部接入，图片边缘、页头裁切、K-On文字遮挡和课程/楼栋图案完成整改。当前源码770项回归737通过、0失败、33原有跳过；160张原生截图、全部56种四入口浅暗组合与四阶段实际交互验收通过。使用、证据和仍存在的原画细节差异见[图形版验证记录](docs/skins/GRAPHICS_VALIDATION.md)和[复查清单](docs/skins/GRAPHICS_REAUDIT.md)，机器入口为`project-state.json.uiSkinCandidate`。旧提交`3db9cdb`的截图与passed只作为历史证据。2026-10-29已同签名覆盖安装到小米14并启动，见[手机安装记录](docs/skins/PHONE_INSTALL_20261029.md)；未公开发布。
 
 公开版本仍为 **1.1.5 / Android code 14**，标签 `v1.1.5-preview.1`，发布源码 `77c148a63c35c179fbaa1537b422cd3a8f33fb5c`。本次不更改既有公开 Release、下载页或附件。
 

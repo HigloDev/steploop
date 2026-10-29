@@ -50,6 +50,13 @@
       "scope": "historical functional and layout evidence; visual acceptance reopened"
     },
     "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
-    "verifiedAt": "2026-10-29"
+    "verifiedAt": "2026-10-29",
+    "phoneInstallation": {
+      "date": "2026-10-29",
+      "status": "installed-and-launched",
+      "sourceCommit": "6552182",
+      "apkSha256": "03668ddb959ded085120d549dba6f71b2271842928896af2e930eca60935d7a8",
+      "record": "docs/skins/PHONE_INSTALL_20261029.md"
+    }
   }
 }
