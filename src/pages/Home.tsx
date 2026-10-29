@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { BrandMark } from '../components/brand-mark'
 import { SkinPageHeader } from '../components/skin-page-header'
+import { SkinBuildingThumbnail, SkinWeekMotif } from '../components/skin-detail-art'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { AscentReferences } from '../components/ascent-references'
 import { SectionHeading, SportButton, StatPair } from '../components/sport-ui'
@@ -252,6 +253,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
         ) : null}
 
         <View style={[styles.weekCard, homeOverlap ? { marginTop: -homeOverlap } : undefined]}>
+          <SkinWeekMotif />
           <View style={styles.weekTop}>
             <Text style={styles.weekLabel}>本周向上{graphic ? null : <Text style={styles.weekEnglish}> / THIS WEEK</Text>}</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="分享本周成果" disabled={loading || !!loadError}
@@ -287,7 +289,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
         </View> : <View style={styles.trainingCard}>
           <Pressable accessibilityRole="button" accessibilityLabel={selected ? `选择楼栋，当前 ${selected.name}` : '选择楼栋，当前新楼栋'}
             onPress={() => setBuildingPicker(true)} onLongPress={selected ? () => manage(selected) : undefined} style={styles.selectedBuilding}>
-            <View style={styles.buildingIcon}><MaterialCommunityIcons name={selected ? 'office-building-outline' : 'stairs-up'} size={27} color={theme.brandInk} accessible={false} /></View>
+            <View style={styles.buildingIcon}>{graphic ? <SkinBuildingThumbnail size={38} selected={!!selected} /> : <MaterialCommunityIcons name={selected ? 'office-building-outline' : 'stairs-up'} size={27} color={theme.brandInk} accessible={false} />}</View>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={styles.buildingName} numberOfLines={2}>{selected?.name ?? '在新楼栋开始'}</Text>
               <Text style={styles.buildingMeta}>{selected ? `${selected.startFloor} → ${floorAfterLabel(selected)} 楼 · 单趟 ${Math.round(templateTotalAscentM(selected))} 米` : '首次逐层轻点，记住这段楼梯'}</Text>
@@ -308,7 +310,7 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
             compactRecent && { marginTop: compactRecent === 'inline' ? 12 : 0, padding: 10, minHeight: 56 }, pressed && { opacity: sport.opacity.pressed }]}>
           {graphic ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             {compactRecent === 'inline' ? <Text style={{ color: theme.ink, fontSize: 12, fontWeight: '700' }}>最近一次</Text> : null}
-            <View style={[styles.buildingIcon, compactRecent && { width: 32, height: 36 }]}>{compactRecent ? <BrandMark size={28} /> : <MaterialCommunityIcons name="stairs-up" size={27} color={theme.brandInk} accessible={false} />}</View>
+            <View style={[styles.buildingIcon, compactRecent && { width: 32, height: 36 }]}><SkinBuildingThumbnail size={compactRecent ? 30 : 38} history /></View>
             <View style={{ flex: 1 }}><Text style={[styles.latestName, compactRecent && { fontSize: 14 }]} numberOfLines={2}>{latest.routeSnapshot.locationName || latest.routeSnapshot.name}</Text>
               <Text style={[styles.buildingMeta, compactRecent && { fontSize: 12 }]}>{latestSummary.totalFloors} 层 · {Math.round(latestSummary.totalAscentM)} 米 · {formatDuration(latestSummary.totalElapsedMs)}</Text></View>
             <MaterialCommunityIcons name="chevron-right" size={21} color={theme.muted} accessible={false} />

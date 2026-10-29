@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { SkinPageHeader } from '../components/skin-page-header'
-import { SkinArt } from '../components/skin-art'
+import { SkinBuildingThumbnail } from '../components/skin-detail-art'
 import { FlowSheet } from '../components/flow-sheet'
 import { StatPair } from '../components/sport-ui'
 import { TrendChart } from '../components/training-visuals'
@@ -473,7 +473,7 @@ export default function HistoryScreen({ navigation }: MainTabScreen<'History'>) 
               onPress={() => navigation.navigate(card.target.route, card.target.params)}
             >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={styles.recordIcon}>{['k-on', 'pikachu'].includes(getThemeSkinId(theme)) ? <SkinArt kind="mark" width={34} height={34} /> : <MaterialCommunityIcons name={graphic ? 'office-building' : 'stairs-up'} size={graphic ? 27 : 23} color={theme.brandInk} accessible={false} />}</View>
+                <View style={styles.recordIcon}>{graphic ? <SkinBuildingThumbnail size={38} history /> : <MaterialCommunityIcons name="stairs-up" size={23} color={theme.brandInk} accessible={false} />}</View>
                 <View style={{ flex: 1 }}>
                 <View style={styles.cardHead}>
                   <Text style={styles.cardTitle} numberOfLines={2}>

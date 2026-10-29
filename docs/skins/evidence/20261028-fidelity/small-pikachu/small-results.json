@@ -1,5 +1,5 @@
 {
-  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
   "skin": "pikachu",
   "viewport": "320dp, 130% font",
   "checks": [
@@ -28,7 +28,7 @@
         1600
       ],
       "paper": "#1C190F",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "pikachu-dark-home-small-action",
@@ -39,7 +39,7 @@
         1600
       ],
       "paper": "#1C190F",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
   "skin": "eva-unit-01",
   "viewport": "320dp, 130% font",
   "checks": [
@@ -8,9 +8,9 @@
       "control": "开始爬楼",
       "bounds": [
         73,
-        1097,
+        1122,
         647,
-        1219
+        1244
       ],
       "enabled": true
     },
@@ -129,9 +129,9 @@
       "control": "回到教练，查看进度与复盘",
       "bounds": [
         45,
-        862,
+        1060,
         675,
-        1054
+        1252
       ],
       "enabled": true
     },
@@ -173,7 +173,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-home-small-action",
@@ -184,7 +184,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-small",
@@ -195,7 +195,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-small-action",
@@ -206,7 +206,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-active-small",
@@ -217,7 +217,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-active-small-action",
@@ -228,7 +228,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-history-small",
@@ -239,7 +239,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-settings-small",
@@ -250,7 +250,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-settings-small-action",
@@ -261,7 +261,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-climbing-small",
@@ -272,7 +272,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-climbing-small-action",
@@ -283,7 +283,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-summary-small",
@@ -294,7 +294,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-summary-small-action",
@@ -305,7 +305,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-appearance-small",
@@ -316,7 +316,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-appearance-small-action",
@@ -327,7 +327,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-goal-small",
@@ -338,7 +338,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-goal-small-keyboard",
@@ -349,7 +349,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-goal-small-action",
@@ -360,7 +360,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-session-small",
@@ -371,7 +371,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-session-small-action",
@@ -382,7 +382,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-records-small",
@@ -393,7 +393,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-records-small-action",
@@ -404,7 +404,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-review-small",
@@ -415,7 +415,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-coach-review-small-action",
@@ -426,7 +426,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-summary-coach-small",
@@ -437,7 +437,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-summary-coach-small-action",
@@ -448,7 +448,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-course-climbing-small",
@@ -459,7 +459,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-dark-course-climbing-small-action",
@@ -470,7 +470,7 @@
         1600
       ],
       "paper": "#10101C",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     }
   ]
 }

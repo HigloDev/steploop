@@ -1,0 +1,1298 @@
+[
+  {
+    "name": "pikachu-light-home",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      720,
+      1707
+    ],
+    "paper": "#FFF9E7",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      20,
+      127,
+      276,
+      601
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1568
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-light-coach",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      720,
+      1707
+    ],
+    "paper": "#FFF9E7",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      309,
+      127,
+      276,
+      601
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1568
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-light-history",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      720,
+      1696
+    ],
+    "paper": "#FFF9E7",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      598,
+      127,
+      278,
+      601
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1557
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-light-settings",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      720,
+      1707
+    ],
+    "paper": "#FFF9E7",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      889,
+      127,
+      276,
+      601
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1568
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-dark-home",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      720,
+      1636
+    ],
+    "paper": "#1C190F",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      20,
+      740,
+      276,
+      574
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1497
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-dark-coach",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      720,
+      1636
+    ],
+    "paper": "#1C190F",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      309,
+      740,
+      276,
+      574
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1497
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-dark-history",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      720,
+      1626
+    ],
+    "paper": "#1C190F",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      598,
+      740,
+      278,
+      574
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1487
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "pikachu-dark-settings",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      720,
+      1636
+    ],
+    "paper": "#1C190F",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/pikachu-four-tabs.png",
+    "sourceRect": [
+      889,
+      740,
+      276,
+      574
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1497
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-light-home",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      720,
+      1667
+    ],
+    "paper": "#FFF8F0",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      16,
+      154,
+      278,
+      590
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1528
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-light-coach",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      720,
+      1662
+    ],
+    "paper": "#FFF8F0",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      306,
+      154,
+      279,
+      590
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1523
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-light-history",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      720,
+      1662
+    ],
+    "paper": "#FFF8F0",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      598,
+      154,
+      279,
+      590
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1523
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-light-settings",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      720,
+      1673
+    ],
+    "paper": "#FFF8F0",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      889,
+      154,
+      277,
+      590
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1534
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-dark-home",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      720,
+      1595
+    ],
+    "paper": "#211A24",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      16,
+      756,
+      278,
+      562
+    ],
+    "nativeRect": [
+      0,
+      90,
+      720,
+      1457
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-dark-coach",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      720,
+      1588
+    ],
+    "paper": "#211A24",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      306,
+      756,
+      279,
+      562
+    ],
+    "nativeRect": [
+      0,
+      90,
+      720,
+      1450
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-dark-history",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      720,
+      1589
+    ],
+    "paper": "#211A24",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      598,
+      756,
+      279,
+      562
+    ],
+    "nativeRect": [
+      0,
+      90,
+      720,
+      1451
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "k-on-dark-settings",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      720,
+      1599
+    ],
+    "paper": "#211A24",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/k-on-four-tabs.png",
+    "sourceRect": [
+      889,
+      756,
+      277,
+      562
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1460
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-light-home",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      720,
+      1987
+    ],
+    "paper": "#F5FAF4",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      12,
+      157,
+      245,
+      629
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1848
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-light-coach",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      720,
+      1995
+    ],
+    "paper": "#F5FAF4",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      265,
+      157,
+      244,
+      629
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1856
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-light-history",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      720,
+      2003
+    ],
+    "paper": "#F5FAF4",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      517,
+      157,
+      243,
+      629
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1864
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-light-settings",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      720,
+      1995
+    ],
+    "paper": "#F5FAF4",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      768,
+      157,
+      244,
+      629
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1856
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-dark-home",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      720,
+      2014
+    ],
+    "paper": "#0C1717",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      12,
+      831,
+      245,
+      638
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1875
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-dark-coach",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      720,
+      2022
+    ],
+    "paper": "#0C1717",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      265,
+      831,
+      244,
+      638
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1883
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-dark-history",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      720,
+      2029
+    ],
+    "paper": "#0C1717",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      517,
+      831,
+      243,
+      638
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1890
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "night-run-dark-settings",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      720,
+      2022
+    ],
+    "paper": "#0C1717",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/night-run-four-tabs.png",
+    "sourceRect": [
+      768,
+      831,
+      244,
+      638
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1883
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-light-home",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      720,
+      2035
+    ],
+    "paper": "#F9F7EC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      17,
+      200,
+      240,
+      632
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1896
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-light-coach",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      720,
+      2035
+    ],
+    "paper": "#F9F7EC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      267,
+      200,
+      240,
+      632
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1896
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-light-history",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      720,
+      2035
+    ],
+    "paper": "#F9F7EC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      518,
+      200,
+      240,
+      632
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1896
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-light-settings",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      720,
+      2035
+    ],
+    "paper": "#F9F7EC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      768,
+      200,
+      240,
+      632
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1896
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-dark-home",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      720,
+      1954
+    ],
+    "paper": "#0B1B17",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      17,
+      909,
+      240,
+      605
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1815
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-dark-coach",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      720,
+      1954
+    ],
+    "paper": "#0B1B17",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      267,
+      909,
+      240,
+      605
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1815
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-dark-history",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      720,
+      1954
+    ],
+    "paper": "#0B1B17",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      518,
+      909,
+      240,
+      605
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1815
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "woodland-dark-settings",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      720,
+      1954
+    ],
+    "paper": "#0B1B17",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/woodland-four-tabs.png",
+    "sourceRect": [
+      768,
+      909,
+      240,
+      605
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1815
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-light-home",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      720,
+      1682
+    ],
+    "paper": "#F7F4FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      26,
+      151,
+      272,
+      583
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1543
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-light-coach",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      720,
+      1699
+    ],
+    "paper": "#F7F4FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      313,
+      151,
+      269,
+      583
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1560
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-light-history",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      720,
+      1677
+    ],
+    "paper": "#F7F4FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      597,
+      151,
+      273,
+      583
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1538
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-light-settings",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      720,
+      1677
+    ],
+    "paper": "#F7F4FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      884,
+      151,
+      273,
+      583
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1538
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-dark-home",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      720,
+      1608
+    ],
+    "paper": "#10101C",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      26,
+      762,
+      272,
+      555
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1469
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-dark-coach",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      720,
+      1625
+    ],
+    "paper": "#10101C",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      313,
+      762,
+      269,
+      555
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1486
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-dark-history",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      720,
+      1603
+    ],
+    "paper": "#10101C",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      597,
+      762,
+      273,
+      555
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1464
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-01-dark-settings",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      720,
+      1603
+    ],
+    "paper": "#10101C",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-01-four-tabs.png",
+    "sourceRect": [
+      884,
+      762,
+      273,
+      555
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1464
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-light-home",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      720,
+      1981
+    ],
+    "paper": "#FFF9F6",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      17,
+      184,
+      240,
+      614
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1842
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-light-coach",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      720,
+      1958
+    ],
+    "paper": "#FFF9F6",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      267,
+      184,
+      243,
+      614
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1819
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-light-history",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      720,
+      1973
+    ],
+    "paper": "#FFF9F6",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      518,
+      184,
+      241,
+      614
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1834
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-light-settings",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      720,
+      1981
+    ],
+    "paper": "#FFF9F6",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      769,
+      184,
+      240,
+      614
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1842
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-dark-home",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      720,
+      2008
+    ],
+    "paper": "#180F12",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      17,
+      815,
+      240,
+      623
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1869
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-dark-coach",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      720,
+      1985
+    ],
+    "paper": "#180F12",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      267,
+      815,
+      243,
+      623
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1846
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-dark-history",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      720,
+      2000
+    ],
+    "paper": "#180F12",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      518,
+      815,
+      241,
+      623
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1861
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  },
+  {
+    "name": "eva-unit-02-dark-settings",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      720,
+      2008
+    ],
+    "paper": "#180F12",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "reference": "design-references/eva-unit-02-four-tabs.png",
+    "sourceRect": [
+      769,
+      815,
+      240,
+      623
+    ],
+    "nativeRect": [
+      0,
+      91,
+      720,
+      1869
+    ],
+    "fontScale": 1,
+    "density": 320,
+    "logicalWidthDp": 360.0
+  }
+]

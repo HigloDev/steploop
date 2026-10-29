@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Feather } from '@expo/vector-icons'
+import { SkinCourseThumbnail } from '../components/skin-detail-art'
 import { MainTabScreen } from '../navigation/types'
 import { Button, Card, Pill } from '../components/ui'
 import { CoachMessage, CoachPage, CoachSection, CoachText, WeightTrend, displayDate, minutesText, todayKey, useCoachData } from '../components/coach-ui'
@@ -95,7 +96,7 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
             ...(getThemeSkinId(t) === 'classic' ? {} : { paddingHorizontal: compact ? 12 : 16, paddingVertical: compact ? 12 : 16, backgroundColor: t.card, borderWidth: 1, borderColor: t.lineSoft, borderRadius: t.radiusLg }) })}>
           {graphic ? <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
             <View style={{ width: compact ? 48 : 52, height: compact ? 60 : 64, borderRadius: 12, backgroundColor: t.brandSoft, alignItems: 'center', justifyContent: 'center' }}>
-              <MaterialCommunityIcons name={course.id === 'weight' ? 'bullseye-arrow' : course.id === 'beginner' ? 'stairs-up' : 'heart-pulse'} size={36} color={t.brandText} accessible={false} />
+              <SkinCourseThumbnail course={course.id} size={40} />
             </View>
             <View style={{ flex: 1 }}><CoachText size="title" style={{ fontSize: 18, lineHeight: 25 }}>{course.name}</CoachText>
               <CoachText tone="muted" numberOfLines={compact ? 2 : undefined} style={{ fontSize: compact ? 13 : 14, lineHeight: compact ? 18 : 21 }}>{course.duration} · {course.description}</CoachText></View>

@@ -96,6 +96,34 @@ test('each graphic skin wires all four page headers to their documented PNG hash
   }
 })
 
+test('custom course/building details and dark logos resolve to documented bitmaps', () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'docs/skins/assets.json'), 'utf8'))
+  const required = { woodland: ['course-weight', 'course-beginner', 'course-cardio', 'building'],
+    pikachu: ['course-weight', 'course-beginner', 'course-cardio', 'building'],
+    'night-run': ['building'], 'eva-unit-01': ['building', 'mark-dark'], 'eva-unit-02': ['building'] }
+  for (const [skinId, roles] of Object.entries(required)) {
+    const details = manifest.skins.find(skin => skin.id === skinId).details
+    for (const role of roles) {
+      const item = details.find(asset => asset.role === role)
+      assert.ok(item, skinId + '/' + role)
+      const resolved = role === 'building' ? artwork.getSkinBuildingArtwork(skinId)
+        : role === 'mark-dark' ? artwork.getSkinMarkArtwork(skinId, 'dark') : artwork.getSkinCourseArtwork(skinId, role.slice(7))
+      assert.equal(resolved, path.join(root, item.path))
+      assert.equal(crypto.createHash('sha256').update(fs.readFileSync(resolved)).digest('hex'), item.sha256)
+    }
+  }
+  assert.equal(artwork.getSkinMarkArtwork('eva-unit-01', 'light'), artwork.getSkinArtwork('eva-unit-01').mark)
+  assert.notEqual(artwork.getSkinMarkArtwork('eva-unit-01', 'dark'), artwork.getSkinMarkArtwork('eva-unit-01', 'light'))
+  assert.equal(artwork.getSkinCourseArtwork('k-on', 'weight'), artwork.getSkinArtwork('k-on').mark)
+  assert.equal(artwork.getSkinBuildingArtwork('classic'), undefined)
+})
+
+test('dark supplied preview chooses the matching logo while another theme is selected', () => {
+  const h = harness('src/components/skin-art.tsx')
+  const node = h.render(() => h.module.SkinArt({ kind: 'mark', theme: { id: 'eva-unit-01', isDark: true } }))
+  assert.equal(node.props.children[0].props.source, artwork.getSkinMarkArtwork('eva-unit-01', 'dark'))
+})
+
 test('a failed decorative image disappears and does not break a later skin selection', () => {
   const h = harness('src/components/skin-art.tsx')
   let errors = 0

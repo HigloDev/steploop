@@ -12,7 +12,7 @@ parser.add_argument('--all-rounds', action='store_true', help='Development-only 
 args = parser.parse_args()
 current_source = source_fingerprint()
 for manifest in sorted((DOC / 'evidence/20261028-fidelity').glob('round-*/captures.json')):
-    if not args.all_rounds and manifest.parent.name != 'round-6':
+    if not args.all_rounds and manifest.parent.name != 'round-7':
         continue
     for item in json.loads(manifest.read_text(encoding='utf-8')):
         if not args.all_rounds and item.get('sourceFingerprint') != current_source:

@@ -24,7 +24,7 @@ def main():
     report = {'sourceFingerprint': source_fingerprint(), 'recordedAt': datetime.now(timezone.utc).isoformat(),
               'typecheck': {'command': 'npm run typecheck', 'exitCode': 0},
               'regression': {'command': 'npm test', 'exitCode': 0, **counts},
-              'androidExport': {'command': 'npx expo export --platform android --output-dir output/graphics-qa/android-export-final',
+              'androidExport': {'command': 'npx expo export --platform android --max-workers 2 --output-dir output/graphics-qa/android-export-final',
                   'entry': 'index.ts (ordinary App entry)', 'exitCode': 0, 'bundle': bundle.name,
                   'bytes': bundle.stat().st_size, 'sha256': hashlib.sha256(bundle.read_bytes()).hexdigest(),
                   'metadataSha256': hashlib.sha256((export_root / 'metadata.json').read_bytes()).hexdigest()},

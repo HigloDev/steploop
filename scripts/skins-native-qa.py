@@ -86,7 +86,12 @@ class Lab:
             data = self.adb('exec-out', 'screencap', '-p', binary=True)
             img = Image.open(io.BytesIO(data)).convert('RGB')
             sample = (10, min(img.height - 100, max(300, img.height // 2)))
-            if not check_paper or img.getpixel(sample) == expected: break
+            # RN's transient developer refresh strip can outlive the route marker.
+            # Never accept that overlay as an app screenshot or retouch it away.
+            refresh_strip = any(all(img.getpixel((x, y)) == (37, 132, 232)
+                for x in [int(img.width * .02), int(img.width * .5), int(img.width * .98)])
+                for y in range(40, min(360, img.height // 4), 2))
+            if not refresh_strip and (not check_paper or img.getpixel(sample) == expected): break
             assert time.monotonic() < deadline, f'{name}: unexpected page color {img.getpixel(sample)}, expected {expected}'
             time.sleep(.2)
         (self.out / (name + '.png')).write_bytes(data)

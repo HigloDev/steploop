@@ -43,7 +43,13 @@
     "status": "native-verified",
     "registry": "docs/skins/registry.json",
     "validation": "docs/skins/GRAPHICS_VALIDATION.md",
-    "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
-    "published": false
+    "published": false,
+    "priorNativeVerification": {
+      "commit": "3db9cdb",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+      "scope": "historical functional and layout evidence; visual acceptance reopened"
+    },
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "verifiedAt": "2026-10-29"
   }
 }

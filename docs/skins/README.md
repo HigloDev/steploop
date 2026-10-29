@@ -32,7 +32,9 @@ K-On采用“放课后茶会”的吉他、贝斯、音箱和茶杯；两套EVA�
 - `registry.json`：建设目录、稳定ID、状态与证据入口。
 - `src/skin-catalog.ts`：运行时目录及成对配色数据；选择页从此自动列出皮肤。
 - `src/skin-assets.ts`：静态本地素材目录。三种共享角色为`mark / scene / achievement`；另有四页各自的`header-home / header-coach / header-history / header-settings`，原稿构图不同的暗色页使用单独覆盖素材。不从网络临时下载图案。
+- 专用细节登记在`assets.json.details`：山野与皮卡丘的三门课程插图、五套楼栋插图，以及初号机暗色Logo。由`getSkinCourseArtwork / getSkinBuildingArtwork / getSkinMarkArtwork`统一选择；不能遗漏原稿中的专用图案后仍标记完成。
 - `src/components/skin-page-header.tsx`：页头插画与真实文字/按钮叠放；布局高度、内容密度与皮卡丘周卡叠放尺寸统一登记于`src/theme.ts`。
+- `src/components/skin-detail-art.tsx`：课程与楼栋缩略图、EVA周卡底纹。页头通过`getSkinHeaderLayout`保留透明下沿和文字留白，K-On教练页为完整乐器组单独留出说明区域。
 - `src/components/skin-art.tsx`：统一插画容器和响应式占位。装饰不进入朗读／焦点顺序，不拦截触摸。
 - `src/theme.ts`：现有主题的唯一显示层入口，输出完整语义token、训练配色与海报配色。不能另建一套平行主题系统。
 - `src/services/appearance.ts`：外观偏好唯一存储所有者，独立键 `steploop.appearance.v1`；不重写既有训练偏好对象。

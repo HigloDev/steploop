@@ -355,6 +355,36 @@ export function getSkinPageHeight(theme: Theme, page: SkinPage, width: number): 
   return skinPageHeights[getThemeSkinId(theme)][page] * Math.min(width / 360, 1.22)
 }
 
+/** Keep upper motifs and bottom fades visible. K-On home may crop only its
+ * verified empty lower 17%, bringing the organic tabletop close to the week card. */
+export function getSkinHeaderLayout(theme: Theme, page: SkinPage, width: number, fontScale = 1) {
+  const skin = getThemeSkinId(theme), height = getSkinPageHeight(theme, page, width)
+  const overlap = skin === 'pikachu' && page === 'home' && !isLargeText(fontScale)
+  // These windows exclude only the audited empty margins of sparse canvases.
+  // Fitting their whole canvas would reduce the actual subject to a tiny icon.
+  const window = page === 'settings'
+    ? ({ 'k-on': [0.07, 0.58], 'eva-unit-01': [0.10, 0.70], 'eva-unit-02': [0, 0.65],
+        pikachu: theme.isDark ? [0.04, 435 / 1024] : [0.04, 484 / 1024] } as Partial<Record<SkinId, number[]>>)[skin]
+    : page === 'history' ? ({ 'k-on': [0.30, 1], pikachu: [0.46, 1] } as Partial<Record<SkinId, number[]>>)[skin] : undefined
+  if (window) {
+    const artHeight = height / (window[1] - window[0]), artWidth = artHeight * 1.5
+    return { width: artWidth, height: artHeight, top: -artHeight * window[0], left: width - artWidth,
+      overlap: false, safeBottomFraction: 0, visibleWindow: window }
+  }
+  // The coach copy needs its own clear area above the complete instrument set.
+  const textClearance = skin === 'k-on' && page === 'coach' ? height * 0.2 : 0
+  const artWidth = overlap ? Math.max(width, height * 1.5) * 1.216 : (height - textClearance) * 1.5
+  const safeBottomFraction = skin === 'k-on' && page === 'home' ? 0.17 : 0
+  const clearSearch = page === 'history' && (skin === 'eva-unit-01' || skin === 'eva-unit-02' && theme.isDark)
+  return { width: artWidth, height: artWidth / 1.5, top: overlap ? -12 * Math.min(width / 360, 1.22) : textClearance + height * safeBottomFraction,
+    left: width - artWidth - (clearSearch ? 48 * Math.min(width / 360, 1.22) : 0), overlap, safeBottomFraction, visibleWindow: undefined }
+}
+
+export function getCourseIconAccent(theme: Theme, course: 'weight' | 'beginner' | 'cardio'): string {
+  return getThemeSkinId(theme) === 'eva-unit-01' && course === 'weight'
+    ? (theme.isDark ? '#AEF638' : '#629323') : theme.brandText
+}
+
 export function getPrimaryActionPaint(theme: Theme): { fill: string; ink: string } {
   return theme.isDark && getThemeSkinId(theme) === 'eva-unit-01'
     ? { fill: '#AEF638', ink: '#17290B' } : { fill: theme.brand, ink: theme.onBrand }

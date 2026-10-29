@@ -3,7 +3,7 @@ import { Image, Text, useWindowDimensions, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BrandMark } from './brand-mark'
 import { getSkinHeaderArtwork } from '../skin-assets'
-import { getSkinPageHeight, getThemeSkinId, isLargeText, SkinPage, useTheme } from '../theme'
+import { getSkinHeaderLayout, getSkinPageHeight, getThemeSkinId, isLargeText, SkinPage, useTheme } from '../theme'
 
 /** A real text/control layer over page-specific art, never a screenshot of controls. */
 export function SkinPageHeader({ page, title, subtitle, right, children, includeTopInset = true }: {
@@ -17,21 +17,18 @@ export function SkinPageHeader({ page, title, subtitle, right, children, include
   const [failed, setFailed] = useState<string>()
   const baseHeight = getSkinPageHeight(theme, page, width)
   const largeText = isLargeText(fontScale)
-  const overlapArt = skin === 'pikachu' && page === 'home' && !largeText
+  const art = getSkinHeaderLayout(theme, page, width, fontScale)
   const top = includeTopInset ? insets.top : 0
   const backgroundHeight = baseHeight + top
   const spacious = ['night-run', 'woodland'].includes(skin) && page === 'coach'
-  const artWidth = Math.max(width, baseHeight * 1.5) * (overlapArt ? 1.216 : page === 'settings' ? 1.2 : 1)
-  const artHeight = artWidth / 1.5
-  const artDrop = skin === 'woodland' && page === 'home' ? 32 * Math.min(width / 360, 1.22) : 0
   return <View pointerEvents="box-none" style={{ marginHorizontal: -theme.pagePaddingH, minHeight: backgroundHeight, paddingTop: top + 14,
-    ...(overlapArt ? { zIndex: 1 } : {}),
+    ...(art.overlap ? { zIndex: 1 } : {}),
     paddingHorizontal: theme.pagePaddingH, paddingBottom: 14, position: 'relative' }}>
     {source && failed !== identity ? <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
-      style={{ position: 'absolute', top, left: 0, right: 0, height: baseHeight, overflow: overlapArt ? 'visible' : 'hidden' }}>
+      style={{ position: 'absolute', top, left: 0, right: 0, height: baseHeight, overflow: art.overlap ? 'visible' : 'hidden' }}>
       <Image key={identity} source={source} resizeMode="contain" fadeDuration={0} accessible={false} onError={() => setFailed(identity)}
-        style={{ position: 'absolute', ...(skin === 'k-on' && page === 'coach' ? { left: (width - artWidth) / 2 } : { right: 0 }), ...(overlapArt ? { top: -12 * Math.min(width / 360, 1.22) } : page === 'settings' ? { top: 0 } : { bottom: -artDrop }),
-          width: artWidth, height: artHeight, opacity: largeText ? 0.25 : 1 }} />
+        style={{ position: 'absolute', left: art.left, top: art.top,
+          width: art.width, height: art.height, opacity: largeText ? 0.25 : 1 }} />
     </View> : null}
     <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 48, gap: 10 }}>
       {page === 'home' ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>

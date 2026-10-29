@@ -17,7 +17,7 @@ registry = json.loads((DOC / 'registry.json').read_text(encoding='utf-8'))
 inventory = []
 source = source_fingerprint()
 proof = {}
-for directory in ['round-6', 'core', 'flows', 'small', 'small-pikachu', 'small-k-on', 'interaction']:
+for directory in ['round-7', 'core', 'flows', 'small', 'small-pikachu', 'small-k-on', 'interaction']:
     folder = EVIDENCE / directory
     for name in ['captures.json', 'capture-results.json', 'small-results.json', 'interaction-results.json']:
         manifest = folder / name
@@ -27,7 +27,7 @@ for directory in ['round-6', 'core', 'flows', 'small', 'small-pikachu', 'small-k
             for frame in frames:
                 proof[(directory, frame['name'])] = frame.get('sourceFingerprint', data.get('sourceFingerprint') if isinstance(data, dict) else None)
 for file in sorted(EVIDENCE.rglob('*.png')):
-    if file.parent.name not in ['round-6', 'core', 'flows', 'small', 'small-pikachu', 'small-k-on', 'interaction']:
+    if file.parent.name not in ['round-7', 'core', 'flows', 'small', 'small-pikachu', 'small-k-on', 'interaction']:
         continue
     assert proof.get((file.parent.name, file.stem)) == source, 'Stale or missing capture metadata: ' + str(file)
     skin = next((s['id'] for s in registry['skins'] if file.name.startswith(s['id'] + '-')), None)
@@ -38,7 +38,7 @@ for file in sorted(EVIDENCE.rglob('*.png')):
         mode, state = None, file.stem
     with Image.open(file) as img:
         size = list(img.size)
-    group = 'core' if file.parent.name == 'round-6' else 'small' if file.parent.name.startswith('small') else file.parent.name
+    group = 'core' if file.parent.name == 'round-7' else 'small' if file.parent.name.startswith('small') else file.parent.name
     inventory.append({'file': file.relative_to(DOC).as_posix(), 'group': group,
         'skin': skin, 'mode': mode, 'state': state, 'size': size,
         'sha256': hashlib.sha256(file.read_bytes()).hexdigest(),

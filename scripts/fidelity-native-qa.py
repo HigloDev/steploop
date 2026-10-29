@@ -21,13 +21,15 @@ def main():
     p.add_argument('--skins', nargs='+', required=True)
     p.add_argument('--states', nargs='+', default=['home', 'coach', 'history', 'settings'])
     p.add_argument('--modes', nargs='+', default=['light', 'dark'])
-    p.add_argument('--round', default='round-6')
+    p.add_argument('--round', default='round-7')
     p.add_argument('--width', type=int, default=720)
     p.add_argument('--density', type=int, default=320)
+    p.add_argument('--serial', default='emulator-5596')
+    p.add_argument('--resume', action='store_true', help='Reuse only captures for the unchanged runtime fingerprint')
     args = p.parse_args()
     out = ROOT / 'docs/skins/evidence/20261028-fidelity' / args.round
     targets = json.loads((ROOT / 'docs/skins/fidelity-targets.json').read_text(encoding='utf-8'))
-    lab = module.GraphicLab('emulator-5596', 'com.zxn.palou.uiqa', out)
+    lab = module.GraphicLab(args.serial, 'com.zxn.palou.uiqa', out)
     record_file = out / 'captures.json'
     records = json.loads(record_file.read_text(encoding='utf-8')) if record_file.exists() else []
     def insets():
@@ -46,9 +48,17 @@ def main():
         for skin in args.skins:
             for mode in args.modes:
                 for state in args.states:
+                    assert source_fingerprint() == source, 'Runtime changed during capture; restart this batch'
                     frame = targets[skin]['frames'][mode][state]
                     x, y, w, h = frame
                     name = f'{skin}-{mode}-{state}'
+                    if args.resume and (out / (name + '.png')).exists() and any(
+                        r['name'] == name and r.get('sourceFingerprint') == source
+                        and r.get('density') == args.density and r.get('nativeRect', [0, 0, 0])[2] == args.width
+                        for r in records
+                    ):
+                        print('RESUME ' + name, flush=True)
+                        continue
                     target_height = round(h / w * args.width)
                     height = target_height + top + bottom
                     # Insets settle after the density/window reconfiguration.
@@ -66,6 +76,7 @@ def main():
                         raise AssertionError(f'Unstable content viewport: {name}, {height}, {actual_top}, {actual_bottom}')
                     top, bottom = actual_top, actual_bottom
                     lab.screenshot(name, skin, mode)
+                    assert source_fingerprint() == source, 'Runtime changed before evidence was recorded'
                     records = [r for r in records if r['name'] != name]
                     records.append({**lab.results[-1], 'reference': targets[skin]['file'], 'sourceRect': frame,
                                     'nativeRect': [0, actual_top, args.width, content_height], 'fontScale': 1, 'density': args.density,

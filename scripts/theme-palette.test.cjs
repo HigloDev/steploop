@@ -39,6 +39,28 @@ test('130 percent accessibility layout accepts the Android float32 font-scale va
   assert.equal(context.exports.isLargeText(1), false)
 })
 
+test('short headers preserve the entire vertical canvas and its fading lower edge', () => {
+  for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
+    for (const width of [320, 360, 440]) for (const page of ['home', 'coach', 'history', 'settings']) {
+      const theme = getTheme(skin.id, mode)
+      const height = context.exports.getSkinPageHeight(theme, page, width)
+      const art = context.exports.getSkinHeaderLayout(theme, page, width)
+      if (!art.overlap) {
+        if (art.visibleWindow) {
+          assert.ok(Math.abs(art.top + art.height * art.visibleWindow[0]) < 0.001)
+          assert.ok(Math.abs(art.top + art.height * art.visibleWindow[1] - height) < 0.001)
+          continue
+        }
+        assert.ok(art.top >= 0 && art.height >= 0, 'Upper artwork stays inside the canvas; classic has no graphical header')
+        assert.ok(art.top + art.height <= height * (1 + art.safeBottomFraction) + 0.001,
+          `${skin.id}/${page}/${width}: only the verified empty lower strip may be cropped`)
+      }
+    }
+  }
+  const large = context.exports.getSkinHeaderLayout(getTheme('pikachu', 'light'), 'home', 320, new Float32Array([1.3])[0])
+  assert.equal(large.overlap, false)
+})
+
 function rgb(hex) {
   assert.match(hex, /^#[0-9a-f]{6}$/i)
   return hex.slice(1).match(/../g).map(channel => parseInt(channel, 16) / 255)

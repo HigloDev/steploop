@@ -32,7 +32,8 @@
     "captureInventory": "docs/skins/evidence/20261028-fidelity/inventory.json",
     "comparison": "docs/skins/fidelity-review.html",
     "automatedResults": "docs/skins/evidence/20261028-fidelity/automated-results.json",
-    "acceptanceSummary": "docs/skins/evidence/20261028-fidelity/validation-summary.json"
+    "acceptanceSummary": "docs/skins/evidence/20261028-fidelity/validation-summary.json",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
   },
   "skins": [
     {
@@ -114,18 +115,18 @@
       },
       "nativeEvidence": {
         "light": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/night-run-light-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/night-run-light-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-light-summary.png"
         },
         "dark": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/night-run-dark-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-summary.png"
         }
@@ -160,18 +161,18 @@
       },
       "nativeEvidence": {
         "light": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/woodland-light-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/woodland-light-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/woodland-light-summary.png"
         },
         "dark": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/woodland-dark-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/woodland-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/woodland-dark-summary.png"
         }
@@ -209,18 +210,18 @@
       },
       "nativeEvidence": {
         "light": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-light-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-light-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-light-summary.png"
         },
         "dark": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-01-dark-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-summary.png"
         }
@@ -255,18 +256,18 @@
       },
       "nativeEvidence": {
         "light": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-light-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-light-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-light-summary.png"
         },
         "dark": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/eva-unit-02-dark-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-summary.png"
         }
@@ -302,18 +303,18 @@
       },
       "nativeEvidence": {
         "light": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-light-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/pikachu-light-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/pikachu-light-summary.png"
         },
         "dark": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/pikachu-dark-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/pikachu-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/pikachu-dark-summary.png"
         }
@@ -354,18 +355,18 @@
       },
       "nativeEvidence": {
         "light": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/k-on-light-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/k-on-light-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-light-summary.png"
         },
         "dark": {
-          "home": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-home.png",
-          "coach": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-coach.png",
-          "history": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-history.png",
-          "settings": "docs/skins/evidence/20261028-fidelity/round-6/k-on-dark-settings.png",
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-settings.png",
           "workout": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-climbing.png",
           "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-summary.png"
         }
@@ -418,5 +419,10 @@
     "publicReleaseChanged": false,
     "pixelIdenticalToConcept": false,
     "remainingDifferences": "design-qa.md"
+  },
+  "visualRevision": {
+    "status": "in-progress",
+    "reason": "hard image edges, cropped motifs and missing custom thumbnails",
+    "historicalCommit": "3db9cdb"
   }
 }

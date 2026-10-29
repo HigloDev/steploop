@@ -10,7 +10,7 @@ def source_fingerprint():
     manifest = json.loads((ROOT / 'docs/skins/assets.json').read_text(encoding='utf-8'))
     files = [*ROOT.glob('src/**/*.ts'), *ROOT.glob('src/**/*.tsx'), ROOT / 'package.json']
     for skin in manifest['skins']:
-        files += [ROOT / item['path'] for key in ['assets', 'headers', 'headerOverrides'] for item in skin.get(key, [])]
+        files += [ROOT / item['path'] for key in ['assets', 'headers', 'headerOverrides', 'details'] for item in skin.get(key, [])]
     digest = hashlib.sha256()
     for file in sorted(set(files)):
         digest.update(file.relative_to(ROOT).as_posix().encode())

@@ -1,6 +1,6 @@
 {
-  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
-  "recordedAt": "2026-10-28T13:34:16.663231+00:00",
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+  "recordedAt": "2026-10-29T05:25:38.376553+00:00",
   "typecheck": {
     "command": "npm run typecheck",
     "exitCode": 0
@@ -8,23 +8,23 @@
   "regression": {
     "command": "npm test",
     "exitCode": 0,
-    "tests": 767,
-    "pass": 734,
+    "tests": 770,
+    "pass": 737,
     "fail": 0,
     "skipped": 33
   },
   "androidExport": {
-    "command": "npx expo export --platform android --output-dir output/graphics-qa/android-export-final",
+    "command": "npx expo export --platform android --max-workers 2 --output-dir output/graphics-qa/android-export-final",
     "entry": "index.ts (ordinary App entry)",
     "exitCode": 0,
-    "bundle": "index-464191efcbb9c4fb621f2b8d1ef1ca18.hbc",
-    "bytes": 4849055,
-    "sha256": "d7467c4d251c7128815a5a1b33370353d05bfed84e0dc93f542161b88c5f7a1a",
-    "metadataSha256": "54fc25eb1dece0e294d0d2bea9c690441dc193411145cee3fcf05fb8e3ae6df7"
+    "bundle": "index-4ab92adcb291b791825f6d463b309e89.hbc",
+    "bytes": 4857096,
+    "sha256": "dc04aa262c91e7318357c4cb253912e6ab8da48aeb2250781365beac60e52fe1",
+    "metadataSha256": "36826c8b161490dc6cded8819609e93d62be2e0d4ffd2734d46d4d39bba5b11e"
   },
   "logHashes": {
     "typecheck-final.log": "01f59c386f88308a032dabb6c93af9829af664a84a1bf725242395a8ae98bc72",
-    "regression-final.log": "6f0453e6cf1a9e0dc2054a0abb9147efee6bafe1622916c13bbc904989318694",
-    "android-export-final.log": "6f7950f94a5a38108e9b509a8929d6d6f0107599f69253e98a403f73de22fd19"
+    "regression-final.log": "e61a93d2ee8c4357ce39a876fbfb7aecc2ea46098b9d3b1031113aeb43e92cbf",
+    "android-export-final.log": "ec3005722f3e9fea4ed345c74f880e967510c214853bd8d2e09176d97f1bfd44"
   }
 }

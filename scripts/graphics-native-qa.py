@@ -4,6 +4,7 @@ import json
 import subprocess
 import time
 import xml.etree.ElementTree as ET
+from urllib.request import urlopen
 from pathlib import Path
 
 from skins_native_qa_import import Lab, IDS, ROOT
@@ -39,7 +40,14 @@ class GraphicLab(Lab):
         deadline = time.monotonic() + 70
         marker = MARKERS.get(state, '')
         while time.monotonic() < deadline:
-            tree = self.tree()
+            try:
+                tree = self.tree()
+            except AssertionError as error:
+                # A newly resized emulator may not expose accessibility yet.
+                # Retry inside the same deadline; never swallow app/redbox errors.
+                if str(error) != 'Could not obtain a fresh UI hierarchy':
+                    raise
+                continue
             if marker and not any(marker in n.get('text', '') + n.get('content-desc', '') for n in tree.iter('node')):
                 time.sleep(.3)
                 continue
@@ -51,8 +59,13 @@ class GraphicLab(Lab):
         raise AssertionError('Page not ready: ' + state)
 
     def configure(self, port):
+        # Check IPv4 reachability before launching a batch; ::1-only Metro is
+        # invisible to adb reverse and otherwise causes repeated native redboxes.
+        with urlopen(f'http://127.0.0.1:{port}/status', timeout=5) as response:
+            assert response.read().strip() == b'packager-status:running', 'Metro is not ready on IPv4'
         self.adb('shell', 'am', 'force-stop', self.package)
         self.adb('reverse', f'tcp:{port}', f'tcp:{port}')
+        self.adb('reverse', 'tcp:8081', f'tcp:{port}')
         prefs = f'shared_prefs/{self.package}_preferences.xml'
         existing = subprocess.run([str(self.adb_path), '-s', self.serial, 'shell', 'run-as', self.package, 'cat', prefs], capture_output=True)
         root = ET.fromstring(existing.stdout) if existing.returncode == 0 else ET.Element('map')

@@ -7,6 +7,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / 'docs/skins/assets.json'
 PAGES = ['home', 'coach', 'history', 'settings']
+PROVENANCE = ROOT / 'docs/skins/asset-provenance/edge-r2.json'
+GROUPS = ['assets', 'headers', 'headerOverrides', 'details']
 GENERATED = {
     'night-run': ['44b7d194-44d1-4e0a-8a39-ebfc9172e2b4', 'a8df31d0-aed9-4f26-9da3-3cef7e880cdd', '32ef8661-222f-4ba9-a8c3-984a40c327bc', 'a3f74aae-0893-4faf-b5ed-c35c45c179f4'],
     'woodland': ['96132ac6-70df-4f8d-bc7e-4119e44601f0', 'de4262a1-79e6-4d7b-8562-9d44dc3f9782', 'b569bafb-fc23-43bf-b8cc-9e3143816abf', '4d7d23c0-ee1d-4e66-9499-4c60f1f79a52'],
@@ -28,7 +30,8 @@ def bitmap(path):
 
 def main():
     manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
-    manifest.update({'schemaVersion': 2, 'headerPages': PAGES,
+    revisions = {item['path']: item for item in json.loads(PROVENANCE.read_text(encoding='utf-8'))} if PROVENANCE.exists() else {}
+    manifest.update({'schemaVersion': 3, 'headerPages': PAGES,
                      'referencePolicy': 'Five skins use ImageGen reference edits. Pikachu alone uses the explicitly approved local extraction of existing artwork.'})
     for skin in manifest['skins']:
         previous_headers = {item['page']: item for item in skin.get('headers', [])}
@@ -64,7 +67,7 @@ def main():
             override = path.with_name(f'header-{page}-dark.png')
             if override.exists():
                 provenance_file = ROOT / f'output/graphics-qa/{skin["id"]}-header-{page}-dark-source.json'
-                provenance = json.loads(provenance_file.read_text(encoding='utf-8')) if provenance_file.exists() else previous_overrides[(page, 'dark')]
+                provenance = json.loads(provenance_file.read_text(encoding='utf-8')) if provenance_file.exists() else previous_overrides.get((page, 'dark'), {})
                 detail = {'page': page, 'mode': 'dark', **bitmap(override), 'reference': item['reference']}
                 for key in ['method', 'sourceSha256', 'sourceDimensions', 'sourceSelection', 'cropBoxExclusive', 'sourceCropPixels', 'sourceLimitations', 'sourceOutput', 'prompt']:
                     if key in provenance:
@@ -72,8 +75,23 @@ def main():
                 if 'sourceOutput' in detail:
                     detail['sourceOutput'] = detail['sourceOutput'].replace('\\', '/').rsplit('/', 1)[-1]
                 skin['headerOverrides'].append(detail)
-    manifest['shippedPngCount'] = sum(len(s['assets']) + len(s['headers']) + len(s['headerOverrides']) for s in manifest['skins'])
-    manifest['shippedPngBytes'] = sum(a['bytes'] for s in manifest['skins'] for a in s['assets'] + s['headers'] + s['headerOverrides'])
+        previous_details = {item['path']: item for item in skin.get('details', [])}
+        known = {item['path'] for key in ['assets', 'headers', 'headerOverrides'] for item in skin.get(key, [])}
+        skin['details'] = []
+        for path in sorted((ROOT / 'assets/skins' / skin['id']).glob('*.png')):
+            if path.relative_to(ROOT).as_posix() not in known:
+                item = {**previous_details.get(path.relative_to(ROOT).as_posix(), {}), 'role': path.stem, **bitmap(path)}
+                skin['details'].append(item)
+        for key in GROUPS:
+            for item in skin.get(key, []):
+                revision = revisions.get(item['path'])
+                if revision:
+                    assert revision['sha256'] == item['sha256'], item['path']
+                    for field in ['method', 'sourceOutput', 'reference', 'sourceSha256', 'sourceDimensions', 'sourceSelection', 'cropBoxExclusive', 'sourceCropPixels', 'sourceLimitations', 'revisionReason', 'provenance']:
+                        if field in revision:
+                            item[field] = revision[field]
+    manifest['shippedPngCount'] = sum(len(s.get(key, [])) for s in manifest['skins'] for key in GROUPS)
+    manifest['shippedPngBytes'] = sum(a['bytes'] for s in manifest['skins'] for key in GROUPS for a in s.get(key, []))
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
     print(f'{manifest["shippedPngCount"]} PNGs documented with exact hashes')
 

@@ -1,6 +1,6 @@
 # 当前项目状态
 
-更新日期：2026-10-28。机器可读版本信息见 [project-state.json](project-state.json)。
+更新日期：2026-10-29。机器可读版本信息见 [project-state.json](project-state.json)。
 
 当前图形皮肤候选为 **1.1.7 / Android versionCode 16**，分支 `codex/skins-graphics-117-20261028`，基于综合联调候选`9c7eed9`。该基线已从核验的1.1.5主线`6282e28`整合：
 
@@ -11,7 +11,7 @@
 
 来源工作区与未提交内容保留原位。本目录为基于`9c7eed9`的独立图形皮肤分支，不覆盖并行教练、热量和整合分支。
 
-当前图形改动：七套皮肤均支持浅暗与跟随系统；原版保留原标志，另六套有47张本地Logo、插画、四页页头和暗色差异素材。四个一级入口及教练深页共用主题与图形组件。767项回归、160张同源码原生截图及交互验收通过，Android 130%字号浮点边界已修复。生成细节、原图像素和原生图标与概念稿仍有差异，不能称为逐像素100%一致。使用与证据见[图形版验证记录](docs/skins/GRAPHICS_VALIDATION.md)，机器入口为`project-state.json.uiSkinCandidate`。本分支没有安装到真实手机或公开发布。
+当前图形改动：七套皮肤均支持浅暗与跟随系统；本轮60张素材已全部接入，图片边缘、页头裁切、K-On文字遮挡和课程/楼栋图案完成整改。当前源码770项回归737通过、0失败、33原有跳过；160张原生截图、全部56种四入口浅暗组合与四阶段实际交互验收通过。使用、证据和仍存在的原画细节差异见[图形版验证记录](docs/skins/GRAPHICS_VALIDATION.md)和[复查清单](docs/skins/GRAPHICS_REAUDIT.md)，机器入口为`project-state.json.uiSkinCandidate`。旧提交`3db9cdb`的截图与passed只作为历史证据。本分支未安装到实体手机或公开发布。
 
 公开版本仍为 **1.1.5 / Android code 14**，标签 `v1.1.5-preview.1`，发布源码 `77c148a63c35c179fbaa1537b422cd3a8f33fb5c`。本次不更改既有公开 Release、下载页或附件。
 

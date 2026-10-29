@@ -1,9 +1,9 @@
 {
-  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
   "phases": {
     "appearance": {
       "passed": true,
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
       "checks": [
         "Four actual bottom tabs navigate and keep the selected graphic skin",
         "All seven actual skin radios activate in the appearance screen",
@@ -12,14 +12,14 @@
     },
     "coach": {
       "passed": true,
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
       "checks": [
         "Real course detail/goal form saves an enrollment; weight and weekly review save; latest weight survives cold start"
       ]
     },
     "feedback": {
       "passed": true,
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
       "checks": [
         "Incomplete course result keeps its confirmed floors; effort feedback saves without marking course completed",
         "Collapsed feedback previews expand; haptic control stays reachable; completion preview closes without generating a workout"
@@ -27,7 +27,7 @@
     },
     "training": {
       "passed": true,
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
       "checks": [
         "Training short tap does not finish; deliberate 1.6-second hold reaches saved-result UI in synthetic fixture"
       ]
@@ -52,7 +52,7 @@
         2400
       ],
       "paper": "#180F12",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "woodland-dark-cold-start",
@@ -63,7 +63,7 @@
         2400
       ],
       "paper": "#0B1B17",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "woodland-light-system",
@@ -74,7 +74,7 @@
         2400
       ],
       "paper": "#F9F7EC",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "woodland-dark-system",
@@ -85,7 +85,7 @@
         2400
       ],
       "paper": "#0B1B17",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "woodland-light-manual-on-dark-system",
@@ -96,7 +96,7 @@
         2400
       ],
       "paper": "#F9F7EC",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "k-on-dark-goal-saved",
@@ -107,7 +107,7 @@
         2400
       ],
       "paper": "#211A24",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "k-on-dark-weight-saved",
@@ -118,7 +118,7 @@
         2400
       ],
       "paper": "#211A24",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "k-on-dark-review-saved",
@@ -129,7 +129,7 @@
         2400
       ],
       "paper": "#211A24",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "k-on-dark-coach-cold-start",
@@ -140,7 +140,7 @@
         2400
       ],
       "paper": "#211A24",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-01-light-course-feedback-saved",
@@ -151,7 +151,7 @@
         2400
       ],
       "paper": "#F7F4FC",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "k-on-light-feedback-preview",
@@ -162,7 +162,7 @@
         2400
       ],
       "paper": "#FFF8F0",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "k-on-light-feedback-preview-keeps-record-count",
@@ -173,7 +173,7 @@
         2400
       ],
       "paper": "#FFF8F0",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-02-dark-short-tap-keeps-training",
@@ -184,7 +184,7 @@
         2400
       ],
       "paper": "#180F12",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     },
     {
       "name": "eva-unit-02-dark-long-hold-result",
@@ -195,7 +195,7 @@
         2400
       ],
       "paper": "#180F12",
-      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8"
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
     }
   ],
   "allPassed": true

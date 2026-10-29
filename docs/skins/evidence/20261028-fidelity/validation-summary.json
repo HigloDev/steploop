@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
   "baseVersion": "1.1.7",
   "publicVersion": "1.1.5",
   "syntheticNativePackage": "com.zxn.palou.uiqa",
@@ -24,7 +24,7 @@
     "Training short tap does not finish; deliberate 1.6-second hold reaches saved-result UI in synthetic fixture"
   ],
   "nativeScreenshots": 160,
-  "shippedPngs": 47,
-  "shippedPngBytes": 57308052,
+  "shippedPngs": 60,
+  "shippedPngBytes": 70479805,
   "scope": "Native visual and UI acceptance with synthetic data; no real-device motion or public release claim."
 }

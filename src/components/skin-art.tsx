@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Image, ImageProps, StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native'
 import { getThemeSkinId, isLargeText, skinGeometry, Theme, useTheme } from '../theme'
-import { getSkinArtwork, SkinArtworkSet } from '../skin-assets'
+import { getSkinArtwork, getSkinMarkArtwork, SkinArtworkSet } from '../skin-assets'
 
 type ArtKind = keyof SkinArtworkSet
 
@@ -12,8 +12,9 @@ export function SkinArt({ kind = 'scene', width = skinGeometry.sceneWidth, heigh
   onLoad?: ImageProps['onLoad']; onError?: ImageProps['onError']
 }) {
   const currentTheme = useTheme(), theme = suppliedTheme ?? currentTheme
-  const skinId = getThemeSkinId(theme), source = getSkinArtwork(skinId)?.[kind]
-  const identity = `${skinId}/${kind}`
+  const skinId = getThemeSkinId(theme), mode = theme.isDark ? 'dark' : 'light'
+  const source = kind === 'mark' ? getSkinMarkArtwork(skinId, mode) : getSkinArtwork(skinId)?.[kind]
+  const identity = `${skinId}/${mode}/${kind}`
   const [failed, setFailed] = useState<string>()
   if (!source || failed === identity) return null
   return <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
