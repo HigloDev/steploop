@@ -15,7 +15,7 @@ import { hasSeenOnboarding } from '../services/onboarding'
 import { HISTORY_SESSION_LIMIT, HISTORY_WORKOUT_LIMIT } from '../services/history-repository'
 
 // Date of this description revision; it must not change whenever the page opens.
-const PRIVACY_NOTICE_UPDATED_AT = '2026-10-15'
+const PRIVACY_NOTICE_UPDATED_AT = '2026-10-28'
 const FEEDBACK_URL = 'https://github.com/HigloDev/steploop/issues'
 
 export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
@@ -77,6 +77,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
         </PrivacySection>
 
         <PrivacySection number="02" title="信息存储" summary="运动记录保存在本机，可由你主动导出。">
+          <Text style={styles.paragraph}>使用教练时，你填写的身高、实测体重、目标、课程安排、训练感受、称重记录和复盘仅保存在本机；未保存的目标输入也会暂存为本机草稿。主动导出的备份可包含教练记录，导入前快照支持撤销恢复；草稿不随备份导出。</Text>
           <Text style={styles.paragraph}>所有楼栋模板、旧版路线、爬楼记录与成绩摘要均存储在本地存储中，保存在当前设备下，不会上传到任何服务器。</Text>
           <Text style={styles.paragraph}>训练时按约 10 Hz 留存原始运动样本，采样中断会保留缺段记录。识别结果、人工修正和语音播报日志也保存在本机，可由你主动导出用于电脑分析，不会自动上传。</Text>
           <Text style={styles.paragraph}>标定复核使用当前采集草稿；离开页面不会清除已经保存的训练分析文件。</Text>
@@ -156,7 +157,7 @@ function PrivacySection({ number, title, summary, children }: { number: string; 
   return <View style={{ backgroundColor: theme.card, borderRadius: 20, marginBottom: 6, paddingHorizontal: 18 }}>
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}，查看完整协议`} accessibilityState={{ expanded: open }}
       accessibilityHint="点开查看完整协议正文" onPress={() => setOpen(value => !value)} style={{ flexDirection: 'row', gap: 18, paddingVertical: 8, minHeight: 66, alignItems: 'flex-start' }}>
-      <Text style={{ ...theme.numeric, color: theme.brand, fontSize: 28, lineHeight: 32, marginTop: 4 }}>{number}</Text>
+      <Text style={{ ...theme.numeric, color: theme.brandText, fontSize: 28, lineHeight: 32, marginTop: 4 }}>{number}</Text>
       <View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 19, lineHeight: 24, fontWeight: '900' }}>{title}</Text>
         <Text style={{ color: theme.mutedStrong, fontSize: 15, lineHeight: 20, marginTop: 2 }}>{summary}</Text></View>
     </Pressable>
@@ -171,7 +172,7 @@ const makeStyles = (theme: Theme) =>
     content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
     hero: { marginBottom: 8, gap: 8 },
     eyebrow: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },

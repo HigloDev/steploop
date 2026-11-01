@@ -10,6 +10,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { FlipNumber, GaugeCell, HoldToConfirm, MiniStat, PhaseStatusBar, StairGauge } from '../components/workout-ui'
+import { Disclosure } from '../components/disclosure'
+import { SkinArt } from '../components/skin-art'
+import { StairPaceSelector } from '../components/stair-pace-selector'
+import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
+import { calorieMetricLabel } from '../core/segmented-calories'
+import { courseById } from '../core/coach'
 import { floorAfter } from '../core/floors'
 import { formatDuration } from '../core/math'
 import type { FusionSnapshot } from '../core/fusion-engine'
@@ -105,8 +111,8 @@ export function WorkoutContent({ navigation, session }: {
           <Text style={{ color: P.ink, fontSize: 24, fontWeight: '900' }}>训练结束</Text>
         </View>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: compact ? 24 : 46, paddingBottom: 32, gap: 8 }}>
-        {status === 'finishing' ? <ActivityIndicator size="large" color={P.brand} />
-          : <Feather name="alert-circle" size={132} color={P.brand} />}
+        {status === 'finishing' ? <ActivityIndicator size="large" color={P.brandText} />
+          : <Feather name="alert-circle" size={132} color={P.brandText} />}
         <Text style={[styles.errorTitle, { fontSize: 32, textAlign: 'center' }]}>{status === 'finishing' ? leavingAction === 'discard' ? '正在放弃本次训练…' : '正在保存成绩…' : leavingAction === 'discard' ? '未能放弃本次训练' : '成绩还没有保存完成'}</Text>
         {status === 'finishing' ? <Text style={styles.errorText}>{leavingAction === 'discard' ? '正在安全结束本次采集。' : '请稍等，保存后会自动进入结算页。'}</Text>
           : <Text style={[styles.errorText, { fontSize: 18, lineHeight: 26 }]}>{retainedMessage}</Text>}
@@ -157,7 +163,7 @@ export function WorkoutContent({ navigation, session }: {
     return (
       <View style={[styles.root, styles.center]}>
         <StatusBar style={P.isDark ? 'light' : 'dark'} />
-        <ActivityIndicator size="large" color={P.brand} />
+        <ActivityIndicator size="large" color={P.brandText} />
         <Text style={styles.loading}>正在启动传感器…</Text>
       </View>
     )
@@ -202,13 +208,14 @@ export function WorkoutContent({ navigation, session }: {
     { label: '累计爬升', value: Math.round(ascent).toString(), unit: '米', icon: 'stairs-up' as const },
     { label: '平均爬楼频率', value: frequency.toFixed(1), unit: '层/分钟', icon: 'speedometer' as const },
     { label: '当前步数', value: String(snapshot.steps), unit: '步', icon: 'shoe-print' as const },
-    { label: '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
+    { label: session.calorieEstimate ? calorieMetricLabel(session.calorieEstimate) : '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
   ]
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + (compact ? 12 : 20), paddingBottom: insets.bottom + 8 }]}>
       <StatusBar style={P.isDark ? 'light' : 'dark'} />
       <View style={styles.liveHeader}>
+        <SkinArt kind="mark" width={28} height={28} />
         <Text accessibilityRole="header" style={styles.liveTitle}>向上训练</Text>
         <View style={styles.liveBadge}><View style={styles.liveDot} /><Text style={styles.liveBadgeText}>LIVE</Text></View>
         <Text style={styles.roundBadge}>第 {snapshot.roundNumber} 轮</Text>
@@ -221,17 +228,27 @@ export function WorkoutContent({ navigation, session }: {
       {session.warning ? <Text style={styles.warning} numberOfLines={2}>{session.warning}</Text> : null}
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.liveContent, { gap: compact ? 10 : 16 }]} showsVerticalScrollIndicator={false}>
+        {session.coach ? <View style={{ padding: 16, borderRadius: 16, backgroundColor: P.surface, gap: 6 }}>
+          <Text style={{ color: P.ink, fontSize: 17, fontWeight: '700' }}>{courseById(session.coach.courseId)?.name ?? '教练课程'}</Text>
+          <Text accessibilityLiveRegion="polite" style={{ color: P.ink, fontSize: 16 }}>
+            本次有效上爬 {(snapshot.activeMs / 60000).toFixed(1)} 分钟 · 安排 {session.coach.targetMinutes} 分钟
+          </Text>
+          <Text style={{ color: P.muted, fontSize: 14 }}>按自己的节奏分段完成，返回后充分恢复。结束并保存后计入课程，可分次累计。</Text>
+        </View> : null}
       <View style={[styles.hero, { minHeight: heroHeight }]}>
         <View style={styles.heroCenter}>
           <Text style={styles.eyebrow}>{calibrating ? '记住这段楼梯' : phase === 'climbing' ? '当前楼层' : eyebrow}</Text>
-          {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brand} style={{ marginTop: 12 }} /> : null}
+          {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brandText} style={{ marginTop: 12 }} /> : null}
           <View style={styles.bigRow}>
             <FlipNumber value={bigValue} color={P.brandInk} size={calibrating ? (compact ? 88 : 112) : compact ? 112 : 136} accessibilityLabel={`${bigValue} ${unit}`} />
             <Text style={[styles.unit, compact && { fontSize: 22, marginBottom: 18 }]}>{unit}</Text>
           </View>
           <Text style={[styles.caption, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
         </View>
-        <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 160 : 210} maxVisible={10} style={styles.gauge} />
+        <View style={{ alignItems: 'center' }}>
+          <SkinArt width={compact ? 64 : 88} height={compact ? 48 : 64} />
+          <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 160 : 210} maxVisible={10} style={styles.gauge} />
+        </View>
       </View>
 
       {calibrating ? (
@@ -280,6 +297,12 @@ export function WorkoutContent({ navigation, session }: {
         </View>
         <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
       </View>
+      {session.calorieEstimate ? <Disclosure compact title="热量估算依据">
+        {session.calorieProfile && session.setStairPace ? <StairPaceSelector
+          value={session.calorieProfile.paceSource === 'user' ? session.calorieProfile.pace : undefined}
+          onChange={session.setStairPace} disabled={status !== 'running'} /> : null}
+        <CalorieEstimateDetails estimate={session.calorieEstimate} />
+      </Disclosure> : null}
 
       {snapshot.completedRounds > 0 ? <View style={styles.completedStrip}>
         <MaterialCommunityIcons name="check-circle-outline" size={18} color={P.good} accessible={false} />

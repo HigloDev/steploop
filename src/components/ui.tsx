@@ -16,7 +16,7 @@ import {
   StyleProp,
   PressableProps,
 } from 'react-native'
-import { useTheme, Theme } from '../theme'
+import { getPrimaryActionPaint, useTheme, Theme } from '../theme'
 import { triggerHaptic } from '../services/preferences'
 
 type Variant = 'primary' | 'secondary' | 'danger'
@@ -74,7 +74,7 @@ export function Button({
   const styles = makeStyles(theme)
   const variantStyle =
     variant === 'primary'
-      ? styles.primary
+      ? [styles.primary, { backgroundColor: getPrimaryActionPaint(theme).fill }]
       : variant === 'secondary'
         ? styles.secondary
         : styles.danger
@@ -99,9 +99,9 @@ export function Button({
       onPress={event => { void triggerHaptic(variant === 'danger' ? 'medium' : 'light'); rest.onPress?.(event) }}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? theme.onBrand : theme.brand} />
+        <ActivityIndicator color={variant === 'primary' ? getPrimaryActionPaint(theme).ink : theme.brandText} />
       ) : (
-        <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'danger' && { color: theme.redInk }, labelStyle]}>{title}</Text>
+        <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'primary' && { color: getPrimaryActionPaint(theme).ink }, variant === 'danger' && { color: theme.redInk }, labelStyle]}>{title}</Text>
       )}
     </Pressable>
   )
@@ -301,12 +301,12 @@ const makeStyles = (theme: Theme) =>
     },
     secondary: {
       backgroundColor: 'transparent',
-     borderWidth: 1.5, borderColor: theme.brand,},
+     borderWidth: 1.5, borderColor: theme.brandText,},
     danger: {
       backgroundColor: theme.redChip,
     },
     label: {
-      color: theme.brand,
+      color: theme.brandText,
       fontSize: 16,
       fontWeight: '600',
     },

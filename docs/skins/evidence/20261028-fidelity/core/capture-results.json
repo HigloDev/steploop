@@ -1,0 +1,398 @@
+[
+  {
+    "name": "classic-light-home",
+    "skin": "classic",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-light-coach",
+    "skin": "classic",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-light-history",
+    "skin": "classic",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-light-settings",
+    "skin": "classic",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-light-climbing",
+    "skin": "classic",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-light-summary",
+    "skin": "classic",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-dark-home",
+    "skin": "classic",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0E192B",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-dark-coach",
+    "skin": "classic",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0E192B",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-dark-history",
+    "skin": "classic",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0E192B",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-dark-settings",
+    "skin": "classic",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0E192B",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-dark-climbing",
+    "skin": "classic",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0E192B",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "classic-dark-summary",
+    "skin": "classic",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0E192B",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "night-run-light-climbing",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F5FAF4",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "night-run-light-summary",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F5FAF4",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "night-run-dark-climbing",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0C1717",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "night-run-dark-summary",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0C1717",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "woodland-light-climbing",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F9F7EC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "woodland-light-summary",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F9F7EC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "woodland-dark-climbing",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0B1B17",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "woodland-dark-summary",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#0B1B17",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-01-light-climbing",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-01-light-summary",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-01-dark-climbing",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#10101C",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-01-dark-summary",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#10101C",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-02-light-climbing",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF9F6",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-02-light-summary",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF9F6",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-02-dark-climbing",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#180F12",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "eva-unit-02-dark-summary",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#180F12",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "pikachu-light-climbing",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF9E7",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "pikachu-light-summary",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF9E7",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "pikachu-dark-climbing",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#1C190F",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "pikachu-dark-summary",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#1C190F",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "k-on-light-climbing",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF8F0",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "k-on-light-summary",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF8F0",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "k-on-dark-climbing",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#211A24",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  },
+  {
+    "name": "k-on-dark-summary",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#211A24",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+  }
+]

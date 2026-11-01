@@ -1,0 +1,56 @@
+[
+  {
+    "path": "assets/skins/pikachu/header-home.png",
+    "date": "2026-10-29",
+    "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+    "inputSha256": "679f1b38355da8611bc1eaad0605000291992df82a3a4e69d1f250a655ca485b",
+    "provenance": "docs/skins/asset-provenance/edge-r3.json",
+    "outputSha256": "e9d5e8b77334cd947b4345bccbbd7a39be805b225f15d80625dff2aa38974b81",
+    "rgbUnchanged": true
+  },
+  {
+    "path": "assets/skins/pikachu/header-history.png",
+    "date": "2026-10-29",
+    "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+    "inputSha256": "7b65f5c95abb9e74bd7c3da54ae1d8133bdd25bcddd17aa927b65f920524e216",
+    "provenance": "docs/skins/asset-provenance/edge-r3.json",
+    "outputSha256": "c984bfa2286e27eb86c6c9d12a4c758701160903c403a3d823bf43e2fa608f9f",
+    "rgbUnchanged": true
+  },
+  {
+    "path": "assets/skins/pikachu/header-settings.png",
+    "date": "2026-10-29",
+    "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+    "inputSha256": "6efcfd80e2356d684f5c22add70eb8955473560bba7964665476f21164e22c79",
+    "provenance": "docs/skins/asset-provenance/edge-r3.json",
+    "outputSha256": "4100d357ab78f844f539c871f3af16dc6329d3effbf75b2314cd388f4ffedcb1",
+    "rgbUnchanged": true
+  },
+  {
+    "path": "assets/skins/pikachu/header-home-dark.png",
+    "date": "2026-10-29",
+    "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+    "inputSha256": "be0f824955b9c829e1e23059fc1f245f76fffc1e1879b61dbbe709e3a22f5e63",
+    "provenance": "docs/skins/asset-provenance/edge-r3.json",
+    "outputSha256": "93d485f702560dcb0f1d73c8c49277bc129382841f603bdd9a7a03febc3539b6",
+    "rgbUnchanged": true
+  },
+  {
+    "path": "assets/skins/pikachu/header-history-dark.png",
+    "date": "2026-10-29",
+    "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+    "inputSha256": "ec34f181b83815c908339a8b96ce946db586c42c25c2fa168a41a42e9bce5cf5",
+    "provenance": "docs/skins/asset-provenance/edge-r3.json",
+    "outputSha256": "9f0e97183357f24f2e17bf6fd2dc835b039d8ba78ec6155a009af38adeb57488",
+    "rgbUnchanged": true
+  },
+  {
+    "path": "assets/skins/pikachu/header-settings-dark.png",
+    "date": "2026-10-29",
+    "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+    "inputSha256": "065fe7442d4dd78495c542042fafcded1e733eb1eddaa502e5d5ffbc7092ec42",
+    "provenance": "docs/skins/asset-provenance/edge-r3.json",
+    "outputSha256": "c0e125f8f6895f32b68164b18b351d00133d6bdd5d2cb1316334efb8ad9648fd",
+    "rgbUnchanged": true
+  }
+]

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Platform, Pressable, Text, View, useWindowDimensions } from 'react-native'
 import SegmentedControl from '@expo/ui/community/segmented-control'
-import { sport, useTheme } from '../theme'
+import { getThemeSkinId, sport, useTheme } from '../theme'
 import { triggerHaptic } from '../services/preferences'
 
 /** Visible single-choice controls with selection conveyed by contrast and semantics. */
@@ -33,7 +33,7 @@ export function NativeChoice<T extends string>({ options, value, onChange, disab
       const width = event.nativeEvent.layout.width
       setAvailableWidth(current => Math.abs(current - width) < 0.5 ? current : width)
     }}
-    style={{ alignSelf: 'stretch', gap: sport.space.xs, padding: sport.space.xs, borderRadius: sport.radius.control, backgroundColor: theme.cardSoft }}>
+    style={{ alignSelf: 'stretch', gap: sport.space.xs, padding: getThemeSkinId(theme) === 'classic' ? sport.space.xs : 0, borderRadius: sport.radius.control, backgroundColor: theme.cardSoft }}>
     <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
       style={{ position: 'absolute', width: 10000, opacity: 0 }}>
       {options.map(option => <Text key={measurementKey(option)} accessible={false} numberOfLines={1} style={labelStyle}
@@ -51,6 +51,7 @@ export function NativeChoice<T extends string>({ options, value, onChange, disab
           onPress={() => { if (!selected) { void triggerHaptic('selection'); onChange(option.value) } }}
           style={({ pressed }) => ({ flex: 1, minWidth: 0, minHeight: 48, paddingHorizontal: sport.space.sm, paddingVertical: sport.space.sm,
             borderRadius: sport.radius.small, alignItems: 'center', justifyContent: 'center',
+            ...(selected && theme.brand !== theme.brandText ? { borderWidth: 1, borderColor: theme.brandText } : {}),
             backgroundColor: selected ? theme.brand : 'transparent', opacity: disabled ? 0.5 : pressed ? 0.75 : 1 })}>
           <Text style={[labelStyle, { color: selected ? theme.onBrand : theme.inkSoft }]}>{option.label}</Text>
         </Pressable>

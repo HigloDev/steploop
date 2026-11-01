@@ -1,0 +1,84 @@
+{
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+  "mainCombinationsReviewed": 56,
+  "reviewMethod": "Assistant inspected current native screenshots; six graphical skins compared against approved four-tab references in light and dark; classic viewed directly. Additional flow and small-screen representative screenshots inspected. Full 160-frame matrix separately verified by script.",
+  "proofs": [
+    {
+      "file": "eva-unit-01-dark-four-tabs.png",
+      "sha256": "243592fbf1b115ca968fb87c97da99b37ea4f4c4393fabc04f73f865d763ab14"
+    },
+    {
+      "file": "eva-unit-01-dark-home-detail.png",
+      "sha256": "ca31ca787cf00832537c178d60537c32c4fb8a9e2e0f07f9024837e0faf29e84"
+    },
+    {
+      "file": "eva-unit-01-light-four-tabs.png",
+      "sha256": "349c721fd882c80c085759348404740cd019f17d435f4214ad8e4e78366a3825"
+    },
+    {
+      "file": "eva-unit-02-dark-four-tabs.png",
+      "sha256": "44ed81aed996ee2a3674a78b07ff0db3b37c59659d3acb31bd8a271fc8712f41"
+    },
+    {
+      "file": "eva-unit-02-dark-history-detail.png",
+      "sha256": "3cb355b02db96a116a9280fa7c58efd92ae9f1aa9eed223946dafaabc6147597"
+    },
+    {
+      "file": "eva-unit-02-light-four-tabs.png",
+      "sha256": "c42cf3d87321a2180106092d5112b42972771d9096287a43504275b4d0853ea2"
+    },
+    {
+      "file": "k-on-dark-four-tabs.png",
+      "sha256": "21df5e1527d909a7105bb491c1a2b5c2bae31d1938c7c0acd6e73553b5bda7ce"
+    },
+    {
+      "file": "k-on-final-native-gallery.png",
+      "sha256": "1747db1075cd5d8fab219e6573f23597b4d8698d64cb2993e769bb9544e93007"
+    },
+    {
+      "file": "k-on-light-coach.png",
+      "sha256": "dc53d57346947d27d09520d27403390c91962baefeb1cf1ec425c47d31128d1f"
+    },
+    {
+      "file": "k-on-light-four-tabs.png",
+      "sha256": "ddc81441d0549189564f91f41dfeecf41438d72c7b85bcc147f30a204852cf98"
+    },
+    {
+      "file": "k-on-light-home-detail.png",
+      "sha256": "c91c7ace26dc96304d3880d5687b21cd972ad642f2e6b28e671d99dc5deecc77"
+    },
+    {
+      "file": "night-run-dark-four-tabs.png",
+      "sha256": "3e9a31124bc1e04f50ea7be6b12fad11bc2082036b4c6a33ab4ee9d5e4ac349c"
+    },
+    {
+      "file": "night-run-light-four-tabs.png",
+      "sha256": "40f89d4423a9c6e9a2e3fc879fcf547a61d89cc8375f0e908f92aa18c0a99f2d"
+    },
+    {
+      "file": "pikachu-dark-four-tabs.png",
+      "sha256": "8f258cb91cef071f52fcb31b2ca7acfb529e6f0d865903d6f031f7d28dd44470"
+    },
+    {
+      "file": "pikachu-dark-settings-detail.png",
+      "sha256": "bf1b8c7cebf4aec13885f58504c2b24507ee845db6ac08b0cb9e0d3f92ee6372"
+    },
+    {
+      "file": "pikachu-light-four-tabs.png",
+      "sha256": "e653a19a5bdd743f533c56a36a4b6283d9321a1dacf96ea359d85d5bd0bfeda6"
+    },
+    {
+      "file": "pikachu-light-history.png",
+      "sha256": "368d974acc3ebfe81a035b19d4411bd79939be44f321aba1cc122b73f0a3c578"
+    },
+    {
+      "file": "woodland-dark-four-tabs.png",
+      "sha256": "de28d432c62fd6f50439449183b0018af271889f641dc2a292f31932ebdb59a3"
+    },
+    {
+      "file": "woodland-light-four-tabs.png",
+      "sha256": "a489a0f0fa491b72dd423305d922528855870cc879ca550bfe9c9665381c57bc"
+    }
+  ],
+  "pixelPerfectClaim": false
+}

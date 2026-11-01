@@ -3,8 +3,8 @@
   "project": "steploop",
   "repository": "https://github.com/HigloDev/steploop",
   "defaultBranch": "main",
-  "currentVersion": "1.1.5",
-  "androidVersionCode": 14,
+  "currentVersion": "1.1.7",
+  "androidVersionCode": 16,
   "publishedRelease": {
     "version": "1.1.5",
     "androidVersionCode": 14,
@@ -13,18 +13,93 @@
     "publishedDate": "2026-10-21",
     "channel": "public-preview"
   },
-  "pendingChanges": [
-    {
-      "branch": "codex/fix-115-audit-20261023",
-      "commit": "f11687d200bd4478991aecf6a665b662c3691735",
-      "baseRelease": "v1.1.5-preview.1",
-      "status": "preserved-not-merged",
-      "includesInterfaceChanges": true,
-      "description": "1.1.5 审计后的训练、备份恢复和设置页修复；单独保留，未合入主版本或公开 APK。"
-    }
-  ],
+  "pendingChanges": [],
   "archives": {
     "documentationIndex": "docs/archive/README.md",
     "privateLocalIndex": ".project-local.json"
+  },
+  "developmentChannel": "internal-integration",
+  "integratedChanges": [
+    {
+      "source": "codex/fix-115-audit-20261023",
+      "commit": "f11687d200bd4478991aecf6a665b662c3691735"
+    },
+    {
+      "source": "codex/calories-met-isolated-20261028",
+      "commit": "7a91540a3d7c3ed73e29e42539cd032e23616de3"
+    },
+    {
+      "source": "codex/coach-115-migration-20261028",
+      "snapshot": "output/integration-20261028/source-before.json"
+    },
+    {
+      "source": "codex/skins-system-20261028",
+      "commit": "d6e03106a4e718fc4e6a7b91f68e3c930800baa4"
+    }
+  ],
+  "uiSkinCandidate": {
+    "branch": "codex/phone-update-20261101",
+    "baseCommit": "9c7eed9",
+    "status": "installed-and-user-checked-source-resolution-limited",
+    "registry": "docs/skins/registry.json",
+    "validation": "docs/skins/GRAPHICS_VALIDATION.md",
+    "published": false,
+    "priorNativeVerification": {
+      "commit": "3db9cdb",
+      "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+      "scope": "historical functional and layout evidence; visual acceptance reopened"
+    },
+    "installedCandidateVerification": {
+      "sourceCommit": "35a02e83c4ec91dc7403dde42858219db29c6179",
+      "sourceFingerprint": "063156b903d8f253bf72131641b68f2c8879abb2c9f97ff631b68b226c68a1b1",
+      "verifiedAt": "2026-11-01",
+      "scope": "Same-signature phone upgrade, startup, visible data identity and user-reported coach/history/settings checks; excludes motion, long-lock and power acceptance"
+    },
+    "currentReview": {
+      "plan": "docs/skins/GRAPHICS_REAUDIT.md",
+      "displayProfiles": "docs/skins/qa-display-profiles.json",
+      "calibrationScreenshots": 4,
+      "visualAcceptance": "blocked-source-resolution",
+      "requiredPrimaryPageCombinations": 112,
+      "newPhoneInstallation": true,
+      "redrawAuthorization": "2026-10-29 user permits redraw when resolution is insufficient",
+      "highResolutionAssetsReplaced": 6,
+      "remainingLowResolutionAssets": 9,
+      "assetAudit": "docs/skins/asset-provenance/source-resolution-audit-current.json",
+      "matrixStatus": "112-captured-and-reviewed",
+      "sourceFingerprint": "063156b903d8f253bf72131641b68f2c8879abb2c9f97ff631b68b226c68a1b1",
+      "currentEvidence": "output/product-review-20261029/final-round7",
+      "deepPageFixes": [
+        "EVA01 scene organic transparency",
+        "starting-floor label remains in layout",
+        "semantic title wrapping"
+      ],
+      "primaryVisualPassed": 98,
+      "primaryKnownSourceLimitations": 14,
+      "primaryPendingReview": 0,
+      "primaryLayoutFailures": 0,
+      "phoneInstallationRecord": "docs/skins/PHONE_INSTALL_20261101.md"
+    },
+    "phoneInstallation": {
+      "date": "2026-11-01",
+      "status": "installed-launched-and-user-checked",
+      "sourceCommit": "35a02e83c4ec91dc7403dde42858219db29c6179",
+      "apkSha256": "d90e7caa7678b681025aef61cff86bb6fc7a1aa280ce2e957226283f49bc3705",
+      "record": "docs/skins/PHONE_INSTALL_20261101.md"
+    },
+    "reviewReason": "User reported image seams, softness at 1200x2670 and inconsistent spacing; 125% font-scale review reopened.",
+    "previousInstalledCandidateVerification": {
+      "sourceCommit": "6552182",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "verifiedAt": "2026-10-29",
+      "scope": "Historical candidate only; not current visual acceptance"
+    },
+    "previousPhoneInstallation": {
+      "date": "2026-10-29",
+      "status": "installed-and-launched",
+      "sourceCommit": "6552182",
+      "apkSha256": "03668ddb959ded085120d549dba6f71b2271842928896af2e930eca60935d7a8",
+      "record": "docs/skins/PHONE_INSTALL_20261029.md"
+    }
   }
 }

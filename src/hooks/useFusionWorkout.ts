@@ -17,6 +17,8 @@ import { buildFusionWorkout, fusionRoundToWorkoutRound } from '../core/fusion-wo
 import { uid } from '../core/math'
 import { liveWorkoutMetrics } from '../core/live-workout-metrics'
 import { WorkoutFeedbackTracker } from '../core/workout-feedback'
+import { FusionCalorieTracker } from '../core/fusion-calories'
+import { calorieDisplayValue, createStairCalorieProfile, StairCalorieProfile, StairPace, WorkoutCalorieEstimate } from '../core/segmented-calories'
 import type { VoiceObservation } from '../core/voice-events'
 import {
   FusionCheckpoint,
@@ -39,6 +41,8 @@ import { saveWorkout } from '../services/workout-storage'
 import { createWorkoutEvidenceJournal, WorkoutEvidenceJournal } from '../services/workout-evidence'
 
 export interface FusionWorkoutParams {
+  coach?: import('../core/types').CoachWorkoutLink
+  coachBodyWeightKg?: number
   /** 选用已保存的楼栋模板（跳过标定）。 */
   templateId?: string
   /** 新楼标定的起始楼层（默认 1，跳过 0）。 */
@@ -52,6 +56,7 @@ export interface FusionWorkoutParams {
 export type FusionSessionStatus = 'starting' | 'running' | 'finishing' | 'save_failed' | 'done' | 'error'
 
 export interface FusionWorkoutApi {
+  coach?: import('../core/types').CoachWorkoutLink
   status: FusionSessionStatus
   error?: string
   warning?: string
@@ -59,6 +64,9 @@ export interface FusionWorkoutApi {
   rounds: FusionRoundResult[]
   template?: BuildingTemplate
   calories: number
+  calorieEstimate?: WorkoutCalorieEstimate
+  calorieProfile?: StairCalorieProfile
+  setStairPace?(pace: StairPace): void
   workoutId: string
   /** Completed rounds have a durable recovery point, so leaving is safe. */
   canSaveLater: boolean
@@ -120,12 +128,16 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const [error, setError] = useState<string>()
   const [warning, setWarning] = useState<string>()
   const [evidenceWarning, setEvidenceWarning] = useState<string>()
+  const [sensorWarning, setSensorWarning] = useState<string>()
+  const [captureGapWarning, setCaptureGapWarning] = useState<string>()
   const [snapshot, setSnapshot] = useState<FusionSnapshot>()
   const [rounds, setRounds] = useState<FusionRoundResult[]>([])
   const [template, setTemplate] = useState<BuildingTemplate>()
   const [attempt, setAttempt] = useState(0)
   const [canSaveLater, setCanSaveLater] = useState(false)
 
+  const coachRef = useRef(params.coach)
+  const coachWeightRef = useRef(params.coachBodyWeightKg)
   const workoutIdRef = useRef<string>(uid('workout'))
   const startedAtRef = useRef<number>(Date.now())
   const engineRef = useRef<FusionWorkoutEngine | undefined>(undefined)
@@ -133,6 +145,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const evidenceRef = useRef<WorkoutEvidenceJournal | undefined>(undefined)
   const voiceRef = useRef<WorkoutVoiceService | undefined>(undefined)
   const prefsRef = useRef<Preferences | undefined>(undefined)
+  const calorieTrackerRef = useRef<FusionCalorieTracker | undefined>(undefined)
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const feedbackRef = useRef<WorkoutFeedbackTracker | undefined>(undefined)
   const calibratedRef = useRef(false)
@@ -146,8 +159,12 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
   const persistCheckpoint = useCallback(() => {
     const engine = engineRef.current
     if (!engine || closedRef.current) return checkpointWriteRef.current
+    const recovery = engine.getRecoveryState()
+    const energy = calorieTrackerRef.current
+    energy?.observe(engine.snapshot(endedAtRef.current ?? Date.now()), recovery.rounds)
     const checkpoint = {
       schemaVersion: 1 as const,
+      ...(coachRef.current ? { coach: coachRef.current, coachBodyWeightKg: coachWeightRef.current } : {}),
       workoutId: workoutIdRef.current,
       startedAt: startedAtRef.current,
       savedAt: Date.now(),
@@ -155,10 +172,11 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       // frozen engine is a complete result that may safely be saved later.
       endedAt: engine.getPhase() === 'finished' ? endedAtRef.current : undefined,
       startFloor: engine.snapshot().startFloor,
-      template: engine.getTemplate(),
+      template: recovery.template,
       calibrated: calibratedRef.current,
       replaceTemplateId: replaceTemplateIdRef.current,
-      rounds: engine.getRounds(),
+      rounds: energy?.decorate(recovery.rounds) ?? recovery.rounds,
+      ...(energy?.profile ? { calorieProfile: energy.profile, bodyWeightKg: energy.profile.bodyWeightKg } : {}),
     }
     checkpointWriteRef.current = checkpointWriteRef.current.then(async () => {
       await saveFusionCheckpoint(checkpoint)
@@ -200,13 +218,19 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     closedRef.current = false
     setStatus('starting')
     setError(undefined)
+    setSensorWarning(undefined)
+    setCaptureGapWarning(undefined)
     const previousCleanup = waitForFusionCleanup()
     const startup = (async () => {
       try {
         await previousCleanup
         if (cancelled) return
         const prefs = await getPreferences()
+        if (coachRef.current && !params.resume && coachWeightRef.current !== undefined) {
+          prefs.bodyWeightKg = coachWeightRef.current
+        }
         prefsRef.current = prefs
+        let calorieProfile: StairCalorieProfile | undefined = createStairCalorieProfile(prefs.bodyWeightKg, prefs.stairPace)
         let selected: BuildingTemplate | undefined
         let resumeRounds: FusionRoundResult[] | undefined
         let pendingEndAt: number | undefined
@@ -214,10 +238,14 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         if (params.resume) {
           const checkpoint = await loadFusionCheckpoint()
           if (checkpoint) {
+            coachRef.current = checkpoint.coach
+            coachWeightRef.current = checkpoint.coachBodyWeightKg
             workoutIdRef.current = checkpoint.workoutId
             startedAtRef.current = checkpoint.startedAt
             selected = checkpoint.template
             resumeRounds = checkpoint.rounds
+            calorieProfile = checkpoint.calorieProfile
+            prefsRef.current = { ...prefs, bodyWeightKg: checkpoint.calorieProfile?.bodyWeightKg ?? checkpoint.bodyWeightKg ?? checkpoint.coachBodyWeightKg ?? prefs.bodyWeightKg }
             startFloor = checkpoint.startFloor
             calibratedRef.current = checkpoint.calibrated
             replaceTemplateIdRef.current = checkpoint.replaceTemplateId
@@ -234,8 +262,11 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         })
         if (!selected) calibratedRef.current = true
         engineRef.current = engine
+        const energy = new FusionCalorieTracker(calorieProfile, resumeRounds)
+        calorieTrackerRef.current = energy
+        energy.observe(engine.snapshot(), engine.getRounds())
         setTemplate(engine.getTemplate())
-        setRounds(engine.getRounds())
+        setRounds(energy.decorate(engine.getRounds()))
         feedbackRef.current = new WorkoutFeedbackTracker(engine.snapshot())
         if (pendingEndAt !== undefined) {
           endedAtRef.current = pendingEndAt
@@ -247,7 +278,8 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           return
         }
         engine.onRound(() => {
-          setRounds(engine.getRounds())
+          energy.observe(engine.snapshot(), engine.getRounds())
+          setRounds(energy.decorate(engine.getRounds()))
           setTemplate(engine.getTemplate())
           void persistCheckpoint()
         })
@@ -278,6 +310,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
                 (endedAtRef.current !== undefined && sample.t > endedAtRef.current)) return
             engine.pushSample(sample)
             const next = engine.snapshot(sample.t)
+            energy.observe(next, engine.getRounds())
             const feedback = feedbackRef.current?.observe(next)
             if (feedback) {
               setSnapshot(next)
@@ -288,7 +321,20 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           onGap: gap => {
             if (cancelled) return
             const origin = recorder.getStartedAt()
-            evidence.gap(origin + gap.startMs, origin + gap.endMs)
+            const startAt = origin + gap.startMs
+            const endAt = Math.min(origin + gap.endMs, endedAtRef.current ?? Infinity)
+            if (endAt <= startAt) return
+            engine.recordGap(startAt, endAt, gap.reason)
+            evidence.gap(startAt, endAt, gap.reason)
+            setCaptureGapWarning(previous => gap.reason === 'native_journal_loss'
+              ? '部分后台运动数据已缺失，已保留可读取的成绩并标为估算，请核对层数。'
+              : previous || '训练中存在采样中断，成绩已标为估算，请核对层数。')
+          },
+          onStatus: signal => {
+            if (cancelled) return
+            setSensorWarning(signal.signal === 'interrupted'
+              ? '运动采样暂未更新，请保持应用在前台并检查手机状态；缺失期间可能漏计。'
+              : undefined)
           },
         })
         recorderRef.current = recorder
@@ -303,18 +349,18 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
           const now = Date.now()
           engine.tick(now)
           const next = engine.snapshot(now)
+          energy.observe(next, engine.getRounds())
           setSnapshot(next)
           const feedback = feedbackRef.current?.observe(next)
           if (feedback) void triggerHapticPattern(feedback)
           const done = engine.getRounds()
-          const metrics = liveWorkoutMetrics(next, done, prefsRef.current?.bodyWeightKg)
           const observation: VoiceObservation = {
             workoutId: workoutIdRef.current,
             mode: 'full_auto',
             phase: voicePhase(next.phase),
             currentRoundNumber: next.roundNumber,
             elapsedMs: next.elapsedMs,
-            calories: metrics.calories,
+            calories: energy.display(next, done, prefsRef.current?.bodyWeightKg),
             cumulativeFloors: next.totalFloors,
             cumulativeSteps: next.steps,
             startFloor: next.startFloor,
@@ -360,6 +406,7 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     const engine = engineRef.current
     if (engine) {
       const next = engine.snapshot(Date.now())
+      calorieTrackerRef.current?.observe(next, engine.getRounds())
       setSnapshot(next)
       const feedback = feedbackRef.current?.observe(next)
       if (feedback) void triggerHapticPattern(feedback)
@@ -387,6 +434,16 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
     void persistCheckpoint()
   }, [persistCheckpoint])
 
+  const setStairPace = useCallback((pace: StairPace) => {
+    const engine = engineRef.current
+    const energy = calorieTrackerRef.current
+    if (!engine || !energy?.profile || endedAtRef.current !== undefined) return
+    const next = engine.snapshot(Date.now())
+    energy.setPace(pace, next, engine.getRounds())
+    setSnapshot(next)
+    void persistCheckpoint()
+  }, [persistCheckpoint])
+
   const finish = useCallback((): Promise<string | undefined> => {
     if (finishPromiseRef.current) return finishPromiseRef.current
     const engine = engineRef.current
@@ -405,11 +462,12 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
       const recorder = recorderRef.current
       if (recorder) {
         if (isBackgroundTrainingSupported()) await stopBackgroundTraining()
-        await recorder.flush?.()
+        await recorder.flush?.(endedAt)
       }
       const finalRounds = engine.finish(endedAt)
+      calorieTrackerRef.current?.observe(engine.snapshot(endedAt), finalRounds)
       setSnapshot(engine.snapshot(endedAt))
-      setRounds(finalRounds)
+      setRounds(calorieTrackerRef.current?.decorate(finalRounds) ?? finalRounds)
       // Keep a completed checkpoint until every required save has succeeded.
       await persistCheckpoint()
       await stopSensors()
@@ -425,8 +483,10 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
         const finalTemplate = engine.getTemplate()
         const workout = buildFusionWorkout({
           id: workoutIdRef.current, startedAt: startedAtRef.current, endedAt, status: 'completed',
-          template: finalTemplate, rounds: finalRounds.map(fusionRoundToWorkoutRound),
-          bodyWeightKg: prefsRef.current?.bodyWeightKg,
+          template: finalTemplate, rounds: (calorieTrackerRef.current?.decorate(finalRounds) ?? finalRounds).map(fusionRoundToWorkoutRound),
+          calorieProfile: calorieTrackerRef.current?.profile,
+          coach: coachRef.current,
+          bodyWeightKg: coachRef.current ? coachWeightRef.current ?? prefsRef.current?.bodyWeightKg : prefsRef.current?.bodyWeightKg,
         })
         await saveWorkout(workout)
         if (calibratedRef.current && finalTemplate) {
@@ -486,10 +546,13 @@ export function useFusionWorkout(params: FusionWorkoutParams): FusionWorkoutApi 
 
   const retry = useCallback(() => setAttempt(value => value + 1), [])
 
-  const calories = snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
+  const calorieEstimate = snapshot ? calorieTrackerRef.current?.estimate(snapshot, rounds, prefsRef.current?.bodyWeightKg) : undefined
+  const calories = calorieEstimate ? calorieDisplayValue(calorieEstimate.kilocalories) :
+    snapshot ? liveWorkoutMetrics(snapshot, rounds, prefsRef.current?.bodyWeightKg).calories : 0
 
   return {
-    status, error, warning: evidenceWarning || warning, snapshot, rounds, template, calories, workoutId: workoutIdRef.current, canSaveLater,
+    coach: coachRef.current, status, error, warning: captureGapWarning || sensorWarning || evidenceWarning || warning, snapshot, rounds, template, calories, calorieEstimate,
+    calorieProfile: calorieTrackerRef.current?.profile, setStairPace, workoutId: workoutIdRef.current, canSaveLater,
     markFloor, undoMark, markTop, nextRound, finish, discard, retry,
   }
 }

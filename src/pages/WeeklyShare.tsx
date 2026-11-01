@@ -16,13 +16,13 @@ import { WeeklyAchievement, buildWeeklyAchievement, weeklyDateRange, weeklyShare
 import type { RootStackScreen } from '../navigation/types'
 import { listWorkouts } from '../services/workout-storage'
 import { triggerHaptic } from '../services/preferences'
-import { useTheme, visual } from '../theme'
+import { useTheme, getPosterPalette, getThemeKey } from '../theme'
 
 type Template = 'weekly' | 'height'
 
 export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; width: number; template: Template; onReady: () => void; onError?: () => void }>(
   ({ week, width, template, onReady, onError }, ref) => {
-    const u = width / 320, P = visual.poster
+    const u = width / 320, P = getPosterPalette(useTheme())
     const next = ascentReference(week.ascentM)
     const maximum = Math.max(1, ...week.days.map(day => day.floors))
     const text = { color: P.ink, fontSize: 12 * u }
@@ -76,7 +76,7 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
   const [posterError, setPosterError] = useState('')
   const poster = useRef<View>(null)
   const busyRef = useRef(false)
-  const key = `${theme.isDark}-${template}-${width}-${week?.weekStart}-${posterAttempt}`
+  const key = `${getThemeKey(theme)}-${template}-${width}-${week?.weekStart}-${posterAttempt}`
   useEffect(() => {
     let active = true
     setError('')
@@ -107,7 +107,7 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
     <Header title="本周成果分享" back />
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
       {error ? <><Text selectable style={{ color: theme.redInk }}>{error}</Text><Button title="重新读取" onPress={() => setAttempt(value => value + 1)} /></>
-        : !week ? <ActivityIndicator color={theme.brand} style={{ marginTop: 100 }} /> : !week.workouts ? <View style={{ alignItems: 'center', gap: 20, marginTop: 40, padding: 24, borderRadius: 24, backgroundColor: theme.card }}>
+        : !week ? <ActivityIndicator color={theme.brandText} style={{ marginTop: 100 }} /> : !week.workouts ? <View style={{ alignItems: 'center', gap: 20, marginTop: 40, padding: 24, borderRadius: 24, backgroundColor: theme.card }}>
           <AchievementBuilding floors={0} width={150} />
           <Text accessibilityRole="header" style={{ color: theme.ink, fontSize: 23, fontWeight: '900', textAlign: 'center' }}>本周还没有训练</Text>
           <Text style={{ color: theme.inkSoft, fontSize: 15, lineHeight: 24, textAlign: 'center' }}>从今天的第一层开始。完成训练后，就能把一周的成果做成海报。</Text>

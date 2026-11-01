@@ -1,0 +1,52 @@
+[
+  {
+    "name": "picker-persist-dark",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#201A10"
+  },
+  {
+    "name": "system-light",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFFBEF"
+  },
+  {
+    "name": "system-dark",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#201A10"
+  },
+  {
+    "name": "manual-light-on-dark-system",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFFBEF"
+  },
+  {
+    "name": "picker-persist-light",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFFBEF"
+  }
+]

@@ -1,7 +1,9 @@
+import { CoachState, parseCoachState } from './coach'
 import { ClimbSession, ClimbWorkout, RouteTemplate, WorkoutRound } from './types'
 import { BuildingTemplate, normalizeBuildingTemplate } from './building-template'
 
 export interface BackupPayloadLike {
+  coach?: CoachState
   version: 1 | 2
   exportedAt: number
   routes: RouteTemplate[]
@@ -28,11 +30,38 @@ export interface ArchiveDayBucket {
   floors: number
 }
 
+/** Optional schema-2 extension: contributions needed to deduplicate restored records. */
+export interface ArchivedRecordContribution {
+  floors: number
+  ascentM: number
+  activeDurationMs: number
+  atMs: number
+  kind: 'trimmed' | 'removed'
+}
+
+export const ARCHIVED_RECORD_INDEX_LIMIT = 2000
+
+export function normalizeArchivedRecords(value: unknown): Record<string, ArchivedRecordContribution> | undefined {
+  if (value === undefined) return undefined
+  if (!isObjectLike(value)) throw new Error('归档去重索引格式无效，已停止写入。')
+  const entries = Object.entries(value)
+  if (entries.length > ARCHIVED_RECORD_INDEX_LIMIT) throw new Error('归档去重索引超过容量上限，已停止写入。')
+  return Object.fromEntries(entries.map(([id, item]) => {
+    if (!id || !isObjectLike(item) || (item.kind !== 'trimmed' && item.kind !== 'removed') ||
+        ['floors', 'ascentM', 'activeDurationMs', 'atMs'].some(key => typeof item[key] !== 'number' || !Number.isFinite(item[key]) || (item[key] as number) < 0)) {
+      throw new Error('归档去重索引内容无效，已停止写入。')
+    }
+    return [id, { floors: item.floors as number, ascentM: item.ascentM as number,
+      activeDurationMs: item.activeDurationMs as number, atMs: item.atMs as number, kind: item.kind }]
+  }))
+}
+
 /**
  * 已归档/已离开保留集合记录的增量账本（结构镜像 history-repository 的 CollectionLedger）。
  * 只保留 `summarize()` 长期统计需要的字段；明细本身可以已被裁剪。
  */
 export interface ArchiveLedger {
+  archivedRecords?: Record<string, ArchivedRecordContribution>
   writtenTotal: number
   trimmedTotal: number
   removedTotal: number
@@ -151,6 +180,8 @@ function normalizeLedger(
     activeDurationMs: numbers.activeDurationMs,
     byDay,
   }
+  const archivedRecords = normalizeArchivedRecords(source.archivedRecords)
+  if (archivedRecords) ledger.archivedRecords = archivedRecords
   const firstAtMs = optionalTime(source.firstAtMs)
   const lastAtMs = optionalTime(source.lastAtMs)
   if (firstAtMs !== undefined) ledger.firstAtMs = firstAtMs
@@ -284,6 +315,11 @@ export function validateBackupPayload(
     workouts: sanitizeWorkoutCorrections(workouts),
     ...(buildings !== undefined ? { buildings } : {}),
     ...(payload.hiddenLegacyRouteIds !== undefined ? { hiddenLegacyRouteIds: [...new Set(payload.hiddenLegacyRouteIds)] } : {}),
+  }
+  if (payload.coach !== undefined) {
+    try { payloadWithoutArchive.coach = parseCoachState(payload.coach) } catch {
+      return { ok: false, error: '备份中的教练数据损坏，未导入任何数据。' }
+    }
   }
   // D09 验收 4c：归档聚合是**可选**字段。
   // - 旧备份没有该字段：结果对象里不出现这两个键（恢复行为与 D06/D08a 时期完全一致）。

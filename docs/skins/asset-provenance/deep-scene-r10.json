@@ -1,0 +1,20 @@
+{
+  "sourceOutput": "exec-5d566fca-70ac-459f-adb4-f387d8827f67.png",
+  "previousSha256": "0066fb32cb65e63b4e7cbda2a061e52ca483e44ba7023c1136c9b95dc55b84e0",
+  "asset": {
+    "role": "scene",
+    "path": "assets/skins/eva-unit-01/scene.png",
+    "sourceOutput": "exec-3c3edb2a-cede-4456-a13f-ac8cf946ca52.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2063023,
+    "sha256": "21c918269da0310ee3b4f0b2b17b71546fec8a2daeb5e177197c45cad8a8a367",
+    "alphaRange": [
+      0,
+      254
+    ],
+    "method": "ImageGen reference edit: preserve mecha composition, dissolve straight torso bottom into transparent organic edge",
+    "provenance": "docs/skins/asset-provenance/deep-scene-r10.json"
+  },
+  "visualReview": "Generated original viewed; natural irregular torso edge. Native verification pending."
+}

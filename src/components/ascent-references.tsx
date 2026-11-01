@@ -21,7 +21,7 @@ export function AscentReferences({ visible, onClose, ascentM, floors }: {
     </View>
     <Text style={styles.hint}>建筑看自身高度，山峰看海拔，只作高度对照。</Text>
     <View style={styles.next} accessible accessibilityLabel={next ? `下一站 ${next.name}，还差 ${Math.ceil(remainingM)} 米` : '已达到珠峰海拔相当的高度'}>
-      <MaterialCommunityIcons name={next?.kind === 'mountain' || !next ? 'terrain' : 'flag-checkered'} size={28} color={theme.brand} accessible={false} />
+      <MaterialCommunityIcons name={next?.kind === 'mountain' || !next ? 'terrain' : 'flag-checkered'} size={28} color={theme.brandText} accessible={false} />
       <View style={{ flex: 1 }}>
         <Text style={styles.nextTitle}>{next ? `下一站 · ${next.name}` : '已达到珠峰相当高度'}</Text>
         <Text style={styles.nextHint}>{next ? `再向上 ${Math.ceil(remainingM)} 米` : `珠峰海拔的 ${(value / LANDMARKS[LANDMARKS.length - 1].heightM).toFixed(2)} 倍`}</Text>
@@ -40,7 +40,7 @@ export function AscentReferences({ visible, onClose, ascentM, floors }: {
           </Text> : null}
           <View accessible accessibilityLabel={`${item.name}，${item.note} ${item.heightM} 米，${progress}`} style={[styles.row, isNext && styles.rowNext]}>
             <View style={[styles.icon, reached && styles.iconReached]}>
-              <MaterialCommunityIcons name={icon} size={24} color={reached || isNext ? theme.brand : theme.mutedStrong} accessible={false} />
+              <MaterialCommunityIcons name={icon} size={24} color={reached || isNext ? theme.brandText : theme.mutedStrong} accessible={false} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.name}>{item.name}</Text>

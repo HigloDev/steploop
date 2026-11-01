@@ -734,7 +734,9 @@ test('actual native resume closes one measured gap before stop and keeps later i
       const drainsBeforeResume = hardware.calls.nativeDrains
       hardware.emit('native', { ...sample(hardware.now), sessionId: 'workout', seq: resumedSequence })
       await new Promise(resolve => setImmediate(resolve))
-      assert.deepEqual(gaps, [{ startMs: 0, endMs: 5000 }])
+      const firstGap = { startMs: 0, endMs: 5000,
+        ...(resumedSequence === 3 ? { reason: 'native_journal_loss' } : {}) }
+      assert.deepEqual(gaps, [firstGap])
       assert.equal(hardware.calls.nativeDrains - drainsBeforeResume, resumedSequence === 3 ? 1 : 0,
         'a simultaneous sequence jump really uses replay, but does not create another time gap')
       hardware.advanceTime(100)
@@ -743,7 +745,7 @@ test('actual native resume closes one measured gap before stop and keeps later i
       await new Promise(resolve => setImmediate(resolve))
       hardware.emit('native', { ...sample(hardware.now), sessionId: 'workout', seq: resumedSequence + 2 })
       await new Promise(resolve => setImmediate(resolve))
-      const expected = [{ startMs: 0, endMs: 5000 }, { startMs: 5100, endMs: 9100 }]
+      const expected = [firstGap, { startMs: 5100, endMs: 9100 }]
       assert.deepEqual(gaps, expected, 'two interruptions retain their own original intervals')
       hardware.advanceTime(100)
       await recorder.stop()

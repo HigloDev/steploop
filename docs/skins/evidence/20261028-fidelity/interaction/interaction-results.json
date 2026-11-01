@@ -1,0 +1,202 @@
+{
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+  "phases": {
+    "appearance": {
+      "passed": true,
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "checks": [
+        "Four actual bottom tabs navigate and keep the selected graphic skin",
+        "All seven actual skin radios activate in the appearance screen",
+        "Skin/mode persist across cold starts; system follows live changes; manual mode wins"
+      ]
+    },
+    "coach": {
+      "passed": true,
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "checks": [
+        "Real course detail/goal form saves an enrollment; weight and weekly review save; latest weight survives cold start"
+      ]
+    },
+    "feedback": {
+      "passed": true,
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "checks": [
+        "Incomplete course result keeps its confirmed floors; effort feedback saves without marking course completed",
+        "Collapsed feedback previews expand; haptic control stays reachable; completion preview closes without generating a workout"
+      ]
+    },
+    "training": {
+      "passed": true,
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "checks": [
+        "Training short tap does not finish; deliberate 1.6-second hold reaches saved-result UI in synthetic fixture"
+      ]
+    }
+  },
+  "checks": [
+    "Four actual bottom tabs navigate and keep the selected graphic skin",
+    "All seven actual skin radios activate in the appearance screen",
+    "Skin/mode persist across cold starts; system follows live changes; manual mode wins",
+    "Real course detail/goal form saves an enrollment; weight and weekly review save; latest weight survives cold start",
+    "Incomplete course result keeps its confirmed floors; effort feedback saves without marking course completed",
+    "Collapsed feedback previews expand; haptic control stays reachable; completion preview closes without generating a workout",
+    "Training short tap does not finish; deliberate 1.6-second hold reaches saved-result UI in synthetic fixture"
+  ],
+  "frames": [
+    {
+      "name": "eva-unit-02-dark-tab-roundtrip",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#180F12",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "woodland-dark-cold-start",
+      "skin": "woodland",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#0B1B17",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "woodland-light-system",
+      "skin": "woodland",
+      "mode": "light",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#F9F7EC",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "woodland-dark-system",
+      "skin": "woodland",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#0B1B17",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "woodland-light-manual-on-dark-system",
+      "skin": "woodland",
+      "mode": "light",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#F9F7EC",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "k-on-dark-goal-saved",
+      "skin": "k-on",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#211A24",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "k-on-dark-weight-saved",
+      "skin": "k-on",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#211A24",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "k-on-dark-review-saved",
+      "skin": "k-on",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#211A24",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "k-on-dark-coach-cold-start",
+      "skin": "k-on",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#211A24",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-light-course-feedback-saved",
+      "skin": "eva-unit-01",
+      "mode": "light",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#F7F4FC",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "k-on-light-feedback-preview",
+      "skin": "k-on",
+      "mode": "light",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#FFF8F0",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "k-on-light-feedback-preview-keeps-record-count",
+      "skin": "k-on",
+      "mode": "light",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#FFF8F0",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-02-dark-short-tap-keeps-training",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#180F12",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-02-dark-long-hold-result",
+      "skin": "eva-unit-02",
+      "mode": "dark",
+      "size": [
+        1080,
+        2400
+      ],
+      "paper": "#180F12",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    }
+  ],
+  "allPassed": true
+}

@@ -1,3 +1,4 @@
+import { TrackedImageBackground } from '../components/tracked-image'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
@@ -6,7 +7,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,10 +21,7 @@ import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { BrandMark } from '../components/brand-mark'
 import { Button } from '../components/ui'
-import {
-  DEFAULT_BODY_WEIGHT_KG,
-  formatCalories,
-} from '../core/calories'
+import { formatCalories } from '../core/segmented-calories'
 import { formatDuration } from '../core/math'
 import { workoutCalories } from '../core/fusion-workout'
 import { ClimbWorkout, WorkoutSummary } from '../core/types'
@@ -39,9 +36,8 @@ import {
 import { calculateWorkoutSummary } from '../core/workout-summary'
 import { deriveTrainingProgress } from '../core/training-progress'
 import { RootStackScreen } from '../navigation/types'
-import { getPreferences } from '../services/preferences'
 import { getWorkout, listWorkouts, saveWorkout } from '../services/workout-storage'
-import { Theme, useTheme, visual } from '../theme'
+import { Theme, useTheme, getPosterPalette, getThemeKey } from '../theme'
 
 type EditorTab = 'template' | 'copy' | 'size'
 type PosterTemplate = 'hero' | 'editorial' | 'report' | 'streak'
@@ -98,14 +94,14 @@ export const SharePoster = React.forwardRef<View, PosterProps>(
     const compact = ratio === '1:1'
     const streak = template === 'streak'
     const unit = width / 320
-    const P = visual.poster
+    const P = getPosterPalette(useTheme())
     const floors = streak ? week?.floors ?? 0 : summary.totalFloors
     const ascent = streak ? week?.ascentM ?? 0 : summary.totalAscentM
     const typography = { color: P.ink, fontSize: 14 * unit }
     return <View ref={ref} collapsable={false} accessible accessibilityRole="image"
       accessibilityLabel={`成果海报：${floors} 层，日期 ${formatShareDate(workout.startedAt)}。地点与身份信息已隐藏。`}
       style={{ width, height: Math.round(width * RATIO_VALUES[ratio]), backgroundColor: P.background, overflow: 'hidden', borderRadius: 20 * unit }}>
-      {template === 'editorial' ? <ImageBackground source={LIGHT_STAIRCASE_IMAGE} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.12 }} /> : null}
+      {template === 'editorial' ? <TrackedImageBackground identity="share/editorial-background" source={LIGHT_STAIRCASE_IMAGE} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.12 }} /> : null}
       <View style={{ flex: 1, padding: 24 * unit, alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * unit }}>
           <BrandMark key={`${template}-${ratio}`} size={32 * unit} color={P.orange} onLoad={onImageReady} />
@@ -159,9 +155,10 @@ export default function ShareStudioScreen({
   const [busyAction, setBusyAction] = useState<'save' | 'share' | null>(null)
   const [lastAction, setLastAction] = useState<ShareAction | null>(null)
   const [lastOutcome, setLastOutcome] = useState<ShareOutcome | null>(null)
-  const [bodyWeightKg, setBodyWeightKg] = useState(DEFAULT_BODY_WEIGHT_KG)
   const posterRef = useRef<View>(null)
-  const [readyTheme, setReadyTheme] = useState<boolean | null>(null)
+  const [readyPalette, setReadyPalette] = useState<Theme | null>(null)
+  const latestTheme = useRef(theme)
+  latestTheme.current = theme
   const [loadError, setLoadError] = useState('')
   const [loadAttempt, setLoadAttempt] = useState(0)
 
@@ -171,7 +168,7 @@ export default function ShareStudioScreen({
     setWorkout(null)
     setSummary(null)
     setWeek(null)
-    setReadyTheme(null)
+    setReadyPalette(null)
     const load = async () => {
       try {
         const stored = await getWorkout(screenRoute.params.id)
@@ -196,15 +193,9 @@ export default function ShareStudioScreen({
     return () => { mounted = false }
   }, [screenRoute.params.id, loadAttempt])
 
-  useEffect(() => {
-    getPreferences()
-      .then((prefs) => setBodyWeightKg(prefs.bodyWeightKg))
-      .catch(() => undefined)
-  }, [])
-
   const capturePoster = async () => {
     if (!posterRef.current) throw new Error('海报还没有准备好')
-    if (readyTheme !== theme.isDark) throw new Error('海报正在准备，请稍后再试')
+    if (readyPalette !== theme || latestTheme.current !== theme) throw new Error('海报样式已变化，请等待准备完成后重新导出。')
     return captureRef(posterRef, {
       format: 'png',
       quality: 1,
@@ -352,7 +343,7 @@ export default function ShareStudioScreen({
           {loadError ? <>
             <Button title="重新读取" onPress={() => setLoadAttempt(value => value + 1)} />
             <Button title="返回训练总结" style={{ marginTop: 12 }} variant="secondary" onPress={() => navigation.goBack()} />
-          </> : <ActivityIndicator color={theme.brand} />}
+          </> : <ActivityIndicator color={theme.brandText} />}
         </View>
       </View>
     )
@@ -360,7 +351,7 @@ export default function ShareStudioScreen({
 
   const posterWidth = Math.min(328, windowWidth - 64)
   // 热量按爬升机械功 + 活动/休息代谢估算（与结算页同一口径）。
-  const calories = workoutCalories({ ...workout, bodyWeightKg: workout.bodyWeightKg ?? bodyWeightKg })
+  const calories = workoutCalories(workout)
   // D10：页面不再自己拼分享文案；隐私剔除结果（redacted）由纯函数给出，UI 只负责展示。
   const sharePayload = buildSharePayload({
     workout,
@@ -400,9 +391,9 @@ export default function ShareStudioScreen({
         </View>
         <View style={styles.previewWrap}>
           <SharePoster
-            key={theme.isDark ? 'dark' : 'light'}
+            key={getThemeKey(theme)}
             ref={posterRef}
-            onImageReady={() => setReadyTheme(theme.isDark)}
+            onImageReady={() => setReadyPalette(theme)}
             workout={workout}
             summary={summary}
             quote={quote}
@@ -442,7 +433,7 @@ export default function ShareStudioScreen({
             active={template === value}
             template={value}
             workout={workout} summary={summary} calories={calories} week={week ?? undefined}
-            onPress={() => { if (value !== template) { setReadyTheme(null); setTemplate(value) } }}
+            onPress={() => { if (value !== template) { setReadyPalette(null); setTemplate(value) } }}
           />)}
         </ScrollView> : null}
 
@@ -525,14 +516,14 @@ const makeStyles = (theme: Theme) =>
     thumbnailRow: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8,},
     optionList: { gap: 8 },
     option: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
-    optionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
+    optionActive: { borderColor: theme.brandText, backgroundColor: theme.brandSoft },
     optionText: { flex: 1, color: theme.ink, fontSize: 15, lineHeight: 22 },
-    optionTextActive: { color: theme.brand, fontWeight: '600' },
+    optionTextActive: { color: theme.brandText, fontWeight: '600' },
     sizeRow: { flexDirection: 'row', gap: 12 },
     sizeOption: { flex: 1, minHeight: 88, alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 14, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.card },
-    sizeOptionActive: { borderColor: theme.brand, backgroundColor: theme.brandSoft },
+    sizeOptionActive: { borderColor: theme.brandText, backgroundColor: theme.brandSoft },
     sizeValue: { color: theme.ink, fontSize: 24, lineHeight: 32, fontWeight: '600', fontVariant: ['tabular-nums'] },
-    sizeValueActive: { color: theme.brand },
+    sizeValueActive: { color: theme.brandText },
     sizeHint: { marginTop: 4, color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center' },
     copyNote: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21, marginBottom: 16 },
     outcomeText: { color: theme.mutedStrong, fontSize: 14, lineHeight: 21 },

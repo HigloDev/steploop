@@ -1,10 +1,13 @@
 # 循阶项目入口
 
+当前综合联调候选为 **1.1.7 / Android versionCode 16**。公开版本仍为1.1.5；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
+1.1.6为先前单独热量候选，综合联调版现为1.1.7。公开基准仍是下述1.1.5。
+
 ## 开始工作前
 
 1. 先读取根目录 `project-state.json` 和 `PROJECT_STATUS.md`，确认当前开发版本、公开版本及未合入修改。不要从旧报告、旧工作目录或会话记忆推断当前版本。
 2. 运行 `git rev-parse --show-toplevel`、`git status --short --branch` 和 `npm run check:project-state`。版本或远端不一致时先说明冲突，不能只改版本号来掩盖旧源码。
-3. 当前主版本为 **1.1.5 / Android versionCode 14**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
+3. 当前开发源码为 **1.1.7 / Android versionCode 16**，已公开版本为 **1.1.5 / Android versionCode 14**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
 
 ## 当前资料与历史边界
 
@@ -19,6 +22,8 @@
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
 ## 验证
+
+- 任何皮肤、主题或外观工作，先读 `docs/skins/README.md`、`docs/skins/registry.json` 和 `docs/skins/CONSTRUCTION.md`。新增皮肤先登记稳定ID，浅暗成对，所有页面经 `src/theme.ts` 取语义token；设计图、源码实现、自动通过、原生验证和公开发布分别标记。
 
 - 版本与入口整理：`npm run check:project-state`、`npm run test:project-state`。
 - 修改源码或构建流程：按变更范围运行 `npm run typecheck`、`npm test` 及现有 CI。自动检查与原生/真实运动验收分别记录。

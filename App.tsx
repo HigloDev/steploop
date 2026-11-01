@@ -1,9 +1,9 @@
 // 应用入口：SafeAreaProvider + NavigationContainer + NativeStack。
 // 启动时检查隐私协议，未同意则初始路由为 Privacy；首次使用展示引导。
-// fusion-v1 流程：首页 → 全屏训练 → 结算；所有页面跟随系统深浅主题。
+// fusion-v1 流程：首页 → 全屏训练 → 结算；所有页面共用所选皮肤和明暗模式。
 
 import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, View, useColorScheme } from 'react-native'
+import { ActivityIndicator, View } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -16,6 +16,9 @@ import { isPrivacyAgreed } from './src/services/privacy'
 import { hasSeenOnboarding } from './src/services/onboarding'
 import MainTabs from './src/navigation/MainTabs'
 import { useTheme, useWorkoutPalette } from './src/theme'
+import { useAppearance } from './src/appearance'
+import { hydrateAppearance } from './src/services/appearance'
+import AppearanceScreen from './src/pages/Appearance'
 
 import ResultScreen from './src/pages/Result'
 import PrivacyScreen from './src/pages/Privacy'
@@ -26,16 +29,23 @@ import ShareStudioScreen from './src/pages/ShareStudio'
 import WeeklyShareScreen from './src/pages/WeeklyShare'
 import DiagnosticCaptureScreen from './src/pages/DiagnosticCapture'
 
+import CoachCourse from './src/pages/coach-course'
+import CoachGoal from './src/pages/coach-goal'
+import CoachSession from './src/pages/coach-session'
+import CoachRecords from './src/pages/coach-records'
+import CoachReview from './src/pages/coach-review'
+
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 function AppContent() {
-  const scheme = useColorScheme()
   const theme = useTheme()
+  const appearance = useAppearance()
   const workoutPalette = useWorkoutPalette()
   const [ready, setReady] = useState(false)
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Main')
 
   useEffect(() => {
+    void hydrateAppearance()
     let mounted = true
     isPrivacyAgreed()
       .then(async (agreed) => {
@@ -59,11 +69,11 @@ function AppContent() {
     }
   }, [])
 
-  if (!ready) {
+  if (!ready || !appearance.hydrated) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={theme.brand} />
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style={theme.isDark ? 'light' : 'dark'} />
       </View>
     )
   }
@@ -72,7 +82,7 @@ function AppContent() {
     <SafeAreaProvider>
       <NavigationContainer
         theme={{
-          dark: scheme === 'dark',
+          dark: theme.isDark,
           colors: {
             primary: theme.brand,
             background: theme.paper,
@@ -99,11 +109,17 @@ function AppContent() {
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="Appearance" component={AppearanceScreen} />
           <Stack.Screen
             name="ClimbWorkout"
             component={WorkoutScreen}
             options={{ gestureEnabled: false, animation: 'slide_from_bottom', contentStyle: { backgroundColor: workoutPalette.bg } }}
           />
+          <Stack.Screen name="CoachCourse" component={CoachCourse} />
+          <Stack.Screen name="CoachGoal" component={CoachGoal} />
+          <Stack.Screen name="CoachSession" component={CoachSession} />
+          <Stack.Screen name="CoachRecords" component={CoachRecords} />
+          <Stack.Screen name="CoachReview" component={CoachReview} />
           <Stack.Screen name="WorkoutResult" component={SummaryScreen} />
           <Stack.Screen name="ShareStudio" component={ShareStudioScreen} />
           <Stack.Screen name="WeeklyShare" component={WeeklyShareScreen} />
@@ -111,7 +127,7 @@ function AppContent() {
           <Stack.Screen name="DiagnosticCapture" component={DiagnosticCaptureScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={theme.isDark ? 'light' : 'dark'} />
     </SafeAreaProvider>
   )
 }

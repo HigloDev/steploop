@@ -7,11 +7,19 @@ const ts = require('typescript')
 
 // Exercise the real theme module with the platform's color-scheme hook stubbed.
 let systemScheme = null
+let selection = { skinId: 'classic', mode: 'system' }
+const catalogContext = { exports: {} }
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/skin-catalog.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, catalogContext)
+const catalog = catalogContext.exports
 const context = {
   exports: {},
   require(name) {
-    assert.equal(name, 'react-native')
-    return { useColorScheme: () => systemScheme }
+    if (name === 'react-native') return { useColorScheme: () => systemScheme }
+    if (name === './appearance') return { useAppearance: () => selection }
+    if (name === './skin-catalog') return catalog
+    throw new Error('Unexpected module: ' + name)
   },
 }
 const source = fs.readFileSync(path.join(__dirname, '../src/theme.ts'), 'utf8')
@@ -19,6 +27,39 @@ vm.runInNewContext(ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText, context)
 const { useTheme, useWorkoutPalette, workoutPalettes, light, dark } = context.exports
+const { getTheme, getWorkoutPalette, getPosterPalette, getThemeKey, getThemeSkinId } = context.exports
+
+test('130 percent accessibility layout accepts the Android float32 font-scale value', () => {
+  const native130 = new Float32Array([1.3])[0]
+  assert.ok(native130 < 1.3, 'Exercise the actual float precision boundary')
+  assert.equal(context.exports.isLargeText(native130), true)
+  assert.equal(context.exports.isLargeText(1.3), true)
+  assert.equal(context.exports.isLargeText(1.5), true)
+  assert.equal(context.exports.isLargeText(1.29), false)
+  assert.equal(context.exports.isLargeText(1), false)
+})
+
+test('short headers preserve the entire vertical canvas and its fading lower edge', () => {
+  for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
+    for (const width of [320, 360, 440]) for (const page of ['home', 'coach', 'history', 'settings']) {
+      const theme = getTheme(skin.id, mode)
+      const height = context.exports.getSkinPageHeight(theme, page, width)
+      const art = context.exports.getSkinHeaderLayout(theme, page, width)
+      if (!art.overlap) {
+        if (art.visibleWindow) {
+          assert.ok(Math.abs(art.top + art.height * art.visibleWindow[0]) < 0.001)
+          assert.ok(Math.abs(art.top + art.height * art.visibleWindow[1] - height) < 0.001)
+          continue
+        }
+        assert.ok(art.top >= 0 && art.height >= 0, 'Upper artwork stays inside the canvas; classic has no graphical header')
+        assert.ok(art.top + art.height <= height * (1 + art.safeBottomFraction) + 0.001,
+          `${skin.id}/${page}/${width}: only the verified empty lower strip may be cropped`)
+      }
+    }
+  }
+  const large = context.exports.getSkinHeaderLayout(getTheme('pikachu', 'light'), 'home', 320, new Float32Array([1.3])[0])
+  assert.equal(large.overlap, false)
+})
 
 function rgb(hex) {
   assert.match(hex, /^#[0-9a-f]{6}$/i)
@@ -79,3 +120,60 @@ test('light training surfaces are light and dark training surfaces are dark', ()
     assert.ok(luminance(workoutPalettes.dark[surface]) < 0.04, `dark ${surface}`)
   }
 })
+
+test('manual mode wins over the system and system mode follows later changes', () => {
+  for (const system of ['light', 'dark', null]) {
+    systemScheme = system
+    for (const mode of ['light', 'dark', 'system']) {
+      selection = { skinId: 'pikachu', mode }
+      assert.equal(useTheme().isDark, mode === 'dark' || (mode === 'system' && system === 'dark'))
+      assert.equal(useWorkoutPalette().bg, useTheme().paper)
+    }
+  }
+  selection = { skinId: 'classic', mode: 'system' }
+})
+
+test('construction registry matches all runtime IDs and both palettes', () => {
+  const registry = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/skins/registry.json'), 'utf8'))
+  assert.deepEqual(registry.skins.map(skin => skin.id), Array.from(catalog.SKIN_CATALOG, skin => skin.id))
+  assert.equal(registry.defaultSkinId, catalog.DEFAULT_APPEARANCE.skinId)
+  assert.equal(registry.defaultMode, catalog.DEFAULT_APPEARANCE.mode)
+  assert.equal(new Set(catalog.SKIN_CATALOG.map(skin => skin.id)).size, catalog.SKIN_CATALOG.length)
+  for (const skin of catalog.SKIN_CATALOG) {
+    const item = registry.skins.find(item => item.id === skin.id)
+    assert.equal(item.name, skin.name)
+    assert.deepEqual(item.modes, ['light', 'dark'])
+    if (['native-verified', 'released'].includes(item.stage)) {
+      for (const mode of item.modes) for (const screen of registry.requiredScreens) {
+        assert.ok(fs.existsSync(path.join(__dirname, '..', item.nativeEvidence[mode][screen])), `${skin.id}/${mode}/${screen}: evidence required`)
+      }
+    }
+    if (skin.id !== 'classic') assert.ok(skin.light && skin.dark, `${skin.id}: two explicit palettes required`)
+    assert.equal(getTheme(skin.id, 'light').isDark, false)
+    assert.equal(getTheme(skin.id, 'dark').isDark, true)
+  }
+  assert.equal(getTheme('removed-skin', 'light'), light)
+})
+
+for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
+  test(`${skin.id}/${mode}: text, buttons, hero, workout and exported poster are readable`, () => {
+    const theme = getTheme(skin.id, mode), p = getWorkoutPalette(theme), poster = getPosterPalette(theme)
+    assert.equal(getThemeKey(theme), `${skin.id}/${mode}`)
+    assert.equal(getThemeSkinId(theme), skin.id, 'colors and artwork share the same resolved skin')
+    assert.equal(getWorkoutPalette(theme), p, 'palette identity is stable between sensor renders')
+    for (const surface of ['paper', 'card', 'cardSoft', 'surfaceSoft']) {
+      for (const text of ['ink', 'inkSoft', 'muted', 'mutedStrong', 'brandText']) readable(theme[text], theme[surface], `${text} on ${surface}`)
+    }
+    readable(theme.onBrand, theme.brand, 'primary button')
+    readable(theme.heroInk, theme.heroSurface, 'hero headline')
+    readable(theme.heroMuted, theme.heroSurface, 'hero secondary text')
+    readable(theme.heroAccent, theme.heroSurface, 'hero accent')
+    for (const surface of ['bg', 'surface', 'failureSurface']) {
+      for (const text of ['ink', 'inkSoft', 'muted', 'brandText', 'warn', 'danger', 'estimate']) readable(p[text], p[surface], `workout ${text} on ${surface}`)
+    }
+    readable(p.onBrand, p.brandPressed, 'held finish button')
+    readable(p.danger, p.dangerFill, 'held discard button')
+    for (const text of ['ink', 'muted', 'orange']) readable(poster[text], poster.background, `poster ${text}`)
+    for (const name of ['amber', 'red', 'info']) readable(theme[`${name}Ink`], theme[`${name}Soft`], `${name} message`)
+  })
+}

@@ -31,7 +31,7 @@ export function CompletionCelebration({ floors, ascentM, onDone, preview = false
     return () => { cancelled = true; clearTimeout(timer); clearTimeout(limit); stopSound?.(); back.remove(); state.remove() }
   }, [reduced])
   return <View style={[StyleSheet.absoluteFill, { zIndex: 100, backgroundColor: theme.paper, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16, paddingHorizontal: 28 }]}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><BrandMark size={28} color={theme.brand} /><Text style={{ color: theme.ink, fontSize: 19, fontWeight: '900' }}>循阶</Text></View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><BrandMark size={28} color={theme.brandText} /><Text style={{ color: theme.ink, fontSize: 19, fontWeight: '900' }}>循阶</Text></View>
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24 }}>
       <Text accessibilityRole="header" style={{ color: theme.brandInk, fontSize: 16, fontWeight: '800', letterSpacing: 2 }}>每一步，都在筑高</Text>
       <AchievementBuilding floors={floors} width={220} animate reducedMotion={reduced} />

@@ -43,7 +43,7 @@ for (const [label, file, edit, expected] of [
   ['old lockfile root', 'package-lock.json', json => { json.packages[''].version = '1.0.7' }, /root version/],
   ['old Android code', 'app.json', json => { json.expo.android.versionCode = 8 }, /Android versionCode/],
   ['wrong release tag', 'project-state.json', json => { json.publishedRelease.tag = 'v1.0.7-preview.1' }, /Published tag version/],
-  ['lost fix commit', 'project-state.json', json => { json.pendingChanges[0].commit = '' }, /Pending changes/],
+  ['lost fix commit', 'project-state.json', json => { json.pendingChanges = [{ branch: 'codex/pending-fix', commit: '', status: 'preserved-not-merged' }] }, /Pending changes/],
 ]) {
   test(`rejects ${label}`, t => {
     const root = fixture(t)

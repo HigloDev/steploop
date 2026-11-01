@@ -5,18 +5,23 @@
 // - 分享卡片：复用 ShareStudio 与 assets/share 插画
 // 旧记录（motion-v3 等）同样可以打开，只是没有逐层识别明细。
 
+import { CoachWorkoutFeedback } from '../components/coach-workout-feedback'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { Header } from '../components/Header'
+import { SkinLead } from '../components/skin-art'
 import { BuildingThumb } from '../components/BuildingThumb'
 import { FlowSheet } from '../components/flow-sheet'
 import { CompletionCelebration } from '../components/completion-celebration'
 import { RoundBreakdown } from '../components/training-visuals'
 import { BuildingTemplate, floorCount } from '../core/building-template'
 import { formatCalories } from '../core/calories'
+import { getWorkoutCalorieEstimate } from '../core/segmented-calories'
+import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
+import { Disclosure } from '../components/disclosure'
 import { floorAfter, getRoundAchievementCount } from '../core/floors'
 import { correctRoundFloors, isFusionWorkout, workoutCalories } from '../core/fusion-workout'
 import { formatDuration } from '../core/math'
@@ -176,7 +181,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
     )
   }
   if (!workout || !totals) {
-    return <View style={[styles.page, styles.center]}><ActivityIndicator color={theme.brand} /></View>
+    return <View style={[styles.page, styles.center]}><ActivityIndicator color={theme.brandText} /></View>
   }
 
   const fusion = isFusionWorkout(workout)
@@ -187,8 +192,10 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
       {route.params.fresh && !celebrationDone && totals.floors > 0 ? <CompletionCelebration floors={totals.floors} ascentM={totals.ascent} onDone={() => setCelebrationDone(true)} /> : null}
       <Header title={route.params.fresh ? '训练完成' : '训练详情'} align={pending || savedTemplate ? 'left' : 'center'} back rightLabel="完成" onRightPress={() => navigation.navigate('Main', { screen: 'Train' })} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-        <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
-        <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上了一程。' : '每一程，都留下高度。'}</Text>
+        <SkinLead kind="achievement" compact>
+          <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
+          <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上\n了一程。' : '每一程，\n都留下高度。'}</Text>
+        </SkinLead>
         <View style={styles.hero} accessible accessibilityLabel={`总爬升 ${totals.ascent} 米，${totals.floors} 层`}>
           <Text style={styles.heroLabel}>累计爬升 <Text style={styles.englishLabel}> / TOTAL ASCENT</Text></Text>
           <View style={styles.heroRow}>
@@ -203,6 +210,8 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
           <Metric styles={styles} label="千卡" value={formatCalories(totals.calories)} divider />
         </View>
         </View>
+        <Disclosure compact title="热量估算依据"><CalorieEstimateDetails estimate={getWorkoutCalorieEstimate(workout)} /></Disclosure>
+        {workout.coach ? <CoachWorkoutFeedback workout={workout} navigation={navigation} /> : null}
         <View style={styles.roundCard}>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}><Text style={styles.section}>每趟的节奏</Text>
@@ -264,7 +273,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
         </View>}
 
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('ShareStudio', { id: workout.id })} style={({ pressed }) => [pending ? styles.secondary : styles.primary, { marginTop: 20, flexDirection: 'row', gap: 8, minHeight: 52 }, pressed && { opacity: 0.85 }]}>
-          <MaterialCommunityIcons name="export-variant" size={21} color={pending ? theme.brand : theme.onBrand} />
+          <MaterialCommunityIcons name="export-variant" size={21} color={pending ? theme.brandText : theme.onBrand} />
           <Text style={pending ? styles.secondaryText : styles.primaryText}>生成分享卡片</Text>
         </Pressable>
         {!fusion ? <Text style={styles.legacy}>这是旧版识别（{workout.recognitionVersion ?? 'motion-v3'}）的记录，没有逐层识别明细。</Text> : null}
@@ -321,7 +330,7 @@ function makeStyles(theme: Theme) {
     savedTitle: { color: theme.inkSoft, fontSize: 13, fontWeight: '600', marginBottom: 4 },
     heroLabel: { color: theme.muted, fontSize: 13, fontWeight: '500' },
     heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 },
-    heroValue: { ...theme.numeric, color: theme.brand, fontSize: 80, lineHeight: 94, letterSpacing: -3, flexShrink: 1 },
+    heroValue: { ...theme.numeric, color: theme.brandText, fontSize: 80, lineHeight: 94, letterSpacing: -3, flexShrink: 1 },
     heroUnit: { color: theme.muted, fontSize: 20, fontWeight: '400' },
     metrics: { flexDirection: 'row', paddingTop: 20, marginTop: 8 },
     metric: { flex: 1, alignItems: 'center', paddingHorizontal: 4 },
@@ -333,7 +342,7 @@ function makeStyles(theme: Theme) {
     bars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', gap: 24, paddingVertical: 6, minHeight: 140, flexGrow: 1,},
     barCol: { alignItems: 'center', width: 88,},
     barValue: { ...theme.numeric, color: theme.ink, fontSize: 20, marginBottom: 6 },
-    bar: { width: 72, borderTopLeftRadius: 4, borderTopRightRadius: 4, backgroundColor: theme.brand },
+    bar: { width: 72, borderTopLeftRadius: 4, borderTopRightRadius: 4, backgroundColor: theme.brandText },
     barEstimated: { backgroundColor: theme.amberSoft, borderWidth: 2, borderStyle: 'dashed', borderColor: theme.amber },
     barCorrected: { backgroundColor: theme.brandTint },
     barLabel: { color: theme.mutedStrong, fontSize: 14, fontWeight: '700', marginTop: 6 },
@@ -351,7 +360,7 @@ function makeStyles(theme: Theme) {
     primary: { minHeight: 54, borderRadius: sport.radius.control, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },
     primaryText: { color: theme.onBrand, fontSize: 16, fontWeight: '700' },
     secondary: {
-      minHeight: 52, borderRadius: 26, borderWidth: 1.5, borderColor: theme.brand, flexDirection: 'row',
+      minHeight: 52, borderRadius: 26, borderWidth: 1.5, borderColor: theme.brandText, flexDirection: 'row',
       alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20,
     },
     secondaryText: { color: theme.brandInk, fontSize: 16, fontWeight: '600' },

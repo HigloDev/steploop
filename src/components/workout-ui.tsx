@@ -77,7 +77,7 @@ export function StairGauge({ cells, height = 360, style, maxVisible = 24, startF
   const cellH = height / Math.max(1, visible.length)
   return (
     <View
-      style={[{ height, justifyContent: 'flex-end' }, style]}
+      style={[{ minHeight: height, justifyContent: 'flex-end' }, style]}
       accessible
       accessibilityLabel={`楼层刻度，已完成 ${completed} 层`}
     >
@@ -88,11 +88,11 @@ export function StairGauge({ cells, height = 360, style, maxVisible = 24, startF
           <View key={`${cell.floor}-${index}`} style={{ height: cellH, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
             {current || index === 0 || index === visible.length - 1 ? <Text style={[styles.gaugeLabel, current && { color: P.brandInk, fontWeight: '700' }]}>{cell.floor}</Text> : null}
             <View style={{ height: current ? 5 : 2, width: current ? 36 : done ? 24 : 16, borderRadius: 2,
-              backgroundColor: current || done ? cell.estimated ? P.estimate : P.brand : P.line }} />
+              backgroundColor: current || done ? cell.estimated ? P.estimate : P.brandText : P.line }} />
           </View>
         )
       })}
-      {completed === 0 && startFloor !== undefined ? <Text style={[styles.gaugeLabel, { position: 'absolute', bottom: -18, marginLeft: 0 }]}>{startFloor}F</Text> : null}
+      {completed === 0 && startFloor !== undefined ? <Text style={[styles.gaugeLabel, { marginTop: 4, marginBottom: 8, marginLeft: 0 }]}>{startFloor}F</Text> : null}
     </View>
   )
 }
@@ -152,7 +152,7 @@ export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfi
       onPressOut={stop}
       delayLongPress={holdMs}
       onLongPress={confirm}
-      style={[styles.hold, tone === 'accent' && { borderColor: P.brandInk }, tone === 'danger' && { borderColor: P.danger }, tone === 'primary' && { borderColor: P.brand, backgroundColor: P.brand }, style]}
+      style={[styles.hold, tone === 'accent' && { borderColor: P.brandInk }, tone === 'danger' && { borderColor: P.danger }, tone === 'primary' && { borderColor: P.brandText, backgroundColor: P.brand }, style]}
     >
       <Animated.View style={[styles.holdFill, tone === 'danger' && { backgroundColor: P.dangerFill }, tone === 'primary' && { backgroundColor: P.brandPressed }, fill]} />
       <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.holdText, tone === 'accent' && { color: P.brandInk }, tone === 'danger' && { color: P.danger }, tone === 'primary' && { color: P.onBrand, fontSize: 20, fontWeight: '900' }]}>{holding ? holdingLabel : label}</Text>

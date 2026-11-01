@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-29",
+  "asset": "assets/skins/eva-unit-01/header-coach.png",
+  "method": "image_gen reference edit",
+  "inputSha256": "fcf64a6eb3ceb6926d97517ee0910a1f678e90414a0ddaaf1508b2aeba2bc48d",
+  "outputSha256": "9ad437589c9af4510a1c7e65781bcd850d418568a605927d82c6ee9e02e782dd",
+  "sourceOutput": "exec-a6f1b9ad-1c42-485d-bef0-352b97825da8.png",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "localBitmapEdits": false,
+  "calls": 1,
+  "status": "light/dark background composite inspected; native review required",
+  "prompt": "Preserve 1536x1024 composition, right-side purple/lime EVA Unit-01 head and upper torso, horn, eyes, orange/white armor, hexagonal pattern and 01. Replace the artificial horizontal robot cut at image y573 with organic tapered transparent lower silhouette; keep left space transparent. No new UI, objects or text. Clean detailed edges and natural alpha transition for light lavender and dark purple surfaces."
+}

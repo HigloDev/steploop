@@ -2702,3 +2702,50 @@ test('startup recovery queues behind an active import instead of rolling it back
     assert.deepEqual((await storage.listRoutes()).map(item => item.id), ['incoming'])
   } finally { AsyncStorageMock.setItem = setItem; releaseWrite() }
 })
+
+test('MET retention: saved activity energy uses measured time and stays fixed after a share update', async () => {
+  resetState()
+  const w=loadService('services/workout-storage.js'), energy=loadService('core/segmented-calories.js')
+  const record=makeWorkout('met-storage-retention')
+  record.bodyWeightKg=60
+  record.calorieProfile=energy.createStairCalorieProfile(60,'slow')
+  record.rounds=[{id:'met-round',roundNumber:1,startedAt:1000,endedAt:601000,durationMs:600000,activeMs:60000,
+    startFloor:1,targetFloor:3,finalFloor:3,floorsCompleted:2,ascentM:6,steps:50,confidence:1,complete:true,
+    completionReason:'manual_finish',floorSplits:[],events:[],interruptions:[],
+    calorieSegments:energy.recordStairCalorieDuration([],60000,record.calorieProfile,1)}]
+  record.activeDurationMs=600000
+  await w.saveWorkout(record)
+  const saved=await w.getWorkout(record.id)
+  assert.equal(saved.calorieEstimate.kilocalories,3.5)
+  assert.equal(saved.calorieEstimate.activeDurationMs,60000)
+  const before=JSON.stringify(saved.calorieEstimate)
+  saved.sharePosterCreatedAt=999999
+  await w.saveWorkout(saved)
+  assert.equal(JSON.stringify((await w.getWorkout(record.id)).calorieEstimate),before)
+})
+
+test('MET retention: backup import preserves both new evidence and old records byte-for-byte', async () => {
+  resetState()
+  const w=loadService('services/workout-storage.js'), storage=loadService('services/storage.js'), energy=loadService('core/segmented-calories.js')
+  const old=makeWorkout('old-met-upgrade')
+  old.bodyWeightKg=81
+  await w.saveWorkout(old)
+  const oldBefore=JSON.stringify(await w.getWorkout(old.id))
+  const record=makeWorkout('new-met-upgrade')
+  record.calorieProfile=energy.createStairCalorieProfile(72,'fast')
+  record.rounds=[{id:'met-backup-round',roundNumber:1,startedAt:1000,endedAt:5000,durationMs:4000,activeMs:2000,
+    startFloor:1,targetFloor:3,finalFloor:3,floorsCompleted:2,ascentM:6,steps:20,confidence:1,complete:true,
+    completionReason:'manual_finish',floorSplits:[],events:[],interruptions:[],
+    calorieSegments:energy.recordStairCalorieDuration([],2000,record.calorieProfile,1)}]
+  await w.saveWorkout(record)
+  const before=await w.getWorkout(record.id)
+  const backup=JSON.parse(JSON.stringify(await storage.exportRawData()))
+  resetState()
+  await storage.importRawData(backup,{mode:'replace'})
+  const after=await w.getWorkout(record.id)
+  assert.deepEqual(after.calorieProfile,before.calorieProfile)
+  assert.deepEqual(after.calorieEstimate,before.calorieEstimate)
+  assert.deepEqual(after.rounds[0].calorieSegments,before.rounds[0].calorieSegments)
+  assert.equal(JSON.stringify(await w.getWorkout(old.id)),oldBefore)
+  assert.equal((await w.getWorkout(old.id)).calorieProfile,undefined)
+})

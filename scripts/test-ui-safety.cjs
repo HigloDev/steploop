@@ -59,7 +59,12 @@ const native = {
   useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1 }),
 }
 const icons = { Feather: 'Feather', Ionicons: 'Ionicons', MaterialCommunityIcons: 'MaterialCommunityIcons' }
-const themeTokens = load('src/theme.ts', { 'react-native': { useColorScheme: () => 'light' } })
+const skinCatalog = load('src/skin-catalog.ts', {})
+const themeTokens = load('src/theme.ts', {
+  'react-native': { useColorScheme: () => 'light' },
+  './skin-catalog': skinCatalog,
+  './appearance': { useAppearance: () => ({ skinId: 'classic', mode: 'system' }) },
+})
 
 test('choice controls fit measured labels at larger font sizes and reflow when the actual space runs out', () => {
   const hooks = runtime()
@@ -115,6 +120,9 @@ for (const failed of [false, true]) test(failed
       if (writeFailed) throw Error('上次训练尚未保存成功')
     } },
     '../components/brand-mark': { BrandMark: 'BrandMark' },
+    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
+    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
+    '../components/skin-detail-art': { SkinBuildingThumbnail: 'SkinBuildingThumbnail', SkinWeekMotif: 'SkinWeekMotif' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' },
     '../components/ascent-references': { AscentReferences: 'AscentReferences' },
     '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
@@ -319,6 +327,9 @@ test('editing an old workout preserves its training date and chronological posit
     react: hooks.react, 'react-native': native, '@expo/vector-icons': icons,
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../components/disclosure': { Disclosure: 'Disclosure' }, '../components/Header': { Header: 'Header' },
+    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
+    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
+    '../components/skin-detail-art': { SkinBuildingThumbnail: 'SkinBuildingThumbnail' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' }, '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
     '../components/sport-ui': { StatPair: 'StatPair' },
     '../components/training-visuals': { TrendChart: 'TrendChart' },
@@ -347,7 +358,7 @@ test('editing an old workout preserves its training date and chronological posit
 
 async function weeklyHarness() {
   const hooks = runtime()
-  let dark = false, resolvePermission, mountedKey, captures = 0, saves = 0
+  let dark = false, skin = 'classic', resolvePermission, mountedKey, captures = 0, saves = 0
   const permission = new Promise(resolve => { resolvePermission = resolve })
   const week = { workouts: 1, weekStart: 1, floors: 12, ascentM: 36, steps: 240, calories: 20, days: [] }
   const { default: Screen, WeeklyPoster } = load('src/pages/WeeklyShare.tsx', {
@@ -362,7 +373,7 @@ async function weeklyHarness() {
     '../core/landmarks': { ascentReference: () => ({ remainingM: 0 }), describeAscent: () => '相当高度' },
     '../core/weekly-achievement': { buildWeeklyAchievement: () => week, weeklyDateRange: () => '本周', weeklyShareText: () => '本周成果' },
     '../services/workout-storage': { listWorkouts: async () => [] }, '../services/preferences': { triggerHaptic: async () => {} },
-    '../theme': { useTheme: () => ({ isDark: dark }), visual: { poster: {} } },
+    '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme(skin, dark ? 'dark' : 'light') },
   })
   const render = () => {
     const tree = hooks.render(() => Screen({ navigation: {} }))
@@ -378,7 +389,7 @@ async function weeklyHarness() {
   let screen = render()
   find(screen, node => node.type === WeeklyPoster).props.onReady()
   screen = render()
-  return { render, WeeklyPoster, week, resolvePermission, switchTheme: () => { dark = !dark },
+  return { render, WeeklyPoster, week, resolvePermission, switchTheme: () => { dark = !dark }, switchSkin: value => { skin = value },
     get captures() { return captures }, get saves() { return saves } }
 }
 
@@ -426,4 +437,17 @@ test('poster image failure has an explicit retry and export resumes only after t
   retried.props.onReady()
   screen = h.render()
   assert.equal(find(screen, node => node.props.title === '保存海报').props.disabled, false)
+})
+
+test('changing skins within the same mode invalidates a pending poster export', async () => {
+  const h = await weeklyHarness()
+  const before = find(h.render(), node => node.type === h.WeeklyPoster)
+  find(h.render(), node => node.props.title === '保存海报').props.onPress()
+  h.switchSkin('pikachu')
+  const after = find(h.render(), node => node.type === h.WeeklyPoster)
+  assert.notEqual(before.props.key, after.props.key)
+  h.resolvePermission({ granted: true })
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(h.captures, 0)
+  assert.equal(h.saves, 0)
 })

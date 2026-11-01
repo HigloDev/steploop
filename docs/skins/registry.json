@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 2,
+  "baselineVersion": "1.1.7",
+  "baselineCommit": "9c7eed9",
+  "defaultSkinId": "classic",
+  "defaultMode": "system",
+  "appearanceModes": [
+    "system",
+    "light",
+    "dark"
+  ],
+  "requiredPalettes": [
+    "light",
+    "dark"
+  ],
+  "requiredScreens": [
+    "home",
+    "coach",
+    "history",
+    "settings",
+    "workout",
+    "summary"
+  ],
+  "tokenEntry": "src/theme.ts",
+  "runtimeCatalog": "src/skin-catalog.ts",
+  "constructionGuide": "docs/skins/CONSTRUCTION.md",
+  "evidence": {
+    "scope": "historical-installed-candidate-only",
+    "currentVisualAcceptance": "blocked",
+    "currentReview": "docs/skins/GRAPHICS_REAUDIT.md",
+    "displayProfiles": "docs/skins/qa-display-profiles.json",
+    "automated": "docs/skins/GRAPHICS_VALIDATION.md",
+    "native": "docs/skins/GRAPHICS_VALIDATION.md",
+    "release": null,
+    "gallery": "docs/skins/graphics-preview.html",
+    "captureInventory": "docs/skins/evidence/20261028-fidelity/inventory.json",
+    "comparison": "docs/skins/fidelity-review.html",
+    "automatedResults": "docs/skins/evidence/20261028-fidelity/automated-results.json",
+    "acceptanceSummary": "docs/skins/evidence/20261028-fidelity/validation-summary.json",
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "currentPhoneInstallation": "docs/skins/PHONE_INSTALL_20261101.md",
+    "currentAutomatedSummary": "docs/skins/evidence/20261101/verification-summary.json"
+  },
+  "skins": [
+    {
+      "id": "classic",
+      "name": "钴蓝晴空",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "1.1.5冷白钴蓝与深蓝周卡",
+      "darkDirection": "1.1.5深蓝与浅蓝强调",
+      "designReferences": [
+        "docs/assets/site115/home-light.png",
+        "docs/assets/site115/home-dark.png",
+        "docs/assets/site115/climbing-light.png",
+        "docs/assets/site115/climbing-dark.png",
+        "docs/assets/site115/summary-light.png",
+        "docs/assets/site115/summary-dark.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/classic-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/classic-light-home.png",
+          "workout": "docs/skins/evidence/20261028/classic-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/classic-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/classic-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/classic-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/classic-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/core/classic-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/core/classic-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/core/classic-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/core/classic-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/classic-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/classic-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/core/classic-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/core/classic-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/core/classic-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/core/classic-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/classic-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/classic-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "original",
+      "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "night-run",
+      "name": "荧光夜行",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "冷白、深炭周卡、黄绿操作",
+      "darkDirection": "炭黑与荧光黄绿",
+      "designReferences": [
+        "docs/skins/design-references/night-run-four-tabs.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/night-run-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/night-run-light-home.png",
+          "workout": "docs/skins/evidence/20261028/night-run-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/night-run-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/night-run-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/night-run-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/night-run-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/night-run-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/night-run-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/night-run-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "woodland",
+      "name": "松风山岚",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "米白、松绿、鼠尾草",
+      "darkDirection": "深森林绿与浅鼠尾草",
+      "designReferences": [
+        "docs/skins/design-references/woodland-four-tabs.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/woodland-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/woodland-light-home.png",
+          "workout": "docs/skins/evidence/20261028/woodland-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/woodland-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/woodland-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/woodland-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/woodland-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/woodland-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/woodland-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/woodland-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/woodland-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/woodland-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/woodland-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "darkHeaderOverrides": [
+        "coach"
+      ],
+      "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "eva-unit-01",
+      "name": "紫电幽光",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "淡紫白、机体紫、荧光绿",
+      "darkDirection": "深紫黑、亮紫、荧光绿",
+      "designReferences": [
+        "docs/skins/design-references/eva-unit-01-four-tabs.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/eva-unit-01-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/eva-unit-01-light-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-01-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-01-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/eva-unit-01-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-01-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-01-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-01-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "eva-unit-02",
+      "name": "绯焰流光",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "暖白、机体红、橙黄",
+      "darkDirection": "深炭红、珊瑚红、橙黄",
+      "designReferences": [
+        "docs/skins/design-references/eva-unit-02-four-tabs.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/eva-unit-02-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/eva-unit-02-light-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-02-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-02-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/eva-unit-02-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/eva-unit-02-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/eva-unit-02-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/eva-unit-02-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "pikachu",
+      "name": "晴金跃动",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "奶黄、明黄、深棕",
+      "darkDirection": "深棕黑、明黄、暖米白",
+      "designReferences": [
+        "docs/skins/design-references/pikachu-four-tabs.png",
+        "docs/skins/design-references/pikachu-training-results.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/pikachu-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/pikachu-light-home.png",
+          "workout": "docs/skins/evidence/20261028/pikachu-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/pikachu-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/pikachu-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/pikachu-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/pikachu-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/pikachu-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/pikachu-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/pikachu-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/pikachu-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/pikachu-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "darkHeaderOverrides": [
+        "home",
+        "coach",
+        "history",
+        "settings"
+      ],
+      "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "k-on",
+      "name": "樱粉和弦",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "奶油白、莓粉、茶褐",
+      "darkDirection": "可可棕、柔粉、奶油白",
+      "designReferences": [
+        "docs/skins/design-references/k-on-four-tabs.png"
+      ],
+      "palette115Evidence": {
+        "comparison": "docs/skins/evidence/20261028/k-on-board.png",
+        "light": {
+          "home": "docs/skins/evidence/20261028/k-on-light-home.png",
+          "workout": "docs/skins/evidence/20261028/k-on-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028/k-on-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028/k-on-dark-home.png",
+          "workout": "docs/skins/evidence/20261028/k-on-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028/k-on-dark-summary.png"
+        }
+      },
+      "nativeEvidence": {
+        "light": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/k-on-light-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/k-on-light-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-light-summary.png"
+        },
+        "dark": {
+          "home": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-home.png",
+          "coach": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-coach.png",
+          "history": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-history.png",
+          "settings": "docs/skins/evidence/20261028-fidelity/round-7/k-on-dark-settings.png",
+          "workout": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-climbing.png",
+          "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-summary.png"
+        }
+      },
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
+    }
+  ],
+  "publishedVersion": "1.1.5",
+  "requiredFlows": [
+    "appearance",
+    "coach-course",
+    "coach-goal",
+    "coach-session",
+    "coach-records",
+    "coach-review",
+    "course-climbing",
+    "summary-coach",
+    "calibrating",
+    "descending",
+    "waiting",
+    "save-failed",
+    "share",
+    "weekly"
+  ],
+  "runtimeArtwork": "src/skin-assets.ts",
+  "artworkManifest": "docs/skins/assets.json",
+  "historicalPaletteEvidence": {
+    "baselineVersion": "1.1.5",
+    "baselineCommit": "6282e28be1230d4a5f711bdc19912a24cce1cd01",
+    "report": "docs/skins/VALIDATION.md",
+    "gallery": "docs/skins/preview.html"
+  },
+  "headerPages": [
+    "home",
+    "coach",
+    "history",
+    "settings"
+  ],
+  "nativeValidation": {
+    "validatedOn": "2026-10-28",
+    "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
+    "package": "com.zxn.palou.uiqa",
+    "avd": "steploop_skins_20261028",
+    "syntheticData": true,
+    "coreScreens": 84,
+    "sharedFlowScreens": 30,
+    "smallScreens": 32,
+    "interactionScreens": 14,
+    "shippedPngs": 47,
+    "publicReleaseChanged": false,
+    "pixelIdenticalToConcept": false,
+    "remainingDifferences": "design-qa.md"
+  },
+  "visualRevision": {
+    "status": "in-progress",
+    "reason": "hard image edges, cropped motifs and missing custom thumbnails",
+    "historicalCommit": "3db9cdb"
+  }
+}

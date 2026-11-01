@@ -1,0 +1,45 @@
+{
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+  "skin": "pikachu",
+  "viewport": "320dp, 130% font",
+  "checks": [
+    {
+      "state": "home",
+      "control": "开始爬楼",
+      "bounds": [
+        73,
+        849,
+        647,
+        971
+      ],
+      "enabled": true
+    }
+  ],
+  "passedStates": [
+    "home"
+  ],
+  "frames": [
+    {
+      "name": "pikachu-dark-home-small",
+      "skin": "pikachu",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#1C190F",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "pikachu-dark-home-small-action",
+      "skin": "pikachu",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#1C190F",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+{
+  "passed": true,
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+  "scope": "Wide source-image bottom seams only; native inspection remains required.",
+  "headers": [
+    {
+      "path": "assets/skins/night-run/header-home.png",
+      "sha256": "b198e42d9b9d47e63b0f7c6d35b9848276bf62c69cc01714263f06373813a2c8",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/night-run/header-coach.png",
+      "sha256": "d11deed18ace7d33f88cefabf2040fefd74575a2240821f1db643274f1e02455",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/night-run/header-history.png",
+      "sha256": "54e395dd73ef6d54c8a69aadc6b4e940b9420dcc5f36be57bddfd9c70937d190",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/night-run/header-settings.png",
+      "sha256": "078e4f902bc6260d750cfd19461b0f201eba0b7b95b53e10a0a8177a8e5c28c5",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/woodland/header-home.png",
+      "sha256": "029e08b02470db2e6d6a95884ab358013327099074491cf2d41a58602de5a720",
+      "bottomVisiblePixels": 18,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 18,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/woodland/header-coach.png",
+      "sha256": "8efdfde7038813a220c669732c2f87e28f024436d7bc8a437c3f35067e1d4288",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/woodland/header-history.png",
+      "sha256": "69de4a01eb9fcb3ee0e208687bcc0500768320bf84be53489a2358bc9cbe24cd",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/woodland/header-settings.png",
+      "sha256": "2e18bcfd134b017cfb920d15618ef895a501f00512417d45428d566509b55c67",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/woodland/header-coach-dark.png",
+      "sha256": "d90be58530aca66af922979d910744915540e8b3778d2b7197b2c95bd579e75e",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-01/header-home.png",
+      "sha256": "b1048645b3a7eff5deaff783f446824dc219331374eb846182bd2cc6175d68c8",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-01/header-coach.png",
+      "sha256": "fcf64a6eb3ceb6926d97517ee0910a1f678e90414a0ddaaf1508b2aeba2bc48d",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-01/header-history.png",
+      "sha256": "bd694ac0ef40935d9d48ea6ad05d9e97682a4ae9fcf1b2209ae7aea30af042cf",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-01/header-settings.png",
+      "sha256": "ba2bfe3cb0f07188f40f914070cb79fa22c5765f5590faa6ec93d6f61d97682d",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 1,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-02/header-home.png",
+      "sha256": "ef3b9d7667878cb75bdb49c1401f28156e706edbec20b78df17d9998c1c13016",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-02/header-coach.png",
+      "sha256": "93111d5db430770453c7a43c9c822fa646662de5dfa361f23ffcf591981a057b",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-02/header-history.png",
+      "sha256": "ba0bad02037b79325fa0cbc7105aa600e837366b21339c1308408e8001e5d162",
+      "bottomVisiblePixels": 14,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 6,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-02/header-settings.png",
+      "sha256": "45399be13875c4ff04b1f475eb9113fcee040ed88571eee6384bd0a7b3821f82",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 1,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/eva-unit-02/header-history-dark.png",
+      "sha256": "be27ff202872894443b81563286e7c5edc971967f00938320bf7cc87713ae6a5",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-home.png",
+      "sha256": "679f1b38355da8611bc1eaad0605000291992df82a3a4e69d1f250a655ca485b",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-coach.png",
+      "sha256": "0532264840f670835c92ba57a8b3a2c6845d6420451a8d381b6374550291d0f6",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-history.png",
+      "sha256": "7b65f5c95abb9e74bd7c3da54ae1d8133bdd25bcddd17aa927b65f920524e216",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-settings.png",
+      "sha256": "6efcfd80e2356d684f5c22add70eb8955473560bba7964665476f21164e22c79",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-home-dark.png",
+      "sha256": "be0f824955b9c829e1e23059fc1f245f76fffc1e1879b61dbbe709e3a22f5e63",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-coach-dark.png",
+      "sha256": "f09040a11ca53499378bbd4d085b21fb295004eda0fd66eb5651b289cf74b6f6",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-history-dark.png",
+      "sha256": "ec34f181b83815c908339a8b96ce946db586c42c25c2fa168a41a42e9bce5cf5",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/pikachu/header-settings-dark.png",
+      "sha256": "065fe7442d4dd78495c542042fafcded1e733eb1eddaa502e5d5ffbc7092ec42",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/k-on/header-home.png",
+      "sha256": "d7409784cd93b92b61e6d6581645e34ebdaa035924c7427ac9024dff38e0991f",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 1,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/k-on/header-coach.png",
+      "sha256": "663b841f1b781cc4e393b29992b956234f46f8e1cf823965d6716cc85b658318",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 0,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/k-on/header-history.png",
+      "sha256": "c6059db56521c3ba94e7f8a59923e3815f738a289b2c1fef4f9d8e9c5e412fa0",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 1,
+      "passed": true
+    },
+    {
+      "path": "assets/skins/k-on/header-settings.png",
+      "sha256": "97e70c081402a8a0ea7e5b4fc9c9062acba048740e1a6a55e5dfffeaa5250adf",
+      "bottomVisiblePixels": 0,
+      "alphaThreshold": 16,
+      "bottomVisibleRun": 0,
+      "width": 1536,
+      "croppedTransparentStripAlphaMax": 1,
+      "passed": true
+    }
+  ]
+}

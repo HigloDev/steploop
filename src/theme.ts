@@ -2,6 +2,8 @@
 // 钴蓝承担操作与进度，冷灰组织内容；深蓝训练摘要使用独立的成对文字色。
 
 import { TextStyle, useColorScheme } from 'react-native'
+import { useAppearance } from './appearance'
+import { normalizeSkinId, resolveAppearanceMode, SKIN_CATALOG, SkinId, SkinPaint } from './skin-catalog'
 
 export interface ShadowStyle {
   shadowColor: string
@@ -32,6 +34,8 @@ export interface Theme {
   heroAccent: string
   // 品牌
   brand: string
+  /** Accessible brand foreground; may differ from a bright button fill. */
+  brandText: string
   brandInk: string
   brandBright: string
   brandSoft: string
@@ -100,6 +104,7 @@ const light: Theme = {
   heroLine: '#385171',
   heroAccent: '#83BAFF',
   brand: '#245CD8',
+  brandText: '#245CD8',
   brandInk: '#1E50BF',
   brandBright: '#1D4EB9',
   brandSoft: '#E9F0FF',
@@ -174,6 +179,7 @@ const dark: Theme = {
   lineSoft: '#293D58',
   scrim: '#000000cc',
   brand: '#8AB7FF',
+  brandText: '#8AB7FF',
   brandInk: '#A3C7FF',
   brandBright: '#A7CAFF',
   brandSoft: '#1D355B',
@@ -228,6 +234,7 @@ export interface WorkoutPalette {
   inkSoft: string
   muted: string
   brand: string
+  brandText: string
   brandInk: string
   brandPressed: string
   brandDim: string
@@ -250,6 +257,7 @@ const workoutLight: WorkoutPalette = {
   inkSoft: light.inkSoft,
   muted: light.mutedStrong,
   brand: light.brand,
+  brandText: light.brand,
   brandInk: light.brandInk,
   brandPressed: light.brandBright,
   brandDim: light.brandSoft,
@@ -272,6 +280,7 @@ const workoutDark: WorkoutPalette = {
   inkSoft: dark.inkSoft,
   muted: dark.muted,
   brand: dark.brand,
+  brandText: dark.brand,
   brandInk: dark.brandInk,
   brandPressed: dark.brandBright,
   brandDim: dark.brandSoft,
@@ -285,14 +294,175 @@ const workoutDark: WorkoutPalette = {
 
 export const workoutPalettes = { light: workoutLight, dark: workoutDark } as const
 
+function mix(first: string, second: string, weight: number): string {
+  const a = first.slice(1).match(/../g)!.map(channel => parseInt(channel, 16))
+  const b = second.slice(1).match(/../g)!.map(channel => parseInt(channel, 16))
+  return '#' + a.map((value, index) => Math.round(value * (1 - weight) + b[index] * weight).toString(16).padStart(2, '0')).join('')
+}
+
+function paintTheme(base: Theme, paint: SkinPaint): Theme {
+  const brandSoft = mix(paint.card, paint.brand, 0.08)
+  return { ...base, ...paint,
+    inkSoft: mix(paint.ink, paint.paper, 0.14), mutedStrong: mix(paint.ink, paint.paper, 0.23),
+    cardSoft: base.isDark ? mix(paint.card, paint.ink, 0.04) : '#F1F3F7', surfaceSoft: mix(paint.card, paint.brand, 0.085),
+    line: mix(paint.card, paint.ink, 0.23), lineSoft: mix(paint.card, paint.ink, 0.12),
+    brandInk: paint.brandText, brandBright: paint.brand, brandSoft, brandTint: mix(paint.card, paint.brand, 0.25),
+    heroLine: mix(paint.heroSurface, paint.heroInk, 0.22), energy: paint.brandText,
+    infoSoft: brandSoft, infoInk: paint.brandText,
+    redInk: paint.dangerInk ?? base.redInk,
+    shadowCard: { ...base.shadowCard, shadowColor: paint.ink }, shadowSoft: { ...base.shadowSoft, shadowColor: paint.ink },
+    shadowLifted: { ...base.shadowLifted, shadowColor: paint.brand },
+  }
+}
+
+const themes = Object.fromEntries(SKIN_CATALOG.map(skin => [skin.id, {
+  light: skin.light ? paintTheme(light, skin.light) : light,
+  dark: skin.dark ? paintTheme(dark, skin.dark) : dark,
+}])) as Record<SkinId, { light: Theme; dark: Theme }>
+const themeKeys = new WeakMap<Theme, string>()
+for (const skin of SKIN_CATALOG) for (const mode of ['light', 'dark'] as const) themeKeys.set(themes[skin.id][mode], `${skin.id}/${mode}`)
+
+/** Stable skin identity also distinguishes future skins that share a few colors. */
+export function getThemeKey(theme: Theme): string { return themeKeys.get(theme)! }
+
+/** Artwork uses the same resolved selection as colors, including preview themes. */
+export function getThemeSkinId(theme: Theme): SkinId {
+  return normalizeSkinId(themeKeys.get(theme)?.split('/')[0])
+}
+
+export const skinGeometry = {
+  sceneWidth: 156, sceneHeight: 112, compactWidth: 112, compactHeight: 84,
+  featureWidth: 300, featureHeight: 160, featureSmallHeight: 96,
+  smallWidth: 80, smallHeight: 64, mark: 28, badge: 88, gap: 12,
+} as const
+
+/** Graphic skins share reading hierarchy; artwork geometry remains skin-specific. */
+export const skinTypography = {
+  introduction: { fontSize: 22, lineHeight: 30, fontWeight: '700' },
+  section: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
+  cardTitle: { fontSize: 18, lineHeight: 26, fontWeight: '600' },
+  label: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
+  body: { fontSize: 15, lineHeight: 24, fontWeight: '400' },
+  secondary: { fontSize: 14, lineHeight: 22, fontWeight: '400' },
+} as const satisfies Record<string, TextStyle>
+
+export type SkinPage = 'home' | 'coach' | 'history' | 'settings'
+/** Android bridges its 32-bit font scale (e.g. 1.299999952 at 130%). */
+export function isLargeText(fontScale: number): boolean {
+  return Math.round(fontScale * 100) >= 130
+}
+/** Measurements from the approved four-tab boards, expressed at 360dp content width. */
+const skinPageHeights: Record<SkinId, Record<SkinPage, number>> = {
+  classic: { home: 0, coach: 0, history: 0, settings: 0 },
+  'night-run': { home: 198, coach: 176, history: 198, settings: 160 },
+  woodland: { home: 220, coach: 162, history: 226, settings: 170 },
+  'eva-unit-01': { home: 190, coach: 192, history: 126, settings: 160 },
+  'eva-unit-02': { home: 210, coach: 238, history: 132, settings: 196 },
+  pikachu: { home: 244, coach: 246, history: 160, settings: 150 },
+  'k-on': { home: 290, coach: 312, history: 160, settings: 112 },
+}
+export function getSkinPageHeight(theme: Theme, page: SkinPage, width: number): number {
+  return skinPageHeights[getThemeSkinId(theme)][page] * Math.min(width / 360, 1.22)
+}
+
+/** Keep upper motifs and bottom fades visible. K-On home may crop only its
+ * verified empty lower 17%, bringing the organic tabletop close to the week card. */
+export function getSkinHeaderLayout(theme: Theme, page: SkinPage, width: number, fontScale = 1) {
+  const skin = getThemeSkinId(theme), height = getSkinPageHeight(theme, page, width)
+  const overlap = skin === 'pikachu' && page === 'home' && !isLargeText(fontScale)
+  // These windows exclude only the audited empty margins of sparse canvases.
+  // Fitting their whole canvas would reduce the actual subject to a tiny icon.
+  const window = page === 'settings'
+    ? ({ 'k-on': [0.07, 0.58], 'eva-unit-01': [0.04, 0.81], 'eva-unit-02': [0, 0.82],
+        pikachu: theme.isDark ? [0.04, 435 / 1024] : [0.04, 484 / 1024] } as Partial<Record<SkinId, number[]>>)[skin]
+    : page === 'history' ? ({ 'k-on': [0.30, 1], pikachu: [0.46, 1] } as Partial<Record<SkinId, number[]>>)[skin] : undefined
+  if (window) {
+    const artHeight = height / (window[1] - window[0]), artWidth = artHeight * 1.5
+    return { width: artWidth, height: artHeight, top: -artHeight * window[0], left: width - artWidth,
+      overlap: false, safeBottomFraction: 0, visibleWindow: window }
+  }
+  // The coach copy needs its own clear area above the complete instrument set.
+  const textClearance = skin === 'k-on' && page === 'coach' ? height * 0.2 : 0
+  const artWidth = overlap ? Math.max(width, height * 1.5) * 1.216 : (height - textClearance) * 1.5
+  const safeBottomFraction = skin === 'k-on' && page === 'home' ? 0.17 : 0
+  const clearSearch = page === 'history' && (skin === 'eva-unit-01' || skin === 'eva-unit-02' && theme.isDark)
+  return { width: artWidth, height: artWidth / 1.5, top: overlap ? -12 * Math.min(width / 360, 1.22) : textClearance + height * safeBottomFraction,
+    left: width - artWidth - (clearSearch ? 48 * Math.min(width / 360, 1.22) : 0), overlap, safeBottomFraction, visibleWindow: undefined }
+}
+
+export function getCourseIconAccent(theme: Theme, course: 'weight' | 'beginner' | 'cardio'): string {
+  return getThemeSkinId(theme) === 'eva-unit-01' && course === 'weight'
+    ? (theme.isDark ? '#AEF638' : '#629323') : theme.brandText
+}
+
+export function getPrimaryActionPaint(theme: Theme): { fill: string; ink: string } {
+  return theme.isDark && getThemeSkinId(theme) === 'eva-unit-01'
+    ? { fill: '#AEF638', ink: '#17290B' } : { fill: theme.brand, ink: theme.onBrand }
+}
+
+export function getWeekBarFill(theme: Theme, today: boolean): string {
+  const skin = getThemeSkinId(theme)
+  if (skin === 'eva-unit-01') return today ? '#A9ED3E' : '#9959DB'
+  if (skin === 'pikachu') return theme.brand
+  if (skin === 'woodland' && !theme.isDark) return theme.brand
+  return theme.heroAccent
+}
+
+export function getHistoryFilterPaint(theme: Theme): { fill: string; ink: string } {
+  const skin = getThemeSkinId(theme)
+  const solid = skin !== 'classic' && (theme.isDark || ['eva-unit-02', 'pikachu', 'k-on'].includes(skin))
+  return solid ? { fill: theme.brand, ink: theme.onBrand } : { fill: theme.card, ink: theme.brandInk }
+}
+
+const skinLayouts: Record<SkinId, { tabs: readonly [number, number]; compactCatalog: boolean; compactHistory: boolean; compactWeek: boolean; compactRecent?: 'inline' | 'stacked'; homeOverlap?: readonly [number, number] }> = {
+  classic: { tabs: [64, 64], compactCatalog: false, compactHistory: false, compactWeek: false },
+  'night-run': { tabs: [84, 84], compactCatalog: false, compactHistory: false, compactWeek: false },
+  woodland: { tabs: [82, 82], compactCatalog: false, compactHistory: false, compactWeek: false },
+  'eva-unit-01': { tabs: [72, 74], compactCatalog: false, compactHistory: true, compactWeek: true, compactRecent: 'stacked' },
+  'eva-unit-02': { tabs: [80, 80], compactCatalog: false, compactHistory: false, compactWeek: false },
+  pikachu: { tabs: [78, 74], compactCatalog: true, compactHistory: true, compactWeek: true, compactRecent: 'inline', homeOverlap: [12, 22] },
+  'k-on': { tabs: [64, 74], compactCatalog: true, compactHistory: true, compactWeek: true },
+}
+export function getSkinLayout(theme: Theme) {
+  const layout = skinLayouts[getThemeSkinId(theme)]
+  return { ...layout, tabHeight: layout.tabs[theme.isDark ? 1 : 0], homeOverlap: (layout.homeOverlap ?? [0, 0])[theme.isDark ? 1 : 0] }
+}
+
+export function getTheme(skinId: unknown, mode: 'light' | 'dark'): Theme {
+  return themes[normalizeSkinId(skinId)][mode]
+}
+
 export function useTheme(): Theme {
   const scheme = useColorScheme()
-  return scheme === 'dark' ? dark : light
+  const selection = useAppearance()
+  return getTheme(selection.skinId, resolveAppearanceMode(selection.mode, scheme))
+}
+
+const workoutThemeCache = new WeakMap<Theme, WorkoutPalette>()
+export function getWorkoutPalette(theme: Theme): WorkoutPalette {
+  if (theme === light) return workoutLight
+  if (theme === dark) return workoutDark
+  const cached = workoutThemeCache.get(theme)
+  if (cached) return cached
+  const action = getPrimaryActionPaint(theme)
+  const palette: WorkoutPalette = { isDark: theme.isDark, bg: theme.paper, surface: theme.card, surfaceHigh: theme.surfaceSoft, failureSurface: theme.card,
+    line: theme.line, ink: theme.ink, inkSoft: theme.inkSoft, muted: theme.mutedStrong,
+    brand: action.fill, brandText: theme.brandText, brandInk: theme.brandInk, brandPressed: action.fill,
+    brandDim: theme.brandSoft, onBrand: action.ink, good: theme.success, warn: theme.amberInk,
+    danger: theme.redInk, dangerFill: theme.redSoft, estimate: theme.amberInk }
+  workoutThemeCache.set(theme, palette)
+  return palette
 }
 
 /** Resolve in render so a system theme change also updates an active workout. */
 export function useWorkoutPalette(): WorkoutPalette {
-  return useTheme().isDark ? workoutPalettes.dark : workoutPalettes.light
+  return getWorkoutPalette(useTheme())
+}
+
+export interface PosterPalette { background: string; ink: string; muted: string; orange: string; line: string; tint: string }
+export function getPosterPalette(theme: Theme): PosterPalette {
+  return theme === light ? visual.poster : { background: theme.paper, ink: theme.ink, muted: theme.mutedStrong,
+    orange: theme.brandText, line: theme.line, tint: theme.brandSoft }
 }
 
 export { light, dark }

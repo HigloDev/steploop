@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "defaultProfile": "phone-1p5k-125",
+  "description": "Native rendering profiles. Density is Android logical density, not a claim about physical panel PPI. Synthetic 2K profiles are not physical-device verification.",
+  "profiles": {
+    "phone-1p5k-125": { "size": [1200, 2670], "densityDpi": 480, "fontScale": 1.25, "logicalWidthDp": 400, "basis": "Connected Xiaomi 14 readback on 2026-10-29" },
+    "phone-1p5k-100": { "size": [1200, 2670], "densityDpi": 480, "fontScale": 1.0, "logicalWidthDp": 400, "basis": "Same viewport, standard font comparison" },
+    "phone-2k-same-layout-125": { "size": [1440, 3200], "densityDpi": 576, "fontScale": 1.25, "logicalWidthDp": 400, "basis": "Synthetic same-dp comparison isolates raster sharpness from layout width" },
+    "phone-2k-wide-125": { "size": [1440, 3200], "densityDpi": 560, "fontScale": 1.25, "logicalWidthDp": 411.428571, "basis": "Synthetic additional logical-width adaptation check" },
+    "phone-2k-wide-100": { "size": [1440, 3200], "densityDpi": 560, "fontScale": 1.0, "logicalWidthDp": 411.428571, "basis": "Synthetic 2K standard-font check" },
+    "small-130": { "size": [720, 1600], "densityDpi": 360, "fontScale": 1.3, "logicalWidthDp": 320, "basis": "Compatibility check only; not 1.5K or 2K acceptance" }
+  }
+}

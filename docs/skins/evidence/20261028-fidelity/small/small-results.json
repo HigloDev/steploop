@@ -1,0 +1,476 @@
+{
+  "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+  "skin": "eva-unit-01",
+  "viewport": "320dp, 130% font",
+  "checks": [
+    {
+      "state": "home",
+      "control": "开始爬楼",
+      "bounds": [
+        73,
+        1122,
+        647,
+        1244
+      ],
+      "enabled": true
+    },
+    {
+      "state": "coach",
+      "control": "设定我的体重目标",
+      "bounds": [
+        45,
+        682,
+        675,
+        808
+      ],
+      "enabled": true
+    },
+    {
+      "state": "coach-active",
+      "control": "记录体重 / 查看趋势",
+      "bounds": [
+        45,
+        1119,
+        675,
+        1248
+      ],
+      "enabled": true
+    },
+    {
+      "state": "settings",
+      "control": "皮肤与外观",
+      "bounds": [
+        73,
+        356,
+        647,
+        470
+      ],
+      "enabled": true
+    },
+    {
+      "state": "climbing",
+      "control": "长按结束并保存",
+      "bounds": [
+        45,
+        1289,
+        675,
+        1406
+      ],
+      "enabled": true
+    },
+    {
+      "state": "summary",
+      "control": "生成分享卡片",
+      "bounds": [
+        45,
+        1357,
+        675,
+        1474
+      ],
+      "enabled": true
+    },
+    {
+      "state": "appearance",
+      "control": "跟随系统",
+      "bounds": [
+        45,
+        490,
+        360,
+        598
+      ],
+      "enabled": true
+    },
+    {
+      "state": "coach-goal",
+      "control": "保存目标，生成课程安排",
+      "bounds": [
+        45,
+        1348,
+        675,
+        1474
+      ],
+      "enabled": true
+    },
+    {
+      "state": "coach-session",
+      "control": "开始这次课程",
+      "bounds": [
+        45,
+        1157,
+        675,
+        1283
+      ],
+      "enabled": true
+    },
+    {
+      "state": "coach-records",
+      "control": "更新这天的体重",
+      "bounds": [
+        45,
+        963,
+        675,
+        1089
+      ],
+      "enabled": true
+    },
+    {
+      "state": "coach-review",
+      "control": "保存复盘与后续安排",
+      "bounds": [
+        45,
+        1348,
+        675,
+        1474
+      ],
+      "enabled": true
+    },
+    {
+      "state": "summary-coach",
+      "control": "回到教练，查看进度与复盘",
+      "bounds": [
+        45,
+        1060,
+        675,
+        1252
+      ],
+      "enabled": true
+    },
+    {
+      "state": "course-climbing",
+      "control": "长按结束并保存",
+      "bounds": [
+        45,
+        1289,
+        675,
+        1406
+      ],
+      "enabled": true
+    }
+  ],
+  "passedStates": [
+    "appearance",
+    "climbing",
+    "coach",
+    "coach-active",
+    "coach-goal",
+    "coach-records",
+    "coach-review",
+    "coach-session",
+    "course-climbing",
+    "history",
+    "home",
+    "settings",
+    "summary",
+    "summary-coach"
+  ],
+  "frames": [
+    {
+      "name": "eva-unit-01-dark-home-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-home-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-active-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-active-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-history-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-settings-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-settings-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-climbing-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-climbing-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-summary-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-summary-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-appearance-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-appearance-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-goal-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-goal-small-keyboard",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-goal-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-session-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-session-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-records-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-records-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-review-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-coach-review-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-summary-coach-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-summary-coach-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-course-climbing-small",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    },
+    {
+      "name": "eva-unit-01-dark-course-climbing-small-action",
+      "skin": "eva-unit-01",
+      "mode": "dark",
+      "size": [
+        720,
+        1600
+      ],
+      "paper": "#10101C",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-29",
+  "authorization": "User: 如果清晰度不够，你就重新画。",
+  "scope": [
+    "header-home",
+    "header-home-dark",
+    "header-coach",
+    "header-coach-dark"
+  ],
+  "method": "Built-in image_gen, independent asset redraws; no circumvention retry after moderation rejection",
+  "success": [
+    {
+      "page": "home",
+      "path": "assets/skins/pikachu/header-home.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1513457,
+      "sha256": "824b12b6709d2b3b4c516d8f5671c1793e0f9d78cc6093693491578d52515e80",
+      "alphaRange": [
+        0,
+        254
+      ],
+      "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+      "method": "image_gen high-resolution reference redraw authorized2026-10-29; original output bytes, no local bitmap edits",
+      "sourceOutput": "exec-03b04322-1bee-4696-ab83-1e5860c985a5.png",
+      "provenance": "docs/skins/asset-provenance/pikachu-hd-redraw-r7.json",
+      "referenceInputSha256": "53d9f0e698cd06f924739949b8f80b4bb43ef4e00f5ad4e34e1173bc6c715b37",
+      "visualReview": "light-background composite inspected; native-layout acceptance pending"
+    }
+  ],
+  "priorHomeAsset": {
+    "page": "home",
+    "path": "assets/skins/pikachu/header-home.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 647938,
+    "sha256": "53d9f0e698cd06f924739949b8f80b4bb43ef4e00f5ad4e34e1173bc6c715b37",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "reference": "docs/skins/design-references/pikachu-four-tabs.png",
+    "method": [
+      "Pillow crop of approved four-tab board only; no old three-tab pose used",
+      "Explicit alpha exclusion of original logo/title/subtitle, filter control and weekly-card regions; no inpainting",
+      "Source-silhouette region constraints plus OpenCV GrabCut preserve original visible character pixels",
+      "Keep source lower city towers, golden stairs and green foliage; omit pale distant sky/buildings to avoid disconnected page-background fragments",
+      "0.4px source-edge feather, original edge-color extension and soft fade at existing scene crop boundaries",
+      "Lanczos 4.5x resize278x210 to1251x945, placed260,40 on1536x1024 transparent canvas; no new detail synthesized"
+    ],
+    "sourceSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+    "sourceDimensions": [
+      1182,
+      1330
+    ],
+    "sourceSelection": "first column light home header, happy jumping Pikachu with existing stairs, city and green foliage",
+    "cropBoxExclusive": [
+      20,
+      128,
+      298,
+      338
+    ],
+    "sourceCropPixels": [
+      278,
+      210
+    ],
+    "sourceLimitations": [
+      "The available scene source is278x210 pixels; larger output does not add original detail.",
+      "Source UI occludes some background; those pixels are removed rather than reconstructed.",
+      "The tail approaches the original right edge; every visible original tail pixel is retained, with no invented extension."
+    ],
+    "alphaRemediation": {
+      "date": "2026-10-29",
+      "method": "Existing alpha only; no RGB, shape generation or upscale. Home scene margins fade by distance from their existing mask, original character silhouette protected. Truncated history/settings lower edge fades within existing last 40px.",
+      "inputSha256": "679f1b38355da8611bc1eaad0605000291992df82a3a4e69d1f250a655ca485b",
+      "provenance": "docs/skins/asset-provenance/edge-r3.json"
+    },
+    "alphaTransitionRevision": {
+      "date": "2026-10-29",
+      "method": "Alpha-only curved 100px transition before existing UI-occlusion edge; character silhouette protected. No scaling or sharpening.",
+      "provenance": "docs/skins/asset-provenance/edge-r4.json",
+      "inputSha256": "e9d5e8b77334cd947b4345bccbbd7a39be805b225f15d80625dff2aa38974b81"
+    }
+  },
+  "blocked": [
+    {
+      "path": "assets/skins/pikachu/header-home-dark.png",
+      "requestId": "58dd8053-89f4-4e85-acc7-6a8249c981a0"
+    },
+    {
+      "path": "assets/skins/pikachu/header-coach.png",
+      "requestId": "316e4510-2451-4a2e-91ca-f302585ef530"
+    },
+    {
+      "path": "assets/skins/pikachu/header-coach-dark.png",
+      "requestId": "267a833b-e93e-494c-b746-02451425f5bf"
+    }
+  ],
+  "blockReason": "moderation_blocked at output; category other; no further attempt for rejected asset",
+  "promptSummary": "Redraw actual Pikachu reference with crisp native-resolution detail, preserve character, pose, right-side placement and light/dark scene identity; genuine alpha, no UI or flat/L-shaped crop. Home light jumping open-eyes, home dark winking night scene; coach light winking standing with three lightning accents; coach dark open eyes night scene.",
+  "fidelityBoundary": "New lines, shading, leaves and stairs replace blurry extracted pixels. Original theme/action/composition retained, not pixel-identical to concept board."
+}

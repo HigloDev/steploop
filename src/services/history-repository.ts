@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { ClimbSession, ClimbWorkout } from '../core/types'
+import { ARCHIVED_RECORD_INDEX_LIMIT, ArchivedRecordContribution, normalizeArchivedRecords } from '../core/backup-payload'
 import {
   COLLECTION_KEYS,
   abandonJournal,
@@ -173,6 +174,8 @@ interface HistoryRecordMetrics {
  * 仍保留的明细贡献在 summarize() 时按实际内容现算（live），所以明细更新不需要动账本。
  */
 interface CollectionLedger {
+  /** Optional and bounded; older aggregates retain their existing unindexed totals. */
+  archivedRecords?: Record<string, ArchivedRecordContribution>
   /** 累计写入事件数（进入保留集合的写入次数，含后来被裁剪的）。 */
   writtenTotal: number
   /** 因容量策略被裁剪的条数（写入 meta 计数，不再静默）。 */
@@ -541,6 +544,8 @@ export interface HistoryLedgerChange {
   previous: unknown[]
   /** 本次写入后仍保留的行（已按容量策略裁剪）。 */
   next: unknown[]
+  /** Full imported collection before retention, including newly imported rows that will be archived. */
+  beforeTrim?: unknown[]
   /** 本次因容量策略裁剪掉的条数。 */
   policyTrimmed: number
   corruptReasons?: string[]
@@ -582,6 +587,7 @@ function parseAggregateDoc(raw: string | null): HistoryAggregateDoc | null {
       ascentM: nonNegative(ledger.ascentM),
       activeDurationMs: nonNegative(ledger.activeDurationMs),
       byDay: isObjectLike(ledger.byDay) ? (ledger.byDay as Record<string, DayBucket>) : {},
+      archivedRecords: normalizeArchivedRecords(ledger.archivedRecords),
     }
   }
   return {
@@ -626,8 +632,10 @@ function applyLedgerChange(
   previous: HistoryRecordMetrics[],
   next: HistoryRecordMetrics[],
   policyTrimmed: number,
+  requireArchiveIdentity = false,
 ): CollectionLedger {
   const updated: CollectionLedger = { ...base, byDay: { ...base.byDay } }
+  const archived = new Map(Object.entries(base.archivedRecords ?? {}))
   const previousById = new Map(previous.map((item) => [item.id, item]))
   const nextById = new Map(next.map((item) => [item.id, item]))
 
@@ -644,7 +652,14 @@ function applyLedgerChange(
   let ingested = 0
   for (const metrics of next) {
     if (previousById.has(metrics.id)) continue
-    ingested += 1
+    const recorded = archived.get(metrics.id)
+    if (recorded) {
+      removeContribution(updated, { id: metrics.id, ...recorded })
+      if (recorded.kind === 'trimmed') updated.trimmedTotal = Math.max(0, updated.trimmedTotal - 1)
+      else updated.removedTotal = Math.max(0, updated.removedTotal - 1)
+      updated.detailCovered = Math.max(0, updated.detailCovered - 1)
+      archived.delete(metrics.id)
+    } else ingested += 1
     touchRange(updated, metrics)
   }
   updated.writtenTotal += ingested
@@ -654,6 +669,13 @@ function applyLedgerChange(
   const gone = previous.filter((metrics) => !nextById.has(metrics.id))
   let usedPolicy = 0
   for (const metrics of gone) {
+    const kind = usedPolicy < policyTrimmed ? 'trimmed' : 'removed'
+    if (archived.size < ARCHIVED_RECORD_INDEX_LIMIT || archived.has(metrics.id)) {
+      const { id, ...contribution } = metrics
+      archived.set(id, { ...contribution, kind })
+    } else if (requireArchiveIdentity) {
+      throw new Error(`归档去重索引已达 ${ARCHIVED_RECORD_INDEX_LIMIT} 条，本次导入未写入。请保留备份，减少导入范围后重试。`)
+    }
     addContribution(updated, metrics)
     if (usedPolicy < policyTrimmed) {
       updated.trimmedTotal += 1
@@ -663,6 +685,8 @@ function applyLedgerChange(
     }
     updated.detailCovered += 1
   }
+  if (archived.size) updated.archivedRecords = Object.fromEntries(archived)
+  else delete updated.archivedRecords
   return updated
 }
 
@@ -678,6 +702,7 @@ export async function planHistoryLedgerChanges(
      * 调用方只在允许替换时传入；merge + 已有账本必须省略，避免重复计数。
      */
     adoptAggregate?: HistoryAggregateDoc | null
+    requireArchiveIdentity?: boolean
   },
 ): Promise<HistoryLedgerPlan> {
   const previousAggRaw = await readRawStrict(HISTORY_AGG_KEY)
@@ -697,16 +722,22 @@ export async function planHistoryLedgerChanges(
     const base = existing
       ? doc[collection]
       : bootstrapLedger(previousValid.length, legacyTrimmedFor(legacyTrimCounts, collection))
-    const departedBefore = base.trimmedTotal + base.removedTotal
+    const previousMetrics = previousValid.map((item) => metricsOf(collection, item))
+    const beforeTrim = change?.beforeTrim?.filter(isHistoryItem).map((item) => metricsOf(collection, item))
+    const staged = beforeTrim ? applyLedgerChange(base, previousMetrics, beforeTrim, 0, options?.requireArchiveIdentity) : base
     doc[collection] = applyLedgerChange(
-      base,
-      previousValid.map((item) => metricsOf(collection, item)),
+      staged,
+      beforeTrim ?? previousMetrics,
       nextValid.map((item) => metricsOf(collection, item)),
       policyTrimmed,
+      options?.requireArchiveIdentity,
     )
     if (change) {
-      departedCount +=
-        doc[collection].trimmedTotal + doc[collection].removedTotal - departedBefore
+      const nextIds = new Set(nextValid.map(item => item.id))
+      const previousIds = new Set(previousValid.map(item => item.id))
+      // Resurrection and a new trim can cancel numerically, but still need an atomic pair.
+      departedCount += previousValid.filter(item => !nextIds.has(item.id)).length +
+        nextValid.filter(item => !previousIds.has(item.id) && Object.prototype.hasOwnProperty.call(base.archivedRecords ?? {}, item.id)).length
     }
     if (change) {
       const droppedCorrupt =

@@ -1,0 +1,242 @@
+[
+  {
+    "name": "night-run-light-climbing",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9F2"
+  },
+  {
+    "name": "night-run-light-summary",
+    "skin": "night-run",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F9F2"
+  },
+  {
+    "name": "night-run-dark-climbing",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#101411"
+  },
+  {
+    "name": "night-run-dark-summary",
+    "skin": "night-run",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#101411"
+  },
+  {
+    "name": "woodland-light-climbing",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F5F3EB"
+  },
+  {
+    "name": "woodland-light-summary",
+    "skin": "woodland",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F5F3EB"
+  },
+  {
+    "name": "woodland-dark-climbing",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#101C16"
+  },
+  {
+    "name": "woodland-dark-summary",
+    "skin": "woodland",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#101C16"
+  },
+  {
+    "name": "eva-unit-01-light-climbing",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "eva-unit-01-light-summary",
+    "skin": "eva-unit-01",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#F7F4FC"
+  },
+  {
+    "name": "eva-unit-01-dark-climbing",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "eva-unit-01-dark-summary",
+    "skin": "eva-unit-01",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#16111F"
+  },
+  {
+    "name": "eva-unit-02-light-climbing",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF6F1"
+  },
+  {
+    "name": "eva-unit-02-light-summary",
+    "skin": "eva-unit-02",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF6F1"
+  },
+  {
+    "name": "eva-unit-02-dark-climbing",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#201315"
+  },
+  {
+    "name": "eva-unit-02-dark-summary",
+    "skin": "eva-unit-02",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#201315"
+  },
+  {
+    "name": "pikachu-light-climbing",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFFBEF"
+  },
+  {
+    "name": "pikachu-light-summary",
+    "skin": "pikachu",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFFBEF"
+  },
+  {
+    "name": "pikachu-dark-climbing",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#201A10"
+  },
+  {
+    "name": "pikachu-dark-summary",
+    "skin": "pikachu",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#201A10"
+  },
+  {
+    "name": "k-on-light-climbing",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF9F1"
+  },
+  {
+    "name": "k-on-light-summary",
+    "skin": "k-on",
+    "mode": "light",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#FFF9F1"
+  },
+  {
+    "name": "k-on-dark-climbing",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#21191F"
+  },
+  {
+    "name": "k-on-dark-summary",
+    "skin": "k-on",
+    "mode": "dark",
+    "size": [
+      1080,
+      2400
+    ],
+    "paper": "#21191F"
+  }
+]
