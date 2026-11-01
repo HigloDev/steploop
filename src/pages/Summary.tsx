@@ -194,7 +194,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         <SkinLead kind="achievement" compact>
           <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
-          <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上了一程。' : '每一程，都留下高度。'}</Text>
+          <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上\n了一程。' : '每一程，\n都留下高度。'}</Text>
         </SkinLead>
         <View style={styles.hero} accessible accessibilityLabel={`总爬升 ${totals.ascent} 米，${totals.floors} 层`}>
           <Text style={styles.heroLabel}>累计爬升 <Text style={styles.englishLabel}> / TOTAL ASCENT</Text></Text>

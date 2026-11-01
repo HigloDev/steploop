@@ -4,6 +4,7 @@ import { RootStackScreen } from '../navigation/types'
 import { Button } from '../components/ui'
 import { CoachMessage, CoachPage, CoachSection, CoachText, useCoachData } from '../components/coach-ui'
 import { activeEnrollment, courseById } from '../core/coach'
+import { skinTypography } from '../theme'
 
 export default function CoachCourse({ navigation, route }: RootStackScreen<'CoachCourse'>) {
   const course = courseById(route.params.courseId), data = useCoachData(navigation)
@@ -15,7 +16,7 @@ export default function CoachCourse({ navigation, route }: RootStackScreen<'Coac
     ]); else open()
   }
   return <CoachPage title={course.name}>
-    <CoachText size="value">{course.description}</CoachText>
+    <CoachText size="value" style={skinTypography.introduction}>{course.description}</CoachText>
     <CoachText tone="accent">{course.duration} · {course.outcome}</CoachText>
     <CoachMessage error={data.error} loading={data.loading} retry={() => void data.refresh()} />
     <CoachSection title="课程会陪你做什么">

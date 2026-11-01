@@ -38,7 +38,7 @@ import {
   loadActiveCheckpoint,
   saveWorkout,
 } from '../services/workout-storage'
-import { getSkinLayout, getThemeSkinId, isLargeText, sport, Theme, useTheme } from '../theme'
+import { getSkinLayout, getThemeSkinId, isLargeText, skinTypography, sport, Theme, useTheme } from '../theme'
 
 type WeekStats = WeeklyAchievement
 
@@ -196,7 +196,8 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
   const graphic = getThemeSkinId(theme) !== 'classic'
   const { width: screenWidth, fontScale } = useWindowDimensions()
   const homeOverlap = isLargeText(fontScale) ? 0 : getSkinLayout(theme).homeOverlap * Math.min(screenWidth / 360, 1.22)
-  const compactRecent = getSkinLayout(theme).compactRecent
+  const compactRecent = getSkinLayout(theme).compactRecent === 'inline' && (screenWidth < 360 || isLargeText(fontScale))
+    ? 'stacked' : getSkinLayout(theme).compactRecent
 
   return (
     <View style={styles.page}>
@@ -254,10 +255,10 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
 
         <View style={[styles.weekCard, homeOverlap ? { marginTop: -homeOverlap } : undefined]}>
           <SkinWeekMotif />
-          <View style={styles.weekTop}>
+          <View style={[styles.weekTop, homeOverlap ? { justifyContent: 'flex-start', gap: 12 } : undefined]}>
             <Text style={styles.weekLabel}>本周向上{graphic ? null : <Text style={styles.weekEnglish}> / THIS WEEK</Text>}</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="分享本周成果" disabled={loading || !!loadError}
-              onPress={() => navigation.navigate('WeeklyShare')} style={styles.heroIcon}>
+              onPress={() => navigation.navigate('WeeklyShare')} style={[styles.heroIcon, homeOverlap ? { position: 'relative', right: undefined, top: 0, width: 48, height: 48, alignItems: 'center' } : undefined]}>
               <MaterialCommunityIcons name="export-variant" size={19} color={theme.heroMuted} accessible={false} />
             </Pressable>
           </View>
@@ -307,12 +308,12 @@ export default function HomeScreen({ navigation }: MainTabScreen<'Train'>) {
         {compactRecent !== 'inline' ? <SectionHeading title="最近一次" action={compactRecent ? undefined : '全部记录'} onPress={() => navigation.navigate('History')} compact={Boolean(compactRecent)} /> : null}
         {latest && latestSummary ? <Pressable accessibilityRole="button" accessibilityLabel={`查看最近训练 ${latest.routeSnapshot.name}`}
           onPress={() => navigation.navigate('WorkoutResult', { id: latest.id })} style={({ pressed }) => [styles.latest,
-            compactRecent && { marginTop: compactRecent === 'inline' ? 12 : 0, padding: 10, minHeight: 56 }, pressed && { opacity: sport.opacity.pressed }]}>
+            compactRecent && { marginTop: compactRecent === 'inline' ? sport.space.md : 0, padding: sport.space.md, minHeight: 56 }, pressed && { opacity: sport.opacity.pressed }]}>
           {graphic ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             {compactRecent === 'inline' ? <Text style={{ color: theme.ink, fontSize: 12, fontWeight: '700' }}>最近一次</Text> : null}
             <View style={[styles.buildingIcon, compactRecent && { width: 32, height: 36 }]}><SkinBuildingThumbnail size={compactRecent ? 30 : 38} history /></View>
-            <View style={{ flex: 1 }}><Text style={[styles.latestName, compactRecent && { fontSize: 14 }]} numberOfLines={2}>{latest.routeSnapshot.locationName || latest.routeSnapshot.name}</Text>
-              <Text style={[styles.buildingMeta, compactRecent && { fontSize: 12 }]}>{latestSummary.totalFloors} 层 · {Math.round(latestSummary.totalAscentM)} 米 · {formatDuration(latestSummary.totalElapsedMs)}</Text></View>
+            <View style={{ flex: 1, minWidth: 0 }}><Text style={[styles.latestName, skinTypography.label]} numberOfLines={2}>{latest.routeSnapshot.locationName || latest.routeSnapshot.name}</Text>
+              <Text style={[styles.buildingMeta, skinTypography.secondary]}>{latestSummary.totalFloors} 层 · {Math.round(latestSummary.totalAscentM)} 米 · {formatDuration(latestSummary.totalElapsedMs)}</Text></View>
             <MaterialCommunityIcons name="chevron-right" size={21} color={theme.muted} accessible={false} />
           </View> : <>
           <View style={styles.latestHead}><Text style={styles.latestName} numberOfLines={2}>{latest.routeSnapshot.locationName || latest.routeSnapshot.name}</Text>
@@ -454,8 +455,8 @@ function makeStyles(theme: Theme) {
       flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: theme.card, borderRadius: theme.radiusLg,
       padding: 16, marginBottom: 10, ...theme.shadowSoft,
      minHeight: 84,},
-    buildingName: { color: theme.ink, fontSize: 16, fontWeight: '600' },
-    buildingMeta: { color: theme.muted, fontSize: 12, lineHeight: 19, marginTop: 4 },
+    buildingName: { color: theme.ink, fontSize: 16, fontWeight: '600', ...(graphic ? skinTypography.label : {}) },
+    buildingMeta: { color: theme.muted, fontSize: 12, lineHeight: 19, marginTop: sport.space.xs, ...(graphic ? skinTypography.secondary : {}) },
     buildingLast: { color: theme.brandInk, fontSize: 12, fontWeight: '700', marginTop: 3 },
     more: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
     go: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },

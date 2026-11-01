@@ -1,5 +1,6 @@
+import { TrackedImage } from './tracked-image'
 import React, { useState } from 'react'
-import { Image, ImageSourcePropType, View } from 'react-native'
+import { ImageSourcePropType, View } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import type { CoachCourseId } from '../core/coach'
 import { getSkinBuildingArtwork, getSkinCourseArtwork, getSkinHeaderArtwork, getSkinMarkArtwork } from '../skin-assets'
@@ -11,7 +12,7 @@ function DetailArt({ source, identity, size, fallback }: {
   const [failed, setFailed] = useState<string>()
   return <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
     style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-    {source && failed !== identity ? <Image key={identity} source={source} resizeMode="contain" fadeDuration={0} accessible={false}
+    {source && failed !== identity ? <TrackedImage identity={`detail/${identity}`} key={identity} source={source} resizeMode="contain" fadeDuration={0} accessible={false}
       style={{ width: size, height: size }} onError={() => setFailed(identity)} /> : fallback}
   </View>
 }
@@ -39,7 +40,7 @@ export function SkinWeekMotif() {
   const source = getSkinHeaderArtwork(skin, 'history', mode)
   return <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
     style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 290, opacity: theme.isDark ? 0.2 : 0.12 }}>
-    <Image key={identity} source={source} resizeMode="cover" fadeDuration={0} accessible={false}
+    <TrackedImage identity={`detail/${identity}`} key={identity} source={source} resizeMode="cover" fadeDuration={0} accessible={false}
       style={{ width: '100%', height: '100%' }} onError={() => setFailed(identity)} />
   </View>
 }

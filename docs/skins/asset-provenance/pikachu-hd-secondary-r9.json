@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-29",
+  "method": "built-in-imagegen-reference-redraw",
+  "scope": "Pikachu secondary headers; one independent normal request per requested asset; no retries or fallback",
+  "status": "blocked-no-generated-candidates",
+  "items": [
+    {
+      "name": "header-history",
+      "source": "assets/skins/pikachu/header-history.png",
+      "sourceSha256": "c984bfa2286e27eb86c6c9d12a4c758701160903c403a3d823bf43e2fa608f9f",
+      "sourceDimensions": [
+        1536,
+        1024
+      ],
+      "requestedOutputDimensions": [
+        1536,
+        1024
+      ],
+      "requestedTransparentBackground": true,
+      "prompt": "Use case: precise-object-edit. Input is a low-resolution reference of an existing mobile app illustration. Redraw this exact Pikachu history-header artwork at genuine high definition, not a blurry enlargement. Preserve the happy open-eyed face, red cheeks, yellow body, black-tipped ears, lightning tail and warm cream/gold stair elements. Produce ONE independent 1536x1024 transparent RGBA PNG, not a board or screenshot. Keep the composition in the lower-right quadrant: approximately x=900..1490, y=540..970; leave the whole left 58% and top 48% transparent for app text. The character is front-facing and cheerful, resting by the small warm stairs as in the reference. Reconstruct crisp clean anatomy and fine edges, both ear tips and entire tail inside the canvas with margins. Any lower body/stair contact must finish naturally with soft irregular transparent edges; no straight horizontal crop through the body, no rectangular backdrop, no hard shelf along the bottom. Preserve the established cute polished illustration style and light-mode warm colors. No words, UI controls, frame, watermark, or added unrelated objects. Transparent pixels around all outer edges, especially bottom.",
+      "output": null,
+      "outputSha256": null,
+      "outputDimensions": null,
+      "status": "moderation_blocked",
+      "moderationStage": "output",
+      "moderationCategories": [
+        "other"
+      ],
+      "requestId": "32adc9c1-3ef1-452d-9c18-a80e8d3b10c1",
+      "attemptCount": 1,
+      "provenance": {
+        "tool": "image_gen.imagegen",
+        "referenceWasViewed": true,
+        "localPixelProcessing": false
+      }
+    },
+    {
+      "name": "header-history-dark",
+      "source": "assets/skins/pikachu/header-history-dark.png",
+      "sourceSha256": "9f0e97183357f24f2e17bf6fd2dc835b039d8ba78ec6155a009af38adeb57488",
+      "sourceDimensions": [
+        1536,
+        1024
+      ],
+      "requestedOutputDimensions": [
+        1536,
+        1024
+      ],
+      "requestedTransparentBackground": true,
+      "prompt": "Use case: precise-object-edit. Redraw the attached low-resolution dark-mode history-header illustration as a genuinely sharp high-definition asset, preserving the existing Pikachu character, relaxed closed eyes, cheerful open mouth, raised waving paw, black-tipped yellow ears, red cheeks, lightning tail, and dark warm-brown stair blocks. One standalone 1536x1024 transparent RGBA PNG, no mockup or contact sheet. Keep the artwork mainly lower-right (x about 900..1490, y about 540..970), leaving left 58% and top 48% fully transparent for app text. Preserve the original cute polished cartoon look and pose. All ears, tail and paw must be complete and contained with transparent margins; reconstruct the lower silhouette naturally instead of a straight cutoff. Stairs may softly dissolve in irregular organic alpha along their outer and lower edges, no rectangular background and no horizontal shelf. Dark-mode golden rim light and clear dark outlines, no text, icons, interface, border or watermark. Sharp illustrative detail and clean alpha, not enlarged blur.",
+      "output": null,
+      "outputSha256": null,
+      "outputDimensions": null,
+      "status": "moderation_blocked",
+      "moderationStage": "output",
+      "moderationCategories": [
+        "other"
+      ],
+      "requestId": "f9509d34-bfa3-458e-b358-79a89ba1f35d",
+      "attemptCount": 1,
+      "provenance": {
+        "tool": "image_gen.imagegen",
+        "referenceWasViewed": true,
+        "localPixelProcessing": false
+      }
+    },
+    {
+      "name": "header-settings",
+      "source": "assets/skins/pikachu/header-settings.png",
+      "sourceSha256": "4100d357ab78f844f539c871f3af16dc6329d3effbf75b2314cd388f4ffedcb1",
+      "sourceDimensions": [
+        1536,
+        1024
+      ],
+      "requestedOutputDimensions": [
+        1536,
+        1024
+      ],
+      "requestedTransparentBackground": true,
+      "prompt": "Use case: precise-object-edit. Input is the existing light-mode settings-header illustration for a mobile app. Redraw it at genuine high definition: the same cheerful Pikachu with eyes happily closed, red cheeks, black-tipped ears, holding the dark gray gear on the viewer's right, with the small yellow lightning accents on the left. Preserve the pose, warm yellow palette and friendly cartoon style. Return ONE separate 1536x1024 PNG with real transparent alpha, not a page or comparison sheet. Keep the group in the upper-right, approximately x=930..1490 and y=70..530, leaving the left 58% and bottom 40% fully transparent for layout. Keep ears, gear and tail inside transparent margins, rebuild crisp clean outlines and real detail. Finish the lower silhouette naturally rather than a straight chopped torso; use a very subtle irregular transparent transition only at lower contact edges. No background rectangle, no horizontal cutting line, no UI, labels, lettering, border, watermark or unrelated objects.",
+      "output": null,
+      "outputSha256": null,
+      "outputDimensions": null,
+      "status": "moderation_blocked",
+      "moderationStage": "output",
+      "moderationCategories": [
+        "other"
+      ],
+      "requestId": "2b501d4d-e720-4b59-a4b9-bcfc483ac50e",
+      "attemptCount": 1,
+      "provenance": {
+        "tool": "image_gen.imagegen",
+        "referenceWasViewed": true,
+        "localPixelProcessing": false
+      }
+    },
+    {
+      "name": "header-settings-dark",
+      "source": "assets/skins/pikachu/header-settings-dark.png",
+      "sourceSha256": "c0e125f8f6895f32b68164b18b351d00133d6bdd5d2cb1316334efb8ad9648fd",
+      "sourceDimensions": [
+        1536,
+        1024
+      ],
+      "requestedOutputDimensions": [
+        1536,
+        1024
+      ],
+      "requestedTransparentBackground": true,
+      "prompt": "Use case: precise-object-edit. Redraw the supplied dark-mode settings-header artwork into a crisp high-definition illustration while preserving its composition and character: smiling Pikachu with closed happy eyes, upright black-tipped ears, red cheeks, lightning tail on the viewer's right, dark gray gear held on the viewer's left, and the small golden lightning accent above it. Preserve the original joyful pose, yellow-and-charcoal palette, warm gold rim lighting, and cartoon rendering style. Deliver one independent 1536x1024 transparent RGBA PNG. Place the compact group in the upper-right region, roughly x=930..1490 and y=60..520; keep left 58% and bottom 40% empty transparent so app copy can be layered separately. Ears, tail, hands and gear must be complete within the canvas; lower contour should end organically, never a flat horizontal cut. Sharp lines and genuine new detail rather than blurry enlargement. No opaque rectangle or background, no interface, lettering, watermark, border, unrelated props or extra characters.",
+      "output": null,
+      "outputSha256": null,
+      "outputDimensions": null,
+      "status": "moderation_blocked",
+      "moderationStage": "output",
+      "moderationCategories": [
+        "other"
+      ],
+      "requestId": "fabe630a-4fc3-4598-925b-0d195ce6f1c4",
+      "attemptCount": 1,
+      "provenance": {
+        "tool": "image_gen.imagegen",
+        "referenceWasViewed": true,
+        "localPixelProcessing": false
+      }
+    }
+  ]
+}

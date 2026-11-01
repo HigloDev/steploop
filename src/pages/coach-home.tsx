@@ -10,7 +10,7 @@ import {
   nextSession, sessionProgress, weekStart, weeklySummary, weightGoalReached,
 } from '../core/coach'
 import { setEnrollmentStatus } from '../services/coach-storage'
-import { getSkinLayout, getThemeSkinId, useTheme } from '../theme'
+import { getSkinLayout, getThemeSkinId, skinTypography, useTheme } from '../theme'
 
 export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
   const t = useTheme(), data = useCoachData(navigation)
@@ -22,9 +22,10 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
   const recent = s ? latestWeight(s, today) : undefined
   const graphic = getThemeSkinId(t) !== 'classic'
   const compact = getSkinLayout(t).compactCatalog
-  const introduction = <View style={{ gap: 10, marginTop: 12 }}>
-    <CoachText size="value" style={{ fontSize: 25, lineHeight: 34, maxWidth: ['eva-unit-02', 'pikachu'].includes(getThemeSkinId(t)) ? '70%' : '100%' }}>给每一次向上，一个方向。</CoachText>
-    <CoachText tone="muted" style={{ fontSize: 14, lineHeight: 22, maxWidth: getThemeSkinId(t) === 'pikachu' ? '64%' : '100%' }}>选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText>
+  const rightPortrait = ['eva-unit-01', 'eva-unit-02', 'pikachu'].includes(getThemeSkinId(t))
+  const introduction = <View style={{ gap: 8, marginTop: 12 }}>
+    <CoachText size="value" style={{ ...skinTypography.introduction, maxWidth: rightPortrait ? '60%' : '100%' }}>{getThemeSkinId(t) === 'k-on' ? '给每一次向上，\n一个方向。' : '给每一次向上，一个方向。'}</CoachText>
+    <CoachText tone="muted" style={{ ...skinTypography.secondary, maxWidth: rightPortrait ? '58%' : '100%' }}>选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText>
   </View>
   const status = async (id: string, value: 'active' | 'paused' | 'completed' | 'maintaining') => {
     if (lock.current) return
@@ -85,7 +86,7 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
           ])} />
         </CoachSection>
       </> : <View style={{ gap: 12 }}>
-        {!graphic ? <><CoachText size="value">给每一次向上，一个方向。</CoachText>
+        {!graphic ? <><CoachText size="value">{'给每一次向上，\n一个方向。'}</CoachText>
           <CoachText tone="muted">选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText></> : null}
         <Button title="设定我的体重目标" style={compact ? { minHeight: 52, paddingVertical: 12 } : undefined} onPress={() => navigation.navigate('CoachCourse', { courseId: 'weight' })} />
       </View>}
@@ -98,8 +99,8 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
             <View style={{ width: compact ? 48 : 52, height: compact ? 60 : 64, borderRadius: 12, backgroundColor: t.brandSoft, alignItems: 'center', justifyContent: 'center' }}>
               <SkinCourseThumbnail course={course.id} size={40} />
             </View>
-            <View style={{ flex: 1 }}><CoachText size="title" style={{ fontSize: 18, lineHeight: 25 }}>{course.name}</CoachText>
-              <CoachText tone="muted" numberOfLines={compact ? 2 : undefined} style={{ fontSize: compact ? 13 : 14, lineHeight: compact ? 18 : 21 }}>{course.duration} · {course.description}</CoachText></View>
+            <View style={{ flex: 1, minWidth: 0, gap: 4 }}><CoachText size="title" style={skinTypography.cardTitle}>{course.name}</CoachText>
+              <CoachText tone="muted" style={skinTypography.secondary}>{course.duration} · {course.description}</CoachText></View>
             <Feather name="chevron-right" size={18} color={t.muted} />
           </View> : <><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name={course.icon} size={24} color={t.brandText} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><Feather name="chevron-right" size={20} color={t.muted} /></View>
           <CoachText tone="muted">{course.duration} · {course.description}</CoachText></>}

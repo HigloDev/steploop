@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-29",
+  "method": "image_gen reference edits",
+  "records": [
+    {
+      "path": "assets/skins/eva-unit-02/header-home.png",
+      "sourceOutput": "exec-aaa6a9f3-15c9-46ce-af4c-4bf85bf397ab.png",
+      "inputSha256": "ef3b9d7667878cb75bdb49c1401f28156e706edbec20b78df17d9998c1c13016",
+      "outputSha256": "81be9a680acbf4cb51494679fa3a4150ba73dca0c77405d14fde40199dbbe071",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "visibleAlphaBoundsGreaterThan2": [
+        749,
+        17,
+        1536,
+        862
+      ],
+      "firstSolidRowGreaterThan240": 19,
+      "reason": "Complete top armor; face translated down approx260px; accepted by parent for layout fitting",
+      "localBitmapEdits": false,
+      "calls": 1,
+      "status": "light/dark composite inspected; native revalidation required"
+    },
+    {
+      "path": "assets/skins/eva-unit-01/header-settings.png",
+      "sourceOutput": "exec-e7a82b19-993c-477b-8236-285cda40b85c.png",
+      "inputSha256": "ba2bfe3cb0f07188f40f914070cb79fa22c5765f5590faa6ec93d6f61d97682d",
+      "outputSha256": "78862f79597d580647379bfc34b5658ae7c88adace7267699546c7f6c40f516e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "visibleAlphaBoundsGreaterThan2": [
+        701,
+        61,
+        1536,
+        812
+      ],
+      "firstSolidRowGreaterThan240": 143,
+      "reason": "Remove internal y653 straight chest/shoulder cutoff with organic alpha edge",
+      "localBitmapEdits": false,
+      "calls": 1,
+      "status": "light/dark composite inspected; native revalidation required"
+    },
+    {
+      "path": "assets/skins/eva-unit-02/header-settings.png",
+      "sourceOutput": "exec-3dfc41f1-1040-43fa-8594-790619f16cb3.png",
+      "inputSha256": "45399be13875c4ff04b1f475eb9113fcee040ed88571eee6384bd0a7b3821f82",
+      "outputSha256": "84b39af64caf836c19e463c72483f361f304dfe1baf49173aad8ccfe6032b6a6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "visibleAlphaBoundsGreaterThan2": [
+        749,
+        5,
+        1536,
+        822
+      ],
+      "firstSolidRowGreaterThan240": 8,
+      "reason": "Complete top armor points; preserve face and two gear motifs; no flat upper crop",
+      "localBitmapEdits": false,
+      "calls": 1,
+      "status": "light/dark composite inspected; native revalidation required"
+    }
+  ],
+  "prompts": {
+    "eva-unit-02/home": "Preserve face/size/pose and right red/orange/black composition; reconstruct complete top rear armor rather than fade/erase, target24px transparent top margin. Actual solid margin19px, face down260px; accepted for layout fitting.",
+    "eva-unit-01/settings": "Preserve same purple/lime head, horn, eyes, armor, hexagons and01 at same size/position. Replace internal horizontal chest/shoulder cut at y653 with organic tapered alpha; left transparent, no UI/objects.",
+    "eva-unit-02/settings": "Preserve four-eye face/jaw/size, red/orange/black right-side armor, two gear motifs andUNIT02. Complete upper armor with transparent top clearance, allow necessary down repositioning; do not erase/blur armor. Actual solid top8px; no straight cut."
+  }
+}

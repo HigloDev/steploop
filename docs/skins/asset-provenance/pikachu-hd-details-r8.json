@@ -1,0 +1,246 @@
+{
+  "date": "2026-10-29",
+  "authorization": "User requested redraw of any insufficiently sharp artwork",
+  "records": [
+    {
+      "name": "mark",
+      "source": "assets/skins/pikachu/mark.png",
+      "prompt": "Redraw the attached low-resolution app logo from scratch as a genuinely crisp high-definition transparent PNG, not an interpolation or enlargement. Preserve the exact design concept and relative composition: a golden yellow three-step staircase ascending left to right, with two long Pikachu ears rising behind it, yellow ears with black tips. No face, no body, no text. Keep the same cheerful warm gold/orange softly shaded polished 2D/3D icon style but clean smooth purposeful contours, legible at small sizes and detailed at high resolution. Center one isolated logo, generous transparent margin, no background, no checkerboard, no white halo or shadow rectangle. 1024x1024 canvas, effective visible logo at least 700 pixels tall. One standalone icon only.",
+      "attempts": 1,
+      "status": "installed-pending-native-review",
+      "output": "output/product-review-20261029/pikachu-redraw/mark-hd.png",
+      "error": null,
+      "visualReview": "Original and generated output visually inspected. Motif and composition retained with newly drawn crisp contours. Output bytes copied unchanged; dimensions and SHA256 verified. Native integration validation pending.",
+      "sourceSha256": "86ade636c1893779dc8c0ebda808b5c95c68227868da7118470ecba3edd9f418",
+      "sourceDimensions": [
+        1254,
+        1254
+      ],
+      "outputSha256": "2fa092f8fd60361e40b19127cd85004901e7ca91b0d943d3beb9cb17987318a7",
+      "outputDimensions": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "Format32bppArgb",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha16": [
+        148,
+        119,
+        1133,
+        1138
+      ],
+      "visibleSizeAlpha16": [
+        985,
+        1019
+      ],
+      "transparentCornerPixels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceOutput": "exec-a53adb60-471b-4512-9724-60c3936ac167.png"
+    },
+    {
+      "name": "scene",
+      "source": "assets/skins/pikachu/scene.png",
+      "prompt": "Redraw this blurry reference from scratch as a sharp high-resolution transparent PNG illustration. Preserve Pikachu, its same friendly front-facing standing pose: one eye winking, other eye open glossy black, mouth happily open with pink tongue, red cheek circles, its arm on viewer-left raised in a wave, other arm down, upright black-tipped long ears and full lightning zigzag tail visible on viewer-right with brown base. Keep yellow and warm orange shading, clean confident dark contour, smooth polished anime game illustration, no redesign and no extra props. Preserve the composition on a 1536x1024 landscape transparent canvas: character occupies the right half, left half empty transparency for app interface text. Draw genuine new crisp lines and details, do not upscale pixels. Character with ears to feet roughly 900 pixels tall, fully inside canvas with no clipped ear/tail/feet, no floor, no background, no checkerboard, no text. One standalone character illustration.",
+      "attempts": 1,
+      "status": "blocked",
+      "output": null,
+      "error": "output moderation_blocked; request ID a0de338f-f579-454f-b042-4a0d40d98939",
+      "visualReview": "No candidate returned; original retained; no retry.",
+      "sourceSha256": "907e7551ef2d20480d33d6eb61e1f5c7818940af34d73b9f5b23671fbf37c62f",
+      "sourceDimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "name": "achievement",
+      "source": "assets/skins/pikachu/achievement.png",
+      "prompt": "Faithfully redraw the supplied low-resolution Pikachu achievement illustration as genuine high-definition clean artwork on a transparent background. Retain its original happy jumping celebration pose: body tilted slightly, one leg lifted forward, viewer-right arm raised high, other arm extended left, one eye winked, mouth open smiling, red cheeks, black-tipped yellow ears, large lightning-shaped yellow tail with brown base visible on viewer-right. Keep all limbs, ears and tail inside the frame, same cheerful yellow/orange cel-shaded cartoon style and dark crisp contours. Reconstruct the line art with smooth deliberate lines, not pixel enlargement. One complete isolated character only, 1536x1536 transparent PNG, character about 1250 pixels tall, centered with clear margin. No text, no scenery, no badge frame, no white background or checkerboard.",
+      "attempts": 1,
+      "status": "blocked",
+      "output": null,
+      "error": "image generation failed: http 400 Bad Request: Some(\"{\\n  \\\"error\\\": {\\n    \\\"message\\\": \\\"Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID 9794cfb8-a9d4-402a-b3f7-819acb3496a5.\\\",\\n    \\\"type\\\": \\\"image_generation_user_error\\\",\\n    \\\"param\\\": null,\\n    \\\"code\\\": \\\"moderation_blocked\\\",\\n    \\\"moderation_details\\\": {\\n      \\\"moderation_stage\\\": \\\"output\\\",\\n      \\\"categories\\\": [\\n        \\\"other\\\"\\n      ]\\n    }\\n  }\\n}\")",
+      "visualReview": "No candidate returned; original retained; no retry.",
+      "sourceSha256": "5ffa5459bb58b26bbfc2f7c82a16cf5eb4bd03789ad9298ceb3807750805d965",
+      "sourceDimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "name": "building",
+      "source": "assets/skins/pikachu/building.png",
+      "prompt": "Redraw the provided blurry tiny app building icon from scratch as crisp high-definition transparent PNG. Preserve its gold-yellow stair-stepped building silhouette rising from left to right, dark small doorway near lower center, and dark diagonal lightning emblem on its right facade. It is a miniature cheerful golden staircase building, not a realistic city. Keep warm yellow/orange softly shaded polished cartoon icon style and simple recognizable silhouette. Reconstruct deliberate smooth contours and sharp details, not upscaling pixels; remove blur and old extraction artifacts. Center this single icon on a transparent 1024x1024 canvas, visible building about 780 pixels high, with even clear margins. No text, no backdrop, no checkerboard, no extra objects, no contact shadow rectangle.",
+      "attempts": 1,
+      "status": "installed-pending-native-review",
+      "output": "output/product-review-20261029/pikachu-redraw/building-hd.png",
+      "error": null,
+      "visualReview": "Original and generated output visually inspected. Motif and composition retained with newly drawn crisp contours. Output bytes copied unchanged; dimensions and SHA256 verified. Native integration validation pending.",
+      "sourceSha256": "c5d14e6a40f0d2ec4816787918584641992926479254e035264f4f67149a9281",
+      "sourceDimensions": [
+        1254,
+        1254
+      ],
+      "outputSha256": "050b5a633c7551ca58c729c0ae8e07183b2a16a7dc73c7d140699f922749a570",
+      "outputDimensions": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "Format32bppArgb",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha16": [
+        160,
+        135,
+        1112,
+        1107
+      ],
+      "visibleSizeAlpha16": [
+        952,
+        972
+      ],
+      "transparentCornerPixels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceOutput": "exec-92c2b1de-88d6-43bf-95ac-a3ec6ea45ff2.png"
+    },
+    {
+      "name": "course-weight",
+      "source": "assets/skins/pikachu/course-weight.png",
+      "prompt": "Redraw the reference as one high-definition transparent PNG app course icon with genuinely clean new linework, not interpolation. Preserve the same composition: a golden circular target with two concentric golden rings and transparent gaps between rings at lower-left/center, paired with a stylized yellow lightning-bolt arrow pointing from upper-right toward the target. Keep the warm yellow palette, dark brown outline and subtle soft golden shading of the reference; simple bold rounded contours readable as a small icon. Center the complete combined target-and-lightning icon, 1024x1024 canvas, visible icon at least 750 pixels tall, generous transparent margin; all ring edges crisp and smooth. No character, no words, no background, no checkerboard, no white halo.",
+      "attempts": 1,
+      "status": "installed-pending-native-review",
+      "output": "output/product-review-20261029/pikachu-redraw/course-weight-hd.png",
+      "error": null,
+      "visualReview": "Original and generated output visually inspected. Motif and composition retained with newly drawn crisp contours. Output bytes copied unchanged; dimensions and SHA256 verified. Native integration validation pending.",
+      "sourceSha256": "d2c83dbd34840af19fcf72f723c6c00aea441eecbcb8d2f3db8eee8bdec0a49d",
+      "sourceDimensions": [
+        1254,
+        1254
+      ],
+      "outputSha256": "fe2ab9ff054218d118577dbbf7c209ed2488a6ae9a8a009f81234ca901dfd91d",
+      "outputDimensions": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "Format32bppArgb",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha16": [
+        171,
+        107,
+        1136,
+        1167
+      ],
+      "visibleSizeAlpha16": [
+        965,
+        1060
+      ],
+      "transparentCornerPixels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceOutput": "exec-5882860e-c144-4e2f-86db-7ee09ada66e7.png"
+    },
+    {
+      "name": "course-beginner",
+      "source": "assets/skins/pikachu/course-beginner.png",
+      "prompt": "Faithfully redraw this blurry app course icon as a new crisp high-definition transparent PNG. Preserve its composition: a thick golden yellow stair-step zigzag ribbon climbing from lower left to upper right, topped by a golden lightning bolt pointing diagonally down-left, representing beginner stair training. Keep the existing warm gold/orange soft shading and simple polished cartoon icon visual language. The stair ribbon has a stepped top and matching stepped bottom, not a solid pyramid or building, and the lightning remains above the uppermost step. Clean smooth contours and crisp intentional highlights, no interpolated pixels or blurry glow. Single centered complete isolated icon, transparent 1024x1024 canvas, visible content at least 750 pixels tall with margins. No text, no face, no other objects, no backdrop, no checkerboard.",
+      "attempts": 1,
+      "status": "installed-pending-native-review",
+      "output": "output/product-review-20261029/pikachu-redraw/course-beginner-hd.png",
+      "error": null,
+      "visualReview": "Original and generated output visually inspected. Motif and composition retained with newly drawn crisp contours. Output bytes copied unchanged; dimensions and SHA256 verified. Native integration validation pending.",
+      "sourceSha256": "5e65865d741d48ca51d521c1cdbb118e6ee93ae341d38e5779defacdff044609",
+      "sourceDimensions": [
+        1254,
+        1254
+      ],
+      "outputSha256": "9af4bda3f0ad9f1010e561d3a9c55b7d9e7ae4444410000394f3f2b585dabe81",
+      "outputDimensions": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "Format32bppArgb",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha16": [
+        99,
+        85,
+        1187,
+        1184
+      ],
+      "visibleSizeAlpha16": [
+        1088,
+        1099
+      ],
+      "transparentCornerPixels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceOutput": "exec-421ce421-16a5-434d-9745-b9eac183ca0f.png"
+    },
+    {
+      "name": "course-cardio",
+      "source": "assets/skins/pikachu/course-cardio.png",
+      "prompt": "Faithfully redraw this blurry app cardio icon from scratch as a clean high-definition transparent PNG. Preserve the composition: a large bright coral-red heart toward lower-left/center containing a small ivory-white lightning bolt in its center, with a separate golden-yellow lightning bolt above the heart at upper-right. Preserve rounded friendly heart shape, warm gold lightning with dark brown outline and subtle soft cartoon shading. Carefully reconstructed smooth clean deliberate contours, genuinely new crisp linework not interpolation or sharpening. One isolated combined heart-and-lightning icon on transparent 1024x1024 canvas, effective visible icon at least 750 pixels tall, centered with comfortable transparent margins. No text, no character, no extra symbols, no scenery, no checkerboard or background.",
+      "attempts": 1,
+      "status": "installed-pending-native-review",
+      "output": "output/product-review-20261029/pikachu-redraw/course-cardio-hd.png",
+      "error": null,
+      "visualReview": "Original and generated output visually inspected. Motif and composition retained with newly drawn crisp contours. Output bytes copied unchanged; dimensions and SHA256 verified. Native integration validation pending.",
+      "sourceSha256": "768ec0b428a0fa56002beecc56e0ba1bef446787db34a28fc5ef54712f24f3cb",
+      "sourceDimensions": [
+        1254,
+        1254
+      ],
+      "outputSha256": "c4a1ba459827dcd209b39fbf88f68cb7f16743da90fb5dfea70ef9629a31d0a4",
+      "outputDimensions": [
+        1254,
+        1254
+      ],
+      "pixelFormat": "Format32bppArgb",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleBoundsAlpha16": [
+        131,
+        66,
+        1173,
+        1201
+      ],
+      "visibleSizeAlpha16": [
+        1042,
+        1135
+      ],
+      "transparentCornerPixels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sourceOutput": "exec-9348ecb4-827d-42e9-a2cc-d42e27651e10.png"
+    }
+  ]
+}

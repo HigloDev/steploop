@@ -16,7 +16,7 @@ import { StatPair } from '../components/sport-ui'
 import { TrendChart } from '../components/training-visuals'
 import { loadFusionCheckpoint } from '../services/building-storage'
 import { Button, EmptyState, Notice } from '../components/ui'
-import { getHistoryFilterPaint, getSkinLayout, getThemeSkinId, sport, useTheme, Theme } from '../theme'
+import { getHistoryFilterPaint, getSkinLayout, getThemeSkinId, skinTypography, sport, useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import { listSessions } from '../services/storage'
 import { historyRepository } from '../services/history-repository'
@@ -536,7 +536,7 @@ const makeStyles = (theme: Theme) =>
     checkpoint: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: theme.amberSoft, borderRadius: 14, marginBottom: 16, minHeight: 64 },
     checkpointCopy: { flex: 1 },
     checkpointSub: { color: theme.amberInk, fontSize: 14, lineHeight: 21, marginTop: 4 },
-    weekHero: { backgroundColor: theme.card, borderRadius: sport.radius.panel, padding: getSkinLayout(theme).compactHistory ? 10 : 16, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line, marginBottom: 8 },
+    weekHero: { backgroundColor: theme.card, borderRadius: sport.radius.panel, padding: getSkinLayout(theme).compactHistory ? sport.space.md : sport.space.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line, marginBottom: sport.space.sm },
     weekHeroHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     weekFloor: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginVertical: 2,},
     weekFloorValue: { color: theme.ink, fontSize: 62, lineHeight: 66, fontWeight: '900', fontVariant: ['tabular-nums'] },
@@ -544,7 +544,7 @@ const makeStyles = (theme: Theme) =>
     weekMetricItem: { flex: 1 },
     weekMetricLabel: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 4 },
     listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 16, marginBottom: 8 },
-    sectionTitle: { color: theme.ink, fontSize: 18, lineHeight: 24, fontWeight: '700' },
+    sectionTitle: { color: theme.ink, ...(getThemeSkinId(theme) === 'classic' ? { fontSize: 18, lineHeight: 24, fontWeight: '700' as const } : skinTypography.section) },
     recordCount: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18 },
     dateHeading: { color: theme.muted, fontSize: 13, lineHeight: 20, fontWeight: '500', marginTop: 20, marginBottom: 4 },
     summaryRow: {
@@ -643,7 +643,7 @@ const makeStyles = (theme: Theme) =>
     filterChip: {
       paddingHorizontal: 14,
       paddingVertical: 8,
-      minHeight: 44,
+      minHeight: theme.tapMin,
       flexGrow: 1,
       alignItems: 'center',
       justifyContent: 'center',
@@ -663,14 +663,14 @@ const makeStyles = (theme: Theme) =>
       fontWeight: '700',
     },
     cardPressable: {
-      marginBottom: getThemeSkinId(theme) === 'classic' ? 0 : getSkinLayout(theme).compactHistory ? 6 : 8,
+      marginBottom: getThemeSkinId(theme) === 'classic' ? 0 : sport.space.md,
     },
     card: {
       paddingVertical: 16,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.line,
       backgroundColor: 'transparent',
-      ...(getThemeSkinId(theme) === 'classic' ? {} : { backgroundColor: theme.card, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft, borderRadius: 14, paddingHorizontal: 12, paddingVertical: getSkinLayout(theme).compactHistory ? 8 : 16 }),
+      ...(getThemeSkinId(theme) === 'classic' ? {} : { backgroundColor: theme.card, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft, borderRadius: theme.radiusLg, paddingHorizontal: sport.space.md, paddingVertical: sport.space.md }),
     },
     moreButton: { position: 'absolute', right: 4, bottom: 0, minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
     cardHead: {
@@ -686,6 +686,7 @@ const makeStyles = (theme: Theme) =>
       fontSize: 15,
       lineHeight: 24,
       fontWeight: '600',
+      ...(getThemeSkinId(theme) === 'classic' ? {} : skinTypography.label),
     },
     cardDate: {
       color: theme.mutedStrong,
@@ -701,6 +702,8 @@ const makeStyles = (theme: Theme) =>
     },
     cardMetrics: {
       ...theme.numeric,
+      // This line mixes Chinese units with digits; numeric display tracking is too tight here.
+      letterSpacing: 0,
       color: theme.ink,
       fontSize: 16,
       lineHeight: 24,

@@ -1,5 +1,6 @@
+import { TrackedImage } from './tracked-image'
 import React, { useState } from 'react'
-import { ColorValue, Image, ImageProps } from 'react-native'
+import { ColorValue, ImageProps } from 'react-native'
 import { getThemeSkinId, useTheme } from '../theme'
 import { getSkinMarkArtwork } from '../skin-assets'
 
@@ -17,7 +18,7 @@ export function BrandMark({ size = 24, color, style, accessible = false, accessi
   const mark = getSkinMarkArtwork(skinId, theme.isDark ? 'dark' : 'light')
   const [failedSkin, setFailedSkin] = useState<string>()
   const graphic = mark && failedSkin !== identity ? mark : undefined
-  return <Image key={`${identity}/${graphic ? 'graphic' : 'fallback'}`} {...props} source={graphic ?? BRAND_MARK} resizeMode="contain" resizeMethod="resize" fadeDuration={0}
+  return <TrackedImage identity={`brand/${identity}/${graphic ? "graphic" : "fallback"}`} key={`${identity}/${graphic ? 'graphic' : 'fallback'}`} {...props} source={graphic ?? BRAND_MARK} resizeMode="contain" resizeMethod="resize" fadeDuration={0}
     onError={event => { if (graphic) setFailedSkin(identity); else props.onError?.(event) }}
     accessible={accessible} accessibilityLabel={accessible ? accessibilityLabel : undefined}
     style={[{ width: size, height: size, flexShrink: 0, tintColor: graphic ? undefined : color ?? theme.brandText }, style]} />

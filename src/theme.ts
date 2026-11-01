@@ -336,6 +336,16 @@ export const skinGeometry = {
   smallWidth: 80, smallHeight: 64, mark: 28, badge: 88, gap: 12,
 } as const
 
+/** Graphic skins share reading hierarchy; artwork geometry remains skin-specific. */
+export const skinTypography = {
+  introduction: { fontSize: 22, lineHeight: 30, fontWeight: '700' },
+  section: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
+  cardTitle: { fontSize: 18, lineHeight: 26, fontWeight: '600' },
+  label: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
+  body: { fontSize: 15, lineHeight: 24, fontWeight: '400' },
+  secondary: { fontSize: 14, lineHeight: 22, fontWeight: '400' },
+} as const satisfies Record<string, TextStyle>
+
 export type SkinPage = 'home' | 'coach' | 'history' | 'settings'
 /** Android bridges its 32-bit font scale (e.g. 1.299999952 at 130%). */
 export function isLargeText(fontScale: number): boolean {
@@ -346,8 +356,8 @@ const skinPageHeights: Record<SkinId, Record<SkinPage, number>> = {
   classic: { home: 0, coach: 0, history: 0, settings: 0 },
   'night-run': { home: 198, coach: 176, history: 198, settings: 160 },
   woodland: { home: 220, coach: 162, history: 226, settings: 170 },
-  'eva-unit-01': { home: 190, coach: 192, history: 126, settings: 132 },
-  'eva-unit-02': { home: 210, coach: 238, history: 132, settings: 156 },
+  'eva-unit-01': { home: 190, coach: 192, history: 126, settings: 160 },
+  'eva-unit-02': { home: 210, coach: 238, history: 132, settings: 196 },
   pikachu: { home: 244, coach: 246, history: 160, settings: 150 },
   'k-on': { home: 290, coach: 312, history: 160, settings: 112 },
 }
@@ -363,7 +373,7 @@ export function getSkinHeaderLayout(theme: Theme, page: SkinPage, width: number,
   // These windows exclude only the audited empty margins of sparse canvases.
   // Fitting their whole canvas would reduce the actual subject to a tiny icon.
   const window = page === 'settings'
-    ? ({ 'k-on': [0.07, 0.58], 'eva-unit-01': [0.10, 0.70], 'eva-unit-02': [0, 0.65],
+    ? ({ 'k-on': [0.07, 0.58], 'eva-unit-01': [0.04, 0.81], 'eva-unit-02': [0, 0.82],
         pikachu: theme.isDark ? [0.04, 435 / 1024] : [0.04, 484 / 1024] } as Partial<Record<SkinId, number[]>>)[skin]
     : page === 'history' ? ({ 'k-on': [0.30, 1], pikachu: [0.46, 1] } as Partial<Record<SkinId, number[]>>)[skin] : undefined
   if (window) {

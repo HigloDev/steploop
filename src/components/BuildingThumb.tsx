@@ -1,5 +1,5 @@
+import { TrackedImage } from './tracked-image'
 import React, { memo } from 'react'
-import { Image } from 'react-native'
 import Svg, { Path, Rect, Line } from 'react-native-svg'
 import { buildingVisualLevel } from '../core/building-visual'
 import { useTheme } from '../theme'
@@ -31,6 +31,6 @@ export const BuildingThumb = memo(function BuildingThumb({ floors, size = 48, dy
       </> : null}
     </Svg>
   }
-  return <Image source={require('../../assets/icons/building.png')} resizeMode="contain" fadeDuration={0}
+  return <TrackedImage identity="building/classic" source={require('../../assets/icons/building.png')} resizeMode="contain" fadeDuration={0}
     accessible={false} style={{ width: size, height: size, tintColor: theme.brandText, flexShrink: 0 }} />
 })

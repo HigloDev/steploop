@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Line, Polyline } from 'react-native-svg'
 import { Header } from './Header'
 import { Button } from './ui'
-import { getSkinLayout, getThemeSkinId, useTheme } from '../theme'
+import { getThemeSkinId, skinTypography, sport, useTheme } from '../theme'
 import { SkinPageHeader } from './skin-page-header'
 import { CoachState, CoachWeighIn, localDate } from '../core/coach'
 import { syncCoachWorkouts } from '../services/coach-storage'
@@ -15,11 +15,13 @@ export function CoachText({ tone = 'normal', size = 'body', style, ...props }: T
 }) {
   const t = useTheme()
   const fontSize = size === 'small' ? t.fontSubtitle : size === 'title' ? t.fontValue : size === 'value' ? t.fontTitle : t.fontBase
+  const readingStyle = getThemeSkinId(t) === 'classic' || size === 'value' ? undefined
+    : skinTypography[size === 'small' ? 'secondary' : size === 'title' ? 'section' : 'body']
   return <Text selectable={tone === 'error' || size === 'value'} {...props} style={[{
     color: tone === 'muted' ? t.mutedStrong : tone === 'accent' ? t.brandInk : tone === 'error' ? t.redInk : t.ink,
     fontSize, lineHeight: Math.round(fontSize * 1.5), fontWeight: size === 'title' || size === 'value' ? '600' : '400',
     ...(size === 'value' ? { fontVariant: ['tabular-nums'] as const } : {}),
-  }, style]} />
+  }, readingStyle, style]} />
 }
 export function CoachPage({ title, back = true, children, hero }: { title: string; back?: boolean; children: React.ReactNode; hero?: React.ReactNode }) {
   const t = useTheme(), insets = useSafeAreaInsets()
@@ -27,7 +29,7 @@ export function CoachPage({ title, back = true, children, hero }: { title: strin
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.paper }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     {!graphicHome ? <Header title={title} back={back} large={!back} /> : null}
     <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ paddingHorizontal: t.pagePaddingH, paddingTop: graphicHome ? 0 : 16, paddingBottom: insets.bottom + t.pagePaddingBottom, gap: graphicHome ? getSkinLayout(t).compactCatalog ? 8 : 12 : 20 }}>
+      contentContainerStyle={{ paddingHorizontal: t.pagePaddingH, paddingTop: graphicHome ? 0 : sport.space.lg, paddingBottom: insets.bottom + t.pagePaddingBottom, gap: graphicHome ? sport.space.lg : sport.space.page }}>
       {graphicHome ? <SkinPageHeader page="coach" title={title}>{hero}</SkinPageHeader> : null}
       {children}
     </ScrollView>
@@ -36,7 +38,7 @@ export function CoachPage({ title, back = true, children, hero }: { title: strin
 export function CoachSection({ title, children }: { title: string; children: React.ReactNode }) {
   const t = useTheme()
   const graphic = getThemeSkinId(t) !== 'classic'
-  return <View style={{ gap: graphic ? getSkinLayout(t).compactCatalog ? 6 : 10 : 12, paddingTop: graphic ? 4 : 16, borderTopWidth: graphic ? 0 : 1, borderTopColor: t.lineSoft }}>
+  return <View style={{ gap: sport.space.md, paddingTop: graphic ? sport.space.sm : sport.space.lg, borderTopWidth: graphic ? 0 : 1, borderTopColor: t.lineSoft }}>
     <CoachText size="title" accessibilityRole="header">{title}</CoachText>{children}
   </View>
 }

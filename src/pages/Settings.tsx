@@ -20,7 +20,7 @@ import { SkinArt } from '../components/skin-art'
 import { SkinPageHeader } from '../components/skin-page-header'
 import { Card } from '../components/ui'
 import { CompletionCelebration } from '../components/completion-celebration'
-import { getThemeSkinId, sport, useTheme, Theme } from '../theme'
+import { getThemeSkinId, skinTypography, sport, useTheme, Theme } from '../theme'
 import { MainTabScreen } from '../navigation/types'
 import { useAppearance } from '../appearance'
 import { APPEARANCE_MODE_LABELS, skinName } from '../skin-catalog'
@@ -364,11 +364,10 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
         {graphic ? <SkinPageHeader page="settings" title="设置" subtitle="找到自己的节奏。" /> : <Text style={styles.intro}>找到自己的节奏。</Text>}
         <Card style={[styles.group, { marginBottom: sport.space.lg }, graphic && { paddingVertical: 0 }]}>
           <Pressable accessibilityRole="button" accessibilityLabel={`皮肤与外观，${skinName(appearance.skinId)}，${APPEARANCE_MODE_LABELS[appearance.mode]}`}
-            onPress={() => navigation.navigate('Appearance')} style={[styles.dataRow, { paddingVertical: 0, minHeight: graphic ? 48 : 56 }]}>
+            onPress={() => navigation.navigate('Appearance')} style={[styles.dataRow, { paddingVertical: 12, minHeight: 64 }]}>
             {graphic ? <SkinArt kind="mark" width={32} height={32} /> : <Feather name="sliders" size={22} color={theme.brandText} />}
-            {graphic ? <><Text style={[styles.rowTitle, { flex: 1, fontWeight: '700' }]}>皮肤与外观</Text>
-              <Text style={{ color: theme.brandText, fontSize: 13, maxWidth: '40%', textAlign: 'right' }}>{skinName(appearance.skinId)}</Text></> :
-              <View style={styles.rowText}><Text style={styles.rowTitle}>皮肤与外观</Text><Text style={styles.rowDesc}>{skinName(appearance.skinId)} · {APPEARANCE_MODE_LABELS[appearance.mode]}</Text></View>}
+            <View style={styles.rowText}><Text style={styles.rowTitle}>皮肤与外观</Text>
+              <Text style={styles.rowDesc}>{skinName(appearance.skinId)} · {APPEARANCE_MODE_LABELS[appearance.mode]}</Text></View>
             <Feather name="chevron-right" size={20} color={theme.mutedStrong} />
           </Pressable>
         </Card>
@@ -636,7 +635,7 @@ const makeStyles = (theme: Theme) =>
     intro: { color: theme.muted, fontSize: sport.type.secondary, lineHeight: 20, marginBottom: sport.space.lg },
     sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sport.space.md, marginTop: sport.space.page, marginBottom: sport.space.sm },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    sectionTitle: { color: theme.ink, fontSize: getThemeSkinId(theme) === 'classic' ? sport.type.label : 20, lineHeight: getThemeSkinId(theme) === 'classic' ? 24 : 26, fontWeight: getThemeSkinId(theme) === 'classic' ? '600' : '700', marginBottom: sport.space.md },
+    sectionTitle: { color: theme.ink, ...(getThemeSkinId(theme) === 'classic' ? { fontSize: sport.type.label, lineHeight: 24, fontWeight: '600' as const } : skinTypography.section), marginBottom: sport.space.md },
     statusText: { color: theme.brandText, fontSize: 14, lineHeight: 21, fontWeight: '600' },
     group: { padding: getThemeSkinId(theme) === 'classic' ? sport.space.lg : 12, borderRadius: sport.radius.panel, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft },
     nextGroup: { marginTop: sport.space.lg },
@@ -654,23 +653,21 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: sport.space.md,
-      paddingVertical: getThemeSkinId(theme) === 'classic' ? sport.space.md : 6,
-      minHeight: getThemeSkinId(theme) === 'classic' ? 64 : 56,
+      paddingVertical: sport.space.md,
+      minHeight: 64,
     },
     rowText: {
       flex: 1,
+      minWidth: 0,
     },
     rowTitle: {
       color: theme.ink,
-      fontSize: getThemeSkinId(theme) === 'classic' ? sport.type.body : 18,
-      lineHeight: 22,
-      fontWeight: getThemeSkinId(theme) === 'classic' ? '500' : '600',
+      ...(getThemeSkinId(theme) === 'classic' ? { fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' as const } : skinTypography.label),
     },
     rowDesc: {
-      marginTop: getThemeSkinId(theme) === 'classic' ? sport.space.xs : 2,
+      marginTop: sport.space.xs,
       color: theme.mutedStrong,
-      fontSize: sport.type.secondary,
-      lineHeight: getThemeSkinId(theme) === 'classic' ? 20 : 18,
+      ...(getThemeSkinId(theme) === 'classic' ? { fontSize: sport.type.secondary, lineHeight: 20 } : skinTypography.secondary),
     },
     weightControl: {
       flexDirection: 'row',

@@ -40,7 +40,7 @@
   "uiSkinCandidate": {
     "branch": "codex/skins-graphics-117-20261028",
     "baseCommit": "9c7eed9",
-    "status": "native-verified",
+    "status": "visual-review-reopened",
     "registry": "docs/skins/registry.json",
     "validation": "docs/skins/GRAPHICS_VALIDATION.md",
     "published": false,
@@ -49,14 +49,43 @@
       "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
       "scope": "historical functional and layout evidence; visual acceptance reopened"
     },
-    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
-    "verifiedAt": "2026-10-29",
+    "installedCandidateVerification": {
+      "sourceCommit": "6552182",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "verifiedAt": "2026-10-29",
+      "scope": "Historical candidate only; not current visual acceptance"
+    },
+    "currentReview": {
+      "plan": "docs/skins/GRAPHICS_REAUDIT.md",
+      "displayProfiles": "docs/skins/qa-display-profiles.json",
+      "calibrationScreenshots": 4,
+      "visualAcceptance": "blocked-source-resolution",
+      "requiredPrimaryPageCombinations": 112,
+      "newPhoneInstallation": false,
+      "redrawAuthorization": "2026-10-29 user permits redraw when resolution is insufficient",
+      "highResolutionAssetsReplaced": 6,
+      "remainingLowResolutionAssets": 9,
+      "assetAudit": "docs/skins/asset-provenance/source-resolution-audit-current.json",
+      "matrixStatus": "112-captured-and-reviewed",
+      "sourceFingerprint": "063156b903d8f253bf72131641b68f2c8879abb2c9f97ff631b68b226c68a1b1",
+      "currentEvidence": "output/product-review-20261029/final-round7",
+      "deepPageFixes": [
+        "EVA01 scene organic transparency",
+        "starting-floor label remains in layout",
+        "semantic title wrapping"
+      ],
+      "primaryVisualPassed": 98,
+      "primaryKnownSourceLimitations": 14,
+      "primaryPendingReview": 0,
+      "primaryLayoutFailures": 0
+    },
     "phoneInstallation": {
       "date": "2026-10-29",
       "status": "installed-and-launched",
       "sourceCommit": "6552182",
       "apkSha256": "03668ddb959ded085120d549dba6f71b2271842928896af2e930eca60935d7a8",
       "record": "docs/skins/PHONE_INSTALL_20261029.md"
-    }
+    },
+    "reviewReason": "User reported image seams, softness at 1200x2670 and inconsistent spacing; 125% font-scale review reopened."
   }
 }

@@ -34,6 +34,7 @@ function harness(file) {
   }
   react.default = react
   const module = load(file, name => {
+    if (name === './tracked-image') return { TrackedImage: 'Image' }
     if (name === 'react') return react
     if (name === 'react-native') return { Image: 'Image', View: 'View', useWindowDimensions: () => ({ width: 320, fontScale: 1.3 }) }
     if (name === '../theme') return { useTheme: () => theme, getThemeSkinId: value => value.id,

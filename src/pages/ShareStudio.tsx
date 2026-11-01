@@ -1,3 +1,4 @@
+import { TrackedImageBackground } from '../components/tracked-image'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
@@ -6,7 +7,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -101,7 +101,7 @@ export const SharePoster = React.forwardRef<View, PosterProps>(
     return <View ref={ref} collapsable={false} accessible accessibilityRole="image"
       accessibilityLabel={`成果海报：${floors} 层，日期 ${formatShareDate(workout.startedAt)}。地点与身份信息已隐藏。`}
       style={{ width, height: Math.round(width * RATIO_VALUES[ratio]), backgroundColor: P.background, overflow: 'hidden', borderRadius: 20 * unit }}>
-      {template === 'editorial' ? <ImageBackground source={LIGHT_STAIRCASE_IMAGE} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.12 }} /> : null}
+      {template === 'editorial' ? <TrackedImageBackground identity="share/editorial-background" source={LIGHT_STAIRCASE_IMAGE} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.12 }} /> : null}
       <View style={{ flex: 1, padding: 24 * unit, alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * unit }}>
           <BrandMark key={`${template}-${ratio}`} size={32 * unit} color={P.orange} onLoad={onImageReady} />

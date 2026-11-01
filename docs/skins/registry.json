@@ -25,6 +25,10 @@
   "runtimeCatalog": "src/skin-catalog.ts",
   "constructionGuide": "docs/skins/CONSTRUCTION.md",
   "evidence": {
+    "scope": "historical-installed-candidate-only",
+    "currentVisualAcceptance": "blocked",
+    "currentReview": "docs/skins/GRAPHICS_REAUDIT.md",
+    "displayProfiles": "docs/skins/qa-display-profiles.json",
     "automated": "docs/skins/GRAPHICS_VALIDATION.md",
     "native": "docs/skins/GRAPHICS_VALIDATION.md",
     "release": null,
@@ -38,8 +42,8 @@
   "skins": [
     {
       "id": "classic",
-      "name": "原版钴蓝",
-      "stage": "native-verified",
+      "name": "钴蓝晴空",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -85,12 +89,13 @@
           "summary": "docs/skins/evidence/20261028-fidelity/core/classic-dark-summary.png"
         }
       },
-      "graphicsStatus": "original"
+      "graphicsStatus": "original",
+      "visualReview": "reopened-1.5k-125percent"
     },
     {
       "id": "night-run",
-      "name": "夜跑竞技",
-      "stage": "native-verified",
+      "name": "荧光夜行",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -131,12 +136,13 @@
           "summary": "docs/skins/evidence/20261028-fidelity/core/night-run-dark-summary.png"
         }
       },
-      "graphicsStatus": "native-verified"
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
     },
     {
       "id": "woodland",
-      "name": "山野自然",
-      "stage": "native-verified",
+      "name": "松风山岚",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -180,12 +186,13 @@
       "graphicsStatus": "native-verified",
       "darkHeaderOverrides": [
         "coach"
-      ]
+      ],
+      "visualReview": "reopened-1.5k-125percent"
     },
     {
       "id": "eva-unit-01",
-      "name": "EVA 初号机",
-      "stage": "native-verified",
+      "name": "紫电幽光",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -226,12 +233,13 @@
           "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-01-dark-summary.png"
         }
       },
-      "graphicsStatus": "native-verified"
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
     },
     {
       "id": "eva-unit-02",
-      "name": "EVA 二号机",
-      "stage": "native-verified",
+      "name": "绯焰流光",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -272,12 +280,13 @@
           "summary": "docs/skins/evidence/20261028-fidelity/core/eva-unit-02-dark-summary.png"
         }
       },
-      "graphicsStatus": "native-verified"
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
     },
     {
       "id": "pikachu",
-      "name": "皮卡丘",
-      "stage": "native-verified",
+      "name": "晴金跃动",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -325,12 +334,13 @@
         "coach",
         "history",
         "settings"
-      ]
+      ],
+      "visualReview": "reopened-1.5k-125percent"
     },
     {
       "id": "k-on",
-      "name": "K-On",
-      "stage": "native-verified",
+      "name": "樱粉和弦",
+      "stage": "implemented",
       "modes": [
         "light",
         "dark"
@@ -371,7 +381,8 @@
           "summary": "docs/skins/evidence/20261028-fidelity/core/k-on-dark-summary.png"
         }
       },
-      "graphicsStatus": "native-verified"
+      "graphicsStatus": "native-verified",
+      "visualReview": "reopened-1.5k-125percent"
     }
   ],
   "publishedVersion": "1.1.5",

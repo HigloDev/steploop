@@ -41,7 +41,7 @@ class Lab:
     def tree(self):
         for _ in range(5):
             try:
-                result = self.adb('shell', 'uiautomator', 'dump', '--compressed', '/sdcard/steploop-skins-qa.xml')
+                result = self.adb('shell', 'uiautomator', 'dump', '--compressed', '/data/local/tmp/steploop-skins-qa.xml')
             except subprocess.CalledProcessError as error:
                 if error.returncode not in [1, 137]:
                     raise
@@ -50,7 +50,7 @@ class Lab:
             if 'dumped to:' not in result:
                 time.sleep(.3)
                 continue  # A failed dump must never reuse the previous screen's XML.
-            text = self.adb('shell', 'cat', '/sdcard/steploop-skins-qa.xml')
+            text = self.adb('shell', 'cat', '/data/local/tmp/steploop-skins-qa.xml')
             assert not any(error in text for error in ['rn_redbox', 'catalyst_redbox', 'Unable to load script', '应用遇到问题']), text[:500]
             return ET.fromstring(text)
         raise AssertionError('Could not obtain a fresh UI hierarchy')

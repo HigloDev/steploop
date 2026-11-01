@@ -77,7 +77,7 @@ export function StairGauge({ cells, height = 360, style, maxVisible = 24, startF
   const cellH = height / Math.max(1, visible.length)
   return (
     <View
-      style={[{ height, justifyContent: 'flex-end' }, style]}
+      style={[{ minHeight: height, justifyContent: 'flex-end' }, style]}
       accessible
       accessibilityLabel={`楼层刻度，已完成 ${completed} 层`}
     >
@@ -92,7 +92,7 @@ export function StairGauge({ cells, height = 360, style, maxVisible = 24, startF
           </View>
         )
       })}
-      {completed === 0 && startFloor !== undefined ? <Text style={[styles.gaugeLabel, { position: 'absolute', bottom: -18, marginLeft: 0 }]}>{startFloor}F</Text> : null}
+      {completed === 0 && startFloor !== undefined ? <Text style={[styles.gaugeLabel, { marginTop: 4, marginBottom: 8, marginLeft: 0 }]}>{startFloor}F</Text> : null}
     </View>
   )
 }

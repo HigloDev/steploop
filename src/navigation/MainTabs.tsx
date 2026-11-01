@@ -1,4 +1,5 @@
 import React from 'react'
+import { useWindowDimensions, View } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -24,7 +25,11 @@ export default function MainTabs() {
   const theme = useTheme()
   const graphic = getThemeSkinId(theme) !== 'classic'
   const insets = useSafeAreaInsets()
+  const { fontScale } = useWindowDimensions()
+  // Keep each skin's approved chrome, but reserve extra label space at larger system sizes.
+  const tabHeight = getSkinLayout(theme).tabHeight + Math.max(0, Math.ceil((fontScale - 1) * 20))
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       initialRouteName="Train"
       screenListeners={{ tabPress: () => { void triggerHaptic('selection') } }}
@@ -37,7 +42,7 @@ export default function MainTabs() {
           backgroundColor: theme.card,
           borderTopColor: theme.lineSoft,
           paddingTop: 8,
-          height: getSkinLayout(theme).tabHeight + insets.bottom,
+          height: tabHeight + insets.bottom,
           elevation: 0,
         },
         tabBarItemStyle: { paddingBottom: 4 },
@@ -56,5 +61,8 @@ export default function MainTabs() {
       <Tab.Screen name="History" component={HistoryScreen} options={{ title: '记录' }} />
       <Tab.Screen name="Profile" component={SettingsScreen} options={{ title: '设置' }} />
     </Tab.Navigator>
+    <View pointerEvents="none" accessible={false} importantForAccessibility="no-hide-descendants"
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, backgroundColor: theme.paper }} />
+    </View>
   )
 }

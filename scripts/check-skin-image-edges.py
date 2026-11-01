@@ -12,8 +12,8 @@ from skin_qa_source import source_fingerprint
 
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS = {
-    'k-on/header-settings': (.07, .58), 'eva-unit-01/header-settings': (.10, .70),
-    'eva-unit-02/header-settings': (0, .65), 'pikachu/header-settings': (.04, 484 / 1024),
+    'k-on/header-settings': (.07, .58), 'eva-unit-01/header-settings': (.04, .81),
+    'eva-unit-02/header-settings': (0, .82), 'pikachu/header-settings': (.04, 484 / 1024),
     'pikachu/header-settings-dark': (.04, 435 / 1024), 'k-on/header-history': (.30, 1),
     'pikachu/header-history': (.46, 1), 'pikachu/header-history-dark': (.46, 1),
 }

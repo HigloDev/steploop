@@ -1,5 +1,6 @@
+import { TrackedImage } from './tracked-image'
 import React, { useState } from 'react'
-import { Image, ImageProps, StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native'
+import { ImageProps, StyleProp, useWindowDimensions, View, ViewStyle } from 'react-native'
 import { getThemeSkinId, isLargeText, skinGeometry, Theme, useTheme } from '../theme'
 import { getSkinArtwork, getSkinMarkArtwork, SkinArtworkSet } from '../skin-assets'
 
@@ -19,7 +20,7 @@ export function SkinArt({ kind = 'scene', width = skinGeometry.sceneWidth, heigh
   if (!source || failed === identity) return null
   return <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
     style={[{ width, height, flexShrink: 0 }, style]}>
-    <Image key={identity} source={source} resizeMode="contain" resizeMethod="resize" fadeDuration={0}
+    <TrackedImage identity={`art/${identity}`} key={identity} source={source} resizeMode="contain" resizeMethod="resize" fadeDuration={0}
       accessible={false} style={{ width: '100%', height: '100%' }} onLoad={onLoad}
       onError={event => { setFailed(identity); onError?.(event) }} />
   </View>

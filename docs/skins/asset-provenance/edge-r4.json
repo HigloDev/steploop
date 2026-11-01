@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-29",
+  "method": "User-authorized local alpha processing of existing Pikachu artwork only",
+  "status": "composite-reviewed; native verification required",
+  "records": [
+    {
+      "path": "assets/skins/pikachu/header-home.png",
+      "inputSha256": "e9d5e8b77334cd947b4345bccbbd7a39be805b225f15d80625dff2aa38974b81",
+      "candidateSha256": "53d9f0e698cd06f924739949b8f80b4bb43ef4e00f5ad4e34e1173bc6c715b37",
+      "allRgbUnchanged": true,
+      "protectedCharacterAlphaUnchanged": true,
+      "newPixelsAdded": false,
+      "method": "Alpha-only curved 100px transition before existing UI-occlusion edge; character silhouette protected. No scaling or sharpening."
+    },
+    {
+      "path": "assets/skins/pikachu/header-home-dark.png",
+      "inputSha256": "93d485f702560dcb0f1d73c8c49277bc129382841f603bdd9a7a03febc3539b6",
+      "candidateSha256": "0fafc3b3280e3f6fd4e3860676e216436e17c7ad47c2b6b3ba3c7475aaf92887",
+      "allRgbUnchanged": true,
+      "protectedCharacterAlphaUnchanged": true,
+      "newPixelsAdded": false,
+      "method": "Alpha-only curved 100px transition before existing UI-occlusion edge; character silhouette protected. No scaling or sharpening."
+    }
+  ],
+  "sourceAudit": {
+    "availableBoardDimensions": [
+      1182,
+      1330
+    ],
+    "boardSha256": "cc70f0f7a9abcafa3219335e72a2a280a8ab09cb9c387a16a0a3531bbf38a43d",
+    "repositoryAndOriginalIdentical": true,
+    "highResolutionMasterFound": false,
+    "sourceCropPixels": {
+      "home": [
+        278,
+        210
+      ],
+      "mark": [
+        63,
+        71
+      ],
+      "building": [
+        25,
+        24
+      ]
+    },
+    "qualityLimit": "No new detail, RGB edits, or upscale applied in this revision; original source softness remains."
+  }
+}

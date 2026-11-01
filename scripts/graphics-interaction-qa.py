@@ -14,6 +14,18 @@ spec.loader.exec_module(module)
 
 
 class InteractionLab(module.GraphicLab):
+    def screenshot(self, name, skin, mode, check_paper=True):
+        # Interaction steps can navigate without open(). Its successful load
+        # belongs to the last cold-opened page, not necessarily this screenshot.
+        last_opened_header = getattr(self, 'header_load_evidence', None)
+        self.header_load_evidence = None
+        try:
+            super().screenshot(name, skin, mode, check_paper)
+            self.results[-1]['lastOpenedHeader'] = last_opened_header
+            self.results[-1]['headerLoadScope'] = 'Current page load unverified after interaction navigation; lastOpenedHeader is diagnostic only.'
+        finally:
+            self.header_load_evidence = last_opened_header
+
     def find(self, label, edit=False, prefix=False):
         for node in self.tree().iter('node'):
             if edit and node.get('class') != 'android.widget.EditText':
@@ -72,11 +84,18 @@ def main():
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--serial', default='emulator-5596')
     parser.add_argument('--out', type=Path, default=ROOT / 'docs/skins/evidence/20261028-fidelity/interaction')
+    profiles = json.loads((ROOT / 'docs/skins/qa-display-profiles.json').read_text(encoding='utf-8-sig'))
+    parser.add_argument('--profile', choices=profiles['profiles'], default=profiles['defaultProfile'])
     args = parser.parse_args()
     out = args.out
     lab = InteractionLab(args.serial, 'com.zxn.palou.uiqa', out)
+    lab.configure_display(args.profile)
     result_file = out / 'interaction-results.json'
     previous = json.loads(result_file.read_text(encoding='utf-8')) if result_file.exists() else {}
+    # Different display settings are a different acceptance run; never merge
+    # historical 1080p/100% phases or frames into a high-density report.
+    if previous.get('displayProfile') != lab.display_profile:
+        previous = {}
     phases = previous.get('phases', {})
     source = source_fingerprint()
     checks = []
@@ -84,10 +103,10 @@ def main():
     def checkpoint():
         frames = {f['name']: f for f in previous.get('frames', [])}
         frames.update({f['name']: f for f in lab.results})
-        report = {'sourceFingerprint': source, 'phases': phases,
+        report = {'sourceFingerprint': source, 'displayProfile': lab.display_profile, 'phases': phases,
                   'checks': [check for phase in phases.values() if phase['passed'] for check in phase['checks']],
                   'frames': list(frames.values())}
-        report['allPassed'] = all(phases.get(name, {}).get('passed') and phases[name]['sourceFingerprint'] == source
+        report['allPassed'] = all(phases.get(name, {}).get('passed') and phases[name]['sourceFingerprint'] == source and phases[name].get('displayProfile') == lab.display_profile
                                   for name in ['appearance', 'coach', 'feedback', 'training'])
         result_file.write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
 
@@ -100,18 +119,18 @@ def main():
         checks.append('Four actual bottom tabs navigate and keep the selected graphic skin')
 
         lab.open('appearance', 'classic', 'light')
-        for name in ['原版钴蓝', '夜跑竞技', '山野自然', 'EVA 初号机', 'EVA 二号机', '皮卡丘', 'K-On']:
+        for name in ['钴蓝晴空', '荧光夜行', '松风山岚', '紫电幽光', '绯焰流光', '晴金跃动', '樱粉和弦']:
             lab.click(name)
             assert lab.selected(name), 'Native skin radio did not activate: ' + name
         checks.append('All seven actual skin radios activate in the appearance screen')
         lab.top()
         lab.tap('暗色')
-        lab.click('山野自然')
-        assert lab.selected('山野自然'), 'Skin tap must take effect before testing restart'
+        lab.click('松风山岚')
+        assert lab.selected('松风山岚'), 'Skin tap must take effect before testing restart'
         lab.open('appearance')
         assert lab.selected('暗色')
-        lab.reveal('山野自然')
-        assert lab.selected('山野自然')
+        lab.reveal('松风山岚')
+        assert lab.selected('松风山岚')
         lab.screenshot('woodland-dark-cold-start', 'woodland', 'dark')
         lab.top()
         lab.tap('跟随系统')
@@ -201,16 +220,16 @@ def main():
     for name, action in [('appearance', appearance_phase), ('coach', coach_phase), ('feedback', feedback_phase), ('training', training_phase)]:
         if args.phase != 'all' and args.phase != name:
             continue
-        if args.resume and phases.get(name, {}).get('passed') and phases[name]['sourceFingerprint'] == source:
+        if args.resume and phases.get(name, {}).get('passed') and phases[name]['sourceFingerprint'] == source and phases[name].get('displayProfile') == lab.display_profile:
             print('RESUME: already passed ' + name, flush=True)
             continue
         print('START ' + name, flush=True)
         start = len(checks)
         try:
             action()
-            phases[name] = {'passed': True, 'sourceFingerprint': source, 'checks': checks[start:]}
+            phases[name] = {'passed': True, 'sourceFingerprint': source, 'displayProfile': lab.display_profile, 'checks': checks[start:]}
         except Exception as error:
-            phases[name] = {'passed': False, 'sourceFingerprint': source, 'checks': [], 'error': str(error)}
+            phases[name] = {'passed': False, 'sourceFingerprint': source, 'displayProfile': lab.display_profile, 'checks': [], 'error': str(error)}
             checkpoint()
             raise
         checkpoint()

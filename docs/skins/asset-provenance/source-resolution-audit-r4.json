@@ -1,0 +1,1378 @@
+{
+  "date": "2026-10-29",
+  "scope": "Read-only source-pixel inventory; not visual acceptance",
+  "assets": [
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/scene.png",
+      "sha256": "752ca70e64c6bdce1cea7d7c0684533dd4bb705186577de7ec879c9ed1454577",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        148,
+        38,
+        1527,
+        933
+      ],
+      "visiblePixels": [
+        1379,
+        895
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/mark.png",
+      "sha256": "927c3d2d0cb4fd8a10b22da8f956c957362e2ffd5e40233aab4b2ea05d53aadd",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        136,
+        226,
+        1155,
+        1083
+      ],
+      "visiblePixels": [
+        1019,
+        857
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/achievement.png",
+      "sha256": "1425755c0feb5ba1c91fe82d286b1a158f4406751a0018c456e68f2c5877a9a1",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        79,
+        208,
+        1175,
+        1108
+      ],
+      "visiblePixels": [
+        1096,
+        900
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/header-home.png",
+      "sha256": "b198e42d9b9d47e63b0f7c6d35b9848276bf62c69cc01714263f06373813a2c8",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        491,
+        100,
+        1536,
+        959
+      ],
+      "visiblePixels": [
+        1045,
+        859
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/header-coach.png",
+      "sha256": "d11deed18ace7d33f88cefabf2040fefd74575a2240821f1db643274f1e02455",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        77,
+        80,
+        1536,
+        1004
+      ],
+      "visiblePixels": [
+        1459,
+        924
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/header-history.png",
+      "sha256": "54e395dd73ef6d54c8a69aadc6b4e940b9420dcc5f36be57bddfd9c70937d190",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        121,
+        107,
+        1536,
+        958
+      ],
+      "visiblePixels": [
+        1415,
+        851
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/header-settings.png",
+      "sha256": "078e4f902bc6260d750cfd19461b0f201eba0b7b95b53e10a0a8177a8e5c28c5",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        699,
+        76,
+        1536,
+        980
+      ],
+      "visiblePixels": [
+        837,
+        904
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "night-run",
+      "path": "assets/skins/night-run/building.png",
+      "sha256": "0235152d0927f0198634b0bef06a9ae49a6e13472f9efd5f2aae36dfc312f971",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        294,
+        112,
+        991,
+        1164
+      ],
+      "visiblePixels": [
+        697,
+        1052
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/scene.png",
+      "sha256": "d8938a368ceda76dde42e6832476728116c6d33e9ebeb76ef4762fb3d3123ae3",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        288,
+        118,
+        1522,
+        967
+      ],
+      "visiblePixels": [
+        1234,
+        849
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/mark.png",
+      "sha256": "877b570dc4908269b31ec74dd13e43ddba5d507efe38b50e49ab8ea510ecf95b",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        101,
+        246,
+        1159,
+        1014
+      ],
+      "visiblePixels": [
+        1058,
+        768
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/achievement.png",
+      "sha256": "c38c2336bf61dab634796307714555565d6377956c5bcb7af8deea812f03edef",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        54,
+        152,
+        1204,
+        1161
+      ],
+      "visiblePixels": [
+        1150,
+        1009
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/header-home.png",
+      "sha256": "029e08b02470db2e6d6a95884ab358013327099074491cf2d41a58602de5a720",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        17,
+        99,
+        1536,
+        1024
+      ],
+      "visiblePixels": [
+        1519,
+        925
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/header-coach.png",
+      "sha256": "8efdfde7038813a220c669732c2f87e28f024436d7bc8a437c3f35067e1d4288",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        284,
+        77,
+        1535,
+        816
+      ],
+      "visiblePixels": [
+        1251,
+        739
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/header-history.png",
+      "sha256": "69de4a01eb9fcb3ee0e208687bcc0500768320bf84be53489a2358bc9cbe24cd",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        12,
+        288,
+        1536,
+        1015
+      ],
+      "visiblePixels": [
+        1524,
+        727
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/header-settings.png",
+      "sha256": "2e18bcfd134b017cfb920d15618ef895a501f00512417d45428d566509b55c67",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        645,
+        97,
+        1536,
+        1004
+      ],
+      "visiblePixels": [
+        891,
+        907
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/header-coach-dark.png",
+      "sha256": "d90be58530aca66af922979d910744915540e8b3778d2b7197b2c95bd579e75e",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        39,
+        192,
+        1536,
+        1002
+      ],
+      "visiblePixels": [
+        1497,
+        810
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/building.png",
+      "sha256": "ffa2e8ffb8ce877a6200c0d8b92697da46f73d255f628da24996cd85b02ffabc",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        99,
+        247,
+        1172,
+        1054
+      ],
+      "visiblePixels": [
+        1073,
+        807
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/course-beginner.png",
+      "sha256": "b677a2e55739e3a86d909c9bc203025d9daef44a2b8b1b75db2a5c8a61441fb6",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        39,
+        97,
+        1220,
+        1196
+      ],
+      "visiblePixels": [
+        1181,
+        1099
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/course-cardio.png",
+      "sha256": "9c6ecf97b6fb1218787382e12fe822a38d9dd1a58f9b26a6ad22c862ed0a3f04",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        53,
+        126,
+        1205,
+        1188
+      ],
+      "visiblePixels": [
+        1152,
+        1062
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "woodland",
+      "path": "assets/skins/woodland/course-weight.png",
+      "sha256": "e82cea2d4ee36a4222de4f9dfc899592979750586f2f83ee7c60bb2086cf50cc",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        38,
+        112,
+        1221,
+        1181
+      ],
+      "visiblePixels": [
+        1183,
+        1069
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/scene.png",
+      "sha256": "0066fb32cb65e63b4e7cbda2a061e52ca483e44ba7023c1136c9b95dc55b84e0",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        195,
+        64,
+        1519,
+        961
+      ],
+      "visiblePixels": [
+        1324,
+        897
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/mark.png",
+      "sha256": "7a5749ea1e6f0fb0eddd55ab60c959a8b822101d3cdfc323dbeec7bb26cc4e65",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        83,
+        108,
+        1209,
+        1122
+      ],
+      "visiblePixels": [
+        1126,
+        1014
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/achievement.png",
+      "sha256": "24ac4879602a52cf22573ae54339c0e63b96610cd564eeee175700234885d378",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        51,
+        25,
+        1241,
+        1218
+      ],
+      "visiblePixels": [
+        1190,
+        1193
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/header-home.png",
+      "sha256": "b1048645b3a7eff5deaff783f446824dc219331374eb846182bd2cc6175d68c8",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        794,
+        0,
+        1536,
+        926
+      ],
+      "visiblePixels": [
+        742,
+        926
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/header-coach.png",
+      "sha256": "9ad437589c9af4510a1c7e65781bcd850d418568a605927d82c6ee9e02e782dd",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        701,
+        28,
+        1536,
+        712
+      ],
+      "visiblePixels": [
+        835,
+        684
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/header-history.png",
+      "sha256": "bd694ac0ef40935d9d48ea6ad05d9e97682a4ae9fcf1b2209ae7aea30af042cf",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        1031,
+        140,
+        1497,
+        488
+      ],
+      "visiblePixels": [
+        466,
+        348
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/header-settings.png",
+      "sha256": "78862f79597d580647379bfc34b5658ae7c88adace7267699546c7f6c40f516e",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        701,
+        61,
+        1536,
+        812
+      ],
+      "visiblePixels": [
+        835,
+        751
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/building.png",
+      "sha256": "19152e337abfc4ebb25789ad3e584e5673739db3d94686619d2a8743daf459b3",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        103,
+        94,
+        1153,
+        1230
+      ],
+      "visiblePixels": [
+        1050,
+        1136
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-01",
+      "path": "assets/skins/eva-unit-01/mark-dark.png",
+      "sha256": "70046f3a8ddc65e44c642706c06b979131e5179ade9f1f8d8f11cf025a3af167",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        84,
+        106,
+        1214,
+        1120
+      ],
+      "visiblePixels": [
+        1130,
+        1014
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/scene.png",
+      "sha256": "d64daa10352454898065653fed061bfa75f625d7b7ea3767f81855fc47d99ba1",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        171,
+        36,
+        1525,
+        1006
+      ],
+      "visiblePixels": [
+        1354,
+        970
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/mark.png",
+      "sha256": "feea3f1171a1646e55410c6fa74f5d4c535bd4dbb754b5effc3f0f3acbe943a7",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        84,
+        173,
+        1177,
+        1097
+      ],
+      "visiblePixels": [
+        1093,
+        924
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/achievement.png",
+      "sha256": "75ce4eab1c9ff1c67c99c848013a114ffc942d609b5cf89f88f211a36000d1e1",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        42,
+        14,
+        1214,
+        1240
+      ],
+      "visiblePixels": [
+        1172,
+        1226
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/header-home.png",
+      "sha256": "81be9a680acbf4cb51494679fa3a4150ba73dca0c77405d14fde40199dbbe071",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        749,
+        17,
+        1536,
+        862
+      ],
+      "visiblePixels": [
+        787,
+        845
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/header-coach.png",
+      "sha256": "93111d5db430770453c7a43c9c822fa646662de5dfa361f23ffcf591981a057b",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        718,
+        0,
+        1536,
+        579
+      ],
+      "visiblePixels": [
+        818,
+        579
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/header-history.png",
+      "sha256": "ba0bad02037b79325fa0cbc7105aa600e837366b21339c1308408e8001e5d162",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        747,
+        199,
+        1536,
+        1024
+      ],
+      "visiblePixels": [
+        789,
+        825
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/header-settings.png",
+      "sha256": "84b39af64caf836c19e463c72483f361f304dfe1baf49173aad8ccfe6032b6a6",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        749,
+        5,
+        1536,
+        822
+      ],
+      "visiblePixels": [
+        787,
+        817
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/header-history-dark.png",
+      "sha256": "be27ff202872894443b81563286e7c5edc971967f00938320bf7cc87713ae6a5",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        1125,
+        122,
+        1487,
+        409
+      ],
+      "visiblePixels": [
+        362,
+        287
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "eva-unit-02",
+      "path": "assets/skins/eva-unit-02/building.png",
+      "sha256": "b158f10e525640747fb694bd024a8b49980064d8e191c8831b010a20ff24f78e",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        86,
+        38,
+        1203,
+        1174
+      ],
+      "visiblePixels": [
+        1117,
+        1136
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/mark.png",
+      "sha256": "86ade636c1893779dc8c0ebda808b5c95c68227868da7118470ecba3edd9f418",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        165,
+        127,
+        1089,
+        1120
+      ],
+      "visiblePixels": [
+        924,
+        993
+      ],
+      "originalCropPixels": [
+        63,
+        71
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/scene.png",
+      "sha256": "907e7551ef2d20480d33d6eb61e1f5c7818940af34d73b9f5b23671fbf37c62f",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        798,
+        118,
+        1388,
+        936
+      ],
+      "visiblePixels": [
+        590,
+        818
+      ],
+      "originalCropPixels": [
+        114,
+        152
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/achievement.png",
+      "sha256": "5ffa5459bb58b26bbfc2f7c82a16cf5eb4bd03789ad9298ceb3807750805d965",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        287,
+        127,
+        966,
+        1125
+      ],
+      "visiblePixels": [
+        679,
+        998
+      ],
+      "originalCropPixels": [
+        139,
+        198
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-home.png",
+      "sha256": "824b12b6709d2b3b4c516d8f5671c1793e0f9d78cc6093693491578d52515e80",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        15,
+        194,
+        1536,
+        1001
+      ],
+      "visiblePixels": [
+        1521,
+        807
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "generated-hd-redraw-native-review-required"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-coach.png",
+      "sha256": "0532264840f670835c92ba57a8b3a2c6845d6420451a8d381b6374550291d0f6",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        992,
+        228,
+        1495,
+        932
+      ],
+      "visiblePixels": [
+        503,
+        704
+      ],
+      "originalCropPixels": [
+        130,
+        180
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-history.png",
+      "sha256": "c984bfa2286e27eb86c6c9d12a4c758701160903c403a3d823bf43e2fa608f9f",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        930,
+        662,
+        1514,
+        995
+      ],
+      "visiblePixels": [
+        584,
+        333
+      ],
+      "originalCropPixels": [
+        140,
+        82
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-settings.png",
+      "sha256": "4100d357ab78f844f539c871f3af16dc6329d3effbf75b2314cd388f4ffedcb1",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        976,
+        83,
+        1501,
+        477
+      ],
+      "visiblePixels": [
+        525,
+        394
+      ],
+      "originalCropPixels": [
+        150,
+        109
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-home-dark.png",
+      "sha256": "0fafc3b3280e3f6fd4e3860676e216436e17c7ad47c2b6b3ba3c7475aaf92887",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        279,
+        98,
+        1500,
+        916
+      ],
+      "visiblePixels": [
+        1221,
+        818
+      ],
+      "originalCropPixels": [
+        278,
+        210
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-coach-dark.png",
+      "sha256": "f09040a11ca53499378bbd4d085b21fb295004eda0fd66eb5651b289cf74b6f6",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        960,
+        214,
+        1506,
+        960
+      ],
+      "visiblePixels": [
+        546,
+        746
+      ],
+      "originalCropPixels": [
+        131,
+        177
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-history-dark.png",
+      "sha256": "9f0e97183357f24f2e17bf6fd2dc835b039d8ba78ec6155a009af38adeb57488",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        938,
+        671,
+        1507,
+        995
+      ],
+      "visiblePixels": [
+        569,
+        324
+      ],
+      "originalCropPixels": [
+        142,
+        84
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/header-settings-dark.png",
+      "sha256": "c0e125f8f6895f32b68164b18b351d00133d6bdd5d2cb1316334efb8ad9648fd",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        953,
+        80,
+        1512,
+        428
+      ],
+      "visiblePixels": [
+        559,
+        348
+      ],
+      "originalCropPixels": [
+        147,
+        94
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/building.png",
+      "sha256": "c5d14e6a40f0d2ec4816787918584641992926479254e035264f4f67149a9281",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        102,
+        123,
+        1048,
+        1131
+      ],
+      "visiblePixels": [
+        946,
+        1008
+      ],
+      "originalCropPixels": [
+        25,
+        24
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/course-beginner.png",
+      "sha256": "5e65865d741d48ca51d521c1cdbb118e6ee93ae341d38e5779defacdff044609",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        197,
+        88,
+        1111,
+        1166
+      ],
+      "visiblePixels": [
+        914,
+        1078
+      ],
+      "originalCropPixels": [
+        44,
+        49
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/course-cardio.png",
+      "sha256": "768ec0b428a0fa56002beecc56e0ba1bef446787db34a28fc5ef54712f24f3cb",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        154,
+        133,
+        1099,
+        1173
+      ],
+      "visiblePixels": [
+        945,
+        1040
+      ],
+      "originalCropPixels": [
+        45,
+        52
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "pikachu",
+      "path": "assets/skins/pikachu/course-weight.png",
+      "sha256": "d2c83dbd34840af19fcf72f723c6c00aea441eecbcb8d2f3db8eee8bdec0a49d",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        207,
+        127,
+        1037,
+        1106
+      ],
+      "visiblePixels": [
+        830,
+        979
+      ],
+      "originalCropPixels": [
+        46,
+        55
+      ],
+      "hasKnownUpscaledSource": true,
+      "qualityStatus": "source-resolution-limited"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/scene.png",
+      "sha256": "712d1738fad9647dd9423acd9d04ff4075b478e376b3f1ab7db0897389c24524",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        497,
+        17,
+        1517,
+        992
+      ],
+      "visiblePixels": [
+        1020,
+        975
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/mark.png",
+      "sha256": "90f5bd25f5a45977cfae16d8722589055f96eaf411d002d71f6749b94718ff65",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        128,
+        135,
+        1152,
+        1135
+      ],
+      "visiblePixels": [
+        1024,
+        1000
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/achievement.png",
+      "sha256": "ccf952a2a20ff80c16823a34b44fd2e34053c2259ae2e1b2300f8346724522d9",
+      "canvasPixels": [
+        1254,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        133,
+        70,
+        1190,
+        1165
+      ],
+      "visiblePixels": [
+        1057,
+        1095
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/header-home.png",
+      "sha256": "d7409784cd93b92b61e6d6581645e34ebdaa035924c7427ac9024dff38e0991f",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        246,
+        20,
+        1508,
+        814
+      ],
+      "visiblePixels": [
+        1262,
+        794
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/header-coach.png",
+      "sha256": "663b841f1b781cc4e393b29992b956234f46f8e1cf823965d6716cc85b658318",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        249,
+        415,
+        1522,
+        974
+      ],
+      "visiblePixels": [
+        1273,
+        559
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/header-history.png",
+      "sha256": "c6059db56521c3ba94e7f8a59923e3815f738a289b2c1fef4f9d8e9c5e412fa0",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        38,
+        400,
+        1536,
+        998
+      ],
+      "visiblePixels": [
+        1498,
+        598
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    },
+    {
+      "skin": "k-on",
+      "path": "assets/skins/k-on/header-settings.png",
+      "sha256": "97e70c081402a8a0ea7e5b4fc9c9062acba048740e1a6a55e5dfffeaa5250adf",
+      "canvasPixels": [
+        1536,
+        1024
+      ],
+      "visibleAlphaBounds": [
+        971,
+        93,
+        1486,
+        558
+      ],
+      "visiblePixels": [
+        515,
+        465
+      ],
+      "originalCropPixels": null,
+      "hasKnownUpscaledSource": false,
+      "qualityStatus": "native-size-review-required"
+    }
+  ],
+  "summary": {
+    "assetCount": 60,
+    "knownUpscaledSourceCount": 14
+  },
+  "notes": [
+    "Transparent canvas dimensions are not effective source resolution.",
+    "Known extracted source crops cannot regain detail from alpha editing or interpolation.",
+    "Generated assets still require native-scale review at actual container dimensions.",
+    "The full original Pikachu four-tab generated file equals the repository copy in dimensions and SHA256; no higher resolution approved source found in the recorded source chain."
+  ]
+}
