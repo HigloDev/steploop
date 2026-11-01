@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-01",
+  "applicationSourceCommit": "35a02e83c4ec91dc7403dde42858219db29c6179",
+  "localRuntimeFingerprint": "063156b903d8f253bf72131641b68f2c8879abb2c9f97ff631b68b226c68a1b1",
+  "version": "1.1.7",
+  "androidVersionCode": 16,
+  "publishedVersion": "1.1.5",
+  "typecheck": "passed",
+  "fullSuite": {
+    "tests": 770,
+    "pass": 737,
+    "fail": 0,
+    "skipped": 33,
+    "cancelled": 0
+  },
+  "additionalImageAndEvidenceChecks": {
+    "total": 23,
+    "passed": 23,
+    "failed": 0
+  },
+  "sdkLockedOfflineDependencyCheck": "passed",
+  "hidpiMatrix": {
+    "expectedFrames": 112,
+    "verifiedFrames": 112,
+    "coveragePassed": true,
+    "visualPassed": false,
+    "exitCode": 2,
+    "reviewCounts": {
+      "failed": 0,
+      "known-source-limitation": 14,
+      "pass": 98,
+      "pending-review": 0
+    },
+    "coverageErrors": []
+  },
+  "apk": {
+    "apk": "steploop-1.1.7-20261101-internal.apk",
+    "apkSha256": "d90e7caa7678b681025aef61cff86bb6fc7a1aa280ce2e957226283f49bc3705",
+    "bytes": 135289958,
+    "architectures": [
+      "arm64-v8a",
+      "x86_64"
+    ],
+    "embeddedBundleSha256": "8529943473b3aabddee658eef4c93d7990632a710cc839200d48bc1be6d0f622",
+    "embeddedBundleBytes": 4035232,
+    "embeddedSkinPngs": 60,
+    "allShippedSkinPixelsVerified": true
+  },
+  "phoneUpgrade": {
+    "appId": "unchanged",
+    "firstInstallTime": "unchanged",
+    "ceDataInode": "unchanged",
+    "deDataInode": "unchanged",
+    "sameSignatureInPlaceUpgrade": true,
+    "startupFatalErrors": 0,
+    "clearDataOrUninstall": false
+  },
+  "userFeedback": {
+    "coachHistorySettingsPages": "User confirmed display and operation normal",
+    "scope": "User report, not automated physical-device interaction proof"
+  },
+  "remainingLimitations": {
+    "lowResolutionSourceAssets": 9,
+    "motionAcceptance": "pending",
+    "longLockSamplingAcceptance": "pending",
+    "powerAcceptance": "pending",
+    "fullBackupFieldComparison": "not performed this time"
+  },
+  "publicApkReleaseChanged": false,
+  "privateEvidencePublished": false
+}

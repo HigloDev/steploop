@@ -38,9 +38,9 @@
     }
   ],
   "uiSkinCandidate": {
-    "branch": "codex/skins-graphics-117-20261028",
+    "branch": "codex/phone-update-20261101",
     "baseCommit": "9c7eed9",
-    "status": "visual-review-reopened",
+    "status": "installed-and-user-checked-source-resolution-limited",
     "registry": "docs/skins/registry.json",
     "validation": "docs/skins/GRAPHICS_VALIDATION.md",
     "published": false,
@@ -50,10 +50,10 @@
       "scope": "historical functional and layout evidence; visual acceptance reopened"
     },
     "installedCandidateVerification": {
-      "sourceCommit": "6552182",
-      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
-      "verifiedAt": "2026-10-29",
-      "scope": "Historical candidate only; not current visual acceptance"
+      "sourceCommit": "35a02e83c4ec91dc7403dde42858219db29c6179",
+      "sourceFingerprint": "063156b903d8f253bf72131641b68f2c8879abb2c9f97ff631b68b226c68a1b1",
+      "verifiedAt": "2026-11-01",
+      "scope": "Same-signature phone upgrade, startup, visible data identity and user-reported coach/history/settings checks; excludes motion, long-lock and power acceptance"
     },
     "currentReview": {
       "plan": "docs/skins/GRAPHICS_REAUDIT.md",
@@ -61,7 +61,7 @@
       "calibrationScreenshots": 4,
       "visualAcceptance": "blocked-source-resolution",
       "requiredPrimaryPageCombinations": 112,
-      "newPhoneInstallation": false,
+      "newPhoneInstallation": true,
       "redrawAuthorization": "2026-10-29 user permits redraw when resolution is insufficient",
       "highResolutionAssetsReplaced": 6,
       "remainingLowResolutionAssets": 9,
@@ -77,15 +77,29 @@
       "primaryVisualPassed": 98,
       "primaryKnownSourceLimitations": 14,
       "primaryPendingReview": 0,
-      "primaryLayoutFailures": 0
+      "primaryLayoutFailures": 0,
+      "phoneInstallationRecord": "docs/skins/PHONE_INSTALL_20261101.md"
     },
     "phoneInstallation": {
+      "date": "2026-11-01",
+      "status": "installed-launched-and-user-checked",
+      "sourceCommit": "35a02e83c4ec91dc7403dde42858219db29c6179",
+      "apkSha256": "d90e7caa7678b681025aef61cff86bb6fc7a1aa280ce2e957226283f49bc3705",
+      "record": "docs/skins/PHONE_INSTALL_20261101.md"
+    },
+    "reviewReason": "User reported image seams, softness at 1200x2670 and inconsistent spacing; 125% font-scale review reopened.",
+    "previousInstalledCandidateVerification": {
+      "sourceCommit": "6552182",
+      "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+      "verifiedAt": "2026-10-29",
+      "scope": "Historical candidate only; not current visual acceptance"
+    },
+    "previousPhoneInstallation": {
       "date": "2026-10-29",
       "status": "installed-and-launched",
       "sourceCommit": "6552182",
       "apkSha256": "03668ddb959ded085120d549dba6f71b2271842928896af2e930eca60935d7a8",
       "record": "docs/skins/PHONE_INSTALL_20261029.md"
-    },
-    "reviewReason": "User reported image seams, softness at 1200x2670 and inconsistent spacing; 125% font-scale review reopened."
+    }
   }
 }

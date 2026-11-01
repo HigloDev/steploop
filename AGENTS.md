@@ -7,7 +7,7 @@
 
 1. 先读取根目录 `project-state.json` 和 `PROJECT_STATUS.md`，确认当前开发版本、公开版本及未合入修改。不要从旧报告、旧工作目录或会话记忆推断当前版本。
 2. 运行 `git rev-parse --show-toplevel`、`git status --short --branch` 和 `npm run check:project-state`。版本或远端不一致时先说明冲突，不能只改版本号来掩盖旧源码。
-3. 当前主版本为 **1.1.5 / Android versionCode 14**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
+3. 当前开发源码为 **1.1.7 / Android versionCode 16**，已公开版本为 **1.1.5 / Android versionCode 14**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
 
 ## 当前资料与历史边界
 

@@ -1,17 +1,17 @@
 # 循阶 · 每一步向上，每一层都算数
 
 当前综合联调候选为 **1.1.7 / Android versionCode 16**。公开版本仍为1.1.5；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
-本分支开发试用版：**1.1.6 / Android code 15**，新增分段 MET 活动热量与计算依据保存；公开版本仍为 1.1.5。见 [试用说明](docs/CALORIES_PREVIEW_20261028.md) 和 `project-state.json`。
+2026-11-01 已将最新素材与布局修订覆盖安装到小米14，用户确认主要页面显示、操作正常。安装与验证范围见 [本次记录](docs/skins/PHONE_INSTALL_20261101.md)。1.1.6 单独热量候选已整合到当前源码，先前设计说明见 [热量试用说明](docs/CALORIES_PREVIEW_20261028.md)。
 
 循阶是一款本地保存成绩的 Android 爬楼训练应用。1.1.5 使用冷白、深蓝与钴蓝界面，集中展示楼层、爬升、逐轮训练与每周积累。
 
-维护与 AI 接续请先看 [当前项目状态](PROJECT_STATUS.md) 和 [版本信息](project-state.json)，运行 `npm run check:project-state`。当前主版本为 **1.1.5 / Android code 14**；[旧版本归档](docs/archive/README.md) 与独立修复分支不代表当前已发布功能。
+维护与 AI 接续请先看 [当前项目状态](PROJECT_STATUS.md) 和 [版本信息](project-state.json)，运行 `npm run check:project-state`。当前开发源码为 **1.1.7 / Android code 16**，公开 APK 为 **1.1.5 / Android code 14**；[旧版本归档](docs/archive/README.md) 不代表当前实现。
 
 [下载 Android 1.1.5 公开试用版](https://github.com/HigloDev/steploop/releases/tag/v1.1.5-preview.1) · [下载网页](https://higlodev.github.io/steploop/) · [使用与备份](docs/USER_GUIDE.md) · [构建说明](docs/BUILDING.md) · [本版说明](docs/RELEASE_1.1.5.md)
 
 ## 当前开发：皮肤系统
 
-当前图形皮肤分支`codex/skins-graphics-117-20261028`基于1.1.7综合候选`9c7eed9`，提供原版钴蓝及夜跑竞技、山野自然、EVA初号机、EVA二号机、皮卡丘、K-On共7套可选皮肤及独立明暗选择。六套图形皮肤均接入Logo、场景插画和完成图案，原版保留原标志。入口为“设置 → 皮肤与外观”，选择立即生效并保存。
+当前源码基于1.1.7综合候选`9c7eed9`，包含钴蓝晴空、荧光夜行、松风山岚、紫电幽光、绯焰流光、晴金跃动、樱粉和弦共7套可选皮肤及独立明暗选择。六套图形皮肤均接入Logo、场景插画和完成图案，原版保留原标志。入口为“设置 → 皮肤与外观”，选择立即生效并保存。当前仍有9张素材的清晰度限制；整体视觉验收保持受限，不因本次手机启动与页面检查而关闭。
 
 后续皮肤统一按 [建设索引](docs/skins/README.md)、[机器目录](docs/skins/registry.json) 和 [建设规范](docs/skins/CONSTRUCTION.md) 开发，覆盖训练／教练／记录／设置四个一级入口及深页。当前检查见 [图形版验证记录](docs/skins/GRAPHICS_VALIDATION.md)，早期配色证据保留在 [旧图册](docs/skins/preview.html)。这是开发分支功能，尚未进入下方公开1.1.5 APK。
 

@@ -37,7 +37,9 @@
     "comparison": "docs/skins/fidelity-review.html",
     "automatedResults": "docs/skins/evidence/20261028-fidelity/automated-results.json",
     "acceptanceSummary": "docs/skins/evidence/20261028-fidelity/validation-summary.json",
-    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966"
+    "sourceFingerprint": "052a91664447f8fc5e08b49859fb753731019cff414bfef556fcd83701030966",
+    "currentPhoneInstallation": "docs/skins/PHONE_INSTALL_20261101.md",
+    "currentAutomatedSummary": "docs/skins/evidence/20261101/verification-summary.json"
   },
   "skins": [
     {
