@@ -54,17 +54,22 @@ for (const [label, file, edit, expected] of [
 
 test('a newer development version can retain the previous public release', t => {
   const root = fixture(t)
-  change(root, 'project-state.json', json => { json.currentVersion = '1.1.6'; json.androidVersionCode = 15 })
-  change(root, 'package.json', json => { json.version = '1.1.6' })
-  change(root, 'package-lock.json', json => { json.version = '1.1.6'; json.packages[''].version = '1.1.6' })
-  change(root, 'app.json', json => { json.expo.version = '1.1.6'; json.expo.android.versionCode = 15 })
+  const state = JSON.parse(fs.readFileSync(path.join(root, 'project-state.json'), 'utf8'))
+  const parts = state.currentVersion.split('.').map(Number)
+  parts[2] += 1
+  const nextVersion = parts.join('.')
+  const nextCode = state.androidVersionCode + 1
+  change(root, 'project-state.json', json => { json.currentVersion = nextVersion; json.androidVersionCode = nextCode })
+  change(root, 'package.json', json => { json.version = nextVersion })
+  change(root, 'package-lock.json', json => { json.version = nextVersion; json.packages[''].version = nextVersion })
+  change(root, 'app.json', json => { json.expo.version = nextVersion; json.expo.android.versionCode = nextCode })
   for (const file of ['AGENTS.md', 'CLAUDE.md', 'README.md', 'PROJECT_STATUS.md']) {
     const target = path.join(root, file)
-    fs.writeFileSync(target, fs.readFileSync(target, 'utf8').replaceAll('1.1.5', '1.1.6'))
+    fs.writeFileSync(target, fs.readFileSync(target, 'utf8').replaceAll(state.currentVersion, nextVersion))
   }
   const result = checkProjectState(root)
   assert.deepEqual(result.errors, [])
-  assert.equal(result.publishedTag, 'v1.1.5-preview.1')
+  assert.equal(result.publishedTag, state.publishedRelease.tag)
 })
 
 test('rejects an older checkout even when its version files agree', t => {
