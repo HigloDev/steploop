@@ -1,17 +1,17 @@
 # 循阶项目入口
 
-当前综合联调候选为 **1.1.7 / Android versionCode 16**。公开版本仍为1.1.5；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
-1.1.6为先前单独热量候选，综合联调版现为1.1.7。公开基准仍是下述1.1.5。
+当前开发与公开试用版本均为 **1.1.7 / Android versionCode 16**；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
+1.1.6为先前单独热量候选，综合联调版现为1.1.7。旧公开基准1.1.5保留于历史发布记录。
 
 ## 开始工作前
 
 1. 先读取根目录 `project-state.json` 和 `PROJECT_STATUS.md`，确认当前开发版本、公开版本及未合入修改。不要从旧报告、旧工作目录或会话记忆推断当前版本。
 2. 运行 `git rev-parse --show-toplevel`、`git status --short --branch` 和 `npm run check:project-state`。版本或远端不一致时先说明冲突，不能只改版本号来掩盖旧源码。
-3. 当前开发源码为 **1.1.7 / Android versionCode 16**，已公开版本为 **1.1.5 / Android versionCode 14**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
+3. 当前开发源码为 **1.1.7 / Android versionCode 16**，已公开版本为 **1.1.7 / Android versionCode 16**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
 
 ## 当前资料与历史边界
 
-- 当前功能、安装和构建以 `README.md`、`docs/USER_GUIDE.md`、`docs/BUILDING.md` 为入口；发布范围见 `docs/RELEASE_1.1.5.md` 和 `docs/RELEASE_READINESS_20261021.md`。
+- 当前功能、安装和构建以 `README.md`、`docs/USER_GUIDE.md`、`docs/BUILDING.md` 为入口；发布范围见 `docs/RELEASE_1.1.7.md`，历史验收边界见 `docs/RELEASE_READINESS_20261021.md`。
 - `docs/archive/` 及早期 QA 图册是历史证据，默认不作为当前规范；仅在任务需要追溯时读取。历史文件中的“当前”“最新”和测试结果只对当时版本成立。
 - 待合入修复由 `project-state.json` 的 `pendingChanges` 列出。保留分支不代表已经合入 `main` 或已包含在公开 APK 中。
 - 本地完整旧目录、未提交文件、补丁和 Git bundle 单独归档。恢复位置见被 Git 忽略的 `.project-local.json`；不要将本地配置、签名、备份、原始记录或完整私有归档加入提交。

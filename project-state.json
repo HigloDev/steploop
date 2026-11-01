@@ -6,11 +6,11 @@
   "currentVersion": "1.1.7",
   "androidVersionCode": 16,
   "publishedRelease": {
-    "version": "1.1.5",
-    "androidVersionCode": 14,
-    "tag": "v1.1.5-preview.1",
-    "sourceCommit": "77c148a63c35c179fbaa1537b422cd3a8f33fb5c",
-    "publishedDate": "2026-10-21",
+    "version": "1.1.7",
+    "androidVersionCode": 16,
+    "tag": "v1.1.7-preview.1",
+    "sourceCommit": "00a5f54b2d02d05b0c57d22ee12ca4357f2b8880",
+    "publishedDate": "2026-11-01",
     "channel": "public-preview"
   },
   "pendingChanges": [],
@@ -18,7 +18,7 @@
     "documentationIndex": "docs/archive/README.md",
     "privateLocalIndex": ".project-local.json"
   },
-  "developmentChannel": "internal-integration",
+  "developmentChannel": "public-preview",
   "integratedChanges": [
     {
       "source": "codex/fix-115-audit-20261023",
@@ -43,7 +43,7 @@
     "status": "installed-and-user-checked-source-resolution-limited",
     "registry": "docs/skins/registry.json",
     "validation": "docs/skins/GRAPHICS_VALIDATION.md",
-    "published": false,
+    "published": true,
     "priorNativeVerification": {
       "commit": "3db9cdb",
       "sourceFingerprint": "23d61f36a33900d6ed56baa5031f6f40920938e7c8c87ac5d6651f68d7e40cf8",
@@ -100,6 +100,7 @@
       "sourceCommit": "6552182",
       "apkSha256": "03668ddb959ded085120d549dba6f71b2271842928896af2e930eca60935d7a8",
       "record": "docs/skins/PHONE_INSTALL_20261029.md"
-    }
+    },
+    "publicRelease": "v1.1.7-preview.1"
   }
 }

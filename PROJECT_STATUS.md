@@ -19,6 +19,6 @@
 
 历史候选`6552182`及2026-10-29安装记录继续保留于[验证记录](docs/skins/GRAPHICS_VALIDATION.md)和[旧安装记录](docs/skins/PHONE_INSTALL_20261029.md)，不混作本次测试结果。机器入口为`project-state.json.uiSkinCandidate`。
 
-公开版本仍为 **1.1.5 / Android code 14**，标签 `v1.1.5-preview.1`，发布源码 `77c148a63c35c179fbaa1537b422cd3a8f33fb5c`。本次不更改既有公开 Release、下载页或附件。
+公开试用版更新为 **1.1.7 / Android code 16**，标签 `v1.1.7-preview.1`，应用源码 `00a5f54b2d02d05b0c57d22ee12ca4357f2b8880`。使用既有公开签名重新构建，发布说明见 [1.1.7说明](docs/RELEASE_1.1.7.md)。1.1.5及更早Release继续保留。
 
 构建、兼容处理、手机数据保全和调试证据见 [综合联调记录](docs/INTEGRATION_1.1.7_20261028.md)。历史资料见 [归档索引](docs/archive/README.md)；皮肤规范见 [皮肤索引](docs/skins/README.md)。自动检查、模拟器和真实手机验收分别记录，真实爬楼和长锁屏采样需实测。

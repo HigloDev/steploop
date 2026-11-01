@@ -1,0 +1,13 @@
+{
+  "version": "1.1.7",
+  "previousVersion": "1.1.5",
+  "environment": "isolated read-only Android emulator, API35",
+  "sameSignatureUpgrade": true,
+  "coldStart": "passed",
+  "existingStorageKeys": 8,
+  "existingValuesUnchanged": true,
+  "firstInstallTimeUnchanged": true,
+  "startupFatalErrors": 0,
+  "physicalMotionAcceptance": "pending",
+  "coachPage": "opened and visually inspected"
+}

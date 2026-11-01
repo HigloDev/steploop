@@ -1,0 +1,28 @@
+{
+  "version": "1.1.7",
+  "versionCode": 16,
+  "package": "com.zxn.palou",
+  "sourceCommit": "00a5f54b2d02d05b0c57d22ee12ca4357f2b8880",
+  "bytes": 135289958,
+  "sha256": "f1a9a8f3fb76a6b17af67f68a8139802de3885494f4876bfa2846081c37a207a",
+  "signerSha256": "81a255930d55290b199732c23f7a48e180b0170300bf3a8757c9c016d90d7e99",
+  "abis": [
+    "arm64-v8a",
+    "x86_64"
+  ],
+  "minSdk": 24,
+  "targetSdk": 36,
+  "productionBundlePresent": true,
+  "tests": {
+    "tests": 770,
+    "pass": 737,
+    "fail": 0,
+    "skipped": 33,
+    "cancelled": 0
+  },
+  "typecheck": "passed",
+  "limitations": [
+    "9 low-resolution skin assets",
+    "Physical stair counting, long-lock sampling and power acceptance pending"
+  ]
+}
