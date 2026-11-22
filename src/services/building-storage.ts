@@ -156,6 +156,7 @@ export interface FusionCheckpoint {
   endedAt?: number
   startFloor: number
   template?: BuildingTemplate
+  buildingLocation?: import('../core/types').RouteLocation
   /** 本次训练是否是新标定（结算时可保存为新模板）。 */
   calibrated: boolean
   /** 重新标定时要覆盖的模板 id。 */

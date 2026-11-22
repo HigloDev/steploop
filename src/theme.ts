@@ -1,9 +1,12 @@
 // 循阶 · 向上训练。显示层的唯一 token 来源。
 // 钴蓝承担操作与进度，冷灰组织内容；深蓝训练摘要使用独立的成对文字色。
 
+import { createContext, useContext } from 'react'
 import { TextStyle, useColorScheme } from 'react-native'
 import { useAppearance } from './appearance'
 import { normalizeSkinId, resolveAppearanceMode, SKIN_CATALOG, SkinId, SkinPaint } from './skin-catalog'
+
+export const AppSkinContext = createContext<SkinId | undefined>(undefined)
 
 export interface ShadowStyle {
   shadowColor: string
@@ -12,6 +15,54 @@ export interface ShadowStyle {
   shadowRadius: number
   elevation: number
 }
+
+/** 节奏 token：120 / 180 / 320ms，配合明确的进出场曲线与紧实弹簧。 */
+export interface MotionTokens {
+  fast: number
+  base: number
+  slow: number
+  easing: {
+    enter: readonly [number, number, number, number]
+    exit: readonly [number, number, number, number]
+    move: readonly [number, number, number, number]
+  }
+  spring: { dampingRatio: number; duration: number }
+}
+
+/** 玻璃材质：透明度、真实虚化强度、1px 以内描边与顶部高光。 */
+export interface GlassTokens {
+  /** 玻璃填充的基准不透明色；合成时按 role 透明度叠加。 */
+  fill: string
+  /** 普通玻璃填充透明度。 */
+  cardOpacity: number
+  /** 重要数据表面透明度。 */
+  featureOpacity: number
+  /** Dock 与浮层透明度。 */
+  overlayOpacity: number
+  /** expo-blur 强度（1–100）。 */
+  blurIntensity: number
+  /** Android 模糊强度折减系数。 */
+  blurReductionFactor: number
+  /** 1px 以内描边。 */
+  stroke: string
+  /** 顶部细高光。 */
+  highlight: string
+  /** 画布渐变端点：浅色冷白→冰蓝，深色海军蓝→深海军蓝（纯 #RRGGBB，不掺黑）。 */
+  backdropTop: string
+  backdropBottom: string
+  /** 右上高光晕基准色与最大不透明度（配合 stopOpacity 使用，勿用 rgba 透明黑）。 */
+  backdropBloom: string
+  backdropBloomOpacity: number
+}
+
+/** Elevation 0 背景/平面文本，1 小卡，2 主要卡/主按钮，3 Dock，4 弹层。 */
+export interface ElevationLevel {
+  borderWidth: number
+  borderColor: string
+  shadow: ShadowStyle
+}
+
+export type ElevationScale = Record<'level0' | 'level1' | 'level2' | 'level3' | 'level4', ElevationLevel>
 
 export interface Theme {
   isDark: boolean
@@ -81,9 +132,135 @@ export interface Theme {
   shadowCard: ShadowStyle
   shadowSoft: ShadowStyle
   shadowLifted: ShadowStyle
+  // 冰川玻璃版新增语义层（所有皮肤共享同一结构，非玻璃皮肤不使用 glass）。
+  space: { xs: number; sm: number; md: number; lg: number; xl: number; xxl: number; xxxl: number }
+  radius: { xs: number; sm: number; md: number; lg: number; xl: number; pill: number }
+  elevation: ElevationScale
+  glass: GlassTokens
+  motion: MotionTokens
 }
 
 const NUMERIC: TextStyle = { fontVariant: ['tabular-nums'], fontWeight: '700', letterSpacing: -1, includeFontPadding: false }
+
+export const WORKOUT_NUMBER_FONT = 'SteploopNumbers'
+
+/** Reading roles use the system face. Apply digits only to numeric runs, with units in the system face. */
+export const typography = {
+  title: { fontSize: 28, lineHeight: 37, fontWeight: '700' },
+  navigation: { fontSize: 19, lineHeight: 27, fontWeight: '600' },
+  section: { fontSize: 21, lineHeight: 29, fontWeight: '600' },
+  cardTitle: { fontSize: 18, lineHeight: 26, fontWeight: '600' },
+  control: { fontSize: 17, lineHeight: 24, fontWeight: '600' },
+  label: { fontSize: 16, lineHeight: 23, fontWeight: '500' },
+  body: { fontSize: 16, lineHeight: 24, fontWeight: '400' },
+  secondary: { fontSize: 14, lineHeight: 21, fontWeight: '400' },
+  caption: { fontSize: 13, lineHeight: 19, fontWeight: '400' },
+  digits: { ...NUMERIC, fontFamily: WORKOUT_NUMBER_FONT, fontWeight: 'normal', letterSpacing: 0 },
+} as const satisfies Record<string, TextStyle>
+
+const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const
+const radius = { xs: 6, sm: 10, md: 16, lg: 22, xl: 28, pill: 999 } as const
+const motion: MotionTokens = {
+  fast: 120,
+  base: 180,
+  slow: 320,
+  easing: {
+    enter: [0.23, 1, 0.32, 1],
+    exit: [0.23, 1, 0.32, 1],
+    move: [0.77, 0, 0.175, 1],
+  },
+  spring: { dampingRatio: 0.8, duration: 300 },
+}
+
+const glassLight: GlassTokens = {
+  fill: '#FFFFFF',
+  cardOpacity: 0.64,
+  featureOpacity: 0.82,
+  overlayOpacity: 0.46,
+  blurIntensity: 63,
+  blurReductionFactor: 4,
+  stroke: 'rgba(20, 38, 63, 0.16)',
+  highlight: 'rgba(255, 255, 255, 0.90)',
+  backdropTop: '#EDF4FD',
+  backdropBottom: '#CCDFFA',
+  backdropBloom: '#8EBBFF',
+  backdropBloomOpacity: 0.55,
+}
+
+const glassDark: GlassTokens = {
+  fill: '#16243A',
+  cardOpacity: 0.74,
+  featureOpacity: 0.88,
+  overlayOpacity: 0.61,
+  blurIntensity: 60,
+  blurReductionFactor: 4,
+  stroke: 'rgba(242, 247, 255, 0.18)',
+  highlight: 'rgba(255, 255, 255, 0.12)',
+  backdropTop: '#101C2E',
+  backdropBottom: '#142841',
+  backdropBloom: '#8EBBFF',
+  backdropBloomOpacity: 0.22,
+}
+
+const lightShadowSoft: ShadowStyle = {
+  shadowColor: '#152239',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.04,
+  shadowRadius: 7,
+  elevation: 0,
+}
+
+const lightShadowCard: ShadowStyle = {
+  shadowColor: '#152239',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
+  elevation: 0,
+}
+
+const lightShadowLifted: ShadowStyle = {
+  shadowColor: '#245CD8',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.22,
+  shadowRadius: 22,
+  elevation: 0,
+}
+
+const darkShadowSoft: ShadowStyle = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0,
+  shadowRadius: 7,
+  elevation: 0,
+}
+
+const darkShadowCard: ShadowStyle = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0,
+  shadowRadius: 17,
+  elevation: 0,
+}
+
+const darkShadowLifted: ShadowStyle = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 9 },
+  shadowOpacity: 0,
+  shadowRadius: 22,
+  elevation: 0,
+}
+
+/** 边线承担 Android 的层级；iOS 另加软阴影。每个层级只声明一次“边线或阴影”。 */
+function elevationScale(borderSoft: string, border: string, shadowSoft: ShadowStyle, shadowCard: ShadowStyle, shadowLifted: ShadowStyle): ElevationScale {
+  const flat: ShadowStyle = { shadowColor: shadowCard.shadowColor, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
+  return {
+    level0: { borderWidth: 0, borderColor: 'transparent', shadow: flat },
+    level1: { borderWidth: 0.5, borderColor: borderSoft, shadow: shadowSoft },
+    level2: { borderWidth: 1, borderColor: border, shadow: shadowCard },
+    level3: { borderWidth: 1, borderColor: border, shadow: shadowCard },
+    level4: { borderWidth: 1, borderColor: border, shadow: shadowLifted },
+  }
+}
 
 const light: Theme = {
   isDark: false,
@@ -131,37 +308,24 @@ const light: Theme = {
   tapMin: 48,
   pagePaddingH: 20,
   pagePaddingBottom: 32,
-  fontBase: 15,
-  fontEyebrow: 12,
+  fontBase: typography.body.fontSize,
+  fontEyebrow: typography.caption.fontSize,
   fontTitle: 30,
-  fontSubtitle: 14,
-  fontLabel: 13,
+  fontSubtitle: typography.secondary.fontSize,
+  fontLabel: typography.caption.fontSize,
   fontValue: 20,
   fontMetric: 30,
-  fontPill: 12,
-  fontSmall: 12,
+  fontPill: typography.caption.fontSize,
+  fontSmall: typography.caption.fontSize,
   numeric: NUMERIC,
-  shadowCard: {
-    shadowColor: '#152239',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 0,
-  },
-  shadowSoft: {
-    shadowColor: '#152239',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 7,
-    elevation: 0,
-  },
-  shadowLifted: {
-    shadowColor: '#245CD8',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 22,
-    elevation: 0,
-  },
+  shadowCard: lightShadowCard,
+  shadowSoft: lightShadowSoft,
+  shadowLifted: lightShadowLifted,
+  space,
+  radius,
+  elevation: elevationScale('#E6ECF4', '#D5DFEC', lightShadowSoft, lightShadowCard, lightShadowLifted),
+  glass: glassLight,
+  motion,
 }
 
 const dark: Theme = {
@@ -199,27 +363,11 @@ const dark: Theme = {
   redInk: '#ffa3a8',
   infoSoft: '#1d2a3d',
   infoInk: '#9fc0f0',
-  shadowCard: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0,
-    shadowRadius: 17,
-    elevation: 0,
-  },
-  shadowSoft: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0,
-    shadowRadius: 7,
-    elevation: 0,
-  },
-  shadowLifted: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 9 },
-    shadowOpacity: 0,
-    shadowRadius: 22,
-    elevation: 0,
-  },
+  shadowCard: darkShadowCard,
+  shadowSoft: darkShadowSoft,
+  shadowLifted: darkShadowLifted,
+  elevation: elevationScale('#293D58', '#384D69', darkShadowSoft, darkShadowCard, darkShadowLifted),
+  glass: glassDark,
 }
 
 /** Both training themes use explicit string colors, including animated controls. */
@@ -300,18 +448,29 @@ function mix(first: string, second: string, weight: number): string {
   return '#' + a.map((value, index) => Math.round(value * (1 - weight) + b[index] * weight).toString(16).padStart(2, '0')).join('')
 }
 
+function withAlpha(hex: string, alpha: number): string {
+  const [r, g, b] = hex.slice(1).match(/../g)!.map(channel => parseInt(channel, 16))
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 function paintTheme(base: Theme, paint: SkinPaint): Theme {
   const brandSoft = mix(paint.card, paint.brand, 0.08)
+  const line = mix(paint.card, paint.ink, 0.23)
+  const lineSoft = mix(paint.card, paint.ink, 0.12)
+  const shadowSoft = { ...base.shadowSoft, shadowColor: paint.ink }
+  const shadowCard = { ...base.shadowCard, shadowColor: paint.ink }
+  const shadowLifted = { ...base.shadowLifted, shadowColor: paint.brand }
   return { ...base, ...paint,
     inkSoft: mix(paint.ink, paint.paper, 0.14), mutedStrong: mix(paint.ink, paint.paper, 0.23),
     cardSoft: base.isDark ? mix(paint.card, paint.ink, 0.04) : '#F1F3F7', surfaceSoft: mix(paint.card, paint.brand, 0.085),
-    line: mix(paint.card, paint.ink, 0.23), lineSoft: mix(paint.card, paint.ink, 0.12),
+    line, lineSoft,
     brandInk: paint.brandText, brandBright: paint.brand, brandSoft, brandTint: mix(paint.card, paint.brand, 0.25),
     heroLine: mix(paint.heroSurface, paint.heroInk, 0.22), energy: paint.brandText,
     infoSoft: brandSoft, infoInk: paint.brandText,
     redInk: paint.dangerInk ?? base.redInk,
-    shadowCard: { ...base.shadowCard, shadowColor: paint.ink }, shadowSoft: { ...base.shadowSoft, shadowColor: paint.ink },
-    shadowLifted: { ...base.shadowLifted, shadowColor: paint.brand },
+    shadowCard, shadowSoft, shadowLifted,
+    elevation: elevationScale(lineSoft, line, shadowSoft, shadowCard, shadowLifted),
+    glass: { ...base.glass, fill: paint.card, stroke: withAlpha(paint.ink, base.isDark ? 0.18 : 0.16), highlight: withAlpha('#FFFFFF', base.isDark ? 0.12 : 0.9) },
   }
 }
 
@@ -330,6 +489,11 @@ export function getThemeSkinId(theme: Theme): SkinId {
   return normalizeSkinId(themeKeys.get(theme)?.split('/')[0])
 }
 
+/** 冰川透蓝是唯一启用玻璃材质、真实虚化与浮动 Dock 的稳定外观。 */
+export function isGlacier(theme: Theme): boolean {
+  return getThemeSkinId(theme) === 'glacier-glass'
+}
+
 export const skinGeometry = {
   sceneWidth: 156, sceneHeight: 112, compactWidth: 112, compactHeight: 84,
   featureWidth: 300, featureHeight: 160, featureSmallHeight: 96,
@@ -339,11 +503,11 @@ export const skinGeometry = {
 /** Graphic skins share reading hierarchy; artwork geometry remains skin-specific. */
 export const skinTypography = {
   introduction: { fontSize: 22, lineHeight: 30, fontWeight: '700' },
-  section: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
-  cardTitle: { fontSize: 18, lineHeight: 26, fontWeight: '600' },
-  label: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
-  body: { fontSize: 15, lineHeight: 24, fontWeight: '400' },
-  secondary: { fontSize: 14, lineHeight: 22, fontWeight: '400' },
+  section: typography.section,
+  cardTitle: typography.cardTitle,
+  label: typography.label,
+  body: typography.body,
+  secondary: typography.secondary,
 } as const satisfies Record<string, TextStyle>
 
 export type SkinPage = 'home' | 'coach' | 'history' | 'settings'
@@ -360,6 +524,7 @@ const skinPageHeights: Record<SkinId, Record<SkinPage, number>> = {
   'eva-unit-02': { home: 210, coach: 238, history: 132, settings: 196 },
   pikachu: { home: 244, coach: 246, history: 160, settings: 150 },
   'k-on': { home: 290, coach: 312, history: 160, settings: 112 },
+  'glacier-glass': { home: 96, coach: 72, history: 64, settings: 64 },
 }
 export function getSkinPageHeight(theme: Theme, page: SkinPage, width: number): number {
   return skinPageHeights[getThemeSkinId(theme)][page] * Math.min(width / 360, 1.22)
@@ -422,6 +587,7 @@ const skinLayouts: Record<SkinId, { tabs: readonly [number, number]; compactCata
   'eva-unit-02': { tabs: [80, 80], compactCatalog: false, compactHistory: false, compactWeek: false },
   pikachu: { tabs: [78, 74], compactCatalog: true, compactHistory: true, compactWeek: true, compactRecent: 'inline', homeOverlap: [12, 22] },
   'k-on': { tabs: [64, 74], compactCatalog: true, compactHistory: true, compactWeek: true },
+  'glacier-glass': { tabs: [64, 64], compactCatalog: true, compactHistory: true, compactWeek: true, compactRecent: 'inline' },
 }
 export function getSkinLayout(theme: Theme) {
   const layout = skinLayouts[getThemeSkinId(theme)]
@@ -435,11 +601,13 @@ export function getTheme(skinId: unknown, mode: 'light' | 'dark'): Theme {
 export function useTheme(): Theme {
   const scheme = useColorScheme()
   const selection = useAppearance()
-  return getTheme(selection.skinId, resolveAppearanceMode(selection.mode, scheme))
+  const appSkinId = useContext(AppSkinContext)
+  return getTheme(appSkinId ?? selection.skinId, resolveAppearanceMode(selection.mode, scheme))
 }
 
 const workoutThemeCache = new WeakMap<Theme, WorkoutPalette>()
 export function getWorkoutPalette(theme: Theme): WorkoutPalette {
+  // 训练页与其余页面使用同一外观选择：浅色保持浅色，深色保持深色；跟随系统由 useTheme 解析。
   if (theme === light) return workoutLight
   if (theme === dark) return workoutDark
   const cached = workoutThemeCache.get(theme)
@@ -471,7 +639,8 @@ export { light, dark }
 export const visual = {
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, page: 20, section: 24, xl: 32 },
   radius: { control: 12, card: 16, hero: 20, sheet: 24, pill: 999 },
-  type: { title: 28, heading: 18, body: 16, secondary: 14, caption: 12, numericWeight: '700' as const },
+  type: { title: typography.title.fontSize, heading: typography.cardTitle.fontSize, body: typography.body.fontSize,
+    secondary: typography.secondary.fontSize, caption: typography.caption.fontSize, numericWeight: '700' as const },
   controlHeight: 52,
   // `orange` is the legacy export key used by existing poster templates.
   poster: { background: '#F2F6FC', ink: '#152239', muted: '#5E6B7E', orange: '#245CD8', line: '#D5DFEC', tint: '#DCE8FF' },
@@ -479,7 +648,9 @@ export const visual = {
 
 export const sport = {
   space: { xs: 4, sm: 8, md: 12, lg: 16, page: 20, section: 24, xl: 32, xxl: 40 },
-  type: { micro: 10, caption: 12, secondary: 13, body: 15, label: 16, heading: 20, title: 28, display: 36, number: 64, live: 112 },
+  type: { micro: 10, caption: typography.caption.fontSize, secondary: typography.secondary.fontSize,
+    body: typography.body.fontSize, label: typography.label.fontSize, heading: typography.section.fontSize,
+    title: typography.title.fontSize, display: 36, number: 64, live: 112 },
   radius: { small: 8, control: 12, panel: 16, hero: 20, pill: 999 },
   control: 52,
   opacity: { pressed: 0.76, disabled: 0.42 },

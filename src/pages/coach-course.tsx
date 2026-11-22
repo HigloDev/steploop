@@ -19,6 +19,10 @@ export default function CoachCourse({ navigation, route }: RootStackScreen<'Coac
     <CoachText size="value" style={skinTypography.introduction}>{course.description}</CoachText>
     <CoachText tone="accent">{course.duration} · {course.outcome}</CoachText>
     <CoachMessage error={data.error} loading={data.loading} retry={() => void data.refresh()} />
+    <View style={{ gap: 12 }}>
+      {current?.courseId === course.id ? <Button title="回到正在进行的课程" onPress={() => navigation.navigate('Main', { screen: 'Coach' })} /> :
+        <Button title={course.id === 'weight' ? '设定目标，开始体重管理' : '安排我的第一周'} disabled={!data.state || !!data.error} onPress={enroll} />}
+    </View>
     <CoachSection title="课程会陪你做什么">
       {course.lessons.map((lesson, i) => <CoachText key={lesson}>{i + 1}. {lesson}</CoachText>)}
     </CoachSection>
@@ -34,9 +38,6 @@ export default function CoachCourse({ navigation, route }: RootStackScreen<'Coac
       <CoachText size="small" tone="muted">{course.source}。课程名称、周期和界面安排为循阶设计。</CoachText>
       <Button title="阅读原始资料" variant="secondary" onPress={() => void Linking.openURL(course.url).catch(() => data.setError('资料链接暂时无法打开，请稍后重试。'))} />
     </CoachSection>
-    <View style={{ gap: 12 }}>
-      {current?.courseId === course.id ? <Button title="回到正在进行的课程" onPress={() => navigation.navigate('Main', { screen: 'Coach' })} /> :
-        <Button title={course.id === 'weight' ? '设定目标，开始体重管理' : '安排我的第一周'} disabled={!data.state || !!data.error} onPress={enroll} />}
-    </View>
+
   </CoachPage>
 }

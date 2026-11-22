@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon, resolveUIIconName } from './ui-icon'
 import { LANDMARKS, ascentReference, normalizeAscent, referenceProgress } from '../core/landmarks'
 import { Theme, useTheme } from '../theme'
 import { FlowSheet } from './flow-sheet'
@@ -16,12 +16,12 @@ export function AscentReferences({ visible, onClose, ascentM, floors }: {
     <View style={styles.topRow}>
       <Text style={styles.current}>本周 {Number(value.toFixed(2))} 米 · {floors} 层</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="关闭高度参照" onPress={onClose} style={styles.close}>
-        <MaterialCommunityIcons name="close" size={24} color={theme.mutedStrong} accessible={false} />
+        <UIIcon name="close" size={24} color={theme.mutedStrong} accessible={false} />
       </Pressable>
     </View>
     <Text style={styles.hint}>建筑看自身高度，山峰看海拔，只作高度对照。</Text>
     <View style={styles.next} accessible accessibilityLabel={next ? `下一站 ${next.name}，还差 ${Math.ceil(remainingM)} 米` : '已达到珠峰海拔相当的高度'}>
-      <MaterialCommunityIcons name={next?.kind === 'mountain' || !next ? 'terrain' : 'flag-checkered'} size={28} color={theme.brandText} accessible={false} />
+      <UIIcon name={resolveUIIconName(next?.kind === 'mountain' || !next ? 'terrain' : 'flag-checkered')} size={28} color={theme.brandText} accessible={false} />
       <View style={{ flex: 1 }}>
         <Text style={styles.nextTitle}>{next ? `下一站 · ${next.name}` : '已达到珠峰相当高度'}</Text>
         <Text style={styles.nextHint}>{next ? `再向上 ${Math.ceil(remainingM)} 米` : `珠峰海拔的 ${(value / LANDMARKS[LANDMARKS.length - 1].heightM).toFixed(2)} 倍`}</Text>
@@ -40,14 +40,14 @@ export function AscentReferences({ visible, onClose, ascentM, floors }: {
           </Text> : null}
           <View accessible accessibilityLabel={`${item.name}，${item.note} ${item.heightM} 米，${progress}`} style={[styles.row, isNext && styles.rowNext]}>
             <View style={[styles.icon, reached && styles.iconReached]}>
-              <MaterialCommunityIcons name={icon} size={24} color={reached || isNext ? theme.brandText : theme.mutedStrong} accessible={false} />
+              <UIIcon name={resolveUIIconName(icon)} size={24} color={reached || isNext ? theme.brandText : theme.mutedStrong} accessible={false} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.meta}>{item.heightM} 米 · {item.note}</Text>
             </View>
             <View style={styles.progress}>
-              {reached ? <MaterialCommunityIcons name="check" size={16} color={theme.brandInk} accessible={false} /> : null}
+              {reached ? <UIIcon name="check" size={16} color={theme.brandInk} accessible={false} /> : null}
               <Text style={[styles.progressText, (reached || isNext) && { color: theme.brandInk }]}>{progress}</Text>
             </View>
           </View>

@@ -16,6 +16,10 @@ const catalog = catalogContext.exports
 const context = {
   exports: {},
   require(name) {
+    if (name === 'react') return {
+      createContext: defaultValue => ({ value: defaultValue }),
+      useContext: context => context.value,
+    }
     if (name === 'react-native') return { useColorScheme: () => systemScheme }
     if (name === './appearance') return { useAppearance: () => selection }
     if (name === './skin-catalog') return catalog
@@ -131,6 +135,31 @@ test('manual mode wins over the system and system mode follows later changes', (
     }
   }
   selection = { skinId: 'classic', mode: 'system' }
+})
+
+test('app skin context fixes the normal app while preserving stored and UIQA selections', () => {
+  for (const skinId of ['classic', 'pikachu']) {
+    for (const mode of ['light', 'dark', 'system']) {
+      for (const scheme of ['light', 'dark']) {
+        selection = { skinId, mode }
+        systemScheme = scheme
+        const resolved = mode === 'dark' || (mode === 'system' && scheme === 'dark') ? 'dark' : 'light'
+        const before = { ...selection }
+        context.exports.AppSkinContext.value = undefined
+        assert.equal(useTheme(), getTheme(skinId, resolved))
+        if (skinId === 'classic') assert.equal(useTheme(), resolved === 'dark' ? dark : light)
+        assert.equal(useWorkoutPalette().bg, useTheme().paper)
+        context.exports.AppSkinContext.value = 'glacier-glass'
+        assert.equal(useTheme(), getTheme('glacier-glass', resolved))
+        assert.equal(useTheme().isDark, resolved === 'dark')
+        assert.equal(useWorkoutPalette().bg, useTheme().paper)
+        assert.deepEqual(selection, before)
+      }
+    }
+  }
+  context.exports.AppSkinContext.value = undefined
+  selection = { skinId: 'classic', mode: 'system' }
+  systemScheme = null
 })
 
 test('construction registry matches all runtime IDs and both palettes', () => {

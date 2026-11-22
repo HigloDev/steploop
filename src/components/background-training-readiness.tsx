@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AppState, Linking, Pressable, Text, View } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon, resolveUIIconName } from './ui-icon'
 import { Button } from './ui'
 import { sport, useTheme } from '../theme'
 import {
@@ -88,10 +88,10 @@ export function BackgroundTrainingReadiness({ compact = false, grouped = false, 
       onPress={() => { if (index === 2) void open(!status?.batteryOptimizationIgnored); else void Linking.openSettings().catch(() => setError('无法打开系统页面，请在手机设置中检查循阶的权限。')) }}
       style={{ minHeight: 64, paddingVertical: sport.space.md, flexDirection: 'row', alignItems: 'center', gap: sport.space.md,
         borderTopWidth: index ? 0.5 : 0, borderTopColor: theme.line }}>
-      <MaterialCommunityIcons name={icon} size={24} color={theme.ink} />
+      <UIIcon name={resolveUIIconName(icon)} size={24} color={theme.ink} />
       <View style={{ flex: 1, gap: sport.space.xs }}><Text style={{ color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' }}>{label}</Text>
         <Text style={{ color: theme.mutedStrong, fontSize: sport.type.secondary, lineHeight: 20 }}>{allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}</Text></View>
-      <MaterialCommunityIcons name={index === 2 ? 'chevron-right' : allowed ? 'check-circle' : 'alert-circle-outline'}
+      <UIIcon name={resolveUIIconName(index === 2 ? 'chevron-right' : allowed ? 'check-circle' : 'alert-circle-outline')}
         size={24} color={index === 2 ? theme.brandText : allowed ? theme.success : theme.amberInk} />
     </Pressable>)}
     <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 8 }}>权限就绪不代表后台采样一定连续。</Text>

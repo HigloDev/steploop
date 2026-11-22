@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react'
-import { Alert, Pressable, View } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Alert, ImageSourcePropType, Pressable, useWindowDimensions, View } from 'react-native'
+import { UIIcon, resolveUIIconName } from '../components/ui-icon'
 import { SkinCourseThumbnail } from '../components/skin-detail-art'
+import { TrackedImage } from '../components/tracked-image'
 import { MainTabScreen } from '../navigation/types'
 import { Button, Card, Pill } from '../components/ui'
 import { CoachMessage, CoachPage, CoachSection, CoachText, WeightTrend, displayDate, minutesText, todayKey, useCoachData } from '../components/coach-ui'
@@ -10,10 +11,16 @@ import {
   nextSession, sessionProgress, weekStart, weeklySummary, weightGoalReached,
 } from '../core/coach'
 import { setEnrollmentStatus } from '../services/coach-storage'
-import { getSkinLayout, getThemeSkinId, skinTypography, useTheme } from '../theme'
+import { getSkinLayout, getThemeSkinId, isGlacier, isLargeText, skinTypography, useTheme } from '../theme'
+import { getGlassSurfaceStyle } from '../components/glass-material'
+import { MotionPressable } from '../components/motion-pressable'
+
+// 已确认的剪纸楼梯品牌资产（920×690），与首页共用同一份原图。
+const GLACIER_STAIRWELL = require('../../assets/skins/glacier-glass/stairwell.webp') as ImageSourcePropType
 
 export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
   const t = useTheme(), data = useCoachData(navigation)
+  const glass = isGlacier(t)
   const [busy, setBusy] = useState(false), lock = useRef(false)
   const s = data.state, today = todayKey()
   const e = s ? activeEnrollment(s) : undefined
@@ -23,9 +30,23 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
   const graphic = getThemeSkinId(t) !== 'classic'
   const compact = getSkinLayout(t).compactCatalog
   const rightPortrait = ['eva-unit-01', 'eva-unit-02', 'pikachu'].includes(getThemeSkinId(t))
-  const introduction = <View style={{ gap: 8, marginTop: 12 }}>
-    <CoachText size="value" style={{ ...skinTypography.introduction, maxWidth: rightPortrait ? '60%' : '100%' }}>{getThemeSkinId(t) === 'k-on' ? '给每一次向上，\n一个方向。' : '给每一次向上，一个方向。'}</CoachText>
-    <CoachText tone="muted" style={{ ...skinTypography.secondary, maxWidth: rightPortrait ? '58%' : '100%' }}>选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText>
+  const { fontScale, width } = useWindowDimensions()
+  const largeText = isLargeText(fontScale)
+  // 130% 大字时缩小剪纸楼梯装饰，给左侧课程文字留出可读宽度。
+  const coachArtWidth = largeText ? 64 : 112
+  const coachArtHeight = Math.round(coachArtWidth * 690 / 920)
+  const showIntroductionArt = glass && !largeText && width >= 355
+  const introduction = <View style={glass ? [
+    getGlassSurfaceStyle(t, 'feature'),
+    { gap: t.space.sm, padding: t.space.lg, borderRadius: t.radius.xl, minHeight: showIntroductionArt ? 104 : undefined,
+      justifyContent: 'center', overflow: 'hidden' },
+  ] : { gap: 8, marginTop: 12 }}>
+    {showIntroductionArt ? <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+      style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '28%', opacity: t.isDark ? 0.18 : 0.55 }}>
+      <TrackedImage identity={`art/glacier-glass/${t.isDark ? 'dark' : 'light'}/coach-catalog-stairwell`} source={GLACIER_STAIRWELL}
+        resizeMode="cover" accessible={false} style={{ width: '100%', height: '100%' }} />
+    </View> : null}
+    <CoachText size="value" style={{ ...skinTypography.introduction, maxWidth: rightPortrait || showIntroductionArt ? '60%' : '100%' }}>{getThemeSkinId(t) === 'k-on' ? '给每一次向上，\n一个方向。' : '给每一次向上，一个方向。'}</CoachText>
   </View>
   const status = async (id: string, value: 'active' | 'paused' | 'completed' | 'maintaining') => {
     if (lock.current) return
@@ -40,6 +61,23 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
       {e ? <>
         <View style={{ gap: 8 }}>
           <Pill>{e.status === 'maintaining' ? '维持阶段' : '正在进行'} · {courseById(e.courseId).name}</Pill>
+          <Card style={glass && getGlassSurfaceStyle(t, 'feature')}>
+            <View style={glass ? { flexDirection: 'row', gap: 12, alignItems: 'stretch' } : undefined}>
+              <View style={glass ? { flex: 1, minWidth: 0, gap: 12, justifyContent: 'center' } : { gap: 12 }}>
+                <CoachText size="title" accessibilityRole="header">{next?.date === today ? '今天，按自己的节奏向上' : '今天留给恢复与日常活动'}</CoachText>
+                <CoachText tone="muted">{next
+                  ? (next.date === today ? '本次' : '下次 ' + displayDate(next.date)) + ' · 净上爬 ' + minutesText(next.targetMinutes) + ' 分钟，另含热身、返回和恢复。'
+                  : endDate(e) < today ? '这阶段已到复盘日期。看看记录，再调整后续计划。' : '本阶段课程已完成，保持舒适的日常活动。'}</CoachText>
+                {next ? <Button title={next.date === today ? '查看并开始今日课程' : '查看下次课程'} onPress={() => navigation.navigate('CoachSession', { sessionId: next.id })} /> :
+                  <Button title="调整后续计划" onPress={() => navigation.navigate('CoachGoal', { courseId: e.courseId, enrollmentId: e.id })} />}
+              </View>
+              {glass ? <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+                style={{ width: coachArtWidth, height: coachArtHeight, borderRadius: 12, overflow: 'hidden', alignSelf: 'center', flexShrink: 0 }}>
+                <TrackedImage identity={`art/glacier-glass/${t.isDark ? 'dark' : 'light'}/coach-today-stairwell`} source={GLACIER_STAIRWELL} resizeMode="cover" accessible={false}
+                  style={{ width: coachArtWidth, height: coachArtHeight }} />
+              </View> : null}
+            </View>
+          </Card>
           {e.courseId === 'weight' ? <>
             <CoachText size="value">{recent ? recent.weightKg.toFixed(1) : '—'} <CoachText tone="muted">公斤</CoachText></CoachText>
             <CoachText tone="muted">{e.goalMode === 'lose' ? '目标 ' + e.targetWeightKg + ' 公斤' : '维持在 ' + e.targetWeightKg + ' 公斤附近'} · {displayDate(endDate(e))}阶段复盘</CoachText>
@@ -50,28 +88,19 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
               <Button title="近期均重达到目标，转入维持" disabled={busy} onPress={() => void status(e.id, 'maintaining')} /> : null}
           </> : <CoachText size="value">从今天的这一小段开始。</CoachText>}
         </View>
-        <Card>
-          <View style={{ gap: 12 }}>
-            <CoachText size="title" accessibilityRole="header">{next?.date === today ? '今天，按自己的节奏向上' : '今天留给恢复与日常活动'}</CoachText>
-            <CoachText tone="muted">{next
-              ? (next.date === today ? '本次' : '下次 ' + displayDate(next.date)) + ' · 净上爬 ' + minutesText(next.targetMinutes) + ' 分钟，另含热身、返回和恢复。'
-              : endDate(e) < today ? '这阶段已到复盘日期。看看记录，再调整后续计划。' : '本阶段课程已完成，保持舒适的日常活动。'}</CoachText>
-            {next ? <Button title={next.date === today ? '查看并开始今日课程' : '查看下次课程'} onPress={() => navigation.navigate('CoachSession', { sessionId: next.id })} /> :
-              <Button title="调整后续计划" onPress={() => navigation.navigate('CoachGoal', { courseId: e.courseId, enrollmentId: e.id })} />}
-          </View>
-        </Card>
+
         {summary ? <CoachSection title="这一周，已经走到这里">
           <CoachText size="value">{summary.completed} / {summary.planned} <CoachText tone="muted">次课程完成</CoachText></CoachText>
           <CoachText tone="muted">已记录净上爬 {minutesText(summary.minutes)} 分钟{summary.attempted > summary.completed ? '，未完成的努力也已保留' : ''}。</CoachText>
           {s.sessions.filter(v => v.enrollmentId === e.id && v.date >= weekStart(today) && v.date <= addDays(weekStart(today), 6)).map(session => {
             const progress = sessionProgress(s, session)
-            return <Pressable key={session.id} accessibilityRole="button"
+            return <MotionPressable key={session.id} accessibilityRole="button" contentStyle={{ gap: 4 }}
               accessibilityLabel={session.date + '课程，' + (progress.completed ? '已完成' : session.skipped ? '已跳过' : '查看安排')}
               onPress={() => navigation.navigate('CoachSession', { sessionId: session.id })}
               style={({ pressed }) => ({ minHeight: t.tapMin, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.lineSoft, opacity: pressed ? 0.6 : 1, gap: 4 })}>
               <CoachText>{displayDate(session.date)} · 上爬 {minutesText(session.targetMinutes)} 分钟</CoachText>
               <CoachText size="small" tone="muted">{progress.completed ? '已完成' : session.skipped ? '已跳过，不补量' : session.date < today ? '未完成，不补量' : progress.minutes > 0 ? '已练 ' + minutesText(progress.minutes) + ' 分钟，可继续' : session.date === today ? '今天的安排' : '待开始'}</CoachText>
-            </Pressable>
+            </MotionPressable>
           })}
           <Button title="做一次本周复盘" variant="secondary" onPress={() => navigation.navigate('CoachReview', { enrollmentId: e.id })} />
         </CoachSection> : null}
@@ -86,25 +115,28 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
           ])} />
         </CoachSection>
       </> : <View style={{ gap: 12 }}>
-        {!graphic ? <><CoachText size="value">{'给每一次向上，\n一个方向。'}</CoachText>
-          <CoachText tone="muted">选一门适合自己的课程。教练会陪你安排训练、留下记录，再一起回顾。</CoachText></> : null}
-        <Button title="设定我的体重目标" style={compact ? { minHeight: 52, paddingVertical: 12 } : undefined} onPress={() => navigation.navigate('CoachCourse', { courseId: 'weight' })} />
+        {!graphic ? <CoachText size="value">{'给每一次向上，\n一个方向。'}</CoachText> : null}
+        <Button title="设定我的体重目标" variant="secondary" style={compact ? { minHeight: 52, paddingVertical: 12 } : undefined} onPress={() => navigation.navigate('CoachCourse', { courseId: 'weight' })} />
       </View>}
       <CoachSection title="选择课程">
-        {COACH_COURSES.map(course => <Pressable key={course.id} accessibilityRole="button" accessibilityLabel={course.name + '，' + course.duration}
+        {COACH_COURSES.map(course => <MotionPressable key={course.id} accessibilityRole="button" accessibilityLabel={course.name + '，' + course.duration}
+          contentStyle={{ gap: 8 }}
           onPress={() => navigation.navigate('CoachCourse', { courseId: course.id })}
-          style={({ pressed }) => ({ paddingVertical: 16, gap: 8, borderBottomWidth: 1, borderBottomColor: t.lineSoft, opacity: pressed ? 0.6 : 1,
-            ...(getThemeSkinId(t) === 'classic' ? {} : { paddingHorizontal: compact ? 12 : 16, paddingVertical: compact ? 12 : 16, backgroundColor: t.card, borderWidth: 1, borderColor: t.lineSoft, borderRadius: t.radiusLg }) })}>
+          style={({ pressed }) => ({ paddingVertical: 16, gap: 8, opacity: pressed ? 0.6 : 1,
+            ...(getThemeSkinId(t) === 'classic'
+              ? { borderBottomWidth: 1, borderBottomColor: t.lineSoft }
+              : { paddingHorizontal: compact ? 12 : 16, paddingVertical: compact ? 12 : 16, borderRadius: t.radiusLg,
+                  ...(glass ? getGlassSurfaceStyle(t, 'card') : { backgroundColor: t.card, borderWidth: 1, borderColor: t.lineSoft }) }) })}>
           {graphic ? <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
             <View style={{ width: compact ? 48 : 52, height: compact ? 60 : 64, borderRadius: 12, backgroundColor: t.brandSoft, alignItems: 'center', justifyContent: 'center' }}>
               <SkinCourseThumbnail course={course.id} size={40} />
             </View>
             <View style={{ flex: 1, minWidth: 0, gap: 4 }}><CoachText size="title" style={skinTypography.cardTitle}>{course.name}</CoachText>
               <CoachText tone="muted" style={skinTypography.secondary}>{course.duration} · {course.description}</CoachText></View>
-            <Feather name="chevron-right" size={18} color={t.muted} />
-          </View> : <><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name={course.icon} size={24} color={t.brandText} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><Feather name="chevron-right" size={20} color={t.muted} /></View>
+            <UIIcon name="chevron-right" size={18} color={t.muted} />
+          </View> : <><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><UIIcon name={resolveUIIconName(course.icon)} size={24} color={t.brandText} /><CoachText size="title" style={{ flex: 1 }}>{course.name}</CoachText><UIIcon name="chevron-right" size={20} color={t.muted} /></View>
           <CoachText tone="muted">{course.duration} · {course.description}</CoachText></>}
-        </Pressable>)}
+        </MotionPressable>)}
       </CoachSection>
       {s.enrollments.filter(v => v.status === 'paused' || v.status === 'completed').length ? <CoachSection title="我的其他阶段">
         {[...s.enrollments].filter(v => v.status === 'paused' || v.status === 'completed').reverse().map(v => <View key={v.id} style={{ gap: 8 }}>
@@ -115,7 +147,6 @@ export default function CoachHome({ navigation }: MainTabScreen<'Coach'>) {
         {e ? <CoachText size="small" tone="muted">先暂停当前课程，即可继续其他阶段。</CoachText> : null}
       </CoachSection> : null}
       <Button title="全部体重、课程与复盘记录" variant="secondary" onPress={() => navigation.navigate('CoachRecords', undefined)} />
-      <CoachText size="small" tone="muted">课程安排可根据感受调整。热量为估算值，体重变化不作保证。教练数据随本机备份一起保存。</CoachText>
     </> : null}
   </CoachPage>
 }

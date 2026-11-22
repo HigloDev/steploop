@@ -7,9 +7,9 @@
 
 import { CoachWorkoutFeedback } from '../components/coach-workout-feedback'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon, type UIIconName } from '../components/ui-icon'
 
 import { Header } from '../components/Header'
 import { SkinLead } from '../components/skin-art'
@@ -36,7 +36,10 @@ import {
   saveBuilding,
 } from '../services/building-storage'
 import { getWorkout, saveWorkout } from '../services/workout-storage'
-import { sport, Theme, useTheme } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
+import { GlacierCompletionArt } from '../components/glacier-completion'
+import { MotionPressable } from '../components/motion-pressable'
+import { isGlacier, isLargeText, sport, Theme, typography, useTheme } from '../theme'
 
 function dateText(timestamp: number): string {
   const date = new Date(timestamp)
@@ -51,8 +54,12 @@ function roundLabel(round: WorkoutRound): string {
 export default function SummaryScreen({ navigation, route }: RootStackScreen<'WorkoutResult'>) {
   const theme = useTheme()
   const styles = useMemo(() => makeStyles(theme), [theme])
+  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
+  const { width, fontScale } = useWindowDimensions()
+  const twoColumns = width < 360 || isLargeText(fontScale)
   const [workout, setWorkout] = useState<ClimbWorkout | null>(null)
+  const [flightReplay, setFlightReplay] = useState(0)
   const [template, setTemplate] = useState<BuildingTemplate>()
   const [pending, setPending] = useState<PendingTemplate | null>(null)
   const [templateName, setTemplateName] = useState('')
@@ -80,7 +87,8 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
           setPending(draft)
           setTemplate(draft.template)
           const original = draft.replaceTemplateId ? await getBuilding(draft.replaceTemplateId) : undefined
-          setTemplateName(original?.name ?? `我的楼栋 · ${floorCount(draft.template)} 层`)
+          const suggestedName = draft.template.location?.address?.slice(0, 24) || `我的楼栋 · ${floorCount(draft.template)} 层`
+          setTemplateName(original?.name ?? suggestedName)
         } else if (stored.buildingId) {
           setTemplate(await getBuilding(stored.buildingId))
         }
@@ -189,30 +197,68 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
 
   return (
     <View style={styles.page}>
-      {route.params.fresh && !celebrationDone && totals.floors > 0 ? <CompletionCelebration floors={totals.floors} ascentM={totals.ascent} onDone={() => setCelebrationDone(true)} /> : null}
+      {glass ? <GlassBackdrop /> : null}
+      {!glass && route.params.fresh && !celebrationDone && totals.floors > 0 ? <CompletionCelebration floors={totals.floors} ascentM={totals.ascent} onDone={() => setCelebrationDone(true)} /> : null}
       <Header title={route.params.fresh ? '训练完成' : '训练详情'} align={pending || savedTemplate ? 'left' : 'center'} back rightLabel="完成" onRightPress={() => navigation.navigate('Main', { screen: 'Train' })} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-        <SkinLead kind="achievement" compact>
-          <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
-          <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上\n了一程。' : '每一程，\n都留下高度。'}</Text>
-        </SkinLead>
-        <View style={styles.hero} accessible accessibilityLabel={`总爬升 ${totals.ascent} 米，${totals.floors} 层`}>
-          <Text style={styles.heroLabel}>累计爬升 <Text style={styles.englishLabel}> / TOTAL ASCENT</Text></Text>
-          <View style={styles.heroRow}>
-            <Text selectable style={styles.heroValue}>{totals.ascent}</Text>
-            <Text style={styles.heroUnit}>米</Text>
-            <MaterialCommunityIcons name="stairs-up" size={52} color={theme.brandTint} style={{ marginLeft: 'auto' }} accessible={false} />
+        {glass ? (
+          <View style={styles.achievementGlass}>
+            <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
+            {!pending && route.params.fresh ? (savedTemplate ? (
+              <View style={[styles.card, styles.savedCard]}>
+                <UIIcon name="check-circle" size={22} color={theme.success} />
+                <Text style={styles.savedText}>已保存「{template?.name}」，首页可直接选用。</Text>
+              </View>
+            ) : (
+              <View style={styles.savedCard}>
+                <UIIcon name="check-circle" size={20} color={theme.success} />
+                <View style={{ flex: 1 }}><Text style={styles.savedTitle}>成绩已保存</Text></View>
+              </View>
+            )) : null}
           </View>
-        <View style={styles.metrics}>
-          <Metric styles={styles} label="总层数" value={String(totals.floors)} unit="层" />
-          <Metric styles={styles} label="轮数" value={String(totals.rounds)} unit="轮" divider />
-          <Metric styles={styles} label="用时" value={formatDuration(totals.elapsed)} divider />
-          <Metric styles={styles} label="千卡" value={formatCalories(totals.calories)} divider />
+        ) : (
+          <SkinLead kind="achievement" compact>
+            <Text style={styles.date}>{dateText(workout.startedAt)} · {workout.routeSnapshot.name}</Text>
+            <Text accessibilityRole="header" style={styles.completionTitle}>{route.params.fresh ? '今天，又向上\n了一程。' : '每一程，\n都留下高度。'}</Text>
+          </SkinLead>
+        )}
+        <View style={[styles.hero, glass && [getGlassSurfaceStyle(theme, 'feature'), styles.heroGlass]]} accessible accessibilityLabel={`总爬升 ${totals.ascent} 米，${totals.floors} 层`}>
+          <Text style={styles.heroLabel}>累计爬升</Text>
+          <Text selectable numberOfLines={1} adjustsFontSizeToFit style={styles.heroReading}>
+            <Text style={styles.heroValue}>{totals.ascent}</Text><Text style={styles.heroUnit}>{'\u00A0米'}</Text>
+          </Text>
+          <View style={styles.metrics}>
+            {([
+              { icon: 'stairs', label: '总层数', value: String(totals.floors), unit: '层' },
+              { icon: 'rounds', label: '轮数', value: String(totals.rounds), unit: '轮' },
+              { icon: 'clock', label: '用时', value: formatDuration(totals.elapsed) },
+              { icon: 'fire', label: '热量', value: formatCalories(totals.calories), unit: '千卡', estimated: true },
+            ] satisfies MetricData[]).map((metric, index) => <Metric key={metric.icon} {...metric} styles={styles} color={theme.brandText}
+              half={twoColumns} divider={twoColumns ? index % 2 === 1 : index > 0} nextRow={twoColumns && index >= 2} />)}
+          </View>
         </View>
-        </View>
-        <Disclosure compact title="热量估算依据"><CalorieEstimateDetails estimate={getWorkoutCalorieEstimate(workout)} /></Disclosure>
+        {!route.params.fresh ? <Disclosure compact title="热量估算依据"><CalorieEstimateDetails estimate={getWorkoutCalorieEstimate(workout)} /></Disclosure> : null}
+        {glass && totals.floors > 0 ? (
+          <View style={styles.achievementGlass}>
+            <GlacierCompletionArt
+              key={`${workout.id}:${flightReplay}`}
+              floors={totals.floors}
+              fresh={route.params.fresh || flightReplay > 0}
+              size={Math.min(248, width - theme.pagePaddingH * 2)}
+              sound={flightReplay === 0}
+            />
+            <MotionPressable
+              accessibilityRole="button" accessibilityLabel="重播盖楼动画"
+              style={styles.flightReplay} contentStyle={styles.flightReplayContent}
+              onPress={() => setFlightReplay(value => value + 1)}
+            >
+              <UIIcon name="replay" size={18} color={theme.brandText} accessible={false} />
+              <Text style={styles.flightReplayText}>重播盖楼</Text>
+            </MotionPressable>
+          </View>
+        ) : null}
         {workout.coach ? <CoachWorkoutFeedback workout={workout} navigation={navigation} /> : null}
-        <View style={styles.roundCard}>
+        <View style={[styles.roundCard, glass && [getGlassSurfaceStyle(theme, 'card'), styles.roundCardGlass]]}>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}><Text style={styles.section}>每趟的节奏</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 }}>
@@ -226,7 +272,7 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
           <View style={styles.notes}>
             {notes.slice(0, 5).map(note => (
               <View key={note} style={styles.noteRow}>
-                <MaterialCommunityIcons name="information-outline" size={16} color={theme.amberInk} />
+                <UIIcon name="info" size={16} color={theme.amberInk} />
                 <Text style={styles.noteText}>{note}</Text>
               </View>
             ))}
@@ -255,25 +301,25 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
               accessibilityLabel="楼栋名称"
             />
               {templateName.length > 0 ? <Pressable accessibilityRole="button" accessibilityLabel="清空楼栋名称" disabled={busy} onPress={() => setTemplateName('')} style={styles.clearButton}>
-                <MaterialCommunityIcons name="close-circle" size={20} color={theme.mutedStrong} accessible={false} />
+                <UIIcon name="close-circle" size={20} color={theme.mutedStrong} accessible={false} />
               </Pressable> : null}
             </View>
             <Pressable accessibilityRole="button" disabled={busy} onPress={saveTemplate} style={({ pressed }) => [styles.primary, pressed && { opacity: 0.85 }]}>
               <Text style={styles.primaryText}>{busy ? '保存中…' : pending.replaceTemplateId ? '更新模板' : '保存模板'}</Text>
             </Pressable>
           </View>
-        ) : savedTemplate ? (
+        ) : glass && route.params.fresh ? null : savedTemplate ? (
           <View style={[styles.card, styles.savedCard]}>
-            <MaterialCommunityIcons name="check-circle" size={22} color={theme.success} />
+            <UIIcon name="check-circle" size={22} color={theme.success} />
             <Text style={styles.savedText}>已保存「{template?.name}」，首页可直接选用。</Text>
           </View>
         ) : <View style={styles.savedCard}>
-          <MaterialCommunityIcons name="check-circle-outline" size={20} color={theme.success} />
-          <View style={{ flex: 1 }}><Text style={styles.savedTitle}>成绩已保存</Text><Text style={styles.muted}>按照自己的节奏，下次继续。</Text></View>
+          <UIIcon name="check-circle" size={20} color={theme.success} />
+          <View style={{ flex: 1 }}><Text style={styles.savedTitle}>成绩已保存</Text></View>
         </View>}
 
         <Pressable accessibilityRole="button" onPress={() => navigation.navigate('ShareStudio', { id: workout.id })} style={({ pressed }) => [pending ? styles.secondary : styles.primary, { marginTop: 20, flexDirection: 'row', gap: 8, minHeight: 52 }, pressed && { opacity: 0.85 }]}>
-          <MaterialCommunityIcons name="export-variant" size={21} color={pending ? theme.brandText : theme.onBrand} />
+          <UIIcon name="share" size={21} color={pending ? theme.brandText : theme.onBrand} />
           <Text style={pending ? styles.secondaryText : styles.primaryText}>生成分享卡片</Text>
         </Pressable>
         {!fusion ? <Text style={styles.legacy}>这是旧版识别（{workout.recognitionVersion ?? 'motion-v3'}）的记录，没有逐层识别明细。</Text> : null}
@@ -284,11 +330,11 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
             <Text style={styles.muted}>从 {editing?.startFloor ?? 1} 楼爬到 {floorAfter(editing?.startFloor ?? 1, draftFloors)} 楼，共爬升 {draftFloors} 层。</Text>
             <View style={styles.stepper}>
               <Pressable accessibilityRole="button" accessibilityLabel="减一层" disabled={busy || draftFloors === 0} onPress={() => setDraftFloors(value => Math.max(0, value - 1))} style={styles.stepButton}>
-                <MaterialCommunityIcons name="minus" size={30} color={theme.ink} />
+                <UIIcon name="minus" size={30} color={theme.ink} />
               </Pressable>
               <Text style={styles.stepValue} numberOfLines={1} adjustsFontSizeToFit accessibilityLiveRegion="polite">{draftFloors}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel="加一层" disabled={busy || draftFloors === 300} onPress={() => setDraftFloors(value => Math.min(300, value + 1))} style={[styles.stepButton, { backgroundColor: theme.brand }]}>
-                <MaterialCommunityIcons name="plus" size={30} color={theme.onBrand} />
+                <UIIcon name="plus" size={30} color={theme.onBrand} />
               </Pressable>
             </View>
             <Text style={[styles.hint, { textAlign: 'center' }]}>修改后会保留修正记录。</Text>
@@ -305,12 +351,29 @@ export default function SummaryScreen({ navigation, route }: RootStackScreen<'Wo
   )
 }
 
-function Metric({ label, value, unit = '', divider = false, styles }: { label: string; value: string; unit?: string; divider?: boolean; styles: ReturnType<typeof makeStyles> }) {
+interface MetricData {
+  icon: UIIconName
+  label: string
+  value: string
+  unit?: string
+  estimated?: boolean
+}
+
+function Metric({ icon, label, value, unit, estimated, half, divider, nextRow, styles, color }: MetricData & {
+  half: boolean; divider: boolean; nextRow: boolean; styles: ReturnType<typeof makeStyles>; color: string
+}) {
   return (
-    <View style={[styles.metric, divider && styles.metricDivider]} accessible accessibilityLabel={`${label} ${value}${unit}`}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue} numberOfLines={1} adjustsFontSizeToFit>{value}{unit ? <Text style={{ fontSize: 15 }}> {unit}</Text> : null}</Text>
-      {label === '千卡' ? <Text style={styles.metricHint}>估算</Text> : null}
+    <View style={[styles.metric, half && styles.metricHalf, divider && styles.metricDivider, nextRow && styles.metricNextRow]}
+      accessible accessibilityLabel={`${label} ${value}${unit ?? ''}${estimated ? '，估算' : ''}`}>
+      <View style={styles.metricHeading}>
+        <UIIcon name={icon} size={17} color={color} />
+        <Text style={styles.metricLabel}>{label}</Text>
+      </View>
+      <View style={styles.metricReading}>
+        <Text style={styles.metricValue} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+        {unit ? <Text style={styles.metricUnit}>{unit}</Text> : null}
+      </View>
+      {estimated ? <Text style={styles.metricUnit}>估算</Text> : null}
     </View>
   )
 }
@@ -320,25 +383,34 @@ function makeStyles(theme: Theme) {
     page: { flex: 1, backgroundColor: theme.paper },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 20 },
-    date: { color: theme.muted, fontSize: 12, fontWeight: '400' },
-    completionTitle: { color: theme.ink, fontSize: 24, lineHeight: 34, fontWeight: '700', marginTop: 12 },
-    englishLabel: { color: theme.muted, fontSize: 10, fontWeight: '400', letterSpacing: 1 },
+    date: { ...typography.secondary, color: theme.mutedStrong },
+    completionTitle: { ...typography.title, color: theme.ink, marginTop: 12 },
+    achievementGlass: { alignItems: 'stretch', marginTop: 4 },
+    flightReplay: { alignSelf: 'center', minHeight: 48, paddingHorizontal: 14, justifyContent: 'center', marginTop: -12 },
+    flightReplayContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    flightReplayText: { ...typography.label, color: theme.brandText },
     hero: { marginTop: 24, paddingBottom: 24, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.line },
+    heroGlass: { marginTop: 24, padding: 16, borderRadius: sport.radius.panel, borderBottomWidth: 0 },
     compactMetrics: { marginTop: 12, paddingVertical: 20, paddingHorizontal: 8, flexDirection: 'row', backgroundColor: theme.card, borderRadius: 20 },
     roundCard: { marginTop: 24 },
-    metricHint: { fontSize: 11, color: theme.muted, marginTop: 2 },
-    savedTitle: { color: theme.inkSoft, fontSize: 13, fontWeight: '600', marginBottom: 4 },
-    heroLabel: { color: theme.muted, fontSize: 13, fontWeight: '500' },
-    heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 },
-    heroValue: { ...theme.numeric, color: theme.brandText, fontSize: 80, lineHeight: 94, letterSpacing: -3, flexShrink: 1 },
-    heroUnit: { color: theme.muted, fontSize: 20, fontWeight: '400' },
-    metrics: { flexDirection: 'row', paddingTop: 20, marginTop: 8 },
-    metric: { flex: 1, alignItems: 'center', paddingHorizontal: 4 },
+    roundCardGlass: { marginTop: 24, padding: 16, borderRadius: sport.radius.panel },
+    savedTitle: { ...typography.label, color: theme.inkSoft, marginBottom: 4 },
+    heroLabel: { ...typography.label, color: theme.mutedStrong },
+    heroReading: { fontSize: 84, lineHeight: 94, includeFontPadding: false, marginTop: 4 },
+    heroValue: { ...typography.digits, color: theme.brandText },
+    heroUnit: { fontSize: typography.navigation.fontSize, color: theme.mutedStrong },
+    metrics: { flexDirection: 'row', flexWrap: 'wrap', paddingTop: 12, marginTop: 8 },
+    metric: { flex: 1, minWidth: 0, paddingVertical: 8, paddingHorizontal: 8, gap: 3 },
+    metricHalf: { flexGrow: 0, flexBasis: '50%', paddingVertical: 12, paddingHorizontal: 12 },
     metricDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: theme.line },
-    metricValue: { ...theme.numeric, color: theme.ink, fontSize: 22, lineHeight: 28, marginTop: 6 },
-    metricLabel: { color: theme.muted, fontSize: 12, fontWeight: '400', marginTop: 2 },
-    section: { color: theme.ink, fontSize: 18, fontWeight: '700' },
-    hint: { color: theme.muted, fontSize: 12, marginTop: 4 },
+    metricNextRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.line },
+    metricHeading: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 24 },
+    metricReading: { flexDirection: 'row', alignItems: 'baseline', gap: 3, flexWrap: 'wrap' },
+    metricValue: { ...typography.digits, color: theme.ink, fontSize: 27, lineHeight: 34, flexShrink: 1 },
+    metricLabel: { ...typography.caption, color: theme.mutedStrong, flexShrink: 1 },
+    metricUnit: { ...typography.caption, color: theme.mutedStrong },
+    section: { ...typography.section, color: theme.ink },
+    hint: { ...typography.caption, color: theme.mutedStrong, marginTop: 4 },
     bars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', gap: 24, paddingVertical: 6, minHeight: 140, flexGrow: 1,},
     barCol: { alignItems: 'center', width: 88,},
     barValue: { ...theme.numeric, color: theme.ink, fontSize: 20, marginBottom: 6 },
@@ -349,28 +421,28 @@ function makeStyles(theme: Theme) {
     barTag: { color: theme.amberInk, fontSize: 11, fontWeight: '800', marginTop: 2 },
     notes: { backgroundColor: theme.amberSoft, borderRadius: theme.radiusMd, padding: 12, gap: 6 },
     noteRow: { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
-    noteText: { flex: 1, color: theme.amberInk, fontSize: 13, lineHeight: 19 },
+    noteText: { ...typography.secondary, flex: 1, color: theme.amberInk },
     card: { backgroundColor: theme.card, borderRadius: theme.radiusLg, padding: 16, marginTop: 20, gap: 12, ...theme.shadowCard },
     cardHead: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-    cardTitle: { color: theme.ink, fontSize: 20, fontWeight: '900' },
-    muted: { color: theme.muted, fontSize: 13, lineHeight: 19 },
+    cardTitle: { ...typography.cardTitle, color: theme.ink },
+    muted: { ...typography.secondary, color: theme.mutedStrong },
     inputField: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderRadius: theme.radiusMd, borderWidth: 1, borderColor: theme.line, backgroundColor: theme.cardSoft },
     input: { flex: 1, minHeight: 48, paddingHorizontal: 14, color: theme.ink, fontSize: 20 },
     clearButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
     primary: { minHeight: 54, borderRadius: sport.radius.control, backgroundColor: theme.brand, alignItems: 'center', justifyContent: 'center' },
-    primaryText: { color: theme.onBrand, fontSize: 16, fontWeight: '700' },
+    primaryText: { ...typography.control, color: theme.onBrand },
     secondary: {
       minHeight: 52, borderRadius: 26, borderWidth: 1.5, borderColor: theme.brandText, flexDirection: 'row',
       alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20,
     },
-    secondaryText: { color: theme.brandInk, fontSize: 16, fontWeight: '600' },
+    secondaryText: { ...typography.control, color: theme.brandInk },
     savedCard: { flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingVertical: 12, minHeight: 60, gap: 12 },
     savedText: { flex: 1, color: theme.ink, fontSize: 14, fontWeight: '700' },
     legacy: { color: theme.muted, fontSize: 12, textAlign: 'center', marginTop: 16 },
     stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginVertical: 8 },
     stepButton: { width: 72, height: 72, borderRadius: 36, backgroundColor: theme.surfaceSoft, alignItems: 'center', justifyContent: 'center' },
     stepText: { color: theme.brandInk, fontSize: 30, fontWeight: '900' },
-    stepValue: { ...theme.numeric, color: theme.ink, fontSize: 88, lineHeight: 96, minWidth: 90, flexShrink: 1, textAlign: 'center' },
+    stepValue: { ...typography.digits, color: theme.ink, fontSize: 88, lineHeight: 96, minWidth: 90, flexShrink: 1, textAlign: 'center' },
     modalRow: { flexDirection: 'row', gap: 12 },
   })
 }

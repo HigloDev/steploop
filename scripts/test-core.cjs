@@ -3118,11 +3118,11 @@ test('D10: 缺字段的旧记录不崩且仍不泄露地点', () => {
   assert.equal(barePayload.body.includes('路线'), false)
 })
 
-// 验收 5/4（fusion-v1 改版后）：训练页数字动画尊重减少动画；结算/首页关键数值成组朗读（静态接线）
-test('D10: 训练页数字动画尊重减少动画，关键数值成组朗读（静态接线）', () => {
+// 运动楼层尺尊重减少动画，结算和首页的关键数值成组朗读。
+test('D10: 楼层尺尊重减少动画，关键数值成组朗读（静态接线）', () => {
   const ui = readSource('src/components/workout-ui.tsx')
-  assert.ok(ui.includes('useReduceMotion'), '数字翻动动画必须尊重系统“减少动画”')
-  assert.match(ui, /if \(reduced\) return/)
+  assert.ok(ui.includes('useReduceMotion'), '楼层尺必须尊重系统“减少动画”')
+  assert.match(ui, /if \(reduced \|\|[^\n]+\) \{\s*offset\.set\(index\)\s*return/)
   assert.ok(ui.includes('accessibilityLiveRegion="polite"'), '楼层数字变化要能被读屏播报')
   const workout = readSource('src/pages/Workout.tsx')
   assert.ok(workout.includes('HoldToConfirm'), '结束训练必须长按确认')
@@ -3245,7 +3245,9 @@ test('D14-guard 发布说明的关键声明与实现一致（防止声明漂移�
   // 2) 已删除：「计划训练默认关闭」——训练设置页（WorkoutSetup）随 fusion-v1 移除，不再有计划开关。
 
   // 3) 「训练入口从路线页移到训练页」
-  assert.match(tabs, /name="Train" component=\{TrainHomeScreen\}/, '训练页必须是首页')
+  assert.match(tabs, /initialRouteName="Train"/, '训练页必须是首页')
+  assert.match(tabs, /makeGlacierScreen\('Train', TrainHomeScreen\)/)
+  assert.match(tabs, /name="Train" component=\{TrainTabScreen\}/)
   assert.match(notes, /训练入口从「路线页」移到「训练」页/)
 
   // 4) 「分享面板被取消时不显示「分享成功」」：实现里不得出现该文案

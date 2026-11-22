@@ -1,11 +1,13 @@
 # 循阶 · 每一步向上，每一层都算数
 
-当前开发与公开试用版本均为 **1.1.7 / Android versionCode 16**；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
+<img src="assets/brand/steploop/icon.png" width="64" height="64" alt="循阶应用图标">
+
+本地界面候选为 **1.1.9 / Android code 21**，公开试用版为 **1.1.7 / code 16**。版本以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。
 2026-11-01 已将最新素材与布局修订覆盖安装到小米14，用户确认主要页面显示、操作正常。安装与验证范围见 [本次记录](docs/skins/PHONE_INSTALL_20261101.md)。1.1.6 单独热量候选已整合到当前源码，先前设计说明见 [热量试用说明](docs/CALORIES_PREVIEW_20261028.md)。
 
 循阶是一款本地保存成绩的 Android 爬楼训练应用。1.1.5 使用冷白、深蓝与钴蓝界面，集中展示楼层、爬升、逐轮训练与每周积累。
 
-维护与 AI 接续请先看 [当前项目状态](PROJECT_STATUS.md) 和 [版本信息](project-state.json)，运行 `npm run check:project-state`。当前开发源码为 **1.1.7 / Android code 16**，公开 APK 为 **1.1.7 / Android code 16**；[旧版本归档](docs/archive/README.md) 不代表当前实现。
+维护时先看当前项目状态与版本信息，再运行 `npm run check:project-state`。[当前项目状态](PROJECT_STATUS.md) · [版本信息](project-state.json) · [旧版本归档](docs/archive/README.md)
 
 [下载 Android 1.1.7 公开试用版](https://github.com/HigloDev/steploop/releases/tag/v1.1.7-preview.1) · [下载网页](https://higlodev.github.io/steploop/) · [使用与备份](docs/USER_GUIDE.md) · [构建说明](docs/BUILDING.md) · [本版说明](docs/RELEASE_1.1.7.md)
 

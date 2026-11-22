@@ -13,8 +13,8 @@ from skin_qa_source import source_fingerprint
 
 
 MARKERS = {
-    'home': '本周累计爬升', 'coach': '设定我的体重目标', 'history': '向上的轨迹',
-    'settings': '运动播报', 'climbing': '正在向上', 'summary': '训练完成',
+    'home': '本周累计爬升', 'coach': '设定我的体重目标', 'history': '搜索训练记录',
+    'settings': '外观', 'climbing': '正在向上', 'summary': '训练完成',
     'appearance': '皮肤与外观', 'coach-active': '记录体重 / 查看趋势',
     'coach-course': '目标体重管理', 'coach-goal': '安排我的目标体重管理',
     'coach-session': '每一步都留有余地', 'coach-records': '记录一次体重',

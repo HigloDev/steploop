@@ -1,7 +1,7 @@
 import { TrackedImage } from './tracked-image'
 import React, { useState } from 'react'
 import { ImageSourcePropType, View } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon, resolveUIIconName } from './ui-icon'
 import type { CoachCourseId } from '../core/coach'
 import { getSkinBuildingArtwork, getSkinCourseArtwork, getSkinHeaderArtwork, getSkinMarkArtwork } from '../skin-assets'
 import { getCourseIconAccent, getThemeSkinId, useTheme } from '../theme'
@@ -21,14 +21,14 @@ export function SkinCourseThumbnail({ course, size = 36 }: { course: CoachCourse
   const theme = useTheme(), skin = getThemeSkinId(theme)
   const icon = course === 'weight' ? 'bullseye-arrow' : course === 'beginner' ? (skin === 'night-run' ? 'shoe-sneaker' : 'stairs-up') : 'heart-pulse'
   return <DetailArt source={getSkinCourseArtwork(skin, course)} identity={`${skin}/course/${course}`} size={size}
-    fallback={<MaterialCommunityIcons name={icon} size={size} color={getCourseIconAccent(theme, course)} accessible={false} />} />
+    fallback={<UIIcon name={resolveUIIconName(icon)} size={size} color={getCourseIconAccent(theme, course)} accessible={false} />} />
 }
 
 export function SkinBuildingThumbnail({ size = 34, history = false, selected = true }: { size?: number; history?: boolean; selected?: boolean }) {
   const theme = useTheme(), skin = getThemeSkinId(theme), mode = theme.isDark ? 'dark' : 'light'
   const source = skin === 'k-on' && history ? getSkinMarkArtwork(skin, mode) : getSkinBuildingArtwork(skin)
   return <DetailArt source={source} identity={`${skin}/${mode}/building/${history}`} size={size}
-    fallback={<MaterialCommunityIcons name={skin === 'k-on' || !selected ? 'stairs-up' : 'office-building-outline'} size={size - 5} color={theme.brandInk} accessible={false} />} />
+    fallback={<UIIcon name={resolveUIIconName(skin === 'k-on' || !selected ? 'stairs-up' : 'office-building-outline')} size={size - 5} color={theme.brandInk} accessible={false} />} />
 }
 
 /** Genuine theme artwork behind live metrics; it never paints over text or handles input. */

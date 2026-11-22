@@ -2,7 +2,7 @@
 // 把原 .button-primary/.card/.field/.pill/.metric 等 wxss 类映射为 RN 组件。
 
 import React, { useEffect, useState } from 'react'
-import { Feather } from '@expo/vector-icons'
+import { UIIcon, resolveUIIconName } from './ui-icon'
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -16,7 +16,8 @@ import {
   StyleProp,
   PressableProps,
 } from 'react-native'
-import { getPrimaryActionPaint, useTheme, Theme } from '../theme'
+import { getPrimaryActionPaint, isGlacier, typography, useTheme, Theme } from '../theme'
+import { getGlassSurfaceStyle } from './glass-material'
 import { triggerHaptic } from '../services/preferences'
 
 type Variant = 'primary' | 'secondary' | 'danger'
@@ -71,12 +72,13 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const styles = makeStyles(theme)
   const variantStyle =
     variant === 'primary'
-      ? [styles.primary, { backgroundColor: getPrimaryActionPaint(theme).fill }]
+      ? [styles.primary, { backgroundColor: getPrimaryActionPaint(theme).fill }, glass && theme.elevation.level2.shadow]
       : variant === 'secondary'
-        ? styles.secondary
+        ? (glass ? getGlassSurfaceStyle(theme, 'card') : styles.secondary)
         : styles.danger
   return (
     <Pressable
@@ -115,9 +117,10 @@ interface CardProps {
 
 export function Card({ children, raised = false, style }: CardProps) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const styles = makeStyles(theme)
   return (
-    <View style={[styles.card, raised && styles.cardRaised, style]}>{children}</View>
+    <View style={[styles.card, glass && getGlassSurfaceStyle(theme, raised ? 'feature' : 'card'), raised && styles.cardRaised, style]}>{children}</View>
   )
 }
 
@@ -277,7 +280,7 @@ export function Notice({ children, tone = 'warn' }: { children: React.ReactNode;
       accessible
       accessibilityRole={tone === 'danger' ? 'alert' : 'text'}
     >
-      <Feather name={tone === 'danger' ? 'alert-circle' : 'info'} size={18} color={tone === 'danger' ? theme.redInk : theme.amberInk} style={{ marginTop: 1 }} />
+      <UIIcon name={resolveUIIconName(tone === 'danger' ? 'alert-circle' : 'info')} size={18} color={tone === 'danger' ? theme.redInk : theme.amberInk} style={{ marginTop: 1 }} />
       <Text style={styles.noticeText}>{children}</Text>
     </View>
   )
@@ -306,9 +309,8 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.redChip,
     },
     label: {
+      ...typography.control,
       color: theme.brandText,
-      fontSize: 16,
-      fontWeight: '600',
     },
     labelOnPrimary: {
       color: theme.onBrand,
@@ -322,15 +324,13 @@ const makeStyles = (theme: Theme) =>
     },
     card: {
       backgroundColor: theme.card,
-      borderBottomWidth: 0,
-      borderBottomColor: theme.line,
       padding: 18,
-     borderRadius: theme.radiusLg,},
+      borderRadius: theme.radiusLg,
+    },
     cardRaised: {
       padding: 16,
       borderRadius: theme.radiusLg,
       marginBottom: 8,
-      borderBottomWidth: 0,
     },
     row: {
       flexDirection: 'row',
@@ -340,8 +340,8 @@ const makeStyles = (theme: Theme) =>
       paddingVertical: 8,
     },
     rowLabel: {
+      ...typography.secondary,
       color: theme.muted,
-      fontSize: 14,
       flexShrink: 1,
     },
     value: {
@@ -355,8 +355,8 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 12,
     },
     fieldLabel: {
+      ...typography.label,
       color: theme.muted,
-      fontSize: 14,
       marginBottom: 8,
     },
     input: {
@@ -369,7 +369,7 @@ const makeStyles = (theme: Theme) =>
       // D10 大字体：用 minHeight 而不是固定 height，系统字体放大到 1.5x 时文字不被裁切。
       minHeight: 52,
       color: theme.ink,
-      fontSize: 15,
+      fontSize: typography.body.fontSize,
     },
     pill: {
       paddingHorizontal: 8,
@@ -396,21 +396,20 @@ const makeStyles = (theme: Theme) =>
 
     },
     metricLabel: {
+      ...typography.secondary,
       color: theme.muted,
-      fontSize: 13,
     },
     metricValue: {
       marginTop: 4,
       color: theme.ink,
       fontSize: theme.fontMetric,
-      fontWeight: '900',
+      fontWeight: '700',
       fontVariant: ['tabular-nums'],
     },
     metricHint: {
       marginTop: 4,
       color: theme.muted,
-      fontSize: 12,
-      lineHeight: 18,
+      ...typography.caption,
     },
     empty: {
       paddingVertical: 40,
@@ -418,16 +417,14 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
     },
     emptyTitle: {
+      ...typography.section,
       color: theme.ink,
-      fontSize: 20,
-      fontWeight: '600',
       textAlign: 'center',
     },
     emptySubtitle: {
+      ...typography.secondary,
       marginTop: 8,
       color: theme.muted,
-      fontSize: 14,
-      lineHeight: 21,
       textAlign: 'center',
     },
     notice: {

@@ -103,9 +103,26 @@ async function sessionHarness(options = {}) {
   const settle = async () => { await new Promise(resolve => setImmediate(resolve)); return render() }
   render(); await settle(); interval?.(); render()
   return { state, get api() { return api }, render, settle, advance(ms) { now += ms }, tick() { interval?.(); render() }, mark() { now += 3000; api.markFloor(); render() },
-    motion(ms = 6000) {
-      const data = require('./fusion-synth.cjs').synthesize([{ type: 'walk', durMs: ms }], { start: now, noBaro: true, seed: 91 })
-      for (const sample of data.samples) { now = sample.t; state.recording.onSample(sample) }
+    motion(ms = 6000, motionOptions = {}) {
+      const deliveryLagMs = motionOptions.deliveryLagMs ?? 0
+      const data = require('./fusion-synth.cjs').synthesize([
+        { type: 'walk', durMs: ms, stepIntervalMs: motionOptions.stepIntervalMs },
+      ], { start: now - deliveryLagMs, noBaro: true, seed: 91 })
+      let nextUiTick = now + 500
+      for (const sample of data.samples) {
+        if (deliveryLagMs > 0) {
+          while (nextUiTick <= sample.t + deliveryLagMs) {
+            now = nextUiTick
+            interval?.()
+            render()
+            nextUiTick += 500
+          }
+          now = sample.t + deliveryLagMs
+        } else {
+          now = sample.t
+        }
+        state.recording.onSample(sample)
+      }
       interval?.(); render()
     },
   }
@@ -192,27 +209,57 @@ test('failed workout save retains completed rounds and retries without duplicate
   assert.equal(h.api.status, 'done')
 })
 
-test('MET pace changes retain earlier portions and checkpoint recovery keeps the workout weight', async () => {
+test('automatic cadence earns sensor portions from engine snapshots and recovery keeps the workout weight', async () => {
   const h = await sessionHarness({ preferences: { bodyWeightKg: 60, stairPace: 'slow' } })
-  h.motion(20000); h.mark()
-  h.api.setStairPace('fast'); h.render()
-  h.motion(20000); h.mark()
+  assert.equal(h.api.calorieProfile.paceMode, 'automatic')
+  assert.equal(h.api.calorieProfile.pace, 'general')
+  assert.equal(h.api.calorieProfile.paceSource, 'default')
+  assert.equal(h.api.setStairPace, undefined, 'the removed manual hook action must not exist')
+  h.mark()
+  h.motion(12000, { stepIntervalMs: 400, deliveryLagMs: 700 })
+  h.mark()
   h.api.markTop(); h.render(); h.api.nextRound(); await h.settle()
   const checkpoint = structuredClone(h.state.checkpoint)
   assert.equal(checkpoint.calorieProfile.bodyWeightKg, 60)
-  assert.equal(checkpoint.calorieProfile.pace, 'fast')
-  assert.ok(checkpoint.rounds[0].calorieSegments.some(segment => segment.pace === 'slow'))
-  assert.ok(checkpoint.rounds[0].calorieSegments.some(segment => segment.pace === 'fast'))
+  assert.equal(checkpoint.calorieProfile.paceMode, 'automatic')
+  assert.ok(checkpoint.rounds[0].calorieSegments.some(segment => segment.paceSource === 'sensor'),
+    'real engine steps must earn automatic sensor evidence')
   const before = h.api.calorieEstimate.kilocalories
   const recovered = await sessionHarness({ checkpoint, params: { resume: true }, preferences: { bodyWeightKg: 99, stairPace: 'general' } })
   assert.equal(recovered.api.calorieProfile.bodyWeightKg, 60)
-  assert.equal(recovered.api.calorieProfile.pace, 'fast')
+  assert.equal(recovered.api.calorieProfile.paceMode, 'automatic')
   assert.equal(recovered.api.calorieEstimate.kilocalories, before)
   const id = await recovered.api.finish()
   const saved = recovered.state.workouts.get(id)
   assert.equal(saved.bodyWeightKg, 60)
   assert.deepEqual(saved.rounds[0].calorieSegments, checkpoint.rounds[0].calorieSegments)
   assert.equal(core('fusion-workout').workoutCalories(saved), before)
+})
+
+test('non-ended pre-segmentation checkpoint keeps height-based calories and completed round data', async () => {
+  const original = await sessionHarness({ preferences: { bodyWeightKg: 72 } })
+  original.mark(); original.mark()
+  original.api.markTop(); original.render(); original.api.nextRound(); await original.settle()
+  const checkpoint = structuredClone(original.state.checkpoint)
+  assert.ok(!checkpoint.endedAt)
+  assert.equal(checkpoint.rounds.length, 1)
+  const completedFloors = checkpoint.rounds[0].floors
+  assert.ok(completedFloors > 0)
+  delete checkpoint.calorieProfile
+  for (const round of checkpoint.rounds) delete round.calorieSegments
+
+  const recovered = await sessionHarness({ checkpoint, params: { resume: true }, preferences: { bodyWeightKg: 99 } })
+  assert.equal(recovered.api.calorieProfile, undefined)
+  assert.notEqual(recovered.api.calorieEstimate.metric, 'active')
+  assert.ok(recovered.api.calorieEstimate.kilocalories > 0)
+  const id = await recovered.api.finish()
+  const saved = recovered.state.workouts.get(id)
+  assert.equal(saved.rounds.length, 1)
+  assert.equal(saved.rounds[0].floorsCompleted, completedFloors)
+  assert.ok(!saved.rounds[0].calorieSegments?.length)
+  assert.equal(saved.totalFloorsCompleted, completedFloors)
+  assert.equal(saved.bodyWeightKg, 72)
+  assert.ok(core('fusion-workout').workoutCalories(saved) > 0)
 })
 
 test('successful evidence writes clear only evidence errors and preserve recovery guidance', async () => {

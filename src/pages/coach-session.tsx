@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Alert, Pressable } from 'react-native'
 import { RootStackScreen } from '../navigation/types'
 import { Button } from '../components/ui'
+import { UIIcon } from '../components/ui-icon'
 import { CoachMessage, CoachPage, CoachSection, CoachText, displayDate, minutesText, todayKey, useCoachData } from '../components/coach-ui'
 import { buildCoachWorkoutContext, courseById, habitLesson, latestWeight, sessionProgress } from '../core/coach'
 import { BuildingTemplate, topFloor } from '../core/building-template'
@@ -11,10 +12,12 @@ import { loadActiveCheckpoint } from '../services/workout-storage'
 import { waitForFusionCleanup } from '../hooks/useFusionWorkout'
 import { confirmBackgroundRecording } from '../services/workout-entry'
 import { isPrivacyAgreed } from '../services/privacy'
-import { useTheme } from '../theme'
+import { isGlacier, useTheme } from '../theme'
+import { getGlassSurfaceStyle } from '../components/glass-material'
 
 export default function CoachSession({ navigation, route }: RootStackScreen<'CoachSession'>) {
   const t = useTheme(), data = useCoachData(navigation), today = todayKey()
+  const glass = isGlacier(t)
   const [buildings, setBuildings] = useState<BuildingTemplate[]>([]), [selected, setSelected] = useState('')
   const [warmed, setWarmed] = useState(false), [busy, setBusy] = useState(false)
   const [buildingsReady, setBuildingsReady] = useState(false), [loadAttempt, setLoadAttempt] = useState(0), lock = useRef(false)
@@ -87,13 +90,14 @@ export default function CoachSession({ navigation, route }: RootStackScreen<'Coa
             { id: '', name: '标定新楼栋', detail: '从 1 楼开始，逐层点按标定；完成后可保存模板。' }].map(b =>
             <Pressable key={b.id || 'new'} accessibilityRole="radio" accessibilityLabel={b.name} accessibilityState={{ checked: selected === b.id }}
               disabled={busy || !buildingsReady} onPress={() => setSelected(b.id)}
-              style={({ pressed }) => ({ padding: 16, minHeight: t.tapMin, borderRadius: t.radiusMd, borderWidth: 1, borderColor: selected === b.id ? t.brandText : t.line, backgroundColor: selected === b.id ? t.brandSoft : t.card, opacity: pressed ? 0.65 : 1 })}>
+              style={({ pressed }) => ({ padding: 16, minHeight: t.tapMin, borderRadius: t.radiusMd, borderWidth: 1, borderColor: selected === b.id ? t.brandText : t.line, opacity: pressed ? 0.65 : 1, ...(selected === b.id ? { backgroundColor: t.brandSoft } : glass ? getGlassSurfaceStyle(t, 'card') : { backgroundColor: t.card }) })}>
               <CoachText>{selected === b.id ? '已选 · ' : ''}{b.name}</CoachText><CoachText size="small" tone="muted">{b.detail}</CoachText>
             </Pressable>)}
         </CoachSection>
         <Pressable accessibilityRole="checkbox" accessibilityLabel="我已完成平地热身" accessibilityState={{ checked: warmed }} disabled={busy}
-          onPress={() => setWarmed(v => !v)} style={{ padding: 16, minHeight: t.tapMin, backgroundColor: t.card, borderRadius: t.radiusMd }}>
-          <CoachText>{warmed ? '☑' : '□'} 我已完成平地热身</CoachText>
+          onPress={() => setWarmed(v => !v)} style={[{ padding: 16, minHeight: t.tapMin, borderRadius: t.radiusMd, flexDirection: 'row', alignItems: 'center', gap: 8 }, glass ? getGlassSurfaceStyle(t, 'card') : { backgroundColor: t.card }]}>
+          <UIIcon name={warmed ? 'checkbox-checked' : 'checkbox'} size={23} color={warmed ? t.brandText : t.mutedStrong} />
+          <CoachText style={{ flex: 1 }}>我已完成平地热身</CoachText>
         </Pressable>
         <Button title={busy ? '正在准备…' : '开始这次课程'} disabled={busy || !warmed || !buildingsReady || session.date !== today} onPress={() => void start()} />
         <Button title="跳过这次，不补量" variant="secondary" disabled={busy} onPress={() => void skip()} />

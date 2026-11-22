@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Line, Polyline } from 'react-native-svg'
 import { Header } from './Header'
 import { Button } from './ui'
-import { getThemeSkinId, skinTypography, sport, useTheme } from '../theme'
+import { getThemeSkinId, isGlacier, skinTypography, sport, useTheme } from '../theme'
+import { getGlassSurfaceStyle, GlassBackdrop, useGlassDockInset } from './glass-material'
 import { SkinPageHeader } from './skin-page-header'
 import { CoachState, CoachWeighIn, localDate } from '../core/coach'
 import { syncCoachWorkouts } from '../services/coach-storage'
@@ -25,11 +26,14 @@ export function CoachText({ tone = 'normal', size = 'body', style, ...props }: T
 }
 export function CoachPage({ title, back = true, children, hero }: { title: string; back?: boolean; children: React.ReactNode; hero?: React.ReactNode }) {
   const t = useTheme(), insets = useSafeAreaInsets()
+  const glass = isGlacier(t)
+  const dockInset = useGlassDockInset()
   const graphicHome = !back && getThemeSkinId(t) !== 'classic'
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.paper }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    {glass ? <GlassBackdrop /> : null}
     {!graphicHome ? <Header title={title} back={back} large={!back} /> : null}
     <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ paddingHorizontal: t.pagePaddingH, paddingTop: graphicHome ? 0 : sport.space.lg, paddingBottom: insets.bottom + t.pagePaddingBottom, gap: graphicHome ? sport.space.lg : sport.space.page }}>
+      contentContainerStyle={{ paddingHorizontal: t.pagePaddingH, paddingTop: graphicHome ? 0 : sport.space.lg, paddingBottom: insets.bottom + t.pagePaddingBottom + dockInset, gap: graphicHome ? sport.space.lg : sport.space.page }}>
       {graphicHome ? <SkinPageHeader page="coach" title={title}>{hero}</SkinPageHeader> : null}
       {children}
     </ScrollView>

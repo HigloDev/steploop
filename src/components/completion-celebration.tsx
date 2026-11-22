@@ -2,10 +2,11 @@ import React, { useEffect, useRef } from 'react'
 import { AppState, BackHandler, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useTheme } from '../theme'
+import { isGlacier, useTheme } from '../theme'
 import { triggerHapticPattern } from '../services/preferences'
 import { playCompletionSound } from '../services/completion-sound'
 import { AchievementBuilding } from './achievement-building'
+import { GlacierCompletionArt } from './glacier-completion'
 import { BrandMark } from './brand-mark'
 
 export function CompletionCelebration({ floors, ascentM, onDone, preview = false }: { floors: number; ascentM: number; onDone: () => void; preview?: boolean }) {
@@ -34,7 +35,9 @@ export function CompletionCelebration({ floors, ascentM, onDone, preview = false
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><BrandMark size={28} color={theme.brandText} /><Text style={{ color: theme.ink, fontSize: 19, fontWeight: '900' }}>循阶</Text></View>
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24 }}>
       <Text accessibilityRole="header" style={{ color: theme.brandInk, fontSize: 16, fontWeight: '800', letterSpacing: 2 }}>每一步，都在筑高</Text>
-      <AchievementBuilding floors={floors} width={220} animate reducedMotion={reduced} />
+      {isGlacier(theme)
+        ? <GlacierCompletionArt floors={floors} size={220} fresh />
+        : <AchievementBuilding floors={floors} width={220} animate reducedMotion={reduced} />}
       <View style={{ alignItems: 'center', gap: 8 }} accessible accessibilityLabel={preview ? '盖楼结算预览，不生成训练记录' : `训练完成，已保存 ${floors} 层，爬升 ${Math.round(ascentM)} 米`}>
         <Text style={{ color: theme.ink, fontSize: 28, fontWeight: '900' }}>{preview ? '一步一步，筑起一栋楼' : `你又向上了 ${floors} 层`}</Text>
         <Text style={{ color: theme.inkSoft, fontSize: 16 }}>{preview ? '示例效果 · 不生成训练记录' : `累计爬升 ${Math.round(ascentM)} 米 · 成绩已保存`}</Text>

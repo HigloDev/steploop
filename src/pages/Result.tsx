@@ -5,11 +5,12 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon, resolveUIIconName } from '../components/ui-icon'
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { Button, Field, Metric, Pill } from '../components/ui'
-import { useTheme, Theme } from '../theme'
+import { isGlacier, useTheme, Theme } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 import { RootStackScreen } from '../navigation/types'
 import { deleteSession, getRoute, getSession } from '../services/storage'
 import { getWorkout, saveWorkout } from '../services/workout-storage'
@@ -87,6 +88,7 @@ function correctionTargetFor(
 
 export default function ResultScreen({ navigation, route }: RootStackScreen<'Result'>) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const id = route.params.id
@@ -302,6 +304,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session && !loadError) {
     return (
       <View style={styles.page}>
+        {glass ? <GlassBackdrop /> : null}
         <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>加载中…</Text>
@@ -313,6 +316,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session) {
     return (
       <View style={styles.page}>
+        {glass ? <GlassBackdrop /> : null}
         <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>{loadError || '记录不存在'}</Text>
@@ -326,6 +330,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
 
   return (
     <View style={styles.page}>
+      {glass ? <GlassBackdrop /> : null}
       <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
@@ -333,12 +338,12 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[styles.content, { paddingBottom: 24 }]}
       >
-        <View style={styles.hero}>
-          <MaterialCommunityIcons name="office-building" size={36} color={theme.brandText} />
+        <View style={[styles.hero, glass && getGlassSurfaceStyle(theme, 'card')]}>
+          <UIIcon name="building" size={36} color={theme.brandText} />
           <View style={{ flex: 1 }}><Text style={styles.routeName}>{routeName}</Text>
             <Text style={styles.dateText}>{new Date(session.endedAt).getFullYear()} 年 {new Date(session.endedAt).getMonth() + 1} 月 {new Date(session.endedAt).getDate()} 日</Text></View>
           <View accessible accessibilityLabel={statusTitle} style={{ alignItems: 'center', gap: 4 }}>
-            <MaterialCommunityIcons name={session.complete ? 'check-circle' : 'alert-circle'} size={30} color={session.complete ? theme.brandText : theme.amber} />
+            <UIIcon name={resolveUIIconName(session.complete ? 'check-circle' : 'alert-circle')} size={30} color={session.complete ? theme.brandText : theme.amber} />
             <Text style={{ color: session.complete ? theme.brandText : theme.amberInk, fontSize: 14, fontWeight: '800' }}>{statusTitle}</Text>
           </View>
         </View>
@@ -351,7 +356,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
           </View>
           <Text selectable style={styles.achievementDuration}>用时 {formatDuration(session.durationMs ?? 0)}</Text>
         </View>
-        <View style={{ backgroundColor: theme.card, borderRadius: 20, paddingHorizontal: 16 }}>
+        <View style={[{ borderRadius: 20, paddingHorizontal: 16 }, glass ? getGlassSurfaceStyle(theme, 'card') : { backgroundColor: theme.card }]}>
         <Disclosure marginTop={0} title="详细成绩" initiallyOpen compact>
           {[
             ['arrow-up', '上升高度', `${session.ascentM} 米`],
@@ -359,7 +364,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
             ['chart-bar', '平均单层', session.averageFloorMs ? `${Number((session.averageFloorMs / 1000).toFixed(1))} 秒` : '—'],
             ['lightning-bolt', '最快单层', session.bestFloorSplitMs ? `${Number((session.bestFloorSplitMs / 1000).toFixed(1))} 秒` : '—'],
           ].map(([icon, label, value]) => <View key={label} style={styles.detailRow}>
-            <MaterialCommunityIcons name={icon as any} size={22} color={theme.brandText} />
+            <UIIcon name={resolveUIIconName(icon)} size={22} color={theme.brandText} />
             <Text style={[styles.detailLabel, { flex: 1 }]}>{label}</Text><Text style={styles.detailValue}>{value}</Text>
           </View>)}
         </Disclosure></View>

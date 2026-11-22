@@ -44,6 +44,34 @@ function live(record, overrides = {}) {
     activeMs, currentRoundActiveMs: currentMs }
 }
 
+function automaticSnapshot(activeMs, steps, overrides = {}) {
+  return { phase: 'climbing', roundNumber: 1, elapsedMs: activeMs, activeMs, steps, baro: 'none', ...overrides }
+}
+
+function feedCadence(tracker, stepsPerMinute, durationMs, options = {}) {
+  const startActiveMs = options.startActiveMs ?? 0
+  const startSteps = options.startSteps ?? 0
+  const stepMs = options.stepMs ?? 250
+  const phase = options.phase ?? 'climbing'
+  const rounds = options.rounds ?? []
+  let snapshot = automaticSnapshot(startActiveMs, startSteps, { phase })
+  tracker.observe(snapshot, rounds)
+  for (let elapsed = stepMs; elapsed <= durationMs; elapsed += stepMs) {
+    snapshot = automaticSnapshot(startActiveMs + elapsed,
+      startSteps + Math.floor(stepsPerMinute * elapsed / 60000), { phase })
+    tracker.observe(snapshot, rounds)
+  }
+  return snapshot
+}
+
+function automaticEstimate(tracker, snapshot, rounds = []) {
+  return tracker.estimate(snapshot, rounds)
+}
+
+function decoratedSegments(tracker) {
+  return tracker.decorate([{ roundNumber: 1 }])[0].calorieSegments ?? []
+}
+
 test('2024 pace categories subtract exactly one standard resting MET', () => {
   for (const [pace, expected] of [['slow', 35], ['general', 58], ['fast', 83]]) {
     const profile = energy.createStairCalorieProfile(60, pace)
@@ -54,6 +82,123 @@ test('2024 pace categories subtract exactly one standard resting MET', () => {
     assert.equal(result.metric, 'active')
     assert.equal(result.scope, 'recorded_ascent_only')
   }
+})
+
+test('automatic profile starts at general/default and records sensor provenance without migrating v1', () => {
+  const automatic = energy.createAutomaticStairCalorieProfile(60)
+  assert.equal(automatic.algorithmVersion, 'segmented-met-v1')
+  assert.equal(automatic.pace, 'general')
+  assert.equal(automatic.paceSource, 'default')
+  assert.equal(automatic.paceMode, 'automatic')
+  const legacy = energy.createStairCalorieProfile(60, 'fast')
+  assert.equal(legacy.paceMode, undefined)
+  assert.equal(legacy.paceSource, 'user')
+  const segments = energy.recordStairCalorieDuration([], 60000, automatic, 1,
+    'stairs_up', 'climb_phase_assumption', { pace: 'fast', paceSource: 'sensor' })
+  assert.deepEqual(segments.map(segment => [segment.pace, segment.paceSource, segment.met]),
+    [['fast', 'sensor', 9.3]])
+  const estimate = energy.getWorkoutCalorieEstimate(workout(automatic, [round(1, 60000, automatic, segments)]))
+  assert.equal(estimate.segments[0].paceSource, 'sensor')
+  assert.equal(estimate.assumedGeneralDurationMs, 0)
+})
+
+test('automatic cadence gives different estimates to equal-duration slow and fast engine-style snapshots', () => {
+  const results = new Map()
+  for (const [name, cadence] of [['slow', 60], ['fast', 180]]) {
+    const profile = energy.createAutomaticStairCalorieProfile(60)
+    const tracker = new FusionCalorieTracker(profile)
+    const snapshot = feedCadence(tracker, cadence, 30000)
+    const estimate = automaticEstimate(tracker, snapshot)
+    results.set(name, estimate)
+    assert.ok(estimate.segments.some(segment => segment.paceSource === 'sensor'), `${name} should earn sensor evidence`)
+  }
+  assert.ok(results.get('fast').kilocalories > results.get('slow').kilocalories)
+  assert.equal(results.get('slow').activeDurationMs, 30000)
+  assert.equal(results.get('fast').activeDurationMs, 30000)
+})
+
+test('a sustained same-round cadence change only labels later automatic portions', () => {
+  const profile = energy.createAutomaticStairCalorieProfile(60)
+  const tracker = new FusionCalorieTracker(profile)
+  const first = feedCadence(tracker, 80, 12000)
+  const before = automaticEstimate(tracker, first)
+  assert.ok(before.segments.some(segment => segment.pace === 'general' && segment.paceSource === 'sensor'))
+
+  const second = feedCadence(tracker, 160, 24000,
+    { startActiveMs: first.activeMs, startSteps: first.steps })
+  const after = automaticEstimate(tracker, second)
+  assert.deepEqual(after.segments.slice(0, 2), before.segments.slice(0, 2))
+  assert.equal(after.segments[2].pace, before.segments[2].pace)
+  assert.equal(after.segments[2].paceSource, before.segments[2].paceSource)
+  assert.ok(after.segments[2].durationMs >= before.segments[2].durationMs,
+    'the prior portion may grow with newly measured time but must not be repriced')
+  assert.ok(after.segments.some(segment => segment.pace === 'fast' && segment.paceSource === 'sensor'))
+  assert.ok(after.segments.some(segment => segment.paceSource === 'default'), 'pre-evidence time stays explicit')
+})
+
+test('automatic cadence falls back on noise, gaps and step silence and creates nothing outside ascent', () => {
+  const profile = energy.createAutomaticStairCalorieProfile(60)
+  const tracker = new FusionCalorieTracker(profile)
+  const first = feedCadence(tracker, 160, 12000)
+  const beforeGap = decoratedSegments(tracker)
+  tracker.recordGap()
+  const afterGapSnapshot = feedCadence(tracker, 160, 3000,
+    { startActiveMs: first.activeMs, startSteps: first.steps })
+  const afterGap = decoratedSegments(tracker)
+  assert.deepEqual(afterGap.slice(0, beforeGap.length), beforeGap)
+  assert.ok(afterGap.slice(beforeGap.length).every(segment => segment.paceSource === 'default'),
+    'post-gap cadence must be re-earned')
+
+  const noiseStart = afterGapSnapshot
+  const afterNoiseSnapshot = feedCadence(tracker, 260, 8000,
+    { startActiveMs: noiseStart.activeMs, startSteps: noiseStart.steps })
+  const afterNoise = decoratedSegments(tracker)
+  assert.ok(afterNoise.slice(-1).every(segment => segment.paceSource === 'default'))
+
+  const active = afterNoiseSnapshot.activeMs, steps = afterNoiseSnapshot.steps
+  for (const phase of ['waiting', 'descending', 'calibration_top']) {
+    tracker.observe(automaticSnapshot(active, steps, { phase }), [])
+    assert.deepEqual(decoratedSegments(tracker), afterNoise, `${phase} cannot add ascent time`)
+  }
+
+  tracker.observe(automaticSnapshot(active, steps, { elapsedMs: active + 7000 }), [])
+  const silentSnapshot = feedCadence(tracker, 160, 1000, { startActiveMs: active, startSteps: steps })
+  const afterSilence = decoratedSegments(tracker)
+  assert.equal(silentSnapshot.activeMs, active + 1000)
+  assert.ok(afterSilence.slice(-1).every(segment => segment.paceSource === 'default'))
+})
+
+test('automatic live, final, recovered and shared calories stay on one exact path', () => {
+  const profile = energy.createAutomaticStairCalorieProfile(60)
+  const tracker = new FusionCalorieTracker(profile)
+  const finalSnapshot = feedCadence(tracker, 180, 30000)
+  const liveEstimate = automaticEstimate(tracker, finalSnapshot)
+  const finalRound = { roundNumber: 1, durationMs: finalSnapshot.activeMs, activeMs: finalSnapshot.activeMs,
+    steps: finalSnapshot.steps,
+    calorieSegments: [] }
+  tracker.observe({ ...finalSnapshot, phase: 'finished' }, [finalRound])
+  const decorated = tracker.decorate([finalRound])
+  const record = workout(profile, decorated)
+  record.calorieEstimate = energy.getWorkoutCalorieEstimate(record)
+  near(record.calorieEstimate.kilocalories, liveEstimate.kilocalories)
+  assert.deepEqual(record.calorieEstimate.segments, liveEstimate.segments)
+
+  const restored = JSON.parse(JSON.stringify(decorated))
+  const recoveredTracker = new FusionCalorieTracker(JSON.parse(JSON.stringify(profile)), restored)
+  const recovered = recoveredTracker.estimate({ ...finalSnapshot, phase: 'finished' }, restored)
+  near(recovered.kilocalories, record.calorieEstimate.kilocalories)
+  assert.deepEqual(recovered.segments, record.calorieEstimate.segments)
+
+  const rounded = energy.calorieDisplayValue(record.calorieEstimate.kilocalories)
+  assert.equal(energy.formatCalories(recovered.kilocalories), String(rounded))
+  const payload = buildSharePayload({ workout: record, mode: 'summary' })
+  assert.match(payload.body, new RegExp(`爬楼活动热量：${rounded}千卡（估算）`))
+  const settings = { ...DEFAULT_VOICE_SETTINGS, enabled: true, calorieMilestones: [rounded] }
+  const observation = calories => ({ workoutId: record.id, mode: 'manual', phase: 'ascending',
+    currentRoundNumber: 1, elapsedMs: 30000, calories, cumulativeFloors: 0, completedRounds: [] })
+  const initial = observeVoiceEvents(initialVoiceObserverState(), observation(Math.max(0, rounded - 1)), settings, 1000)
+  const crossed = observeVoiceEvents(initial.state, observation(rounded), settings, 2000)
+  assert.equal(crossed.events.find(event => event.kind === 'calorie_milestone')?.numbers.calories, rounded)
 })
 
 test('pace changes partition future measured time and never recalculate earlier portions', () => {

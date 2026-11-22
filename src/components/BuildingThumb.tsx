@@ -1,10 +1,10 @@
-import { TrackedImage } from './tracked-image'
 import React, { memo } from 'react'
 import Svg, { Path, Rect, Line } from 'react-native-svg'
 import { buildingVisualLevel } from '../core/building-visual'
 import { useTheme } from '../theme'
+import { UIIcon } from './ui-icon'
 
-/** 保留楼栋模板的原稿图形；训练记录使用同色、同线条的层数变体。 */
+/** 楼栋模板使用通用图标，动态缩略图按楼层数显示轮廓。 */
 export const BuildingThumb = memo(function BuildingThumb({ floors, size = 48, dynamic = false }: {
   floors: number; size?: number; highlight?: number; dynamic?: boolean
 }) {
@@ -31,6 +31,5 @@ export const BuildingThumb = memo(function BuildingThumb({ floors, size = 48, dy
       </> : null}
     </Svg>
   }
-  return <TrackedImage identity="building/classic" source={require('../../assets/icons/building.png')} resizeMode="contain" fadeDuration={0}
-    accessible={false} style={{ width: size, height: size, tintColor: theme.brandText, flexShrink: 0 }} />
+  return <UIIcon name="building" size={size} color={theme.brandText} />
 })

@@ -5,7 +5,7 @@ import { captureRef } from 'react-native-view-shot'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
 import * as Sharing from 'expo-sharing'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon } from '../components/ui-icon'
 import { Header } from '../components/Header'
 import { BrandMark } from '../components/brand-mark'
 import { Button } from '../components/ui'
@@ -16,7 +16,8 @@ import { WeeklyAchievement, buildWeeklyAchievement, weeklyDateRange, weeklyShare
 import type { RootStackScreen } from '../navigation/types'
 import { listWorkouts } from '../services/workout-storage'
 import { triggerHaptic } from '../services/preferences'
-import { useTheme, getPosterPalette, getThemeKey } from '../theme'
+import { isGlacier, useTheme, getPosterPalette, getThemeKey } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 
 type Template = 'weekly' | 'height'
 
@@ -64,7 +65,7 @@ export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; wi
 WeeklyPoster.displayName = 'WeeklyPoster'
 
 export default function WeeklyShareScreen({ navigation }: RootStackScreen<'WeeklyShare'>) {
-  const theme = useTheme(), insets = useSafeAreaInsets(), { width } = useWindowDimensions()
+  const theme = useTheme(), glass = isGlacier(theme), insets = useSafeAreaInsets(), { width } = useWindowDimensions()
   const [week, setWeek] = useState<WeeklyAchievement>()
   const [template, setTemplate] = useState<Template>('weekly')
   const [attempt, setAttempt] = useState(0)
@@ -104,10 +105,11 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
     finally { busyRef.current = false; setBusy(null) }
   }
   return <View style={{ flex: 1, backgroundColor: theme.paper }}>
+    {glass ? <GlassBackdrop /> : null}
     <Header title="本周成果分享" back />
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
       {error ? <><Text selectable style={{ color: theme.redInk }}>{error}</Text><Button title="重新读取" onPress={() => setAttempt(value => value + 1)} /></>
-        : !week ? <ActivityIndicator color={theme.brandText} style={{ marginTop: 100 }} /> : !week.workouts ? <View style={{ alignItems: 'center', gap: 20, marginTop: 40, padding: 24, borderRadius: 24, backgroundColor: theme.card }}>
+        : !week ? <ActivityIndicator color={theme.brandText} style={{ marginTop: 100 }} /> : !week.workouts ? <View style={[{ alignItems: 'center', gap: 20, marginTop: 40, padding: 24, borderRadius: 24 }, glass ? getGlassSurfaceStyle(theme, 'card') : { backgroundColor: theme.card }]}>
           <AchievementBuilding floors={0} width={150} />
           <Text accessibilityRole="header" style={{ color: theme.ink, fontSize: 23, fontWeight: '900', textAlign: 'center' }}>本周还没有训练</Text>
           <Text style={{ color: theme.inkSoft, fontSize: 15, lineHeight: 24, textAlign: 'center' }}>从今天的第一层开始。完成训练后，就能把一周的成果做成海报。</Text>
@@ -117,7 +119,7 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
           <View style={{ alignItems: 'center' }}><WeeklyPoster key={key} ref={poster} week={week} width={Math.min(360, width - 40)} template={template} onReady={() => { setReadyKey(key); setPosterError('') }} onError={() => { setReadyKey(''); setPosterError('海报图片加载失败，请重新加载后再导出。') }} /></View>
           {posterError ? <><Text accessibilityRole="alert" style={{ color: theme.redInk, textAlign: 'center' }}>{posterError}</Text><Button title="重新加载海报" variant="secondary" disabled={busy !== null} onPress={() => { if (busyRef.current) return; setPosterError(''); setReadyKey(''); setPosterAttempt(value => value + 1) }} /></> : null}
           <NativeChoice value={template} disabled={busy !== null} onChange={value => { if (busyRef.current) return; setTemplate(value); setPosterError(''); setMessage('') }} options={[{ value: 'weekly', label: '本周周报' }, { value: 'height', label: '高度足迹' }]} />
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}><MaterialCommunityIcons name="shield-check-outline" size={18} color={theme.mutedStrong} accessible={false} />
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}><UIIcon name="shield-check" size={18} color={theme.mutedStrong} accessible={false} />
             <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, flex: 1 }}>只分享本周汇总，不含楼栋名称、地址、身份和逐次训练详情。热量为估算。</Text></View>
           <>
             <View style={{ flexDirection: 'row', gap: 12 }}><Button title="保存海报" variant="secondary" fullWidth={false} style={{ flex: 1 }} disabled={busy !== null || readyKey !== key || !!posterError} loading={busy === 'save'} onPress={() => void exportPoster('save')} />

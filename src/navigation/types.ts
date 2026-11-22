@@ -10,9 +10,9 @@ import {
 import { CompositeNavigationProp, CompositeScreenProps } from '@react-navigation/native'
 
 export type MainTabParamList = {
-  Train: undefined
+  Train: { pickedBuildingLocation?: import('../core/types').RouteLocation | null } | undefined
   Coach: undefined
-  History: undefined
+  History: { dayAt?: number } | undefined
   Profile: undefined
 }
 
@@ -24,6 +24,7 @@ export interface ClimbWorkoutParams {
   templateId?: string
   /** 新楼标定的起始楼层（默认 1，跳过 0）。 */
   startFloor?: number
+  buildingLocation?: import('../core/types').RouteLocation
   /** 重新标定：结算时覆盖这个模板。 */
   recalibrateTemplateId?: string
   /** 从未结束训练的检查点恢复。 */
@@ -31,11 +32,11 @@ export interface ClimbWorkoutParams {
 }
 
 // fusion-v1：流程精简为 首页 → 训练 → 结算（+ 记录、设置）。
-// 已删除：Routes/LocationPicker/Calibrate/Review/Validate/RouteProfile/AddRoute/Familiarize/WorkoutSetup/ClimbPreview/QuickStart。
 export type RootStackParamList = {
   Privacy: { from?: string } | undefined
   Onboarding: { from?: string } | undefined
   Main: NavigatorScreenParams<MainTabParamList> | undefined
+  LocationPicker: { initialLocation?: import('../core/types').RouteLocation } | undefined
   ClimbWorkout: ClimbWorkoutParams | undefined
   /** 结算页；fresh=true 表示刚结束的训练。 */
   WorkoutResult: { id: string; fresh?: boolean }

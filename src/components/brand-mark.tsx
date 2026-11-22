@@ -1,25 +1,19 @@
 import { TrackedImage } from './tracked-image'
-import React, { useState } from 'react'
-import { ColorValue, ImageProps } from 'react-native'
-import { getThemeSkinId, useTheme } from '../theme'
-import { getSkinMarkArtwork } from '../skin-assets'
+import React from 'react'
+import type { ColorValue, ImageProps } from 'react-native'
+import { useTheme } from '../theme'
 
-const BRAND_MARK = require('../../assets/brand/mark-audit.png')
+const BRAND_MARK = require('../../assets/brand/steploop/mark.png')
 
 type BrandMarkProps = Pick<ImageProps, 'style' | 'onLoad' | 'onError' | 'accessible' | 'accessibilityLabel'> & {
   size?: number
   color?: ColorValue
 }
 
-/** Classic keeps its original silhouette; graphic skins use their full-color mark. */
+/** The same stair symbol appears on the launcher, in the app, and on shared posters. */
 export function BrandMark({ size = 24, color, style, accessible = false, accessibilityLabel = '循阶标志', ...props }: BrandMarkProps) {
   const theme = useTheme()
-  const skinId = getThemeSkinId(theme), identity = `${skinId}/${theme.isDark ? 'dark' : 'light'}`
-  const mark = getSkinMarkArtwork(skinId, theme.isDark ? 'dark' : 'light')
-  const [failedSkin, setFailedSkin] = useState<string>()
-  const graphic = mark && failedSkin !== identity ? mark : undefined
-  return <TrackedImage identity={`brand/${identity}/${graphic ? "graphic" : "fallback"}`} key={`${identity}/${graphic ? 'graphic' : 'fallback'}`} {...props} source={graphic ?? BRAND_MARK} resizeMode="contain" resizeMethod="resize" fadeDuration={0}
-    onError={event => { if (graphic) setFailedSkin(identity); else props.onError?.(event) }}
+  return <TrackedImage identity="brand/steploop" {...props} source={BRAND_MARK} resizeMode="contain" resizeMethod="resize" fadeDuration={0}
     accessible={accessible} accessibilityLabel={accessible ? accessibilityLabel : undefined}
-    style={[{ width: size, height: size, flexShrink: 0, tintColor: graphic ? undefined : color ?? theme.brandText }, style]} />
+    style={[{ width: size, height: size, flexShrink: 0, tintColor: color ?? theme.brandText }, style]} />
 }

@@ -63,8 +63,8 @@ class Lab:
         self.adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-n', self.package + '/com.zxn.palou.MainActivity', '-d', "'" + url + "'")
         # Wait for the requested route; fixtures use real pages and synthetic records.
         marker = {'home': '本周累计爬升', 'climbing': '正在向上', 'summary': '训练完成',
-                  'appearance': '皮肤与外观', 'settings': '运动播报', 'share': '成果预览',
-                  'weekly': '本周成果分享', 'history': '向上的轨迹'}.get(state)
+                  'appearance': '皮肤与外观', 'settings': '外观', 'share': '成果预览',
+                  'weekly': '本周成果分享', 'history': '搜索训练记录'}.get(state)
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
             tree = self.tree()

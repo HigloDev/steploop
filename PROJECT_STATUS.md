@@ -1,5 +1,9 @@
 # 当前项目状态
 
+2026-11-19 本地签名交付版为 **1.1.9 / Android code 21**，已从手机原安装的 **1.1.8 / code 20** 原地升级并验证。审计、真机流程和签名回执见 [1.1.9 Impeccable 审计](docs/uiux-119-impeccable-audit.md)。公开试用标签仍为 `v1.1.7-preview.1`，机器入口见 [project-state.json](project-state.json)。
+
+## 1.1.7 历史基线
+
 > 最新源码已于2026-11-01覆盖安装到小米14，用户确认主要页面显示、操作正常。9张素材的清晰度限制继续保留，真实爬楼、长锁屏采样及耗电仍需实测。
 
 更新日期：2026-11-01。机器可读版本信息见 [project-state.json](project-state.json)。

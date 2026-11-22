@@ -3,6 +3,7 @@
 // fusion-v1 流程：首页 → 全屏训练 → 结算；所有页面共用所选皮肤和明暗模式。
 
 import React, { useEffect, useState } from 'react'
+import { useAppFontsReady } from './src/components/app-fonts'
 import { ActivityIndicator, View } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -15,10 +16,12 @@ import { RootStackParamList } from './src/navigation/types'
 import { isPrivacyAgreed } from './src/services/privacy'
 import { hasSeenOnboarding } from './src/services/onboarding'
 import MainTabs from './src/navigation/MainTabs'
-import { useTheme, useWorkoutPalette } from './src/theme'
+import { AppSkinContext, useTheme, useWorkoutPalette } from './src/theme'
+import { useReduceMotion } from './src/components/ui'
 import { useAppearance } from './src/appearance'
 import { hydrateAppearance } from './src/services/appearance'
 import AppearanceScreen from './src/pages/Appearance'
+import LocationPicker from './src/pages/LocationPicker'
 
 import ResultScreen from './src/pages/Result'
 import PrivacyScreen from './src/pages/Privacy'
@@ -39,8 +42,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>()
 
 function AppContent() {
   const theme = useTheme()
+  const fontsReady = useAppFontsReady()
   const appearance = useAppearance()
   const workoutPalette = useWorkoutPalette()
+  const reduceMotion = useReduceMotion()
   const [ready, setReady] = useState(false)
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Main')
 
@@ -69,7 +74,7 @@ function AppContent() {
     }
   }, [])
 
-  if (!ready || !appearance.hydrated) {
+  if (!ready || !appearance.hydrated || !fontsReady) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={theme.brand} />
@@ -80,6 +85,7 @@ function AppContent() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar style={theme.isDark ? 'light' : 'dark'} />
       <NavigationContainer
         theme={{
           dark: theme.isDark,
@@ -104,16 +110,18 @@ function AppContent() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: theme.paper },
+            animation: reduceMotion ? 'fade' : 'default',
           }}
         >
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="Appearance" component={AppearanceScreen} />
+          <Stack.Screen name="LocationPicker" component={LocationPicker} />
           <Stack.Screen
             name="ClimbWorkout"
             component={WorkoutScreen}
-            options={{ gestureEnabled: false, animation: 'slide_from_bottom', contentStyle: { backgroundColor: workoutPalette.bg } }}
+            options={{ gestureEnabled: false, animation: reduceMotion ? 'fade' : 'slide_from_bottom', contentStyle: { backgroundColor: workoutPalette.bg } }}
           />
           <Stack.Screen name="CoachCourse" component={CoachCourse} />
           <Stack.Screen name="CoachGoal" component={CoachGoal} />
@@ -127,11 +135,16 @@ function AppContent() {
           <Stack.Screen name="DiagnosticCapture" component={DiagnosticCaptureScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style={theme.isDark ? 'light' : 'dark'} />
     </SafeAreaProvider>
   )
 }
 
 export default function App() {
-  return <AppErrorBoundary><AppContent /></AppErrorBoundary>
+  return (
+    <AppErrorBoundary>
+      <AppSkinContext.Provider value="glacier-glass">
+        <AppContent />
+      </AppSkinContext.Provider>
+    </AppErrorBoundary>
+  )
 }

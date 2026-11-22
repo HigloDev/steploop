@@ -40,7 +40,7 @@ def launch(state, theme):
     url = f'palou-uiqa://preview?state={state}&theme={theme}'
     adb('shell', f"am start -n {PACKAGE}/com.zxn.palou.MainActivity -a android.intent.action.VIEW -d '{url}'")
     time.sleep(4 if state.startswith('summary') or state == 'template' else 2)
-    anchor = '训练完成' if state.startswith('summary') or state == 'template' else '向上训练' if state in ['climbing', 'calibrating', 'calibration_top', 'descending', 'waiting', 'climbing-long', 'climbing-estimated'] else '成绩还没有保存完成' if state.startswith('save-failed') else '暂时无法开始训练' if state == 'start-error' else '正在启动传感器' if state == 'starting' else '找到自己的节奏' if state == 'settings' else '搜索训练记录' if state.startswith('history') else '本周成果分享' if state.startswith('weekly') else '分享成绩' if state == 'share' else '开始爬楼'
+    anchor = '训练完成' if state.startswith('summary') or state == 'template' else '向上训练' if state in ['climbing', 'calibrating', 'calibration_top', 'descending', 'waiting', 'climbing-long', 'climbing-estimated'] else '成绩还没有保存完成' if state.startswith('save-failed') else '暂时无法开始训练' if state == 'start-error' else '正在启动传感器' if state == 'starting' else '外观' if state == 'settings' else '搜索训练记录' if state.startswith('history') else '本周成果分享' if state.startswith('weekly') else '分享成绩' if state == 'share' else '开始爬楼'
     for _ in range(7):
         ui = tree()
         if any(anchor in (n.get('text', '') + n.get('content-desc', '')) for n in ui.iter('node') if n.get('package') == PACKAGE):

@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import React, { useRef, useState } from 'react'
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { UIIcon } from './ui-icon'
 import { getRoundAchievementCount } from '../core/floors'
 import { formatDuration } from '../core/math'
 import type { WorkoutRound } from '../core/types'
 import type { WeeklyAchievement } from '../core/weekly-achievement'
 import type { TrendPoint } from '../core/progress-trends'
-import { getWeekBarFill, sport, useTheme } from '../theme'
+import { getWeekBarFill, isGlacier, sport, useTheme } from '../theme'
 
 /** The same seven actual days are used by Home and the exported weekly summary. */
 export function WeekBars({ days, inverted = false, compact = false }: { days: WeeklyAchievement['days']; inverted?: boolean; compact?: boolean }) {
@@ -35,6 +35,7 @@ export function RoundBreakdown({ rounds, onEdit, disabled = false }: {
   rounds: WorkoutRound[]; onEdit?: (round: WorkoutRound) => void; disabled?: boolean
 }) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const maximum = Math.max(1, ...rounds.map(getRoundAchievementCount))
   if (!rounds.length) return <Text style={{ color: theme.muted, fontSize: sport.type.secondary, paddingVertical: sport.space.lg }}>本次没有已完成的轮次。</Text>
   return <View>
@@ -58,7 +59,7 @@ export function RoundBreakdown({ rounds, onEdit, disabled = false }: {
             <Text style={{ color: theme.ink, fontSize: sport.type.body, fontWeight: '600' }}>{label}</Text>
             <Text style={{ ...theme.numeric, color: theme.ink, fontSize: sport.type.label }}>{pending ? '待确认' : `${floors} 层`}</Text>
           </View>
-          <View style={[styles.roundTrack, { backgroundColor: theme.lineSoft }]}>
+          <View style={[styles.roundTrack, { height: glass ? 6 : 4, backgroundColor: theme.lineSoft }]}>
             <View style={{ height: '100%', width: `${Math.max(0, Math.min(100, floors / maximum * 100))}%`, backgroundColor: estimated || pending ? theme.amber : theme.brandText, borderRadius: sport.radius.pill }} />
           </View>
           <View style={styles.roundHeading}>
@@ -66,7 +67,7 @@ export function RoundBreakdown({ rounds, onEdit, disabled = false }: {
             <Text style={{ ...theme.numeric, color: theme.muted, fontSize: sport.type.caption }}>{formatDuration(round.activeMs ?? round.durationMs ?? 0)}</Text>
           </View>
         </View>
-        {onEdit ? <MaterialCommunityIcons name="chevron-right" color={theme.muted} size={18} accessible={false} /> : null}
+        {onEdit ? <UIIcon name="chevron-right" color={theme.muted} size={18} accessible={false} /> : null}
       </Pressable>
     })}
   </View>
@@ -74,24 +75,31 @@ export function RoundBreakdown({ rounds, onEdit, disabled = false }: {
 
 export function TrendChart({ points }: { points: TrendPoint[] }) {
   const theme = useTheme()
+  const { fontScale } = useWindowDimensions()
+  const scroll = useRef<ScrollView>(null)
   const [selectedAt, setSelectedAt] = useState<number | null>(null)
   const selected = points.find(point => point.bucketStart === selectedAt) ?? [...points].reverse().find(point => point.workouts > 0) ?? points.at(-1)
   const maximum = Math.max(1, ...points.map(point => point.ascentM))
   if (!selected) return null
   return <View style={{ backgroundColor: theme.cardSoft, borderRadius: sport.radius.control, padding: sport.space.lg, marginVertical: sport.space.md }}>
     <View style={styles.roundHeading}>
-      <Text style={{ color: theme.muted, fontSize: sport.type.caption }}>{selected.label}</Text>
+      <Text style={{ color: theme.inkSoft, fontSize: sport.type.secondary, flexShrink: 1 }}>{selected.label}</Text>
       <Text style={{ ...theme.numeric, color: theme.brandInk, fontSize: sport.type.label }}>{Math.round(selected.ascentM)} 米</Text>
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, gap: sport.space.sm, paddingTop: sport.space.md }}>
+    <ScrollView key={points[0].bucketStart} ref={scroll} horizontal
+      onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}
+      contentContainerStyle={{ flexGrow: 1, gap: sport.space.sm, paddingTop: sport.space.md, paddingBottom: sport.space.xs }}>
       {points.map(point => <Pressable key={point.bucketStart} onPress={() => setSelectedAt(point.bucketStart)} accessibilityRole="button"
         accessibilityState={{ selected: selected.bucketStart === point.bucketStart }} accessibilityLabel={`${point.label}，${point.workouts} 次训练，爬升 ${Math.round(point.ascentM)} 米`}
-        style={{ flex: 1, minWidth: 32, alignItems: 'center', gap: sport.space.sm }}>
+        style={{ flex: 1, minWidth: Math.max(theme.tapMin, 4 * sport.type.caption * fontScale + sport.space.xs),
+          alignItems: 'center', gap: sport.space.sm }}>
         <View style={{ height: 76, width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
           <View style={{ width: 14, borderRadius: 3, height: point.ascentM > 0 ? 6 + point.ascentM / maximum * 70 : 2,
             backgroundColor: selected.bucketStart === point.bucketStart ? theme.brandText : point.ascentM > 0 ? theme.brandTint : theme.line }} />
         </View>
-        <Text style={{ color: theme.muted, fontSize: sport.type.micro, textAlign: 'center' }} numberOfLines={2}>{point.label}</Text>
+        <Text style={{ color: theme.inkSoft, fontSize: sport.type.caption, textAlign: 'center' }}>
+          {point.label.replace('年', '年\n')}
+        </Text>
       </Pressable>)}
     </ScrollView>
     <Text style={{ color: theme.muted, fontSize: sport.type.caption, marginTop: sport.space.md }}>{selected.workouts} 次训练 · {selected.floors} 层 · 净爬楼 {formatDuration(selected.activeDurationMs)}</Text>
@@ -108,5 +116,5 @@ const styles = StyleSheet.create({
   round: { minHeight: 84, paddingVertical: sport.space.lg, flexDirection: 'row', alignItems: 'center', gap: sport.space.md },
   roundIndex: { width: 42, height: 46, borderRadius: sport.radius.small, alignItems: 'center', justifyContent: 'center' },
   roundHeading: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: sport.space.sm },
-  roundTrack: { height: 4, borderRadius: sport.radius.pill, overflow: 'hidden' },
+  roundTrack: { borderRadius: sport.radius.pill, overflow: 'hidden' },
 })

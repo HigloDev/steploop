@@ -1,5 +1,5 @@
 import { TrackedImageBackground } from '../components/tracked-image'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon } from '../components/ui-icon'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
 import * as Sharing from 'expo-sharing'
@@ -37,7 +37,8 @@ import { calculateWorkoutSummary } from '../core/workout-summary'
 import { deriveTrainingProgress } from '../core/training-progress'
 import { RootStackScreen } from '../navigation/types'
 import { getWorkout, listWorkouts, saveWorkout } from '../services/workout-storage'
-import { Theme, useTheme, getPosterPalette, getThemeKey } from '../theme'
+import { Theme, useTheme, getPosterPalette, getThemeKey, isGlacier } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 
 type EditorTab = 'template' | 'copy' | 'size'
 type PosterTemplate = 'hero' | 'editorial' | 'report' | 'streak'
@@ -142,6 +143,7 @@ export default function ShareStudioScreen({
   route: screenRoute,
 }: RootStackScreen<'ShareStudio'>) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
   const { width: windowWidth } = useWindowDimensions()
   const styles = makeStyles(theme)
@@ -331,6 +333,7 @@ export default function ShareStudioScreen({
   if (!workout || !summary) {
     return (
       <View style={styles.page}>
+        {glass ? <GlassBackdrop /> : null}
         <Header title="分享成绩" back />
         <View style={styles.center}>
           <Text
@@ -379,6 +382,7 @@ export default function ShareStudioScreen({
 
   return (
     <View style={styles.page}>
+      {glass ? <GlassBackdrop /> : null}
       <Header title="分享成绩" back />
       <ScrollView
         style={styles.flex}
@@ -410,7 +414,7 @@ export default function ShareStudioScreen({
           accessibilityRole="text"
           accessibilityLabel={'分享内容已隐藏 ' + sharePayload.redacted.length + ' 项隐私字段：' + sharePayload.redacted.join('、')}
         >
-          <MaterialCommunityIcons name="lock" size={16} color={theme.mutedStrong} />
+          <UIIcon name="lock" size={16} color={theme.mutedStrong} />
           <Text style={styles.privacyText}>地点已隐藏 · 不含身份信息</Text>
         </View>
         {outcomeLabel ? <Text style={styles.outcomeText} accessibilityLiveRegion="polite" accessibilityLabel={outcomeLabel}>{outcomeLabel}</Text> : null}
@@ -444,7 +448,7 @@ export default function ShareStudioScreen({
             accessibilityState={{ selected: quote === item }}
             accessibilityLabel={item.replace('\n', '') || '无文案'}
             onPress={() => setQuote(item)}
-            style={[styles.option, quote === item && styles.optionActive]}
+            style={[styles.option, glass && getGlassSurfaceStyle(theme, 'card'), quote === item && styles.optionActive]}
           >
             <Text style={[styles.optionText, quote === item && styles.optionTextActive]}>{item.replace('\n', '') || '无文案'}</Text>
           </Pressable>)}
@@ -457,7 +461,7 @@ export default function ShareStudioScreen({
             accessibilityState={{ selected: ratio === item }}
             accessibilityLabel={item + ' ' + (item === '4:5' ? '社交平台' : item === '3:4' ? '手机海报' : '方形图片')}
             onPress={() => setRatio(item)}
-            style={[styles.sizeOption, ratio === item && styles.sizeOptionActive]}
+            style={[styles.sizeOption, glass && getGlassSurfaceStyle(theme, 'card'), ratio === item && styles.sizeOptionActive]}
           >
             <Text style={[styles.sizeValue, ratio === item && styles.sizeValueActive]}>{item}</Text>
             <Text style={styles.sizeHint}>{item === '4:5' ? '社交平台' : item === '3:4' ? '手机海报' : '方形图片'}</Text>
@@ -469,7 +473,7 @@ export default function ShareStudioScreen({
           <Button title="复制数据" variant="secondary" disabled={busyAction !== null} onPress={copyWorkoutData} />
         </Disclosure>
       </ScrollView>
-      <View style={[styles.dock, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.dock, glass && getGlassSurfaceStyle(theme, 'overlay'), { paddingBottom: insets.bottom + 12 }]}>
         <Button
           title={busyAction === 'save' ? '保存中…' : '保存图片'}
           variant="secondary"

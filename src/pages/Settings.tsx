@@ -3,27 +3,25 @@
 import React, { useEffect, useRef, useState } from 'react'
 import appConfig from '../../app.json'
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon } from '../components/ui-icon'
 import { Host } from '@expo/ui'
 import { ThemeSwitch as Switch } from '../components/theme-switch'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Disclosure } from '../components/disclosure'
+import { AppearanceModeControl } from '../components/appearance-mode-control'
 import { VoiceModeSelector } from '../components/voice-mode-selector'
 import { VoiceSpeakerSelector } from '../components/voice-speaker-selector'
 import { NativeChoice } from '../components/native-choice'
-import { StairPaceSelector } from '../components/stair-pace-selector'
 import { BackgroundTrainingReadiness } from '../components/background-training-readiness'
 import { voiceModeChoice, voiceModePreferences } from '../services/workout-voice-settings'
 import { Header } from '../components/Header'
-import { SkinArt } from '../components/skin-art'
 import { SkinPageHeader } from '../components/skin-page-header'
 import { Card } from '../components/ui'
 import { CompletionCelebration } from '../components/completion-celebration'
-import { getThemeSkinId, skinTypography, sport, useTheme, Theme } from '../theme'
+import { getThemeSkinId, isGlacier, skinTypography, sport, typography, useTheme, Theme } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle, useGlassDockInset } from '../components/glass-material'
 import { MainTabScreen } from '../navigation/types'
-import { useAppearance } from '../appearance'
-import { APPEARANCE_MODE_LABELS, skinName } from '../skin-catalog'
 import {
   getPreferences,
   savePreferences,
@@ -50,21 +48,23 @@ const APP_VERSION = appConfig.expo.version
 const UNDO_PAGE_SIZE = 5
 const snapshotTime = (savedAt: number) => new Date(savedAt).toLocaleString('zh-CN', { hour12: false })
 
-function SettingsGroup({ title, spaced = false, rows = false, children }: { title: string; spaced?: boolean; rows?: boolean; children: React.ReactNode }) {
+function SettingsGroup({ title, spaced = false, children }: { title: string; spaced?: boolean; children: React.ReactNode }) {
   const theme = useTheme(), styles = makeStyles(theme)
-  if (getThemeSkinId(theme) === 'classic') return <Card style={[styles.group, spaced && styles.nextGroup]}>
+  const glass = isGlacier(theme)
+  if (getThemeSkinId(theme) === 'classic') return <Card style={[styles.group, spaced && styles.nextGroup, glass && getGlassSurfaceStyle(theme, 'card')]}>
     <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{children}
   </Card>
   return <View style={{ marginTop: spaced ? 12 : 0 }}>
     <Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 10 }]}>{title}</Text>
-    <Card style={[styles.group, rows && { paddingVertical: 6 }]}>{children}</Card>
+    <Card style={[styles.group, glass && getGlassSurfaceStyle(theme, 'card')]}>{children}</Card>
   </View>
 }
 
 export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>) {
   const theme = useTheme()
   const graphic = getThemeSkinId(theme) !== 'classic'
-  const appearance = useAppearance()
+  const glass = isGlacier(theme)
+  const dockInset = useGlassDockInset()
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const [prefs, setPrefs] = useState<Prefs | null>(null)
@@ -125,7 +125,6 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
     const unsubscribe = navigation.addListener('focus', loadPreferences)
     return () => { mounted = false; mountedRef.current = false; recoveryRequestRef.current += 1; unsubscribe() }
   }, [navigation])
-
 
   const update = async (patch: Partial<Prefs>) => {
     const next = await savePreferences(patch)
@@ -355,98 +354,48 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
 
   return (
     <View style={styles.page}>
+      {glass ? <GlassBackdrop /> : null}
       {previewCompletion ? <CompletionCelebration preview floors={30} ascentM={90} onDone={() => setPreviewCompletion(false)} /> : null}
       {!graphic ? <Header title="设置" back={false} large /> : null}
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 + dockInset }]}
       >
-        {graphic ? <SkinPageHeader page="settings" title="设置" subtitle="找到自己的节奏。" /> : <Text style={styles.intro}>找到自己的节奏。</Text>}
-        <Card style={[styles.group, { marginBottom: sport.space.lg }, graphic && { paddingVertical: 0 }]}>
-          <Pressable accessibilityRole="button" accessibilityLabel={`皮肤与外观，${skinName(appearance.skinId)}，${APPEARANCE_MODE_LABELS[appearance.mode]}`}
-            onPress={() => navigation.navigate('Appearance')} style={[styles.dataRow, { paddingVertical: 12, minHeight: 64 }]}>
-            {graphic ? <SkinArt kind="mark" width={32} height={32} /> : <Feather name="sliders" size={22} color={theme.brandText} />}
-            <View style={styles.rowText}><Text style={styles.rowTitle}>皮肤与外观</Text>
-              <Text style={styles.rowDesc}>{skinName(appearance.skinId)} · {APPEARANCE_MODE_LABELS[appearance.mode]}</Text></View>
-            <Feather name="chevron-right" size={20} color={theme.mutedStrong} />
-          </Pressable>
-        </Card>
-        <SettingsGroup title="运动播报">
-          {!prefs ? <ActivityIndicator color={theme.brandText} accessibilityLabel="正在读取设置" /> : null}
-          <VoiceModeSelector
-            value={voiceModeChoice(prefs ?? {})}
-            disabled={!prefs}
-            onChange={value => { void update(voiceModePreferences(value)) }}
-          />
-          <View style={styles.voiceControl}>
-            <Text style={styles.rowTitle}>音量 {Math.round((prefs?.voiceVolume ?? 0.85) * 100)}%</Text>
-            <NativeChoice
-              disabled={!prefs}
-              value={String(prefs?.voiceVolume ?? 0.85)}
-              options={[0.45, 0.65, 0.85, 1].map(value => ({ value: String(value), label: `${Math.round(value * 100)}%` }))}
-              onChange={value => { void update({ voiceVolume: Number(value) }) }}
-            />
-          </View>
-          <View style={styles.voiceControl}>
-            <Text style={styles.rowTitle}>语速</Text>
-            <NativeChoice
-              disabled={!prefs}
-              value={String(prefs?.voiceRate ?? 1)}
-              options={[{ value: '0.8', label: '稍慢' }, { value: '1', label: '正常' }, { value: '1.2', label: '稍快' }]}
-              onChange={value => { void update({ voiceRate: Number(value) }) }}
-            />
-          </View>
-
+        {graphic ? <SkinPageHeader page="settings" title="设置" /> : null}
+        <SettingsGroup title="外观">
+          <AppearanceModeControl />
         </SettingsGroup>
-        {prefsWriteError ? <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.amberInk }]}>{prefsWriteError}</Text> : null}
-
-        <SettingsGroup title="声音与提醒" spaced rows>
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text style={styles.rowTitle}>震动反馈</Text>
-              <Text style={styles.rowDesc}>每上一层提示，操作轻触反馈</Text>
+        <SettingsGroup title="声音与提醒" spaced>
+          {!prefs ? <ActivityIndicator color={theme.brandText} accessibilityLabel="正在读取设置" /> : null}
+          <VoiceModeSelector value={voiceModeChoice(prefs ?? {})} disabled={!prefs}
+            onChange={value => { void update(voiceModePreferences(value)) }} />
+          <Disclosure title="播报设置" summary="音量、语速与内容" compact marginTop={sport.space.xs}>
+            <View style={styles.voiceControl}>
+              <Text style={styles.rowTitle}>音量 {Math.round((prefs?.voiceVolume ?? 0.85) * 100)}%</Text>
+              <NativeChoice
+                disabled={!prefs}
+                value={String(prefs?.voiceVolume ?? 0.85)}
+                options={[0.45, 0.65, 0.85, 1].map(value => ({ value: String(value), label: `${Math.round(value * 100)}%` }))}
+                onChange={value => { void update({ voiceVolume: Number(value) }) }}
+              />
             </View>
-            <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
-              <Switch label="震动反馈" disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
-            </Host>
-          </View>
-          {!graphic ? hapticPreview : null}
-          <View style={[styles.divider, { marginVertical: 0 }]} />
-          <View style={styles.row}>
-            <View style={styles.rowText}><Text style={styles.rowTitle}>结算音效</Text><Text style={styles.rowDesc}>盖楼完成时播放柔和铃声</Text></View>
-            <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
-              <Switch label="结算音效" disabled={!prefs} value={Boolean(prefs?.completionSound)} onValueChange={value => { void update({ completionSound: value }) }} />
-            </Host>
-          </View>
-          {!graphic ? completionPreview : null}
-          <View style={[styles.divider, { marginVertical: 0 }]} />
-          {graphic ? <Disclosure title="反馈预览" summary="楼层震动 · 盖楼动画与音效" compact>{hapticPreview}{completionPreview}</Disclosure> : null}
-          <Disclosure title="播报内容" summary="里程碑与鼓励" compact>
-            <Text style={styles.rowDesc}>识别楼层、转向与结束时轻触提醒</Text>
+            <View style={styles.voiceControl}>
+              <Text style={styles.rowTitle}>语速</Text>
+              <NativeChoice
+                disabled={!prefs}
+                value={String(prefs?.voiceRate ?? 1)}
+                options={[{ value: '0.8', label: '稍慢' }, { value: '1', label: '正常' }, { value: '1.2', label: '稍快' }]}
+                onChange={value => { void update({ voiceRate: Number(value) }) }}
+              />
+            </View>
+
             <VoiceSpeakerSelector prefs={prefs} onChange={voiceSpeaker => { void update({ voiceSpeaker }) }} />
-          {([
-            ['voiceBluetoothOnly', '仅蓝牙耳机播报', '未连接蓝牙耳机时保持静音'],
-            ['voiceNightQuiet', '夜间免打扰', '每天 22:00 至次日 07:00 静音'],
-            ['voiceDuckMusic', '播报时压低音乐', '关闭时遇到音乐播放会略过播报'],
-          ] as const).map(([key, label, description]) => <React.Fragment key={key}>
-            <View style={[styles.divider, { marginVertical: 0 }]} />
-            <View style={styles.row}>
-              <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
-              <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
-                <Switch label={label} disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
-              </Host>
-            </View>
-          </React.Fragment>)}
-
-
-          <View style={styles.detailGroup}>
             {([
-              ['voiceEncouragement', '鼓励语', '可关闭额外鼓励，关键状态仍保留'],
-              ['voiceCalories', '卡路里里程碑', '标准与教练模式播报'],
-              ['voiceSteps', '步数里程碑', '教练模式播报'],
-              ['voiceFloors', '楼层里程碑', '教练模式播报'],
-            ] as const).map(([key, label, description], index) => <React.Fragment key={key}>
-              {index > 0 ? <View style={[styles.divider, { marginVertical: 0 }]} /> : null}
+              ['voiceBluetoothOnly', '仅蓝牙耳机播报', '未连接蓝牙耳机时保持静音'],
+              ['voiceNightQuiet', '夜间免打扰', '每天 22:00 至次日 07:00 静音'],
+              ['voiceDuckMusic', '播报时压低音乐', '关闭时遇到音乐播放会略过播报'],
+            ] as const).map(([key, label, description]) => <React.Fragment key={key}>
+              <View style={[styles.divider, { marginVertical: 0 }]} />
               <View style={styles.row}>
                 <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
                 <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
@@ -454,11 +403,50 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
                 </Host>
               </View>
             </React.Fragment>)}
+
+            <View style={styles.detailGroup}>
+              {([
+                ['voiceEncouragement', '鼓励语', '可关闭额外鼓励，关键状态仍保留'],
+                ['voiceCalories', '卡路里里程碑', '标准与教练模式播报'],
+                ['voiceSteps', '步数里程碑', '教练模式播报'],
+                ['voiceFloors', '楼层里程碑', '教练模式播报'],
+              ] as const).map(([key, label, description], index) => <React.Fragment key={key}>
+                {index > 0 ? <View style={[styles.divider, { marginVertical: 0 }]} /> : null}
+                <View style={styles.row}>
+                  <View style={styles.rowText}><Text style={styles.rowTitle}>{label}</Text><Text style={styles.rowDesc}>{description}</Text></View>
+                  <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+                    <Switch label={label} disabled={!prefs} value={Boolean(prefs?.[key])} onValueChange={value => { void update({ [key]: value }) }} />
+                  </Host>
+                </View>
+              </React.Fragment>)}
+            </View>
+          </Disclosure>
+          <View style={[styles.divider, { marginVertical: 0 }]} />
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>震动反馈</Text>
+              <Text style={styles.rowDesc}>楼层变化与操作确认</Text>
+            </View>
+            <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+              <Switch label="震动反馈" disabled={!prefs} value={Boolean(prefs?.hapticFeedback)} onValueChange={toggleHaptic} />
+            </Host>
           </View>
+          <View style={[styles.divider, { marginVertical: 0 }]} />
+          <View style={styles.row}>
+            <View style={styles.rowText}><Text style={styles.rowTitle}>结算音效</Text><Text style={styles.rowDesc}>盖楼完成时播放铃声</Text></View>
+            <Host matchContents colorScheme={theme.isDark ? 'dark' : 'light'} seedColor={theme.brand} style={{ width: 64, minHeight: 48 }}>
+              <Switch label="结算音效" disabled={!prefs} value={Boolean(prefs?.completionSound)} onValueChange={value => { void update({ completionSound: value }) }} />
+            </Host>
+          </View>
+          <View style={[styles.divider, { marginVertical: 0 }]} />
+          <Disclosure title="反馈预览" summary="楼层震动与盖楼动画" compact>
+            {hapticPreview}
+            {completionPreview}
           </Disclosure>
         </SettingsGroup>
+        {prefsWriteError ? <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.amberInk }]}>{prefsWriteError}</Text> : null}
 
-        <Card style={[styles.group, styles.nextGroup]}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text>
+        <Card style={[styles.group, styles.nextGroup, glass && getGlassSurfaceStyle(theme, 'card')]}><Text accessibilityRole="header" style={styles.sectionTitle}>训练偏好</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text style={[styles.rowTitle, { flex: 1 }]}>体重（千克）</Text>
           <View style={styles.weightControl}>
@@ -467,52 +455,52 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             <Pressable accessibilityRole="button" accessibilityLabel="体重加一千克" disabled={!prefs} style={styles.weightButton} onPress={() => adjustWeight(1)}><Text style={styles.weightButtonText}>＋</Text></Pressable>
           </View>
           </View>
-          <Text style={styles.rowDesc} accessibilityHint="历史成绩保留训练时的体重。">用于估算本次训练热量。</Text>
-          <StairPaceSelector value={prefs?.stairPace} disabled={!prefs} onChange={pace => { void update({ stairPace: pace }) }} />
+          <Text style={styles.rowDesc} accessibilityHint="历史成绩保留训练时的体重。">普通训练按上方显示的体重估算热量（默认 65 千克）。教练课优先使用最近一次称重。</Text>
+          <Text style={styles.rowDesc}>爬楼速度根据步频自动估算。步频数据不足时，按一般速度计算。历史成绩保留当时的计算方式。</Text>
         </Card>
 
-        <Card style={[styles.group, styles.nextGroup]}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>锁屏与后台</Text>
+        <Card style={[styles.group, styles.nextGroup, glass && getGlassSurfaceStyle(theme, 'card')]}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>锁屏与后台</Text>
           <BackgroundTrainingReadiness grouped /></Card>
 
         <View style={styles.sectionHead}><Text accessibilityRole="header" style={[styles.sectionTitle, { marginBottom: 0 }]}>数据与帮助</Text></View>
         <Disclosure title="备份与导出" dense marginTop={0}>
         <View>
           <Pressable accessibilityRole="button" accessibilityLabel="导出备份" accessibilityHint="导出楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport() }} disabled={dataBusy}>
-            <Feather name="download" size={22} color={theme.ink} />
+            <UIIcon name="download" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出备份</Text>
             </View>
-            {exporting ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
+            {exporting ? <Text style={styles.rowAction}>导出中…</Text> : <UIIcon name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           {isLocalDownloadExportAvailable() ? <>
             <Pressable accessibilityRole="button" accessibilityLabel="保存备份到下载" accessibilityHint="保存到本机 Download/循阶，包含楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={() => { void handleExport('downloads') }} disabled={dataBusy}>
-              <Feather name="download" size={22} color={theme.ink} />
+              <UIIcon name="download" size={22} color={theme.ink} />
               <View style={styles.rowText}>
                 <Text style={styles.dataTitle}>保存备份到下载</Text>
               </View>
-              {exporting ? <Text style={styles.rowAction}>保存中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
+              {exporting ? <Text style={styles.rowAction}>保存中…</Text> : <UIIcon name="chevron-right" size={20} color={theme.mutedStrong} />}
             </Pressable>
           </> : null}
           {exportMessage ? (
             <Text style={styles.messageText}>{exportMessage}</Text>
           ) : null}
           <Pressable accessibilityRole="button" accessibilityLabel="导出成绩表 Excel" accessibilityHint="训练记录表格，可用 Excel 打开" style={styles.dataRow} onPress={handleExportCsv} disabled={dataBusy}>
-            <MaterialCommunityIcons name="table" size={22} color={theme.ink} />
+            <UIIcon name="table" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导出成绩表 Excel</Text>
             </View>
-            {exportingCsv ? <Text style={styles.rowAction}>导出中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
+            {exportingCsv ? <Text style={styles.rowAction}>导出中…</Text> : <UIIcon name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="导入备份" accessibilityHint="从备份文件恢复楼栋模板、旧版路线与训练成绩" style={styles.dataRow} onPress={handleImport} disabled={dataBusy}>
-            <Feather name="upload" size={22} color={theme.ink} />
+            <UIIcon name="upload" size={22} color={theme.ink} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>导入备份</Text>
             </View>
-            {importing ? <Text style={styles.rowAction}>导入中…</Text> : <Feather name="chevron-right" size={20} color={theme.mutedStrong} />}
+            {importing ? <Text style={styles.rowAction}>导入中…</Text> : <UIIcon name="chevron-right" size={20} color={theme.mutedStrong} />}
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="撤销上次导入" accessibilityHint="保留当前数据副本，然后恢复到上次导入前的记录"
             style={styles.dataRow} onPress={confirmUndo} disabled={dataBusy || recoveryLoading || !canUndoImport}>
-            <Feather name="rotate-ccw" size={22} color={canUndoImport ? theme.ink : theme.mutedStrong} />
+            <UIIcon name="undo" size={22} color={canUndoImport ? theme.ink : theme.mutedStrong} />
             <View style={styles.rowText}>
               <Text style={styles.dataTitle}>撤销上次导入</Text>
               <Text style={styles.rowDesc}>{recoveryLoading ? '正在读取恢复副本…' : recoveryError ? '恢复副本暂时无法读取' : canUndoImport ? '恢复导入前记录，当前数据另存副本' : '没有可撤销的导入'}</Text>
@@ -522,7 +510,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
           {undoBackups.length > 0 ? <Pressable accessibilityRole="button" accessibilityLabel="导出撤销前备份"
             accessibilityState={{ expanded: showUndoBackups }}
             style={styles.dataRow} onPress={() => { setShowUndoBackups(value => !value) }} disabled={dataBusy || recoveryLoading}>
-            <Feather name="shield" size={22} color={theme.ink} />
+            <UIIcon name="shield" size={22} color={theme.ink} />
             <View style={styles.rowText}><Text style={styles.dataTitle}>导出撤销前备份</Text><Text style={styles.rowDesc}>{undoBackups.length} 份历史副本，按撤销时间选择</Text></View>
             {exportingUndo ? <ActivityIndicator color={theme.brand} /> : null}
           </Pressable> : null}
@@ -565,7 +553,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             style={styles.dataRow}
             onPress={() => navigation.navigate('Privacy', { from: 'settings' })}
           >
-            <Feather name="file-text" size={22} color={theme.ink} />
+            <UIIcon name="file-text" size={22} color={theme.ink} />
             <Text style={[styles.dataTitle, { flex: 1 }]}>隐私协议</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
@@ -574,7 +562,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
             style={styles.dataRow}
             onPress={() => navigation.navigate('Onboarding', { from: 'settings' })}
           >
-            <Feather name="book-open" size={22} color={theme.ink} />
+            <UIIcon name="book-open" size={22} color={theme.ink} />
             <Text style={[styles.dataTitle, { flex: 1 }]}>新手引导</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
@@ -595,7 +583,7 @@ export default function SettingsScreen({ navigation }: MainTabScreen<'Profile'>)
               )
             }
           >
-            <Feather name="info" size={22} color={theme.ink} />
+            <UIIcon name="info" size={22} color={theme.ink} />
             <Text style={[styles.dataTitle, { flex: 1 }]}>如何判断爬楼</Text>
             <Text style={styles.rowAction}>查看</Text>
           </Pressable>
@@ -632,7 +620,6 @@ const makeStyles = (theme: Theme) =>
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
     content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 0 },
-    intro: { color: theme.muted, fontSize: sport.type.secondary, lineHeight: 20, marginBottom: sport.space.lg },
     sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sport.space.md, marginTop: sport.space.page, marginBottom: sport.space.sm },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     sectionTitle: { color: theme.ink, ...(getThemeSkinId(theme) === 'classic' ? { fontSize: sport.type.label, lineHeight: 24, fontWeight: '600' as const } : skinTypography.section), marginBottom: sport.space.md },
@@ -644,7 +631,7 @@ const makeStyles = (theme: Theme) =>
     previewAction: { minHeight: 48, justifyContent: 'center', paddingBottom: sport.space.xs },
     previewActionText: { color: theme.brandInk, fontSize: sport.type.secondary, lineHeight: 20, fontWeight: '600' },
     dataRow: { flexDirection: 'row', alignItems: 'center', gap: sport.space.md, minHeight: 56, paddingVertical: sport.space.md },
-    dataTitle: { color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' },
+    dataTitle: { color: theme.ink, ...typography.label },
     undoBackups: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: theme.lineSoft, paddingHorizontal: sport.space.sm },
     footerNote: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, paddingTop: 12 },
     appFooter: { color: theme.mutedStrong, fontSize: 12, lineHeight: 18, textAlign: 'center', paddingTop: 12 },
@@ -662,12 +649,12 @@ const makeStyles = (theme: Theme) =>
     },
     rowTitle: {
       color: theme.ink,
-      ...(getThemeSkinId(theme) === 'classic' ? { fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' as const } : skinTypography.label),
+      ...typography.label,
     },
     rowDesc: {
       marginTop: sport.space.xs,
       color: theme.mutedStrong,
-      ...(getThemeSkinId(theme) === 'classic' ? { fontSize: sport.type.secondary, lineHeight: 20 } : skinTypography.secondary),
+      ...typography.secondary,
     },
     weightControl: {
       flexDirection: 'row',

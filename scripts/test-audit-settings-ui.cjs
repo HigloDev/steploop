@@ -44,7 +44,15 @@ function harness(options = {}) {
   const native = { StyleSheet: { create: value => value, hairlineWidth: 1 }, useColorScheme: () => 'light', Alert: { alert: (...args) => alerts.push(args) } }
   const catalog = load('src/skin-catalog.ts', {})
   const appearance = { useAppearance: () => ({ skinId: 'classic', mode: 'system', hydrated: true }) }
-  const theme = load('src/theme.ts', { 'react-native': native, './appearance': appearance, './skin-catalog': catalog })
+  const theme = load('src/theme.ts', {
+    'react-native': native,
+    react: {
+      createContext: value => ({ value }),
+      useContext: context => context.value,
+    },
+    './appearance': appearance,
+    './skin-catalog': catalog,
+  })
   const backups = {
     hasPreImportSnapshot: async () => {
       if (state.readTask) { const task = state.readTask; state.readTask = null; return task.promise }
@@ -72,6 +80,8 @@ function harness(options = {}) {
     importBackupPayload: async () => { state.imports++; if (state.importTask) await state.importTask.promise; state.snapshot = true; return { snapshotCreated: true, routesCount: 0, sessionsCount: 0, workoutsCount: 1 } },
   }
   const mocks = {
+    '../components/glass-material': { GlassBackdrop: 'GlassBackdrop', useGlassDockInset: () => 0, getGlassSurfaceStyle: () => ({}) },
+    '../components/ui-icon': { UIIcon: 'UIIcon', resolveUIIconName: name => name },
     '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
     '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
     react: hooks.react, '../../app.json': require('../app.json'), 'react-native': native,
@@ -84,6 +94,7 @@ function harness(options = {}) {
     '../theme': theme, '../appearance': appearance, '../skin-catalog': catalog,
   }
   for (const name of ['theme-switch', 'disclosure', 'voice-mode-selector', 'voice-speaker-selector', 'native-choice', 'stair-pace-selector', 'background-training-readiness', 'Header', 'ui', 'completion-celebration']) mocks['../components/' + name] = {}
+  mocks['../components/appearance-mode-control'] = { AppearanceModeControl: 'AppearanceModeControl' }
   const Screen = load('src/pages/Settings.tsx', mocks).default
   const navigation = { addListener: (_, cb) => { focus = cb; return () => {} }, navigate() {} }
   const render = () => hooks.render(() => Screen({ navigation }))

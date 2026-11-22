@@ -136,22 +136,20 @@ test('a failed decorative image disappears and does not break a later skin selec
   assert.equal(render().props.children[0].props.source, artwork.getSkinArtwork('woodland').scene)
 })
 
-test('a failed graphic logo falls back before notifying poster readiness or failure', () => {
+test('the app and posters use one brand mark in every skin and keep load callbacks', () => {
   const h = harness('src/components/brand-mark.tsx')
   let ready = 0, errors = 0
   const render = () => h.render(() => h.module.BrandMark({ onLoad: () => ready++, onError: () => errors++ }))
-  const graphic = render()
-  assert.equal(graphic.props.source, artwork.getSkinArtwork('k-on').mark)
-  assert.equal(graphic.props.style[0].tintColor, undefined)
-  graphic.props.onError({ nativeEvent: { error: 'Decode failed' } })
-  assert.equal(ready, 0)
-  assert.equal(errors, 0)
-  const fallback = render()
-  assert.ok(fallback.props.source.endsWith(path.join('assets', 'brand', 'mark-audit.png')))
-  fallback.props.onLoad()
+  const mark = render()
+  assert.ok(mark.props.source.endsWith(path.join('assets', 'brand', 'steploop', 'mark.png')))
+  assert.ok(fs.existsSync(mark.props.source))
+  assert.equal(mark.props.style[0].tintColor, '#A23760')
+  mark.props.onLoad()
   assert.equal(ready, 1)
-  fallback.props.onError({ nativeEvent: { error: 'Fallback failed' } })
+  mark.props.onError({ nativeEvent: { error: 'Decode failed' } })
   assert.equal(errors, 1)
   h.theme.id = 'classic'
-  assert.equal(render().props.source, fallback.props.source)
+  h.theme.brandText = '#245CD8'
+  assert.equal(render().props.source, mark.props.source)
+  assert.equal(render().props.style[0].tintColor, '#245CD8')
 })

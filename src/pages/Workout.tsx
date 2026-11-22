@@ -7,12 +7,10 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWi
 import { usePreventRemove } from '@react-navigation/native'
 import { StatusBar } from 'expo-status-bar'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon } from '../components/ui-icon'
 
-import { FlipNumber, GaugeCell, HoldToConfirm, MiniStat, PhaseStatusBar, StairGauge } from '../components/workout-ui'
+import { FloorReadout, FloorRuler, HoldToConfirm, MiniStat, PhaseStatusBar } from '../components/workout-ui'
 import { Disclosure } from '../components/disclosure'
-import { SkinArt } from '../components/skin-art'
-import { StairPaceSelector } from '../components/stair-pace-selector'
 import { CalorieEstimateDetails } from '../components/calorie-estimate-details'
 import { calorieMetricLabel } from '../core/segmented-calories'
 import { courseById } from '../core/coach'
@@ -21,7 +19,7 @@ import { formatDuration } from '../core/math'
 import type { FusionSnapshot } from '../core/fusion-engine'
 import { useFusionWorkout } from '../hooks/useFusionWorkout'
 import type { RootStackScreen } from '../navigation/types'
-import { sport, useWorkoutPalette, WorkoutPalette } from '../theme'
+import { sport, typography, useWorkoutPalette, WorkoutPalette } from '../theme'
 
 function baroLabel(baro: FusionSnapshot['baro']): string {
   switch (baro) {
@@ -45,8 +43,8 @@ export function WorkoutContent({ navigation, session }: {
   const P = useWorkoutPalette()
   const styles = useMemo(() => makeStyles(P), [P])
   const insets = useSafeAreaInsets()
-  const { height, fontScale } = useWindowDimensions()
-  const compact = height / fontScale < 740
+  const { width, height, fontScale } = useWindowDimensions()
+  const compact = width < 360 || height / fontScale < 740
   const { snapshot, status } = session
   const finishingRef = useRef(false)
   const [showExitHint, setShowExitHint] = useState(false)
@@ -89,30 +87,18 @@ export function WorkoutContent({ navigation, session }: {
     setShowExitHint(true)
   }
 
-  const cells = useMemo<GaugeCell[]>(() => {
-    if (!snapshot) return []
-    const descending = snapshot.phase === 'descending'
-    const done = snapshot.phase === 'waiting' ? 0 : descending ? session.rounds.at(-1)?.floors ?? 0 : snapshot.roundFloors
-    const total = Math.max(snapshot.templateFloors ?? snapshot.roundFloors + 8, descending ? done + 8 : 12, done)
-    return Array.from({ length: total }, (_, index) => ({
-      floor: floorAfter(snapshot.startFloor, index + 1),
-      state: done > 0 && index === done - 1 && snapshot.phase !== 'calibration_top' ? 'current' : index < done ? 'done' : 'todo',
-      estimated: index < done && snapshot.estimated && snapshot.roundKind === 'auto',
-    }))
-  }, [snapshot, session.rounds])
-
   if (status === 'finishing' || status === 'save_failed') {
     const retainedMessage = session.canSaveLater ? '本次训练仍保留在本机，请重试保存。' : '轮次仍在当前页面，请重试保存后再退出。'
     return (
       <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <StatusBar style={P.isDark ? 'light' : 'dark'} />
         <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          {status === 'save_failed' ? <Pressable accessibilityRole="button" accessibilityLabel="返回，查看成绩保存操作" onPress={showLeaveActions} style={styles.iconButton}><MaterialCommunityIcons name="chevron-left" size={30} color={P.ink} /></Pressable> : null}
+          {status === 'save_failed' ? <Pressable accessibilityRole="button" accessibilityLabel="返回，查看成绩保存操作" onPress={showLeaveActions} style={styles.iconButton}><UIIcon name="chevron-left" size={30} color={P.ink} /></Pressable> : null}
           <Text style={{ color: P.ink, fontSize: 24, fontWeight: '900' }}>训练结束</Text>
         </View>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: compact ? 24 : 46, paddingBottom: 32, gap: 8 }}>
         {status === 'finishing' ? <ActivityIndicator size="large" color={P.brandText} />
-          : <Feather name="alert-circle" size={132} color={P.brandText} />}
+          : <UIIcon name="alert" size={132} color={P.brandText} />}
         <Text style={[styles.errorTitle, { fontSize: 32, textAlign: 'center' }]}>{status === 'finishing' ? leavingAction === 'discard' ? '正在放弃本次训练…' : '正在保存成绩…' : leavingAction === 'discard' ? '未能放弃本次训练' : '成绩还没有保存完成'}</Text>
         {status === 'finishing' ? <Text style={styles.errorText}>{leavingAction === 'discard' ? '正在安全结束本次采集。' : '请稍等，保存后会自动进入结算页。'}</Text>
           : <Text style={[styles.errorText, { fontSize: 18, lineHeight: 26 }]}>{retainedMessage}</Text>}
@@ -148,7 +134,7 @@ export function WorkoutContent({ navigation, session }: {
       return (
         <View style={[styles.root, styles.center, { paddingTop: insets.top }]}>
           <StatusBar style={P.isDark ? 'light' : 'dark'} />
-          <MaterialCommunityIcons name="alert-circle-outline" size={48} color={P.warn} />
+          <UIIcon name="alert" size={48} color={P.warn} />
           <Text style={styles.errorTitle}>暂时无法开始训练</Text>
           <Text style={styles.errorText}>{session.error}</Text>
           <Pressable accessibilityRole="button" style={styles.primarySmall} onPress={session.retry}>
@@ -173,10 +159,13 @@ export function WorkoutContent({ navigation, session }: {
   const calibrating = phase === 'calibrating'
   const nextFloor = floorAfter(snapshot.startFloor, snapshot.roundFloors + 1)
   const lastRound = session.rounds.at(-1)
+  const descending = phase === 'descending'
+  const topFloor = snapshot.templateFloors ? floorAfter(snapshot.startFloor, snapshot.templateFloors)
+    : phase === 'calibration_top' ? snapshot.currentFloor : undefined
 
   // ---------- 中部大数字区：按阶段切换 ----------
   let eyebrow = ''
-  let bigValue: string | number = snapshot.currentFloor
+  let bigValue = snapshot.currentFloor
   let unit = '楼'
   let caption = ''
   if (calibrating) {
@@ -188,7 +177,7 @@ export function WorkoutContent({ navigation, session }: {
   } else if (phase === 'climbing') {
     eyebrow = `第 ${snapshot.roundNumber} 轮`
     caption = `本轮已爬 ${snapshot.roundFloors} 层${snapshot.estimated ? ' · 估算' : ''}`
-  } else if (phase === 'descending') {
+  } else if (descending) {
     eyebrow = `第 ${lastRound?.roundNumber ?? snapshot.completedRounds} 轮完成`
     bigValue = lastRound?.floors ?? 0
     unit = '层'
@@ -200,12 +189,12 @@ export function WorkoutContent({ navigation, session }: {
   }
 
   const showManualNext = (phase === 'calibration_top' || (phase === 'climbing' && snapshot.baro !== 'ok'))
-  const heroHeight = calibrating ? (compact ? 170 : 210) : compact ? 200 : Math.min(290, Math.max(230, height * 0.28))
+  const readoutSize = compact ? 106 : 132
   const climbingMinutes = (snapshot.ascentMs ?? snapshot.activeMs) / 60000
   const frequency = climbingMinutes > 0 ? snapshot.totalFloors / climbingMinutes : 0
   const ascent = snapshot.ascentM ?? snapshot.totalFloors * 3
   const metrics = [
-    { label: '累计爬升', value: Math.round(ascent).toString(), unit: '米', icon: 'stairs-up' as const },
+    { label: '累计爬升', value: Math.round(ascent).toString(), unit: '米', icon: 'stairs' as const },
     { label: '平均爬楼频率', value: frequency.toFixed(1), unit: '层/分钟', icon: 'speedometer' as const },
     { label: '当前步数', value: String(snapshot.steps), unit: '步', icon: 'shoe-print' as const },
     { label: session.calorieEstimate ? calorieMetricLabel(session.calorieEstimate) : '消耗热量', value: Math.round(session.calories ?? 0).toString(), unit: '千卡', icon: 'fire' as const },
@@ -215,9 +204,8 @@ export function WorkoutContent({ navigation, session }: {
     <View style={[styles.root, { paddingTop: insets.top + (compact ? 12 : 20), paddingBottom: insets.bottom + 8 }]}>
       <StatusBar style={P.isDark ? 'light' : 'dark'} />
       <View style={styles.liveHeader}>
-        <SkinArt kind="mark" width={28} height={28} />
+        <UIIcon name="climb" size={28} color={P.brandInk} />
         <Text accessibilityRole="header" style={styles.liveTitle}>向上训练</Text>
-        <View style={styles.liveBadge}><View style={styles.liveDot} /><Text style={styles.liveBadgeText}>LIVE</Text></View>
         <Text style={styles.roundBadge}>第 {snapshot.roundNumber} 轮</Text>
       </View>
       <View style={styles.topRow}>
@@ -228,27 +216,17 @@ export function WorkoutContent({ navigation, session }: {
       {session.warning ? <Text style={styles.warning} numberOfLines={2}>{session.warning}</Text> : null}
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.liveContent, { gap: compact ? 10 : 16 }]} showsVerticalScrollIndicator={false}>
-        {session.coach ? <View style={{ padding: 16, borderRadius: 16, backgroundColor: P.surface, gap: 6 }}>
-          <Text style={{ color: P.ink, fontSize: 17, fontWeight: '700' }}>{courseById(session.coach.courseId)?.name ?? '教练课程'}</Text>
-          <Text accessibilityLiveRegion="polite" style={{ color: P.ink, fontSize: 16 }}>
-            本次有效上爬 {(snapshot.activeMs / 60000).toFixed(1)} 分钟 · 安排 {session.coach.targetMinutes} 分钟
-          </Text>
-          <Text style={{ color: P.muted, fontSize: 14 }}>按自己的节奏分段完成，返回后充分恢复。结束并保存后计入课程，可分次累计。</Text>
-        </View> : null}
-      <View style={[styles.hero, { minHeight: heroHeight }]}>
-        <View style={styles.heroCenter}>
-          <Text style={styles.eyebrow}>{calibrating ? '记住这段楼梯' : phase === 'climbing' ? '当前楼层' : eyebrow}</Text>
-          {phase === 'descending' ? <MaterialCommunityIcons name="menu-down" size={40} color={P.brandText} style={{ marginTop: 12 }} /> : null}
-          <View style={styles.bigRow}>
-            <FlipNumber value={bigValue} color={P.brandInk} size={calibrating ? (compact ? 88 : 112) : compact ? 112 : 136} accessibilityLabel={`${bigValue} ${unit}`} />
-            <Text style={[styles.unit, compact && { fontSize: 22, marginBottom: 18 }]}>{unit}</Text>
-          </View>
-          <Text style={[styles.caption, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
+      <View style={styles.hero}>
+        <Text style={styles.eyebrow}>{calibrating ? '记住这段楼梯' : phase === 'climbing' ? '当前楼层' : eyebrow}</Text>
+        <View style={styles.heroReadout}>
+          <FloorReadout value={bigValue} unit={unit} size={readoutSize} />
+          {descending ? <UIIcon name="elevator-down" size={46} color={P.brandText} /> : (
+            <FloorRuler startFloor={snapshot.startFloor} currentFloor={snapshot.currentFloor} topFloor={topFloor}
+              estimated={snapshot.estimated && phase === 'climbing'} compact={compact} />
+          )}
         </View>
-        <View style={{ alignItems: 'center' }}>
-          <SkinArt width={compact ? 64 : 88} height={compact ? 48 : 64} />
-          <StairGauge cells={cells} startFloor={snapshot.startFloor} height={compact ? 160 : 210} maxVisible={10} style={styles.gauge} />
-        </View>
+        <Text style={[styles.caption, snapshot.estimated && phase === 'climbing' && { color: P.estimate }]}>{caption}</Text>
+        {!descending && topFloor !== undefined ? <Text style={styles.routeCaption}>起点 {snapshot.startFloor} 楼 · 折返 {topFloor} 楼</Text> : null}
       </View>
 
       {calibrating ? (
@@ -265,61 +243,69 @@ export function WorkoutContent({ navigation, session }: {
           <View style={styles.calRow}>
             <Pressable accessibilityRole="button" accessibilityLabel="撤销上一次" disabled={!snapshot.canUndo}
               onPress={session.undoMark} style={[styles.secondary, !snapshot.canUndo && { opacity: 0.35 }]}>
-              <MaterialCommunityIcons name="undo-variant" size={20} color={P.inkSoft} />
+              <UIIcon name="undo" size={20} color={P.inkSoft} />
               <Text style={styles.secondaryText}>撤销</Text>
             </Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="到顶了，结束标定爬楼" onPress={session.markTop} style={[styles.secondary, styles.topButton]}>
-              <MaterialCommunityIcons name="flag-checkered" size={20} color={P.brandInk} />
+              <UIIcon name="flag-checkered" size={20} color={P.brandInk} />
               <Text style={[styles.secondaryText, { color: P.brandInk }]}>到顶了</Text>
             </Pressable>
           </View>
         </View>
       ) : showManualNext ? (
         <View>
-            <Pressable accessibilityRole="button" accessibilityLabel="已回到楼下，开始下一轮" onPress={session.nextRound} style={[styles.nextButton, compact && { minHeight: 52 }]}>
-              <MaterialCommunityIcons name="replay" size={20} color={P.onBrand} />
+            <Pressable accessibilityRole="button" accessibilityLabel={phase === 'calibration_top' ? '已回到楼下，开始下一轮' : '结束本轮'} onPress={session.nextRound} style={[styles.nextButton, compact && { minHeight: 52 }]}>
+              <UIIcon name="replay" size={20} color={P.onBrand} />
               <Text style={[styles.nextText, compact && { fontSize: 18 }]} numberOfLines={1} adjustsFontSizeToFit>{phase === 'calibration_top' ? '已到楼下 · 开始下一轮' : '结束本轮'}</Text>
             </Pressable>
         </View>
       ) : <View style={styles.phaseHint}>
-        <MaterialCommunityIcons name={phase === 'descending' ? 'elevator-down' : phase === 'waiting' ? 'play-circle-outline' : 'vibrate'} size={20} color={P.brandInk} accessible={false} />
-        <Text style={styles.phaseHintText}>{phase === 'descending' ? '下行不累计楼层与热量' : phase === 'waiting' ? '开始上行即可继续，休息不计入爬楼频率' : '每完成一层，楼层数字与震动同步提醒'}</Text>
+        <UIIcon name={phase === 'descending' ? 'elevator-down' : phase === 'waiting' ? 'play-circle' : 'vibrate'} size={20} color={P.brandInk} accessible={false} />
+        <Text style={styles.phaseHintText}>{phase === 'descending' ? '下行不累计楼层与热量' : phase === 'waiting' ? '开始上行即可继续，休息不计入爬楼频率' : '每完成一层更新楼层数字'}</Text>
       </View>}
+      {session.coach ? <View style={{ padding: 16, borderRadius: 16, backgroundColor: P.surface, gap: 6 }}>
+        <Text style={{ color: P.ink, fontSize: 17, fontWeight: '700' }}>{courseById(session.coach.courseId)?.name ?? '教练课程'}</Text>
+        <Text accessibilityLiveRegion="polite" style={{ color: P.ink, fontSize: 16 }}>
+          本次有效上爬 {(snapshot.activeMs / 60000).toFixed(1)} 分钟 · 安排 {session.coach.targetMinutes} 分钟
+        </Text>
+        <Text style={{ color: P.muted, fontSize: 14 }}>按自己的节奏分段完成，返回后充分恢复。结束并保存后计入课程，可分次累计。</Text>
+      </View> : null}
       <View>
         <View style={styles.liveMetrics}>
           {metrics.map(metric => <View key={metric.label} style={[styles.liveMetric, compact && { minHeight: 68, paddingVertical: 10 }]} accessible
             accessibilityLabel={`${metric.label} ${metric.value} ${metric.unit}`}>
-            <View style={styles.liveMetricTitle}><MaterialCommunityIcons name={metric.icon} size={16} color={P.brandInk} accessible={false} />
+            <View style={styles.liveMetricTitle}><UIIcon name={metric.icon} size={18} color={P.brandInk} accessible={false} />
               <Text style={styles.liveMetricLabel}>{metric.label}</Text></View>
             <View style={styles.liveMetricNumber}><Text style={[styles.liveMetricValue, metric.label === '累计爬升' && { color: P.brandInk }]} numberOfLines={1} adjustsFontSizeToFit>{metric.value}</Text>
               <Text style={styles.liveMetricUnit}>{metric.unit}</Text></View>
           </View>)}
         </View>
-        <Text style={styles.metricHint}>频率只计上行用时 · 热量为估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
+        <Text style={styles.metricHint}>频率只计上行用时 · 热量按步频自动估算{snapshot.estimated || snapshot.baro !== 'ok' ? ' · 高度为估算' : ''}</Text>
       </View>
       {session.calorieEstimate ? <Disclosure compact title="热量估算依据">
-        {session.calorieProfile && session.setStairPace ? <StairPaceSelector
-          value={session.calorieProfile.paceSource === 'user' ? session.calorieProfile.pace : undefined}
-          onChange={session.setStairPace} disabled={status !== 'running'} /> : null}
         <CalorieEstimateDetails estimate={session.calorieEstimate} />
       </Disclosure> : null}
 
       {snapshot.completedRounds > 0 ? <View style={styles.completedStrip}>
-        <MaterialCommunityIcons name="check-circle-outline" size={18} color={P.good} accessible={false} />
+        <UIIcon name="check-circle" size={18} color={P.good} accessible={false} />
         <Text style={styles.completedText}>已完成 {snapshot.completedRounds} 轮{lastRound ? ` · 上轮 ${lastRound.floors} 层 / ${formatDuration(lastRound.activeMs ?? lastRound.durationMs)}` : ''}</Text>
       </View> : null}
 
       </ScrollView>
 
       <View style={styles.stats}>
-        <MiniStat label="用时" value={formatDuration(snapshot.elapsedMs)} compact={compact} />
+        <MiniStat label="整次用时" value={formatDuration(snapshot.elapsedMs)} compact={compact} />
         <MiniStat label="累计层数" value={String(snapshot.totalFloors)} accent compact={compact} divider />
-        <MiniStat label="轮次" value={`第 ${snapshot.roundNumber} 轮`} compact={compact} divider />
+        <MiniStat label="当前轮次" value={String(snapshot.roundNumber)} compact={compact} divider />
       </View>
       <View style={styles.exitActions}>
         {showExitHint ? <Text accessibilityLiveRegion="polite" style={styles.exitHint}>训练仍在进行，请使用下方按钮结束并保存或放弃本次。</Text> : null}
-        <HoldToConfirm tone="primary" label="长按结束并保存" holdingLabel="松开取消 · 继续按住保存" onConfirm={() => void finish()} style={{ minHeight: compact ? 52 : 58 }} />
-        <HoldToConfirm tone="danger" label="长按放弃本次" holdingLabel="松开取消 · 继续按住放弃" accessibilityHint="本次未保存的训练将被放弃。长按约一秒确认，或使用读屏的双击确认" onConfirm={() => void discard()} style={styles.discard} />
+        <HoldToConfirm tone="primary" label="长按结束并保存" holdingLabel="松开取消 · 继续按住保存" onConfirm={() => void finish()}
+          accessibilityAlert={{ title: '结束并保存训练？', message: '保存本次训练记录并结束。', confirmLabel: '保存并结束' }}
+          style={{ minHeight: compact ? 52 : 58 }} />
+        <HoldToConfirm tone="danger" label="长按放弃本次" holdingLabel="松开取消 · 继续按住放弃" accessibilityHint="本次未保存的训练将被放弃。使用读屏双击打开确认对话框" onConfirm={() => void discard()}
+          accessibilityAlert={{ title: '放弃本次训练？', message: '本次未保存的训练记录将被放弃，且无法恢复。', confirmLabel: '放弃本次', destructive: true }}
+          style={styles.discard} />
       </View>
     </View>
   )
@@ -327,12 +313,9 @@ export function WorkoutContent({ navigation, session }: {
 
 const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: P.bg, paddingHorizontal: sport.space.page },
-  liveHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 12 },
-  liveTitle: { color: P.ink, fontSize: 22, fontWeight: '700' },
-  liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6, backgroundColor: P.brandDim },
-  liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: P.brandInk },
-  liveBadgeText: { color: P.brandInk, fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  roundBadge: { color: P.muted, marginLeft: 'auto', fontSize: 13 },
+  liveHeader: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, paddingBottom: 12 },
+  liveTitle: { ...typography.section, color: P.ink },
+  roundBadge: { ...typography.caption, color: P.muted, marginLeft: 'auto' },
   completedStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P.line },
   completedText: { flex: 1, color: P.inkSoft, fontSize: 12, lineHeight: 18 },
   center: { alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 32 },
@@ -349,23 +332,21 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
   iconButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   warning: { color: P.warn, fontSize: 13, fontWeight: '700', marginTop: 8, marginHorizontal: 4 },
   liveContent: { flexGrow: 1, paddingVertical: 12 },
-  hero: { flexDirection: 'row', alignItems: 'center' },
+  hero: { padding: sport.space.lg, backgroundColor: P.surface, borderRadius: sport.radius.hero, borderWidth: StyleSheet.hairlineWidth, borderColor: P.line },
+  heroReadout: { flexDirection: 'row', alignItems: 'center', gap: sport.space.md },
   liveMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   liveMetric: { width: '46%', flexGrow: 1, minHeight: 82, paddingHorizontal: 4, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P.line },
   liveMetricTitle: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  liveMetricLabel: { color: P.muted, fontSize: 12, fontWeight: '400', flexShrink: 1 },
+  liveMetricLabel: { ...typography.caption, color: P.inkSoft, flexShrink: 1 },
   liveMetricNumber: { flexDirection: 'row', alignItems: 'baseline', gap: 5, marginTop: 4 },
-  liveMetricValue: { color: P.ink, fontSize: 28, fontWeight: '600', fontVariant: ['tabular-nums'], letterSpacing: -0.8, flexShrink: 1 },
-  liveMetricUnit: { color: P.muted, fontSize: 11, fontWeight: '700' },
-  metricHint: { color: P.muted, fontSize: 11, lineHeight: 16, marginTop: 8, textAlign: 'center' },
+  liveMetricValue: { ...typography.digits, color: P.ink, fontSize: 30, flexShrink: 1 },
+  liveMetricUnit: { ...typography.caption, color: P.inkSoft },
+  metricHint: { ...typography.caption, color: P.muted, marginTop: 8, textAlign: 'center' },
   phaseHint: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, backgroundColor: P.surface },
-  phaseHintText: { flex: 1, color: P.inkSoft, fontSize: 12, lineHeight: 19 },
-  gauge: { width: 76, marginRight: 8 },
-  heroCenter: { flex: 1, alignItems: 'flex-start' },
-  eyebrow: { color: P.muted, fontSize: 14, fontWeight: '400', letterSpacing: 1 },
-  bigRow: { flexDirection: 'row', alignItems: 'flex-end', maxWidth: '100%' },
-  unit: { color: P.muted, fontSize: 26, fontWeight: '400', marginBottom: 24, marginLeft: 8 },
-  caption: { color: P.inkSoft, fontSize: 14, lineHeight: 22, fontWeight: '400', marginTop: 6 },
+  phaseHintText: { ...typography.secondary, flex: 1, color: P.inkSoft },
+  eyebrow: { ...typography.label, color: P.inkSoft },
+  caption: { ...typography.body, color: P.inkSoft, marginTop: sport.space.xs },
+  routeCaption: { ...typography.caption, color: P.muted, marginTop: sport.space.xs },
   calArea: { flex: 0, justifyContent: 'flex-end', gap: 12, marginTop: 0,},
   bigButton: {
     flex: 0, minHeight: 76, borderRadius: sport.radius.control, backgroundColor: P.brand,

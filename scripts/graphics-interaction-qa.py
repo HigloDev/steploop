@@ -112,7 +112,7 @@ def main():
 
     def appearance_phase():
         lab.open('home', 'eva-unit-02', 'dark')
-        for tab, marker in [('教练', '设定我的体重目标'), ('记录', '向上的轨迹'), ('设置', '运动播报'), ('训练', '本周累计爬升')]:
+        for tab, marker in [('教练', '设定我的体重目标'), ('记录', '搜索训练记录'), ('设置', '外观'), ('训练', '本周累计爬升')]:
             lab.tap(tab)
             lab.wait_text(marker)
         lab.screenshot('eva-unit-02-dark-tab-roundtrip', 'eva-unit-02', 'dark')

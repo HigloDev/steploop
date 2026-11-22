@@ -1,13 +1,13 @@
 # 循阶项目入口
 
-当前开发与公开试用版本均为 **1.1.7 / Android versionCode 16**；以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。本次整合教练、分段热量、七套皮肤及已装手机的审计修复。
+本地界面候选为 **1.1.9 / Android versionCode 21**，公开试用版为 **1.1.7 / Android versionCode 16**。以 `project-state.json` 和 `PROJECT_STATUS.md` 为准。
 1.1.6为先前单独热量候选，综合联调版现为1.1.7。旧公开基准1.1.5保留于历史发布记录。
 
 ## 开始工作前
 
 1. 先读取根目录 `project-state.json` 和 `PROJECT_STATUS.md`，确认当前开发版本、公开版本及未合入修改。不要从旧报告、旧工作目录或会话记忆推断当前版本。
 2. 运行 `git rev-parse --show-toplevel`、`git status --short --branch` 和 `npm run check:project-state`。版本或远端不一致时先说明冲突，不能只改版本号来掩盖旧源码。
-3. 当前开发源码为 **1.1.7 / Android versionCode 16**，已公开版本为 **1.1.7 / Android versionCode 16**；主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
+3. 当前开发源码为 **1.1.9 / Android versionCode 21**，已公开版本为 **1.1.7 / Android versionCode 16**。主仓库为 `https://github.com/HigloDev/steploop.git`，默认分支为 `main`。在任务分支上工作是正常的，不能因此切回旧 `master`。
 
 ## 当前资料与历史边界
 
@@ -22,6 +22,8 @@
 Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
 
 ## 验证
+
+- 主页面的主要卡片、表格入口和图表必须提供与实际数据相符的详情、筛选、设置或其他可验证操作。禁止仅用按钮或可点击卡片外观占位。演示、禁用、加载、空数据和失败状态须有明确语义。交付前实际点按每类入口，检查目标、反馈、触区和返回路径。
 
 - 任何皮肤、主题或外观工作，先读 `docs/skins/README.md`、`docs/skins/registry.json` 和 `docs/skins/CONSTRUCTION.md`。新增皮肤先登记稳定ID，浅暗成对，所有页面经 `src/theme.ts` 取语义token；设计图、源码实现、自动通过、原生验证和公开发布分别标记。
 

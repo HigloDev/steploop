@@ -1,101 +1,105 @@
 // 训练页专用组件（浅色 / 深色高对比）：
-// - FlipNumber：巨大楼层数字，变化时上翻动画（reanimated）
-// - StairGauge：竖向楼梯刻度，一格一层，估算层用虚线
+// - FloorReadout / FloorRuler：固定读数配竖向滚动刻度，估算层使用虚线
 // - PhaseStatusBar：顶部唯一一条状态栏（替代旧版 9 种 Notice）
 // - HoldToConfirm：长按确认按钮（结束训练防误触）
 // - MiniStat：底部小指标
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native'
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { Alert, AppState, Pressable, StyleSheet, Text, View, ViewStyle, useWindowDimensions } from 'react-native'
 import Animated, {
   Easing,
   cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated'
+import Svg, { Circle, Line } from 'react-native-svg'
+import { floorAfter, getFloorTransitionCount } from '../core/floors'
 import { triggerHaptic } from '../services/preferences'
 
-import { sport, useWorkoutPalette, WorkoutPalette } from '../theme'
+import { getWorkoutPalette, sport, typography, useTheme, useWorkoutPalette, WorkoutPalette } from '../theme'
 import { useReduceMotion } from './ui'
 
-// ---------------- FlipNumber ----------------
-
-export function FlipNumber({ value, size = 140, color, accessibilityLabel }: {
-  value: number | string
-  size?: number
-  color?: string
-  accessibilityLabel?: string
-}) {
+/** The value stays still as the ruler scrolls. Its accessible label updates only with the real floor. */
+export const FloorReadout = memo(function FloorReadout({ value, unit, size }: { value: number; unit: string; size: number }) {
   const { palette: P, styles } = useWorkoutStyles()
-  const reduced = useReduceMotion()
-  const shift = useSharedValue(0)
-  const scale = useSharedValue(1)
-  const previous = useRef(value)
-  useEffect(() => {
-    if (previous.current === value) return
-    previous.current = value
-    if (reduced) return
-    shift.set(size * 0.35)
-    shift.set(withTiming(0, { duration: 320, easing: Easing.bezier(0.2, 0.9, 0.2, 1) }))
-    scale.set(withSequence(withTiming(1.08, { duration: 120 }), withTiming(1, { duration: 220 })))
-  }, [value, reduced, shift, scale, size])
-  const animated = useAnimatedStyle(() => ({
-    opacity: 1 - Math.min(1, Math.abs(shift.get()) / (size * 0.6)),
-    transform: [{ translateY: shift.get() }, { scale: scale.get() }],
-  }))
-  return (
-    <View style={{ flexShrink: 1, minWidth: 0 }} accessible accessibilityRole="text" accessibilityLabel={accessibilityLabel ?? String(value)} accessibilityLiveRegion="polite">
-      <Animated.Text
-        style={[styles.flip, { fontSize: size, lineHeight: size * 1.05, color: color ?? P.ink }, animated]}
-        adjustsFontSizeToFit
-        numberOfLines={1}
-      >
-        {value}
-      </Animated.Text>
-    </View>
-  )
-}
+  const { fontScale } = useWindowDimensions()
+  // Barlow's numeric ink sits below the center of its line box.
+  const opticalLift = Math.round(size * fontScale * 0.05)
+  return <View style={[styles.readout, { transform: [{ translateY: -opticalLift }] }]} accessible accessibilityRole="text"
+    accessibilityLabel={`${value} ${unit}`} accessibilityLiveRegion="polite" testID="workout-floor-readout">
+    <Text style={[styles.floorValue, { fontSize: size, lineHeight: Math.ceil(size * 1.05) }]}
+      numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+    <Text style={styles.floorUnit}>{unit}</Text>
+  </View>
+})
 
-// ---------------- StairGauge ----------------
-
-export interface GaugeCell {
-  /** 该格对应到达的楼层号。 */
-  floor: number
-  state: 'done' | 'current' | 'todo'
+/** One native transform moves a bounded window of real floor ticks past a fixed guide. */
+export const FloorRuler = memo(function FloorRuler({ startFloor, currentFloor, topFloor, estimated = false, compact = false }: {
+  startFloor: number
+  currentFloor: number
+  topFloor?: number
   estimated?: boolean
-}
+  compact?: boolean
+}) {
+  const theme = useTheme()
+  const P = getWorkoutPalette(theme)
+  const { motion } = theme
+  const reduced = useReduceMotion()
+  const index = getFloorTransitionCount(startFloor, currentFloor)
+  const end = topFloor === undefined ? index : getFloorTransitionCount(startFloor, topFloor)
+  const tickSpacing = compact ? 25 : 29
+  const height = tickSpacing * 5 + 4
+  const center = height / 2
+  const rulerWidth = compact ? 82 : 96
+  const offset = useSharedValue(index)
+  const previous = useRef(index)
+  const { base, easing: { move } } = motion
 
-/** 竖向楼梯刻度：从下往上一格一层，右侧逐格错位形成台阶感。 */
-export function StairGauge({ cells, height = 360, style, maxVisible = 24, startFloor }: { cells: GaugeCell[]; height?: number; style?: ViewStyle; maxVisible?: number; startFloor?: number }) {
-  const { palette: P, styles } = useWorkoutStyles()
-  const currentIndex = cells.findIndex(cell => cell.state === 'current')
-  const completed = cells.filter(cell => cell.state === 'done' || cell.state === 'current').length
-  const first = Math.max(0, Math.min(cells.length - maxVisible, currentIndex < 0 ? completed === 0 ? 0 : cells.length - maxVisible : currentIndex - 3))
-  const visible = cells.slice(first, first + maxVisible)
-  const cellH = height / Math.max(1, visible.length)
-  return (
-    <View
-      style={[{ minHeight: height, justifyContent: 'flex-end' }, style]}
-      accessible
-      accessibilityLabel={`楼层刻度，已完成 ${completed} 层`}
-    >
-      {[...visible].reverse().map((cell, index) => {
-        const done = cell.state === 'done'
-        const current = cell.state === 'current'
-        return (
-          <View key={`${cell.floor}-${index}`} style={{ height: cellH, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-            {current || index === 0 || index === visible.length - 1 ? <Text style={[styles.gaugeLabel, current && { color: P.brandInk, fontWeight: '700' }]}>{cell.floor}</Text> : null}
-            <View style={{ height: current ? 5 : 2, width: current ? 36 : done ? 24 : 16, borderRadius: 2,
-              backgroundColor: current || done ? cell.estimated ? P.estimate : P.brandText : P.line }} />
-          </View>
-        )
+  useEffect(() => {
+    const delta = index - previous.current
+    previous.current = index
+    if (reduced || Math.abs(delta) > 2) {
+      offset.set(index)
+      return
+    }
+    if (delta !== 0) offset.set(withTiming(index, { duration: base, easing: Easing.bezier(...move) }))
+  }, [base, index, move, offset, reduced])
+
+  const scroll = useAnimatedStyle(() => ({ transform: [{ translateY: (offset.get() - index) * tickSpacing }] }))
+  const first = Math.max(0, index - 5)
+  const last = Math.min(Math.max(end, index), index + 5)
+  const ticks = Array.from({ length: last - first + 1 }, (_, step) => first + step)
+  const activeColor = estimated ? P.estimate : P.brandInk
+
+  return <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+    testID="workout-floor-ruler" style={[rulerStyles.viewport, { width: rulerWidth, height }]}>
+    <View style={[rulerStyles.spine, { backgroundColor: P.line }]} />
+    <Animated.View style={[StyleSheet.absoluteFill, scroll]}>
+      {ticks.map(tick => {
+        const major = tick === 0 || (topFloor !== undefined && tick === end) || tick % 5 === 0 || Math.abs(tick - index) <= 2
+        const color = tick <= index ? P.inkSoft : P.muted
+        return <View key={tick} style={[rulerStyles.tick, { top: center + (index - tick) * tickSpacing - 10 }]}>
+          <View style={{ width: major ? 21 : 10, height: 1.5, backgroundColor: tick <= index ? P.brandText : P.line }} />
+          {major && tick !== index ? <Text numberOfLines={1} style={[rulerStyles.label, { color }]}>{floorAfter(startFloor, tick)}</Text> : null}
+        </View>
       })}
-      {completed === 0 && startFloor !== undefined ? <Text style={[styles.gaugeLabel, { marginTop: 4, marginBottom: 8, marginLeft: 0 }]}>{startFloor}F</Text> : null}
-    </View>
-  )
-}
+    </Animated.View>
+    <Svg width={rulerWidth} height={12} style={[rulerStyles.guide, { top: center - 6 }]}>
+      <Line x1={5} x2={rulerWidth - 5} y1={6} y2={6} stroke={activeColor} strokeWidth={2.5} strokeLinecap="round"
+        strokeDasharray={estimated ? '4 3' : undefined} />
+      <Circle cx={5} cy={6} r={3.75} fill={P.surface} stroke={activeColor} strokeWidth={2} />
+    </Svg>
+  </View>
+})
+
+const rulerStyles = StyleSheet.create({
+  viewport: { flexShrink: 0, overflow: 'hidden', position: 'relative' },
+  spine: { position: 'absolute', top: 3, bottom: 3, left: 19, width: 1 },
+  tick: { position: 'absolute', left: 19, right: 0, height: 20, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  label: { ...typography.digits, fontSize: typography.secondary.fontSize, flexShrink: 1 },
+  guide: { position: 'absolute', left: 0 },
+})
 
 // ---------------- PhaseStatusBar ----------------
 
@@ -115,8 +119,15 @@ export function PhaseStatusBar({ tone, text, extra }: { tone: 'info' | 'good' | 
 
 // ---------------- HoldToConfirm ----------------
 
+export type HoldToConfirmAlertConfig = {
+  title: string
+  message: string
+  confirmLabel: string
+  destructive?: boolean
+}
+
 /** 长按 holdMs 才触发：训练中结束按钮防误触。 */
-export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfirm, holdMs = 1200, style, tone = 'neutral', accessibilityHint }: {
+export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfirm, holdMs = 1200, style, tone = 'neutral', accessibilityHint, accessibilityAlert }: {
   label: string
   holdingLabel?: string
   onConfirm: () => void
@@ -124,12 +135,87 @@ export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfi
   style?: ViewStyle
   tone?: 'neutral' | 'accent' | 'danger' | 'primary'
   accessibilityHint?: string
+  accessibilityAlert?: HoldToConfirmAlertConfig
 }) {
   const { palette: P, styles } = useWorkoutStyles()
   const progress = useSharedValue(0)
   const [holding, setHolding] = useState(false)
+  const mountedRef = useRef(true)
+  const alertOpenRef = useRef(false)
+  const alertTokenRef = useRef(0)
+  const hasAccessibilityAlert = Boolean(accessibilityAlert)
   const fill = useAnimatedStyle(() => ({ width: `${progress.get() * 100}%` }))
-  const confirm = () => { void triggerHaptic('medium'); onConfirm() }
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      alertOpenRef.current = false
+      alertTokenRef.current += 1
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hasAccessibilityAlert || !AppState?.addEventListener) return
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') return
+      alertOpenRef.current = false
+      alertTokenRef.current += 1
+    })
+    return () => subscription?.remove?.()
+  }, [hasAccessibilityAlert])
+
+  const confirm = () => {
+    if (!mountedRef.current) return
+    void triggerHaptic('medium')
+    onConfirm()
+  }
+
+  const openAccessibilityAlert = () => {
+    if (!accessibilityAlert) {
+      confirm()
+      return
+    }
+    if (!mountedRef.current || alertOpenRef.current) return
+    if (AppState?.currentState && AppState.currentState !== 'active') return
+    if (!Alert?.alert) return
+    const token = alertTokenRef.current + 1
+    alertTokenRef.current = token
+    alertOpenRef.current = true
+    Alert.alert(
+      accessibilityAlert.title,
+      accessibilityAlert.message,
+      [
+        {
+          text: '继续训练',
+          style: 'cancel',
+          onPress: () => {
+            if (alertTokenRef.current !== token) return
+            alertTokenRef.current += 1
+            alertOpenRef.current = false
+          },
+        },
+        {
+          text: accessibilityAlert.confirmLabel,
+          style: accessibilityAlert.destructive ? 'destructive' : 'default',
+          onPress: () => {
+            if (alertTokenRef.current !== token || !mountedRef.current) return
+            alertTokenRef.current += 1
+            alertOpenRef.current = false
+            confirm()
+          },
+        },
+      ],
+      {
+        cancelable: true,
+        onDismiss: () => {
+          if (alertTokenRef.current !== token) return
+          alertTokenRef.current += 1
+          alertOpenRef.current = false
+        },
+      },
+    )
+  }
   const start = () => {
     setHolding(true)
     // Animation may finish immediately when Reduce Motion is enabled. Only
@@ -145,9 +231,9 @@ export function HoldToConfirm({ label, holdingLabel = '继续按住…', onConfi
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${label}，需要长按`}
-      accessibilityHint={accessibilityHint ?? '长按约一秒确认，或使用读屏的双击确认'}
+      accessibilityHint={accessibilityHint ?? (accessibilityAlert ? '长按约一秒确认，或使用读屏双击打开确认对话框' : '长按约一秒确认，或使用读屏的双击确认')}
       accessibilityActions={[{ name: 'activate', label }]}
-      onAccessibilityAction={event => { if (event.nativeEvent.actionName === 'activate') confirm() }}
+      onAccessibilityAction={event => { if (event.nativeEvent.actionName === 'activate') openAccessibilityAlert() }}
       onPressIn={start}
       onPressOut={stop}
       delayLongPress={holdMs}
@@ -179,20 +265,9 @@ function useWorkoutStyles() {
 }
 
 const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
-  flip: {
-    fontVariant: ['tabular-nums'],
-    fontWeight: '600',
-    letterSpacing: -4,
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-  gaugeLabel: {
-    color: P.inkSoft,
-    fontSize: 12,
-    fontWeight: '400',
-    fontVariant: ['tabular-nums'],
-    marginLeft: 6,
-  },
+  readout: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'baseline', gap: sport.space.sm },
+  floorValue: { ...typography.digits, color: P.brandInk, flexShrink: 1 },
+  floorUnit: { ...typography.navigation, color: P.inkSoft, flexShrink: 0 },
   statusBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -202,8 +277,8 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
     backgroundColor: 'transparent',
    paddingVertical: 0 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { flexShrink: 1, fontSize: 13, fontWeight: '500', color: P.inkSoft },
-  statusExtra: { color: P.muted, fontSize: 11, fontWeight: '400' },
+  statusText: { ...typography.label, flexShrink: 1, color: P.inkSoft },
+  statusExtra: { ...typography.caption, color: P.muted },
   hold: {
     minHeight: 58,
     borderRadius: sport.radius.control,
@@ -215,8 +290,8 @@ const makeStyles = (P: WorkoutPalette) => StyleSheet.create({
     paddingHorizontal: 18,
   },
   holdFill: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: P.surfaceHigh },
-  holdText: { color: P.inkSoft, fontSize: 15, fontWeight: '600' },
+  holdText: { ...typography.control, color: P.inkSoft },
   mini: { flex: 1, alignItems: 'center' },
-  miniValue: { color: P.ink, fontSize: 24, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  miniLabel: { color: P.muted, fontSize: 12, fontWeight: '400', marginTop: 4 },
+  miniValue: { ...typography.digits, color: P.ink, fontSize: 25 },
+  miniLabel: { ...typography.caption, color: P.muted, marginTop: 4 },
 })

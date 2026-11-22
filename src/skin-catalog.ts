@@ -61,11 +61,18 @@ export const SKIN_CATALOG = [
     dark: { paper: '#211A24', card: '#30242C', ink: '#FFF2E6', muted: '#D5B8C3', brand: '#F2A7C4', brandText: '#F7BAD1', onBrand: '#40212E',
       heroSurface: '#29212B', heroInk: '#FFF6E8', heroMuted: '#E6C9D0', heroAccent: '#F7BCD1' },
   },
+  {
+    id: 'glacier-glass', name: '冰川透蓝', description: '冰川科技蓝玻璃 Bento，剪纸楼梯贯穿始终', icon: 'droplet',
+    light: { paper: '#EDF4FD', card: '#FFFFFF', ink: '#14263F', muted: '#455D78', brand: '#245CD8', brandText: '#245CD8', onBrand: '#FFFFFF',
+      heroSurface: '#16304F', heroInk: '#F2F7FF', heroMuted: '#B9CBE6', heroAccent: '#8EBBFF' },
+    dark: { paper: '#101C2E', card: '#16243A', ink: '#F2F7FF', muted: '#BACDE6', brand: '#8EBBFF', brandText: '#8EBBFF', onBrand: '#0F2341',
+      heroSurface: '#142841', heroInk: '#F2F7FF', heroMuted: '#C4D5EE', heroAccent: '#9CC6FF' },
+  },
 ] as const satisfies readonly { id: string; name: string; description: string; icon: string; light: SkinPaint | null; dark: SkinPaint | null }[]
 
 export type SkinId = (typeof SKIN_CATALOG)[number]['id']
 export type AppearanceMode = 'system' | 'light' | 'dark'
-export const APPEARANCE_MODE_LABELS = { system: '跟随系统', light: '浅色', dark: '暗色' } as const
+export const APPEARANCE_MODE_LABELS = { system: '跟随系统', light: '浅色', dark: '深色' } as const
 export type ResolvedAppearance = 'light' | 'dark'
 export interface AppearanceSelection { skinId: SkinId; mode: AppearanceMode }
 export const DEFAULT_APPEARANCE: AppearanceSelection = { skinId: 'classic', mode: 'system' }

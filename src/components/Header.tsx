@@ -2,11 +2,12 @@
 // RN 版用 useSafeAreaInsets 处理状态栏高度，用 Pressable 调 navigation.goBack()。
 
 import React from 'react'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon } from './ui-icon'
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
-import { getThemeSkinId, useTheme, Theme } from '../theme'
+import { getThemeSkinId, isGlacier, typography, useTheme, Theme } from '../theme'
+import { getGlassSurfaceStyle } from './glass-material'
 import { SkinArt } from './skin-art'
 import { RootStackNavigation } from '../navigation/types'
 
@@ -31,6 +32,7 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const navigation = useNavigation<RootStackNavigation>()
+  const glass = isGlacier(theme)
 
   const handleBack = () => {
     if (onBackPress) { onBackPress(); return }
@@ -42,11 +44,11 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }, style]}>
+    <View style={[styles.container, { paddingTop: insets.top }, glass && { backgroundColor: 'transparent' }, glass && getGlassSurfaceStyle(theme, 'overlay'), style]}>
       <View style={[styles.bar, large && styles.largeBar]}>
         {back ? (
           <Pressable accessibilityRole="button" accessibilityLabel="返回" style={({ pressed }) => [styles.backAction, pressed && { backgroundColor: theme.surfaceSoft }]} onPress={handleBack} hitSlop={4}>
-            <Feather name="chevron-left" size={26} color={theme.ink} />
+            <UIIcon name="chevron-left" size={26} color={theme.ink} />
           </Pressable>
         ) : (
           large ? null : <View style={styles.backPlaceholder} />
@@ -82,7 +84,7 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: 12,
     },
     largeBar: { minHeight: 72, paddingHorizontal: theme.pagePaddingH, paddingTop: 12, paddingBottom: 12 },
-    largeTitle: { textAlign: 'left', fontSize: 28, lineHeight: 38, fontWeight: '700', marginHorizontal: 0 },
+    largeTitle: { ...typography.title, textAlign: 'left', marginHorizontal: 0 },
     backAction: {
       minWidth: 48,
       minHeight: 48,
@@ -99,10 +101,9 @@ const makeStyles = (theme: Theme) =>
       minWidth: 48,
     },
     title: {
+      ...typography.navigation,
       flex: 1,
       color: theme.ink,
-      fontSize: 17,
-      fontWeight: '600',
       textAlign: 'center',
       marginHorizontal: 8,
     },
@@ -116,8 +117,7 @@ const makeStyles = (theme: Theme) =>
     },
     rightText: {
       color: theme.brandText,
-      fontSize: 16,
-      fontWeight: '800',
+      ...typography.control,
     },
     rightPlaceholder: {
       minWidth: 48,

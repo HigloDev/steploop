@@ -385,7 +385,8 @@ async function mountGoal(env) {
   env.mock(path.join(root, 'src/components/ui.tsx'), { Button: 'Button', Field: 'Field' })
   env.mock(path.join(root, 'src/components/native-choice.tsx'), { NativeChoice: 'NativeChoice' })
   env.mock(path.join(root, 'src/components/coach-ui.tsx'), { CoachPage: 'CoachPage', CoachSection: 'CoachSection', CoachText: 'CoachText', CoachMessage: 'CoachMessage' })
-  env.mock(path.join(root, 'src/theme.ts'), { useTheme: () => ({ tapMin: 48 }) })
+  env.mock(path.join(root, 'src/components/glass-material.tsx'), { getGlassSurfaceStyle: () => ({}) })
+  env.mock(path.join(root, 'src/theme.ts'), { useTheme: () => ({ tapMin: 48 }), isGlacier: () => false })
   // RN views have no behavior in these handler tests; real layout is checked on Android.
   env.mock('react-native', { Pressable: 'Pressable', View: 'View' })
   const Goal = env.load(path.join(root, 'src/pages/coach-goal.tsx')).default

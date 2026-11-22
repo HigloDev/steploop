@@ -1,5 +1,6 @@
 /** Explicit development-only visual lab. Never loaded by a release bundle. */
 import React, { useEffect, useState } from 'react'
+import { useAppFontsReady } from '../components/app-fonts'
 import { ActivityIndicator, Appearance, Linking, LogBox, View } from 'react-native'
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -18,12 +19,14 @@ import Workout, { WorkoutContent } from '../pages/Workout'
 import WeeklyShare from '../pages/WeeklyShare'
 import { useTheme } from '../theme'
 import AppearanceScreen from '../pages/Appearance'
+import LocationPicker from '../pages/LocationPicker'
 import CoachCourse from '../pages/coach-course'
 import CoachGoal from '../pages/coach-goal'
 import CoachSession from '../pages/coach-session'
 import CoachRecords from '../pages/coach-records'
 import CoachReview from '../pages/coach-review'
 import { buildSessions, emptyCoachState, localDate, CoachEnrollment } from '../core/coach'
+import { floorAfter } from '../core/floors'
 import { COACH_STORAGE_KEY, COACH_DRAFT_KEY } from '../services/coach-storage'
 import { hydrateAppearance, saveAppearance } from '../services/appearance'
 import { normalizeSkinId, normalizeAppearanceMode } from '../skin-catalog'
@@ -160,21 +163,29 @@ async function seed(state: string) {
   liveAt = performance.now()
 }
 
-const WORKOUT_STATES = ['calibrating', 'calibration_top', 'climbing', 'climbing-long', 'climbing-estimated',
+const WORKOUT_STATES = ['calibrating', 'calibration_top', 'climbing', 'climbing-long', 'climbing-estimated', 'climbing-motion',
+  'climbing-basement-motion', 'climbing-three-digit-motion',
   'descending', 'waiting', 'save-failed', 'save-failed-no-recovery', 'starting', 'start-error', 'finishing', 'course-climbing']
 
 function WorkoutFixture({ navigation, state }: { navigation: any; state: string }) {
   const [phase, setPhase] = useState<FusionPhase>(state.startsWith('save-failed') || state.startsWith('climbing-') || ['starting', 'start-error', 'finishing', 'course-climbing'].includes(state) ? 'climbing' : state as FusionPhase)
-  const [floors, setFloors] = useState(state === 'climbing-long' ? 100 : phase === 'calibrating' ? 4 : phase === 'climbing' ? 8 : phase === 'waiting' ? 0 : 15)
+  const startFloor = state === 'climbing-basement-motion' ? -1 : 1
+  const [floors, setFloors] = useState(state === 'climbing-long' ? 100 : state === 'climbing-three-digit-motion' ? 98 : startFloor < 0 ? 0
+    : phase === 'calibrating' ? 4 : phase === 'climbing' ? 8 : phase === 'waiting' ? 0 : 15)
+  useEffect(() => {
+    if (!state.endsWith('-motion')) return
+    const update = setTimeout(() => setFloors(value => value + 1), 4500)
+    return () => clearTimeout(update)
+  }, [state])
   const [saveFailed, setSaveFailed] = useState(state.startsWith('save-failed'))
   const [status, setStatus] = useState<FusionWorkoutApi['status']>(state === 'start-error' ? 'error' : state === 'starting' ? 'starting' : state === 'finishing' ? 'finishing' : 'running')
   const estimated = state === 'climbing-estimated'
   const labels = { calibrating: '标定中 · 每到一层点一下', calibration_top: '标定完成', climbing: '正在向上 · 自动计层',
     descending: '下行中 · 到楼下自动开始下一轮', waiting: '在楼下准备 · 开始爬就自动计层', finished: '已结束' }
   const snapshot: FusionSnapshot = { phase, roundNumber: phase === 'waiting' ? 3 : phase === 'descending' ? 2 : 1,
-    roundKind: phase === 'calibrating' || phase === 'calibration_top' ? 'calibration' : 'auto', startFloor: 1,
-    currentFloor: floors + 1, roundFloors: floors, totalFloors: phase === 'waiting' || phase === 'descending' ? 30 : floors,
-    completedRounds: phase === 'waiting' || phase === 'descending' ? 2 : 0, templateFloors: phase === 'calibrating' ? undefined : 15,
+    roundKind: phase === 'calibrating' || phase === 'calibration_top' ? 'calibration' : 'auto', startFloor,
+    currentFloor: floorAfter(startFloor, floors), roundFloors: floors, totalFloors: phase === 'waiting' || phase === 'descending' ? 30 : floors,
+    completedRounds: phase === 'waiting' || phase === 'descending' ? 2 : 0, templateFloors: phase === 'calibrating' ? undefined : state === 'climbing-three-digit-motion' ? 120 : 15,
     elapsedMs: phase === 'waiting' ? 560000 : phase === 'descending' ? 500000 : phase === 'calibrating' ? 92000 : 192000,
     activeMs: 192000, ascentMs: 192000, ascentM: (phase === 'waiting' || phase === 'descending' ? 30 : floors) * 3,
     steps: (phase === 'waiting' || phase === 'descending' ? 30 : floors) * 18, baro: estimated ? 'none' : 'ok', estimated, canUndo: floors > 0, canMarkTop: floors > 0,
@@ -193,6 +204,7 @@ function WorkoutFixture({ navigation, state }: { navigation: any; state: string 
 
 export default function UiQaApp() {
   const theme = useTheme()
+  const fontsReady = useAppFontsReady()
   const [state, setState] = useState('')
   useEffect(() => { void Linking.getInitialURL().then(async url => {
     const appearance = url?.match(/[?&]theme=(light|dark)/)?.[1]
@@ -205,13 +217,13 @@ export default function UiQaApp() {
     await seed(next)
     setState(next)
   }) }, [])
-  if (!state) return <View style={{ flex: 1, backgroundColor: theme.paper, justifyContent: 'center' }}><ActivityIndicator color={theme.brandText} /></View>
+  if (!state || !fontsReady) return <View style={{ flex: 1, backgroundColor: theme.paper, justifyContent: 'center' }}><ActivityIndicator color={theme.brandText} /></View>
   const target = state.startsWith('summary') || state === 'template' ? 'WorkoutResult' : state === 'share' ? 'ShareStudio'
     : state === 'onboarding' ? 'Onboarding' : state.startsWith('privacy') ? 'Privacy' : state === 'legacy' ? 'Result'
     : state === 'coach-course' ? 'CoachCourse' : state === 'coach-goal' ? 'CoachGoal' : state === 'coach-session' ? 'CoachSession'
     : state === 'coach-records' ? 'CoachRecords' : state === 'coach-review' ? 'CoachReview'
     : state === 'appearance' ? 'Appearance' : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
-  const targetParams = target === 'WorkoutResult' ? { id: state === 'template' ? 'uiqa-template' : 'uiqa-summary', fresh: true }
+  const targetParams = target === 'WorkoutResult' ? { id: state === 'template' ? 'uiqa-template' : 'uiqa-summary', fresh: state !== 'summary-history' }
     : target === 'ShareStudio' ? { id: 'uiqa-summary' } : target === 'Result' ? { id: 'uiqa-legacy' }
     : target === 'CoachCourse' || target === 'CoachGoal' ? { courseId: 'weight' }
     : target === 'CoachSession' ? { sessionId: 'uiqa-skins-coach:' + localDate(NOW) }
@@ -220,18 +232,24 @@ export default function UiQaApp() {
     : target === 'Onboarding' ? { from: 'settings' } : undefined
   const mainScreen = state.startsWith('history') ? 'History' : state === 'settings' ? 'Profile' : state.startsWith('coach') ? 'Coach' : 'Train'
   const mainTabs = ['Train', 'Coach', 'History', 'Profile']
-  const mainRoute = { name: 'Main', params: { screen: mainScreen },
+  const mainRoute = { name: 'Main',
     state: { index: mainTabs.indexOf(mainScreen), routes: mainTabs.map(name => ({ name })) } }
   const rootOnly = state === 'privacy-first'
-  return <SafeAreaProvider><NavigationContainer initialState={{ index: target === 'Main' || rootOnly ? 0 : 1,
+  return <SafeAreaProvider><StatusBar style={theme.isDark ? 'light' : 'dark'} /><NavigationContainer initialState={{ index: target === 'Main' || rootOnly ? 0 : 1,
     routes: target === 'Main' ? [mainRoute] : rootOnly ? [{ name: target, params: targetParams }] : [mainRoute, { name: target, params: targetParams }] }} theme={{ ...(theme.isDark ? DarkTheme : DefaultTheme), colors: {
-    ...(theme.isDark ? DarkTheme.colors : DefaultTheme.colors), background: theme.paper, card: theme.card, text: theme.ink, primary: theme.brand } }}>
+    ...(theme.isDark ? DarkTheme.colors : DefaultTheme.colors), background: theme.paper, card: theme.card, text: theme.ink, primary: theme.brand } }}
+    onStateChange={root => {
+      const active = root?.routes[root.index]
+      const nested = active?.state
+      console.info('[steploop-uiqa-route]', active?.name, nested?.routes[nested.index ?? 0]?.name)
+    }}>
     <Stack.Navigator initialRouteName={target} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.paper } }}>
-      <Stack.Screen name="Main" component={MainTabs} initialParams={{ screen: mainScreen }} />
+      <Stack.Screen name="Main" component={MainTabs} />
       <Stack.Screen name="WorkoutResult" component={Summary} initialParams={{ id: state === 'template' ? 'uiqa-template' : 'uiqa-summary' }} />
       <Stack.Screen name="ShareStudio" component={ShareStudio} initialParams={{ id: 'uiqa-summary' }} />
       <Stack.Screen name="WeeklyShare" component={WeeklyShare} />
       <Stack.Screen name="Appearance" component={AppearanceScreen} />
+      <Stack.Screen name="LocationPicker" component={LocationPicker} />
       <Stack.Screen name="CoachCourse" component={CoachCourse} />
       <Stack.Screen name="CoachGoal" component={CoachGoal} />
       <Stack.Screen name="CoachSession" component={CoachSession} />
@@ -243,5 +261,5 @@ export default function UiQaApp() {
       <Stack.Screen name="ClimbWorkout">{props => WORKOUT_STATES.includes(state) || state === 'home-flow'
         ? <WorkoutFixture navigation={props.navigation} state={state === 'home-flow' ? props.route.params?.templateId ? 'climbing' : 'calibrating' : state} /> : <Workout {...props} />}</Stack.Screen>
     </Stack.Navigator>
-  </NavigationContainer><StatusBar style={theme.isDark ? 'light' : 'dark'} /></SafeAreaProvider>
+  </NavigationContainer></SafeAreaProvider>
 }

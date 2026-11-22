@@ -8,7 +8,8 @@ import { useNavigation } from '@react-navigation/native'
 import { Header } from '../components/Header'
 import { Button } from '../components/ui'
 import { FlowSheet } from '../components/flow-sheet'
-import { useTheme, Theme } from '../theme'
+import { isGlacier, useTheme, Theme } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 import { RootStackScreen, RootStackNavigation } from '../navigation/types'
 import { agreePrivacy } from '../services/privacy'
 import { hasSeenOnboarding } from '../services/onboarding'
@@ -20,6 +21,7 @@ const FEEDBACK_URL = 'https://github.com/HigloDev/steploop/issues'
 
 export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
   const styles = makeStyles(theme)
   const navigation = useNavigation<RootStackNavigation>()
@@ -54,6 +56,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 
   return (
     <View style={styles.page}>
+      {glass ? <GlassBackdrop /> : null}
       <Header title="隐私协议" align="left" back={from === 'route-edit' || (navigation.canGoBack() as boolean)} />
       <ScrollView
         style={styles.flex}
@@ -65,18 +68,18 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
           <Text style={styles.subtitle}>了解运动数据如何收集、保存、导出与删除。</Text>
         </View>
 
-        <PrivacySection number="01" title="信息收集" summary="训练期间使用运动传感器数据，辅助判断爬楼状态。">
+        <PrivacySection title="信息收集" summary="训练期间使用运动传感器数据，辅助判断爬楼状态。">
           <Text style={styles.paragraph}>本应用仅在用户主动操作时收集以下信息：</Text>
           <Text style={styles.itemDesc}>当前版本以楼栋模板标定与训练为主，开始爬楼无需地图选点。旧版路线、地点与成绩继续保留。</Text>
           <Text style={styles.itemLabel}>· 地理位置</Text>
-          <Text style={styles.itemDesc}>旧版路线可能含有你在地图上选择的建筑位置。当前训练入口不使用定位来判断楼层；这些历史地点仍可能包含在你主动导出的备份中。</Text>
+          <Text style={styles.itemDesc}>新楼栋可选填地点。你确认的位置随楼栋保存在本机，主动导出的备份可能包含该地点。爬楼计层使用运动传感器。</Text>
           <Text style={styles.itemLabel}>· 运动传感器</Text>
           <Text style={styles.itemDesc}>包括加速度、旋转、气压及设备可用的步数信息。仅在你主动开始标定、训练或诊断时读取，用于识别楼层与运动过程。</Text>
           <Text style={styles.itemLabel}>· 设备标识</Text>
           <Text style={styles.itemDesc}>仅记录设备型号、平台与系统版本，用于在更换手机时提示重新验证路线模板，不上传任何唯一标识。</Text>
         </PrivacySection>
 
-        <PrivacySection number="02" title="信息存储" summary="运动记录保存在本机，可由你主动导出。">
+        <PrivacySection title="信息存储" summary="运动记录保存在本机，可由你主动导出。">
           <Text style={styles.paragraph}>使用教练时，你填写的身高、实测体重、目标、课程安排、训练感受、称重记录和复盘仅保存在本机；未保存的目标输入也会暂存为本机草稿。主动导出的备份可包含教练记录，导入前快照支持撤销恢复；草稿不随备份导出。</Text>
           <Text style={styles.paragraph}>所有楼栋模板、旧版路线、爬楼记录与成绩摘要均存储在本地存储中，保存在当前设备下，不会上传到任何服务器。</Text>
           <Text style={styles.paragraph}>训练时按约 10 Hz 留存原始运动样本，采样中断会保留缺段记录。识别结果、人工修正和语音播报日志也保存在本机，可由你主动导出用于电脑分析，不会自动上传。</Text>
@@ -97,7 +100,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
           </Text>
         </PrivacySection>
 
-        <PrivacySection number="03" title="信息使用" summary="用于计层、成绩展示和训练诊断。">
+        <PrivacySection title="信息使用" summary="用于计层、成绩展示和训练诊断。">
           <Text style={styles.paragraph}>收集的信息仅用于：</Text>
           <Text style={styles.itemDesc}>· 显示你保存的楼栋模板与旧版路线信息</Text>
           <Text style={styles.itemDesc}>· 识别当前楼层、步态与转向事件</Text>
@@ -105,24 +108,24 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
           <Text style={styles.itemDesc}>· 在更换手机时提示重新验证</Text>
         </PrivacySection>
 
-        <PrivacySection number="04" title="信息共享" summary="不会自动向第三方上传运动记录。">
+        <PrivacySection title="信息共享" summary="不会自动向第三方上传运动记录。">
           <Text style={styles.paragraph}>运动记录不会自动上传或共享给第三方，也不会用于广告。只有你主动导出或分享时，文件才会交给你选择的目标应用。</Text>
-          <Text style={styles.paragraph}>旧版地图选点使用高德在线地图服务，加载地图、搜索地点和解析地址时会发送必要的位置或搜索信息。当前首页的“开始爬楼”不需要地图选点；主动分享旧版路线或导出备份前，请留意其中可能包含的地点信息。</Text>
+          <Text style={styles.paragraph}>打开地图选点时使用高德在线地图服务。加载地图、搜索地点和解析地址会向高德发送所需的位置或搜索信息。点按“定位到当前位置”时，应用申请前台定位权限，用于把地图移到你附近。</Text>
         </PrivacySection>
 
-        <PrivacySection number="05" title="信息删除" summary="可删除楼栋模板，历史训练会保留。">
+        <PrivacySection title="信息删除" summary="可删除楼栋模板，历史训练会保留。">
           <Text style={styles.paragraph}>可在首页楼栋卡片的管理菜单中删除楼栋模板。旧版路线在首页移除后，其原始数据仍保留在备份中；已保存的训练不受影响，有路线快照的记录继续显示当次信息。</Text>
           <Text style={styles.paragraph}>卸载应用或清除应用数据将永久删除所有本地数据，无法恢复。</Text>
         </PrivacySection>
 
-        <PrivacySection number="06" title="技术边界" summary="楼层估算会受携带方式和后台采样影响。">
+        <PrivacySection title="技术边界" summary="楼层估算会受携带方式和后台采样影响。">
           <Text style={styles.paragraph}>· 楼层和爬升是结合运动样本、可用气压与路线模板得到的估算，实际到达楼层可由你确认或修正。</Text>
-          <Text style={styles.paragraph}>· 手机定位仅用于确定建筑和附近路线排序，不用于室内测高。</Text>
+          <Text style={styles.paragraph}>· 手机定位用于在地图上查找附近楼栋。</Text>
           <Text style={styles.paragraph}>· 识别受手机型号、携带位置和路线影响；更换手机或携带方式后建议重新验证。</Text>
           <Text style={styles.paragraph}>· 锁屏持续采集需要系统允许后台训练和相应权限，部分手机的省电策略仍可能中断采样。缺段会保留记录并提醒，不会补造样本。</Text>
         </PrivacySection>
 
-        <PrivacySection number="07" title="联系方式" summary="可通过项目反馈页联系开发者。">
+        <PrivacySection title="联系方式" summary="可通过项目反馈页联系开发者。">
           <Text style={styles.paragraph}>如有疑问，可在项目反馈页描述问题。请勿公开上传完整备份、位置或其他个人信息。</Text>
           <Pressable accessibilityRole="link" accessibilityLabel="打开循阶项目反馈页" onPress={() => { void Linking.openURL(FEEDBACK_URL).catch(() => Alert.alert('无法打开反馈页', '请复制下方地址，在浏览器中打开。')) }} style={{ minHeight: 48, justifyContent: 'center' }}>
             <Text style={[styles.paragraph, { color: theme.brandInk }]}>打开项目反馈页</Text>
@@ -151,13 +154,13 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 }
 
 /** Summaries follow the approved layout; every original policy paragraph remains expandable. */
-function PrivacySection({ number, title, summary, children }: { number: string; title: string; summary: string; children: React.ReactNode }) {
+function PrivacySection({ title, summary, children }: { title: string; summary: string; children: React.ReactNode }) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const [open, setOpen] = useState(false)
-  return <View style={{ backgroundColor: theme.card, borderRadius: 20, marginBottom: 6, paddingHorizontal: 18 }}>
+  return <View style={[{ borderRadius: 20, marginBottom: 6, paddingHorizontal: 18 }, glass ? getGlassSurfaceStyle(theme, 'card') : { backgroundColor: theme.card }]}>
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}，查看完整协议`} accessibilityState={{ expanded: open }}
-      accessibilityHint="点开查看完整协议正文" onPress={() => setOpen(value => !value)} style={{ flexDirection: 'row', gap: 18, paddingVertical: 8, minHeight: 66, alignItems: 'flex-start' }}>
-      <Text style={{ ...theme.numeric, color: theme.brandText, fontSize: 28, lineHeight: 32, marginTop: 4 }}>{number}</Text>
+      accessibilityHint="点开查看完整协议正文" onPress={() => setOpen(value => !value)} style={{ flexDirection: 'row', paddingVertical: 8, minHeight: 66, alignItems: 'flex-start' }}>
       <View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 19, lineHeight: 24, fontWeight: '900' }}>{title}</Text>
         <Text style={{ color: theme.mutedStrong, fontSize: 15, lineHeight: 20, marginTop: 2 }}>{summary}</Text></View>
     </Pressable>
@@ -169,8 +172,8 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
-    hero: { marginBottom: 8, gap: 8 },
+    content: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
+    hero: { marginBottom: 4, gap: 4 },
     eyebrow: {
       color: theme.brandText,
       fontSize: theme.fontEyebrow,

@@ -13,6 +13,7 @@ function runtime() {
   const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]))
   const react = {
     Fragment: 'Fragment',
+    memo: render => render,
     forwardRef: render => props => render(props, props.ref),
     createElement: (type, props, ...children) => ({ type, props: { ...props, children } }),
     useState(initial) {
@@ -41,19 +42,36 @@ function runtime() {
   }, unmount: () => slots.forEach(slot => slot?.cleanup?.()) }
 }
 
+// These dependencies paint RN views. The harness still executes the real
+// route, form, persistence, and accessibility handlers below.
+const visualMocks = {
+  '../components/motion-pressable': { MotionPressable: 'Pressable' },
+  'expo-blur': { BlurTargetView: 'BlurTargetView', BlurView: 'BlurView' },
+  '../components/glass-material': {
+    GlassBackdrop: 'GlassBackdrop',
+    useGlassDockInset: () => 0,
+    getGlassSurfaceStyle: () => ({}),
+  },
+  '../components/tracked-image': { TrackedImage: 'TrackedImage' },
+  '../components/ui-icon': { UIIcon: 'UIIcon', resolveUIIconName: name => name },
+  '../../assets/skins/glacier-glass/stairwell.webp': 1,
+}
+
 function load(file, mocks) {
+  const imports = { ...visualMocks, ...mocks }
   const source = ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.React, esModuleInterop: true },
   }).outputText
   const loaded = { exports: {} }
   new Function('require', 'module', 'exports', source)(name => {
-    if (!(name in mocks)) throw Error('Unexpected import: ' + name)
-    return mocks[name]
+    if (!(name in imports)) throw Error('Unexpected import: ' + name)
+    return imports[name]
   }, loaded, loaded.exports)
   return loaded.exports
 }
 
 const native = {
+  Platform: { OS: 'android', Version: 35 },
   Pressable: 'Pressable', Text: 'Text', View: 'View', ScrollView: 'ScrollView', FlatList: 'FlatList', ActivityIndicator: 'ActivityIndicator',
   StyleSheet: { create: value => value, hairlineWidth: 1 },
   useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1 }),
@@ -62,6 +80,10 @@ const icons = { Feather: 'Feather', Ionicons: 'Ionicons', MaterialCommunityIcons
 const skinCatalog = load('src/skin-catalog.ts', {})
 const themeTokens = load('src/theme.ts', {
   'react-native': { useColorScheme: () => 'light' },
+  react: {
+    createContext: value => ({ value }),
+    useContext: context => context.value,
+  },
   './skin-catalog': skinCatalog,
   './appearance': { useAppearance: () => ({ skinId: 'classic', mode: 'system' }) },
 })
@@ -120,6 +142,7 @@ for (const failed of [false, true]) test(failed
       if (writeFailed) throw Error('上次训练尚未保存成功')
     } },
     '../components/brand-mark': { BrandMark: 'BrandMark' },
+    '../components/brand-wordmark': { BrandWordmark: 'BrandWordmark' },
     '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
     '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
     '../components/skin-detail-art': { SkinBuildingThumbnail: 'SkinBuildingThumbnail', SkinWeekMotif: 'SkinWeekMotif' },
@@ -131,7 +154,7 @@ for (const failed of [false, true]) test(failed
     '../core/building-template': {},
     '../core/floors': { normalizeFloorNumber: value => value },
     '../core/landmarks': { describeAscent: () => '' },
-    '../core/weekly-achievement': { buildWeeklyAchievement: () => ({ ascentM: 0, floors: 0, workouts: 0, streak: 0 }) },
+    '../core/weekly-achievement': { buildWeeklyAchievement: () => ({ ascentM: 0, floors: 0, workouts: 0, streak: 0, days: [] }) },
     '../services/preferences': { triggerHaptic: async () => {} },
     '../core/math': { formatDuration: () => '01:00' },
     '../core/workout-summary': {},
@@ -190,6 +213,8 @@ function holdHarness({ immediate = false, holdMs = 1200 } = {}) {
   const visuals = []
   const { HoldToConfirm } = load('src/components/workout-ui.tsx', {
     react: hooks.react, 'react-native': native,
+    'react-native-svg': { default: 'Svg', Circle: 'Circle', Line: 'Line' },
+    '../core/floors': {},
     'react-native-reanimated': {
       default: { View: 'Animated.View', Text: 'Animated.Text' }, Easing: { linear: value => value },
       useSharedValue: initial => { let value = initial; return { get: () => value, set: next => { value = next } } },
@@ -245,7 +270,7 @@ function onboardingHarness(fromSettings = false) {
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '@react-navigation/native': { useNavigation: () => ({ goBack: () => navigations.push('back'), replace: route => navigations.push(route) }) },
     '@expo/vector-icons': icons, '../components/ui': { Button: 'Button' },
-    '../components/brand-mark': { BrandMark: 'BrandMark' }, '../theme': { useTheme: () => ({}) },
+    '../components/brand-mark': { BrandMark: 'BrandMark' }, '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('classic', 'light') },
     '../services/onboarding': { markOnboardingSeen: async () => { marks++; await saved } },
   })
   const render = () => hooks.render(() => Screen({ route: { params: fromSettings ? { from: 'settings' } : {} } }))
@@ -294,7 +319,7 @@ test('reviewing privacy from settings offers a return action instead of a mislea
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '@react-navigation/native': { useNavigation: () => ({ canGoBack: () => true, goBack: () => backs++ }) },
     '../components/Header': { Header: 'Header' }, '../components/ui': { Button: 'Button' },
-    '../components/flow-sheet': { FlowSheet: 'FlowSheet' }, '../theme': { useTheme: () => ({}) },
+    '../components/flow-sheet': { FlowSheet: 'FlowSheet' }, '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('classic', 'light') },
     '../services/privacy': {}, '../services/onboarding': {},
     '../services/history-repository': { HISTORY_SESSION_LIMIT: 100, HISTORY_WORKOUT_LIMIT: 100 },
   })
@@ -317,6 +342,7 @@ test('finishing onboarding after leaving the screen cannot navigate a second tim
 
 test('editing an old workout preserves its training date and chronological position', async () => {
   const hooks = runtime()
+  let focusHistory
   const oldAt = new Date(2026, 9, 1, 9).getTime()
   const recentAt = new Date(2026, 9, 10, 9).getTime()
   const correctedAt = new Date(2026, 9, 15, 9).getTime()
@@ -325,6 +351,10 @@ test('editing an old workout preserves its training date and chronological posit
     { ...base, id: 'recent', startedAt: recentAt, endedAt: recentAt + 60000, updatedAt: recentAt }]
   const { default: Screen } = load('src/pages/History.tsx', {
     react: hooks.react, 'react-native': native, '@expo/vector-icons': icons,
+    '@react-navigation/native': { useFocusEffect: callback => {
+      focusHistory = callback
+      hooks.react.useEffect(callback, [])
+    } },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../components/disclosure': { Disclosure: 'Disclosure' }, '../components/Header': { Header: 'Header' },
     '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
@@ -354,6 +384,12 @@ test('editing an old workout preserves its training date and chronological posit
   assert.equal(list.props.data[1].sortAt, oldAt)
   const card = list.props.renderItem({ item: list.props.data[1], index: 1 })
   assert.ok(find(card, node => node.props.accessibilityLabel?.includes('2026.10.01')))
+
+  focusHistory()
+  const duringRefresh = find(render(), node => node.type === 'FlatList')
+  assert.deepEqual(duringRefresh.props.data.map(card => card.id), ['recent', 'old-corrected'])
+  assert.equal(duringRefresh.props.refreshing, false)
+  await new Promise(resolve => setImmediate(resolve))
 })
 
 async function weeklyHarness() {

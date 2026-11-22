@@ -2,17 +2,18 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
-import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { UIIcon } from '../components/ui-icon'
 
 import { Button } from '../components/ui'
 import { BrandMark } from '../components/brand-mark'
-import { useTheme, Theme } from '../theme'
+import { isGlacier, useTheme, Theme } from '../theme'
+import { GlassBackdrop } from '../components/glass-material'
 import { RootStackNavigation, RootStackScreen } from '../navigation/types'
 import { markOnboardingSeen } from '../services/onboarding'
 
 interface Step {
   key: string
-  icon: keyof typeof Ionicons.glyphMap
+  icon: string
   title: string
   body: string
   hint: string
@@ -26,6 +27,7 @@ const STEPS: Step[] = [
 
 export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'>) {
   const theme = useTheme()
+  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
   const { height, fontScale } = useWindowDimensions()
   const compact = height / fontScale < 720
@@ -76,6 +78,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
 
   return (
     <View style={styles.page}>
+      {glass ? <GlassBackdrop /> : null}
       <View style={[styles.topBar, { paddingTop: insets.top + (compact ? 12 : 24) }]}>
         {fromSettings || stepIndex > 0 ? <Pressable
           accessibilityRole="button"
@@ -86,7 +89,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
           style={styles.topAction}
           onPress={handleBack}
         >
-          <Ionicons name="chevron-back" size={28} color={theme.ink} />
+          <UIIcon name="chevron-left" size={28} color={theme.ink} />
         </Pressable> : <View style={styles.topAction} />}
         <Pressable
           accessibilityRole="button"
@@ -104,7 +107,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
         <View style={[styles.card, compact && { paddingVertical: 8 }]}>
           <Text accessibilityLiveRegion="polite" style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
           <View style={[styles.iconWrap, compact && { width: 128, height: 112, marginTop: 12, marginBottom: 16 }]}>
-            {step.key === 'first-climb' ? <BrandMark size={compact ? 108 : 150} color={theme.brandText} /> : step.key === 'carry' ? <Feather name="smartphone" size={compact ? 100 : 144} color={theme.brandText} /> : <MaterialCommunityIcons name="shield-check-outline" size={compact ? 100 : 144} color={theme.brandText} />}
+            {step.key === 'first-climb' ? <BrandMark size={compact ? 108 : 150} color={theme.brandText} /> : step.key === 'carry' ? <UIIcon name="smartphone" size={compact ? 100 : 144} color={theme.brandText} /> : <UIIcon name="shield-check" size={compact ? 100 : 144} color={theme.brandText} />}
           </View>
           <Text accessibilityRole="header" style={[styles.title, step.title.length > 8 && { fontSize: 36 }, compact && { fontSize: step.title.length > 8 ? 30 : 36, lineHeight: 42, marginBottom: 8 }]}>{step.title}</Text>
           <Text style={[styles.bodyText, compact && { fontSize: 20, lineHeight: 28, marginBottom: 8 }]}>{step.body}</Text>

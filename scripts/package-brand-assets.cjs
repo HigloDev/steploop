@@ -53,6 +53,8 @@ async function main() {
 }
 if (process.argv.includes('--legacy')) {
   main().catch(error => { console.error(error); process.exitCode = 1 })
-} else {
+} else if (process.argv.includes('--audit')) {
   require('./package-audit-assets.cjs')
+} else {
+  require('./package-imagegen-brand.cjs')
 }

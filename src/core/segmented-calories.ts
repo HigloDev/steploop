@@ -3,7 +3,9 @@ export { DEFAULT_BODY_WEIGHT_KG } from './calories'
 export const CALORIE_ALGORITHM_VERSION = 'segmented-met-v1' as const
 export const CALORIE_MET_SOURCE = 'https://pacompendium.com/walking/'
 export type StairPace = 'slow' | 'general' | 'fast'
-export type CaloriePaceSource = 'default' | 'user'
+export type CaloriePaceSource = 'default' | 'user' | 'sensor'
+/** Absence means a legacy/manual profile; saved v1 data needs no migration. */
+export type CaloriePaceMode = 'automatic'
 export type CalorieActivity = 'stairs_up' | 'stairs_down' | 'walking' | 'elevator' | 'waiting'
 export type CalorieActivitySource = 'motion_recognition' | 'climb_phase_assumption'
 export const STAIR_PACE_OPTIONS: Array<{ value: StairPace; label: string }> = [
@@ -18,6 +20,12 @@ export interface StairCalorieProfile {
   algorithmVersion: typeof CALORIE_ALGORITHM_VERSION
   bodyWeightKg: number
   weightSource: 'workout_setting' | 'default_65kg'
+  pace: StairPace
+  paceSource: CaloriePaceSource
+  paceMode?: CaloriePaceMode
+}
+
+export interface StairCaloriePaceLabel {
   pace: StairPace
   paceSource: CaloriePaceSource
 }
@@ -63,6 +71,14 @@ export function normalizeStairPace(value: unknown): StairPace {
   return isStairPace(value) ? value : 'general'
 }
 
+export function normalizeCaloriePaceSource(value: unknown): CaloriePaceSource {
+  return value === 'user' || value === 'sensor' ? value : 'default'
+}
+
+export function isAutomaticStairCalorieProfile(profile: StairCalorieProfile | undefined): boolean {
+  return profile?.paceMode === 'automatic'
+}
+
 function nonNegativeFinite(value: number): number {
   return Number.isFinite(value) ? Math.max(0, value) : 0
 }
@@ -78,6 +94,11 @@ export function createStairCalorieProfile(bodyWeightKg?: number, pace?: StairPac
   }
 }
 
+/** New live workouts start with general/default and earn sensor labels only with evidence. */
+export function createAutomaticStairCalorieProfile(bodyWeightKg?: number): StairCalorieProfile {
+  return { ...createStairCalorieProfile(bodyWeightKg), paceMode: 'automatic' }
+}
+
 /**
  * Reconcile a round's cumulative measured ascent time. A pace change only labels
  * future time. Trimming handles backdated automatic ends without adding wall time.
@@ -90,6 +111,7 @@ export function recordStairCalorieDuration(
   roundNumber: number,
   activity: CalorieActivity = 'stairs_up',
   activitySource: CalorieActivitySource = 'climb_phase_assumption',
+  paceLabel?: StairCaloriePaceLabel,
 ): StairCalorieSegment[] {
   let remaining = nonNegativeFinite(activeDurationMs)
   const segments: StairCalorieSegment[] = []
@@ -102,12 +124,13 @@ export function recordStairCalorieDuration(
     const recordedActivity = calorieActivity(segment.activity)
     segments.push({ ...segment, activity: recordedActivity, durationMs,
       activitySource: segment.activitySource ?? 'climb_phase_assumption',
+      paceSource: normalizeCaloriePaceSource(segment.paceSource),
       met: recordedActivity === 'stairs_up' ? STAIR_MET[segment.pace] : null })
     remaining -= durationMs
   }
   if (remaining > 0) {
-    const pace = normalizeStairPace(profile.pace)
-    const paceSource = profile.paceSource === 'user' ? 'user' : 'default'
+    const pace = normalizeStairPace(paceLabel?.pace ?? profile.pace)
+    const paceSource = normalizeCaloriePaceSource(paceLabel?.paceSource ?? profile.paceSource)
     const last = segments.at(-1)
     if (last && last.pace === pace && last.paceSource === paceSource &&
         last.activity === activity && last.activitySource === activitySource) last.durationMs += remaining

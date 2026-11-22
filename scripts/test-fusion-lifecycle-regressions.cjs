@@ -364,11 +364,29 @@ test('coach link and measured weight survive failed save, checkpoint remount and
   h.unmount(); await h.settle()
 })
 
-test('calibration-top recovery keeps its round, coach link and selected MET pace before finish', async () => {
+test('a confirmed map location is retained through a failed workout save and recovery', async () => {
+  const buildingLocation = { name: '测试楼栋', address: '测试楼栋', latitude: 27.7559, longitude: 118.0253,
+    accuracy: 0, source: 'map', confirmedAt: 98000 }
+  const params = { startFloor: 1, buildingLocation }
+  const h = await sessionHarness({ params, saveFailures: 1 })
+  h.mark(); h.mark(); h.api.markTop(); await h.settle()
+  await assert.rejects(h.api.finish(), /save/)
+  assert.deepEqual(h.state.checkpoint.buildingLocation, buildingLocation)
+  params.resume = true
+  delete params.buildingLocation
+  h.remount(); await h.settle()
+  const id = await h.api.finish()
+  assert.equal(h.state.workouts.get(id).routeSnapshot.locationName, buildingLocation.name)
+  assert.deepEqual(h.state.pending.template.location, buildingLocation)
+  assert.equal(h.state.checkpoint, null)
+  h.unmount(); await h.settle()
+})
+
+test('calibration-top recovery keeps its round, coach link and automatic MET profile before finish', async () => {
   const coach = { enrollmentId: 'beginner-plan', courseId: 'beginner', sessionId: 'beginner:1970-01-01', scheduledDate: '1970-01-01', targetMinutes: 4 }
   const params = { coach, coachBodyWeightKg: 72 }
   const h = await sessionHarness({ params })
-  h.api.setStairPace('fast')
+  assert.equal(h.api.setStairPace, undefined, 'the removed manual hook action must not exist')
   h.mark(); h.mark(); h.api.markTop(); await h.settle()
   const checkpoint = structuredClone(h.state.checkpoint)
   assert.equal(checkpoint.rounds.length, 1, 'top confirmation must be recoverable before finish')
@@ -376,12 +394,15 @@ test('calibration-top recovery keeps its round, coach link and selected MET pace
   assert.ok(checkpoint.template)
   assert.deepEqual(checkpoint.coach, coach)
   assert.equal(checkpoint.calorieProfile.bodyWeightKg, 72)
-  assert.equal(checkpoint.calorieProfile.pace, 'fast')
+  assert.equal(checkpoint.calorieProfile.paceMode, 'automatic')
+  assert.equal(checkpoint.calorieProfile.pace, 'general')
+  assert.equal(checkpoint.calorieProfile.paceSource, 'default')
   assert.deepEqual(checkpoint.rounds[0].calorieSegments, [])
   params.resume = true; delete params.coach; delete params.coachBodyWeightKg
   h.remount(); await h.settle()
   assert.equal(h.api.rounds.length, 1)
-  assert.equal(h.api.calorieProfile.pace, 'fast')
+  assert.equal(h.api.calorieProfile.paceMode, 'automatic')
+  assert.equal(h.api.calorieProfile.pace, 'general')
   assert.equal(h.api.calorieProfile.bodyWeightKg, 72)
   const id = await h.api.finish()
   assert.equal(h.state.workouts.get(id).totalFloorsCompleted, 2)
