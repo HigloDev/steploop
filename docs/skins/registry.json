@@ -385,6 +385,23 @@
       },
       "graphicsStatus": "native-verified",
       "visualReview": "reopened-1.5k-125percent"
+    },
+    {
+      "id": "glacier-glass",
+      "name": "冰川透蓝",
+      "stage": "implemented",
+      "modes": [
+        "light",
+        "dark"
+      ],
+      "lightDirection": "冷白到冰蓝的玻璃 Bento，深蓝文字与钴蓝操作",
+      "darkDirection": "海军蓝玻璃表面，浅蓝强调与深蓝文字",
+      "designReferences": [
+        "docs/uiux-glass/00-audit.md"
+      ],
+      "graphicsStatus": "svg-vector",
+      "visualReview": "pending-native-verification",
+      "nativeVerification": "pending"
     }
   ],
   "publishedVersion": "1.1.5",
