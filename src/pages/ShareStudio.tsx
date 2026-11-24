@@ -3,7 +3,7 @@ import { UIIcon } from '../components/ui-icon'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library/legacy'
 import * as Sharing from 'expo-sharing'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -37,13 +37,16 @@ import { calculateWorkoutSummary } from '../core/workout-summary'
 import { deriveTrainingProgress } from '../core/training-progress'
 import { RootStackScreen } from '../navigation/types'
 import { getWorkout, listWorkouts, saveWorkout } from '../services/workout-storage'
-import { Theme, useTheme, getPosterPalette, getThemeKey, isGlacier } from '../theme'
+import { Theme, typography as themeTypography, useTheme, useThemeStyles, getPosterPalette, getThemeKey, isMotionRing } from '../theme'
+import { getThemeStairwell } from '../skin-assets'
 import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
+import { MotionBrandBadge, MotionPosterBackdrop } from '../components/motion-ring-graphics'
 
 type EditorTab = 'template' | 'copy' | 'size'
 type PosterTemplate = 'hero' | 'editorial' | 'report' | 'streak'
 type PosterRatio = '4:5' | '3:4' | '1:1'
 type ShareAction = 'save' | 'share'
+type PosterAsset = 'mark' | 'background'
 
 interface WeekStats {
   floors: number
@@ -52,8 +55,8 @@ interface WeekStats {
   consecutiveWeeks: number
 }
 
-const LIGHT_STAIRCASE_IMAGE = require('../../assets/share/staircase-editorial-light.png')
-const STAIRCASE_IMAGE = require('../../assets/share/staircase-editorial.png')
+const LIGHT_STAIRCASE_IMAGE = require('../../assets/share/staircase-editorial-light.webp')
+const DARK_STAIRCASE_IMAGE = require('../../assets/share/staircase-editorial-dark.webp')
 
 const QUOTES = [
   '',
@@ -86,38 +89,59 @@ interface PosterProps {
   calories: number
   template: PosterTemplate
   ratio: PosterRatio
-  onImageReady: () => void
+  onImageStatus?: (asset: PosterAsset, loaded: boolean) => void
   week?: WeekStats
 }
 
 export const SharePoster = React.forwardRef<View, PosterProps>(
-  ({ workout, summary, quote, width, calories, template, ratio, week, onImageReady }, ref) => {
+  ({ workout, summary, quote, width, calories, template, ratio, week, onImageStatus }, ref) => {
     const compact = ratio === '1:1'
     const streak = template === 'streak'
     const unit = width / 320
-    const P = getPosterPalette(useTheme())
+    const theme = useTheme()
+    const motionRing = isMotionRing(theme)
+    const P = getPosterPalette(theme)
+    const posterHeight = Math.round(width * RATIO_VALUES[ratio])
     const floors = streak ? week?.floors ?? 0 : summary.totalFloors
     const ascent = streak ? week?.ascentM ?? 0 : summary.totalAscentM
-    const typography = { color: P.ink, fontSize: 14 * unit }
+    const textBase = { color: P.ink, fontSize: 14 * unit }
     return <View ref={ref} collapsable={false} accessible accessibilityRole="image"
       accessibilityLabel={`成果海报：${floors} 层，日期 ${formatShareDate(workout.startedAt)}。地点与身份信息已隐藏。`}
-      style={{ width, height: Math.round(width * RATIO_VALUES[ratio]), backgroundColor: P.background, overflow: 'hidden', borderRadius: 20 * unit }}>
-      {template === 'editorial' ? <TrackedImageBackground identity="share/editorial-background" source={LIGHT_STAIRCASE_IMAGE} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={{ opacity: 0.12 }} /> : null}
+      style={{ width, height: posterHeight, backgroundColor: P.background, overflow: 'hidden', borderRadius: 20 * unit }}>
+      {motionRing && template !== 'editorial' ? <MotionPosterBackdrop width={width} height={posterHeight} variant="single" /> : null}
+      {template === 'editorial' ? (
+        <TrackedImageBackground
+          identity={motionRing ? `share/motion-ring-editorial-${theme.isDark ? 'dark' : 'light'}` : `share/editorial-background-${theme.isDark ? 'dark' : 'light'}`}
+          source={motionRing ? getThemeStairwell('motion-ring', theme.isDark ? 'dark' : 'light') : (theme.isDark ? DARK_STAIRCASE_IMAGE : LIGHT_STAIRCASE_IMAGE)}
+          resizeMode="cover"
+          fadeDuration={0}
+          style={StyleSheet.absoluteFill}
+          imageStyle={{ opacity: motionRing ? (theme.isDark ? 0.42 : 0.36) : (theme.isDark ? 0.22 : 0.14) }}
+          onLoad={() => onImageStatus?.('background', true)}
+          onError={() => onImageStatus?.('background', false)}
+        />
+      ) : null}
       <View style={{ flex: 1, padding: 24 * unit, alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * unit }}>
-          <BrandMark key={`${template}-${ratio}`} size={32 * unit} color={P.orange} onLoad={onImageReady} />
-          <Text allowFontScaling={false} style={{ ...typography, fontSize: 28 * unit, fontWeight: '900' }}>循阶</Text>
+          {motionRing ? (
+            <MotionBrandBadge size={Math.round(34 * unit)}>
+              <BrandMark size={20 * unit} color="#FFFFFF" onLoad={() => onImageStatus?.('mark', true)} onError={() => onImageStatus?.('mark', false)} />
+            </MotionBrandBadge>
+          ) : (
+            <BrandMark size={32 * unit} color={P.orange} onLoad={() => onImageStatus?.('mark', true)} onError={() => onImageStatus?.('mark', false)} />
+          )}
+          <Text allowFontScaling={false} style={{ ...textBase, fontSize: 28 * unit, fontWeight: '900' }}>循阶</Text>
         </View>
-        <Text allowFontScaling={false} numberOfLines={2} style={{ ...typography, fontSize: (compact ? 23 : 32) * unit, fontWeight: '900', textAlign: 'center', lineHeight: 38 * unit }}>{quote || (streak ? '这周也在向上' : '每一步向上')}</Text>
+        <Text allowFontScaling={false} numberOfLines={2} style={{ ...textBase, fontSize: (compact ? 23 : 32) * unit, fontWeight: '900', textAlign: 'center', lineHeight: 38 * unit }}>{quote || (streak ? '这周也在向上' : '每一步向上')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
-          <Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={{ color: P.orange, fontSize: (compact ? 108 : 160) * unit, lineHeight: (compact ? 116 : 168) * unit, fontWeight: '900', fontVariant: ['tabular-nums'], maxWidth: width * 0.65, includeFontPadding: false }}>{floors}</Text>
+          <Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={{ ...themeTypography.digits, color: P.orange, fontSize: (compact ? 108 : 160) * unit, lineHeight: (compact ? 116 : 168) * unit, maxWidth: width * 0.65, includeFontPadding: false }}>{floors}</Text>
           <Text allowFontScaling={false} style={{ color: P.orange, fontSize: 34 * unit, fontWeight: '900', marginLeft: 6 }}>层</Text>
         </View>
-        <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontWeight: '800', fontSize: (compact ? 18 : 22) * unit }}>实际爬升 <Text style={{ color: P.orange, fontSize: (compact ? 24 : 28) * unit }}>{Math.round(ascent)}米</Text></Text>
-        {template === 'report' ? <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontSize: 12 * unit }}>{summary.totalSteps} 步 · 估算 {formatCalories(calories)} 千卡</Text> : null}
+        <Text allowFontScaling={false} style={{ ...textBase, color: P.muted, fontWeight: '800', fontSize: (compact ? 18 : 22) * unit }}>实际爬升 <Text style={{ ...themeTypography.digits, color: P.orange, fontSize: (compact ? 24 : 28) * unit }}>{Math.round(ascent)}米</Text></Text>
+        {template === 'report' ? <Text allowFontScaling={false} style={{ ...textBase, color: P.muted, fontSize: 12 * unit }}>{summary.totalSteps} 步 · 估算 {formatCalories(calories)} 千卡</Text> : null}
         <View style={{ alignSelf: 'stretch', borderTopWidth: 1, borderTopColor: P.line, paddingTop: 12 * unit, alignItems: 'center', gap: 12 * unit }}>
-          <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontSize: (compact ? 14 : 16) * unit, fontWeight: '700' }}>{streak ? `本周训练 ${week?.workouts ?? 0} 次 · 连续 ${week?.consecutiveWeeks ?? 0} 周` : `净爬楼 ${formatDuration(summary.activeDurationMs)} · 完成 ${summary.completeRounds} 轮`}</Text>
-          <Text allowFontScaling={false} style={{ ...typography, color: P.muted, fontSize: 14 * unit }}>{formatShareDate(workout.startedAt).replace(/-/g, '.')}</Text>
+          <Text allowFontScaling={false} style={{ ...textBase, color: P.muted, fontSize: (compact ? 14 : 16) * unit, fontWeight: '700' }}>{streak ? `本周训练 ${week?.workouts ?? 0} 次 · 连续 ${week?.consecutiveWeeks ?? 0} 周` : `净爬楼 ${formatDuration(summary.activeDurationMs)} · 完成 ${summary.completeRounds} 轮`}</Text>
+          <Text allowFontScaling={false} style={{ ...textBase, color: P.muted, fontSize: 14 * unit }}>{formatShareDate(workout.startedAt).replace(/-/g, '.')}</Text>
         </View>
       </View>
     </View>
@@ -125,16 +149,16 @@ export const SharePoster = React.forwardRef<View, PosterProps>(
 )
 SharePoster.displayName = 'SharePoster'
 
-function PosterThumbnail({ active, template, workout, summary, calories, week, onPress }: {
+function PosterThumbnail({ active, disabled, template, workout, summary, calories, week, onPress }: {
   active: boolean; template: PosterTemplate; workout: ClimbWorkout; summary: WorkoutSummary;
-  calories: number; week?: WeekStats; onPress: () => void
+  disabled: boolean; calories: number; week?: WeekStats; onPress: () => void
 }) {
   const theme = useTheme()
-  return <Pressable accessibilityRole="button" accessibilityState={{ selected: active }}
-    accessibilityLabel={`${TEMPLATE_LABELS[template]}模板`} onPress={onPress}
-    style={{ width: 112, padding: 4, borderRadius: 10, borderWidth: 2, borderColor: active ? theme.brand : 'transparent' }}>
+  return <Pressable accessibilityRole="button" accessibilityState={{ selected: active, disabled }}
+    accessibilityLabel={`${TEMPLATE_LABELS[template]}模板`} onPress={onPress} disabled={disabled}
+    style={{ width: 112, padding: 4, borderRadius: 10, borderWidth: 2, borderColor: active ? theme.brandText : 'transparent' }}>
     <SharePoster width={100} ratio="4:5" template={template} workout={workout} summary={summary}
-      calories={calories} week={week} quote={template === 'editorial' ? '持续向上' : template === 'report' ? '今天也向上了' : ''} onImageReady={() => {}} />
+      calories={calories} week={week} quote={template === 'editorial' ? '持续向上' : template === 'report' ? '今天也向上了' : ''} />
   </Pressable>
 }
 
@@ -143,10 +167,9 @@ export default function ShareStudioScreen({
   route: screenRoute,
 }: RootStackScreen<'ShareStudio'>) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
   const { width: windowWidth } = useWindowDimensions()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const [workout, setWorkout] = useState<ClimbWorkout | null>(null)
   const [summary, setSummary] = useState<WorkoutSummary | null>(null)
   const [week, setWeek] = useState<WeekStats | null>(null)
@@ -155,14 +178,29 @@ export default function ShareStudioScreen({
   const [ratio, setRatio] = useState<PosterRatio>('4:5')
   const [editorTab, setEditorTab] = useState<EditorTab>('template')
   const [busyAction, setBusyAction] = useState<'save' | 'share' | null>(null)
+  const busyRef = useRef(false)
   const [lastAction, setLastAction] = useState<ShareAction | null>(null)
   const [lastOutcome, setLastOutcome] = useState<ShareOutcome | null>(null)
   const posterRef = useRef<View>(null)
-  const [readyPalette, setReadyPalette] = useState<Theme | null>(null)
-  const latestTheme = useRef(theme)
-  latestTheme.current = theme
+  const [posterAttempt, setPosterAttempt] = useState(0)
   const [loadError, setLoadError] = useState('')
   const [loadAttempt, setLoadAttempt] = useState(0)
+  const posterWidth = Math.min(328, windowWidth - 64)
+  const posterKey = JSON.stringify([getThemeKey(theme), template, ratio, quote, posterWidth, screenRoute.params.id, loadAttempt, posterAttempt])
+  const poster = useMemo(() => ({ key: posterKey }), [posterKey])
+  const latestPoster = useRef(poster)
+  latestPoster.current = poster
+  const [assets, setAssets] = useState<{ poster: typeof poster; mark?: boolean; background?: boolean }>()
+  const currentAssets = assets?.poster === poster ? assets : undefined
+  const posterFailed = currentAssets?.mark === false || currentAssets?.background === false
+  const posterReady = currentAssets?.mark === true && (template !== 'editorial' || currentAssets.background === true)
+  const editorLocked = busyAction !== null
+  const exportDisabled = editorLocked || !posterReady || posterFailed
+
+  const updateImageStatus = (asset: PosterAsset, loaded: boolean) => {
+    if (latestPoster.current !== poster) return
+    setAssets(previous => ({ ...(previous?.poster === poster ? previous : { poster }), [asset]: loaded }))
+  }
 
   useEffect(() => {
     let mounted = true
@@ -170,7 +208,6 @@ export default function ShareStudioScreen({
     setWorkout(null)
     setSummary(null)
     setWeek(null)
-    setReadyPalette(null)
     const load = async () => {
       try {
         const stored = await getWorkout(screenRoute.params.id)
@@ -195,16 +232,22 @@ export default function ShareStudioScreen({
     return () => { mounted = false }
   }, [screenRoute.params.id, loadAttempt])
 
-  const capturePoster = async () => {
-    if (!posterRef.current) throw new Error('海报还没有准备好')
-    if (readyPalette !== theme || latestTheme.current !== theme) throw new Error('海报样式已变化，请等待准备完成后重新导出。')
-    return captureRef(posterRef, {
+  const capturePoster = async (target: View) => {
+    const verifyTarget = () => {
+      if (latestPoster.current !== poster || posterRef.current !== target) {
+        throw new Error('海报样式已变化，请等待准备完成后重新导出。')
+      }
+    }
+    verifyTarget()
+    const uri = await captureRef(target, {
       format: 'png',
       quality: 1,
       width: 1080,
       height: Math.round(1080 * RATIO_VALUES[ratio]),
       result: 'tmpfile',
     })
+    verifyTarget()
+    return uri
   }
 
   const markPosterCreated = async () => {
@@ -246,7 +289,9 @@ export default function ShareStudioScreen({
   }
 
   const savePoster = async () => {
-    if (!workout || busyAction) return
+    const target = posterRef.current
+    if (!workout || !target || exportDisabled || busyRef.current) return
+    busyRef.current = true
     setBusyAction('save')
     try {
       const permission = await MediaLibrary.requestPermissionsAsync(true)
@@ -258,7 +303,7 @@ export default function ShareStudioScreen({
         )
         return
       }
-      const uri = await capturePoster()
+      const uri = await capturePoster(target)
       await MediaLibrary.saveToLibraryAsync(uri)
       await settleShareResult('save', 'success')
     } catch (error) {
@@ -268,12 +313,15 @@ export default function ShareStudioScreen({
         error instanceof Error ? error.message : '请稍后再试。',
       )
     } finally {
+      busyRef.current = false
       setBusyAction(null)
     }
   }
 
   const sharePoster = async () => {
-    if (!workout || busyAction) return
+    const target = posterRef.current
+    if (!workout || !target || exportDisabled || busyRef.current) return
+    busyRef.current = true
     setBusyAction('share')
     try {
       const available = await Sharing.isAvailableAsync()
@@ -285,7 +333,7 @@ export default function ShareStudioScreen({
         )
         return
       }
-      const uri = await capturePoster()
+      const uri = await capturePoster(target)
       await Sharing.shareAsync(uri, {
         mimeType: 'image/png',
         dialogTitle: '分享我的爬楼成果',
@@ -303,6 +351,7 @@ export default function ShareStudioScreen({
         error instanceof Error ? error.message : '无法生成分享海报。',
       )
     } finally {
+      busyRef.current = false
       setBusyAction(null)
     }
   }
@@ -333,7 +382,7 @@ export default function ShareStudioScreen({
   if (!workout || !summary) {
     return (
       <View style={styles.page}>
-        {glass ? <GlassBackdrop /> : null}
+        <GlassBackdrop />
         <Header title="分享成绩" back />
         <View style={styles.center}>
           <Text
@@ -352,7 +401,6 @@ export default function ShareStudioScreen({
     )
   }
 
-  const posterWidth = Math.min(328, windowWidth - 64)
   // 热量按爬升机械功 + 活动/休息代谢估算（与结算页同一口径）。
   const calories = workoutCalories(workout)
   // D10：页面不再自己拼分享文案；隐私剔除结果（redacted）由纯函数给出，UI 只负责展示。
@@ -382,7 +430,7 @@ export default function ShareStudioScreen({
 
   return (
     <View style={styles.page}>
-      {glass ? <GlassBackdrop /> : null}
+      <GlassBackdrop />
       <Header title="分享成绩" back />
       <ScrollView
         style={styles.flex}
@@ -395,9 +443,9 @@ export default function ShareStudioScreen({
         </View>
         <View style={styles.previewWrap}>
           <SharePoster
-            key={getThemeKey(theme)}
+            key={poster.key}
             ref={posterRef}
-            onImageReady={() => setReadyPalette(theme)}
+            onImageStatus={updateImageStatus}
             workout={workout}
             summary={summary}
             quote={quote}
@@ -408,6 +456,16 @@ export default function ShareStudioScreen({
             week={week ?? undefined}
           />
         </View>
+        {posterFailed ? (
+          <>
+            <Text accessibilityRole="alert" style={{ color: theme.redInk }}>海报图片加载失败，请重新加载后再导出。</Text>
+            <Button title="重新加载海报" variant="secondary" disabled={editorLocked} onPress={() => {
+              if (!busyRef.current) setPosterAttempt(value => value + 1)
+            }} />
+          </>
+        ) : !posterReady ? (
+          <Text accessibilityLiveRegion="polite" style={{ color: theme.inkSoft }}>正在准备海报…</Text>
+        ) : null}
         <View
           style={styles.privacyRow}
           accessible
@@ -435,9 +493,10 @@ export default function ShareStudioScreen({
           {(['hero', 'editorial', 'report', 'streak'] as PosterTemplate[]).map(value => <PosterThumbnail
             key={value}
             active={template === value}
+            disabled={editorLocked}
             template={value}
             workout={workout} summary={summary} calories={calories} week={week ?? undefined}
-            onPress={() => { if (value !== template) { setReadyPalette(null); setTemplate(value) } }}
+            onPress={() => { if (!busyRef.current) setTemplate(value) }}
           />)}
         </ScrollView> : null}
 
@@ -445,10 +504,11 @@ export default function ShareStudioScreen({
           {QUOTES.map(item => <Pressable
             key={item}
             accessibilityRole="button"
-            accessibilityState={{ selected: quote === item }}
+            accessibilityState={{ selected: quote === item, disabled: editorLocked }}
             accessibilityLabel={item.replace('\n', '') || '无文案'}
-            onPress={() => setQuote(item)}
-            style={[styles.option, glass && getGlassSurfaceStyle(theme, 'card'), quote === item && styles.optionActive]}
+            disabled={editorLocked}
+            onPress={() => { if (!busyRef.current) setQuote(item) }}
+            style={[styles.option, getGlassSurfaceStyle(theme, 'card'), quote === item && styles.optionActive]}
           >
             <Text style={[styles.optionText, quote === item && styles.optionTextActive]}>{item.replace('\n', '') || '无文案'}</Text>
           </Pressable>)}
@@ -458,30 +518,31 @@ export default function ShareStudioScreen({
           {(Object.keys(RATIO_VALUES) as PosterRatio[]).map(item => <Pressable
             key={item}
             accessibilityRole="button"
-            accessibilityState={{ selected: ratio === item }}
+            accessibilityState={{ selected: ratio === item, disabled: editorLocked }}
             accessibilityLabel={item + ' ' + (item === '4:5' ? '社交平台' : item === '3:4' ? '手机海报' : '方形图片')}
-            onPress={() => setRatio(item)}
-            style={[styles.sizeOption, glass && getGlassSurfaceStyle(theme, 'card'), ratio === item && styles.sizeOptionActive]}
+            disabled={editorLocked}
+            onPress={() => { if (!busyRef.current) setRatio(item) }}
+            style={[styles.sizeOption, getGlassSurfaceStyle(theme, 'card'), ratio === item && styles.sizeOptionActive]}
           >
             <Text style={[styles.sizeValue, ratio === item && styles.sizeValueActive]}>{item}</Text>
             <Text style={styles.sizeHint}>{item === '4:5' ? '社交平台' : item === '3:4' ? '手机海报' : '方形图片'}</Text>
           </Pressable>)}
         </View> : null}
 
-        <Disclosure title="复制成绩数据" summary="文字分享">
+        <Disclosure icon="file-text" title="复制成绩数据" summary="文字分享">
           <Text style={styles.copyNote}>仅复制运动摘要，地点、身份与具体时分秒已剔除。</Text>
           <Button title="复制数据" variant="secondary" disabled={busyAction !== null} onPress={copyWorkoutData} />
         </Disclosure>
       </ScrollView>
-      <View style={[styles.dock, glass && getGlassSurfaceStyle(theme, 'overlay'), { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.dock, getGlassSurfaceStyle(theme, 'overlay'), { paddingBottom: insets.bottom + 12 }]}>
         <Button
           title={busyAction === 'save' ? '保存中…' : '保存图片'}
           variant="secondary"
           fullWidth={false}
           style={styles.dockButton}
           accessibilityLabel="保存图片到相册"
-          accessibilityState={{ disabled: busyAction !== null, busy: busyAction === 'save' }}
-          disabled={busyAction !== null}
+          accessibilityState={{ disabled: exportDisabled, busy: busyAction === 'save' }}
+          disabled={exportDisabled}
           onPress={savePoster}
         />
         <Button
@@ -489,8 +550,8 @@ export default function ShareStudioScreen({
           fullWidth={false}
           style={styles.dockButton}
           accessibilityLabel="立即分享海报"
-          accessibilityState={{ disabled: busyAction !== null, busy: busyAction === 'share' }}
-          disabled={busyAction !== null}
+          accessibilityState={{ disabled: exportDisabled, busy: busyAction === 'share' }}
+          disabled={exportDisabled}
           onPress={sharePoster}
         />
       </View>

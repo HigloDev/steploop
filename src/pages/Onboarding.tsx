@@ -2,36 +2,66 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
+import Svg, { Circle, Path, Rect } from 'react-native-svg'
 import { UIIcon } from '../components/ui-icon'
 
-import { Button } from '../components/ui'
+import { Button, useReduceMotion } from '../components/ui'
 import { BrandMark } from '../components/brand-mark'
-import { isGlacier, useTheme, Theme } from '../theme'
-import { GlassBackdrop } from '../components/glass-material'
+import { MotionBrandBadge, MotionRingArc } from '../components/motion-ring-graphics'
+import { isMotionRing, typography, useTheme, useThemeStyles, Theme } from '../theme'
+import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 import { RootStackNavigation, RootStackScreen } from '../navigation/types'
 import { markOnboardingSeen } from '../services/onboarding'
 
 interface Step {
-  key: string
-  icon: string
+  key: 'carry' | 'first-climb' | 'foreground'
   title: string
   body: string
   hint: string
 }
 
 const STEPS: Step[] = [
-  { key: 'carry', icon: 'phone-portrait-outline', title: '把手机放稳', body: '放进口袋或贴身腰包', hint: '每次保持相同携带方式，手持晃动会影响识别。' },
-  { key: 'first-climb', icon: 'walk-outline', title: '第一轮，认识这栋楼', body: '每到一层，点一下“到了一层”', hint: '首页直接开始爬楼，到顶点“到顶了”。结束训练后保存楼栋，下次选它就能自动计层。' },
-  { key: 'foreground', icon: 'shield-checkmark-outline', title: '结束后，核对每一轮', body: '发现层数不对，可以修改', hint: '训练中长按“结束并保存”，结算页点任意一轮修改层数。锁屏前在设置中检查后台权限；估算和采样中断仍需核对。' },
+  { key: 'carry', title: '把手机放稳', body: '放进口袋或贴身腰包', hint: '每次保持相同携带方式，手持晃动会影响识别。' },
+  { key: 'first-climb', title: '第一轮，认识这栋楼', body: '每到一层，点一下“到了一层”', hint: '首页直接开始爬楼，到顶点“到顶了”。结束训练后保存楼栋，下次选它就能自动计层。' },
+  { key: 'foreground', title: '结束后，核对每一轮', body: '发现层数不对，可以修改', hint: '训练中长按“结束并保存”，结算页点任意一轮修改层数。锁屏前在设置中检查后台权限；估算和采样中断仍需核对。' },
 ]
+
+function CarryIllustration({ size, accent, soft }: { size: number; accent: string; soft: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 120 120" accessible={false}>
+      <Circle cx={60} cy={60} r={52} fill={soft} />
+      <Rect x={38} y={24} width={44} height={72} rx={11} fill="none" stroke={accent} strokeWidth={4.5} />
+      <Path d="M52 34h16" stroke={accent} strokeWidth={4} strokeLinecap="round" />
+      <Path d="M46 66l9-9 7 7 12-13" fill="none" stroke={accent} strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx={60} cy={85} r={3} fill={accent} />
+    </Svg>
+  )
+}
+
+function VerifyIllustration({ size, accent, soft }: { size: number; accent: string; soft: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 120 120" accessible={false}>
+      <Circle cx={60} cy={60} r={52} fill={soft} />
+      <Path
+        d="M60 22l28 11v24c0 20-12 34-28 41-16-7-28-21-28-41V33l28-11Z"
+        fill="none"
+        stroke={accent}
+        strokeWidth={4.5}
+        strokeLinejoin="round"
+      />
+      <Path d="M47 60l9 9 18-19" fill="none" stroke={accent} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  )
+}
 
 export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'>) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
+  const motionRing = isMotionRing(theme)
+  const reduced = useReduceMotion()
   const insets = useSafeAreaInsets()
   const { height, fontScale } = useWindowDimensions()
   const compact = height / fontScale < 720
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const navigation = useNavigation<RootStackNavigation>()
   const fromSettings = route.params?.from === 'settings'
   const [stepIndex, setStepIndex] = useState(0)
@@ -76,10 +106,12 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
     }
   }
 
+  const artSize = compact ? 104 : 132
+
   return (
     <View style={styles.page}>
-      {glass ? <GlassBackdrop /> : null}
-      <View style={[styles.topBar, { paddingTop: insets.top + (compact ? 12 : 24) }]}>
+      <GlassBackdrop />
+      <View style={[styles.topBar, { paddingTop: insets.top + (compact ? 10 : 18) }]}>
         {fromSettings || stepIndex > 0 ? <Pressable
           accessibilityRole="button"
           accessibilityLabel={stepIndex > 0 ? '上一步' : '返回'}
@@ -89,7 +121,7 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
           style={styles.topAction}
           onPress={handleBack}
         >
-          <UIIcon name="chevron-left" size={28} color={theme.ink} />
+          <UIIcon name="chevron-left" size={26} color={theme.ink} />
         </Pressable> : <View style={styles.topAction} />}
         <Pressable
           accessibilityRole="button"
@@ -104,25 +136,51 @@ export default function OnboardingScreen({ route }: RootStackScreen<'Onboarding'
       </View>
 
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.body, compact && { paddingVertical: 12 }]}>
-        <View style={[styles.card, compact && { paddingVertical: 8 }]}>
-          <Text accessibilityLiveRegion="polite" style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
-          <View style={[styles.iconWrap, compact && { width: 128, height: 112, marginTop: 12, marginBottom: 16 }]}>
-            {step.key === 'first-climb' ? <BrandMark size={compact ? 108 : 150} color={theme.brandText} /> : step.key === 'carry' ? <UIIcon name="smartphone" size={compact ? 100 : 144} color={theme.brandText} /> : <UIIcon name="shield-check" size={compact ? 100 : 144} color={theme.brandText} />}
+        <View style={[getGlassSurfaceStyle(theme, 'feature'), styles.card, compact && { paddingVertical: 20, paddingHorizontal: 18 }]}>
+          <View style={styles.stepPill}>
+            <Text accessibilityLiveRegion="polite" style={styles.stepLabel}>{`开始之前 · ${stepIndex + 1}/${STEPS.length}`}</Text>
           </View>
-          <Text accessibilityRole="header" style={[styles.title, step.title.length > 8 && { fontSize: 36 }, compact && { fontSize: step.title.length > 8 ? 30 : 36, lineHeight: 42, marginBottom: 8 }]}>{step.title}</Text>
-          <Text style={[styles.bodyText, compact && { fontSize: 20, lineHeight: 28, marginBottom: 8 }]}>{step.body}</Text>
-          <Text style={[styles.hint, { maxWidth: step.key === 'carry' ? 300 : 340 }, compact && { fontSize: 15, lineHeight: 22, marginTop: 8 }]}>{step.hint}</Text>
+          <View style={[styles.iconWrap, compact && { width: 112, height: 112, marginTop: 14, marginBottom: 18 }]}>
+            {motionRing ? (
+              <MotionRingArc
+                progress={(stepIndex + 1) / STEPS.length}
+                size={artSize + 14}
+                strokeWidth={5.5}
+                reducedMotion={reduced}
+                center={
+                  step.key === 'first-climb' ? (
+                    <MotionBrandBadge size={Math.round(artSize * 0.62)}>
+                      <BrandMark size={Math.round(artSize * 0.36)} color="#FFFFFF" />
+                    </MotionBrandBadge>
+                  ) : step.key === 'carry' ? (
+                    <CarryIllustration size={Math.round(artSize * 0.72)} accent={theme.brandText} soft={theme.brandSoft} />
+                  ) : (
+                    <VerifyIllustration size={Math.round(artSize * 0.72)} accent={theme.brandText} soft={theme.brandSoft} />
+                  )
+                }
+              />
+            ) : step.key === 'first-climb' ? (
+              <BrandMark size={artSize} color={theme.brandText} />
+            ) : step.key === 'carry' ? (
+              <CarryIllustration size={artSize} accent={theme.brandText} soft={theme.brandSoft} />
+            ) : (
+              <VerifyIllustration size={artSize} accent={theme.brandText} soft={theme.brandSoft} />
+            )}
+          </View>
+          <Text accessibilityRole="header" style={[styles.title, compact && { fontSize: 25, lineHeight: 33 }]}>{step.title}</Text>
+          <Text style={[styles.bodyText, compact && { fontSize: 17, lineHeight: 24 }]}>{step.body}</Text>
+          <Text style={[styles.hint, compact && { fontSize: 14, lineHeight: 21 }]}>{step.hint}</Text>
         </View>
 
-        <View style={[styles.dots, compact && { marginTop: 12 }]}>
+        <View style={[styles.dots, compact && { marginTop: 14 }]}>
           {STEPS.map((s, i) => (
             <View key={s.key} style={[styles.dot, i === stepIndex && styles.dotActive]} />
           ))}
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + (compact ? 20 : 56) }]}>
-        <Button style={{ minHeight: compact ? 64 : 80, borderRadius: 24 }} labelStyle={{ fontSize: compact ? 22 : 26 }} title={isLast ? '开始使用' : '下一步'} loading={finishing} onPress={handlePrimary} />
+      <View style={[styles.footer, { paddingBottom: insets.bottom + (compact ? 16 : 32) }]}>
+        <Button style={styles.primaryBtn} title={isLast ? '开始使用' : '下一步'} loading={finishing} onPress={handlePrimary} />
       </View>
     </View>
   )
@@ -155,74 +213,82 @@ const makeStyles = (theme: Theme) =>
     },
     body: {
       flexGrow: 1,
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       paddingHorizontal: theme.pagePaddingH,
-      paddingVertical: 24,
+      paddingVertical: 20,
     },
     card: {
-      paddingHorizontal: 0,
-      paddingVertical: 12,
+      paddingHorizontal: 24,
+      paddingVertical: 28,
+      borderRadius: theme.radiusXl,
       alignItems: 'center',
-
+    },
+    stepPill: {
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 999,
+      backgroundColor: theme.brandSoft,
+    },
+    stepLabel: {
+      ...typography.label,
+      color: theme.brandText,
+      fontWeight: '700',
     },
     iconWrap: {
-      width: 160,
-      height: 160,
-      borderRadius: 56,
-      backgroundColor: 'transparent',
+      width: 144,
+      height: 144,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 40,
-     marginTop: 24,},
-    stepLabel: {
-      color: theme.brandText,
-      fontSize: 20,
-      lineHeight: 26,
-      fontWeight: '800',
-      marginBottom: 12,
+      marginTop: 22,
+      marginBottom: 24,
     },
     title: {
       color: theme.ink,
-      fontSize: 48,
-      lineHeight: 56,
-      fontWeight: '900',
+      fontSize: 28,
+      lineHeight: 36,
+      fontWeight: '700',
+      letterSpacing: -0.3,
       textAlign: 'center',
-      marginBottom: 16,
+      marginBottom: 10,
     },
     bodyText: {
       color: theme.ink,
-      fontSize: 26,
-      lineHeight: 34,
+      fontSize: 19,
+      lineHeight: 27,
+      fontWeight: '600',
       textAlign: 'center',
-      marginBottom: 12,
-     fontWeight: '800',},
+      marginBottom: 10,
+    },
     hint: {
       color: theme.mutedStrong,
-      fontSize: 20,
-      lineHeight: 30,
+      fontSize: 15,
+      lineHeight: 23,
       textAlign: 'center',
-     marginTop: 20,},
+      maxWidth: 320,
+    },
     dots: {
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: 14,
-      marginTop: 28,
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 24,
     },
     dot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
       backgroundColor: theme.line,
     },
     dotActive: {
-      backgroundColor: theme.brand,
-      width: 12,
+      backgroundColor: theme.brandText,
+      width: 24,
     },
     footer: {
       paddingHorizontal: theme.pagePaddingH,
-      paddingTop: 8,
-      backgroundColor: theme.paper,
-      borderTopWidth: 0,
-      borderTopColor: theme.line,
-     paddingBottom: 24,},
+      paddingTop: 12,
+    },
+    primaryBtn: {
+      minHeight: 56,
+      borderRadius: theme.radiusLg,
+    },
   })

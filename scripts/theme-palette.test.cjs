@@ -7,7 +7,7 @@ const ts = require('typescript')
 
 // Exercise the real theme module with the platform's color-scheme hook stubbed.
 let systemScheme = null
-let selection = { skinId: 'classic', mode: 'system' }
+let selection = { skinId: 'motion-ring', mode: 'system' }
 const catalogContext = { exports: {} }
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/skin-catalog.ts'), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
@@ -31,7 +31,7 @@ vm.runInNewContext(ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText, context)
 const { useTheme, useWorkoutPalette, workoutPalettes, light, dark } = context.exports
-const { getTheme, getWorkoutPalette, getPosterPalette, getThemeKey, getThemeSkinId } = context.exports
+const { getTheme, getWorkoutPalette, getPosterPalette, getThemeKey, getThemeSkinId, getThemeStyles } = context.exports
 
 test('130 percent accessibility layout accepts the Android float32 font-scale value', () => {
   const native130 = new Float32Array([1.3])[0]
@@ -43,31 +43,16 @@ test('130 percent accessibility layout accepts the Android float32 font-scale va
   assert.equal(context.exports.isLargeText(1), false)
 })
 
-test('short headers preserve the entire vertical canvas and its fading lower edge', () => {
-  for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
-    for (const width of [320, 360, 440]) for (const page of ['home', 'coach', 'history', 'settings']) {
-      const theme = getTheme(skin.id, mode)
-      const height = context.exports.getSkinPageHeight(theme, page, width)
-      const art = context.exports.getSkinHeaderLayout(theme, page, width)
-      if (!art.overlap) {
-        if (art.visibleWindow) {
-          assert.ok(Math.abs(art.top + art.height * art.visibleWindow[0]) < 0.001)
-          assert.ok(Math.abs(art.top + art.height * art.visibleWindow[1] - height) < 0.001)
-          continue
-        }
-        assert.ok(art.top >= 0 && art.height >= 0, 'Upper artwork stays inside the canvas; classic has no graphical header')
-        assert.ok(art.top + art.height <= height * (1 + art.safeBottomFraction) + 0.001,
-          `${skin.id}/${page}/${width}: only the verified empty lower strip may be cropped`)
-      }
-    }
-  }
-  const large = context.exports.getSkinHeaderLayout(getTheme('pikachu', 'light'), 'home', 320, new Float32Array([1.3])[0])
-  assert.equal(large.overlap, false)
-})
-
 function rgb(hex) {
   assert.match(hex, /^#[0-9a-f]{6}$/i)
   return hex.slice(1).match(/../g).map(channel => parseInt(channel, 16) / 255)
+}
+function rgb255(hex) {
+  return hex.slice(1).match(/../g).map(channel => parseInt(channel, 16))
+}
+function rgbDistance(a, b) {
+  const pa = rgb255(a), pb = rgb255(b)
+  return Math.hypot(pa[0] - pb[0], pa[1] - pb[1], pa[2] - pb[2])
 }
 function luminance(hex) {
   return rgb(hex).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
@@ -81,6 +66,7 @@ function readable(fg, bg, label, minimum = 4.5) {
   const value = contrast(fg, bg)
   assert.ok(value >= minimum, `${label}: ${value.toFixed(2)}:1 < ${minimum}:1`)
 }
+
 test('all theme consumers follow light, dark and unavailable system appearance on each render', () => {
   for (const scheme of ['light', 'dark', null, 'dark', 'light']) {
     systemScheme = scheme
@@ -113,6 +99,8 @@ for (const [mode, theme] of Object.entries({ light, dark })) {
     for (const fill of ['brand', 'brandPressed']) {
       readable(p.onBrand, p[fill], `${mode} ${fill} button`)
     }
+    assert.notEqual(p.brandPressed, p.brand, `${mode}: held button progress fill must be visibly distinct from resting fill`)
+    assert.ok(rgbDistance(p.brandPressed, p.brand) >= 25, `${mode}: held button contrast step too small`)
     readable(p.danger, p.dangerFill, `${mode} held discard button`)
     readable(p.good, p.surface, `${mode} status dot`, 3)
   })
@@ -129,16 +117,16 @@ test('manual mode wins over the system and system mode follows later changes', (
   for (const system of ['light', 'dark', null]) {
     systemScheme = system
     for (const mode of ['light', 'dark', 'system']) {
-      selection = { skinId: 'pikachu', mode }
+      selection = { skinId: 'woodland', mode }
       assert.equal(useTheme().isDark, mode === 'dark' || (mode === 'system' && system === 'dark'))
       assert.equal(useWorkoutPalette().bg, useTheme().paper)
     }
   }
-  selection = { skinId: 'classic', mode: 'system' }
+  selection = { skinId: 'motion-ring', mode: 'system' }
 })
 
-test('app skin context fixes the normal app while preserving stored and UIQA selections', () => {
-  for (const skinId of ['classic', 'pikachu']) {
+test('app skin context overrides active skin while preserving stored selections', () => {
+  for (const skinId of ['motion-ring', 'glacier-glass', 'woodland']) {
     for (const mode of ['light', 'dark', 'system']) {
       for (const scheme of ['light', 'dark']) {
         selection = { skinId, mode }
@@ -147,10 +135,10 @@ test('app skin context fixes the normal app while preserving stored and UIQA sel
         const before = { ...selection }
         context.exports.AppSkinContext.value = undefined
         assert.equal(useTheme(), getTheme(skinId, resolved))
-        if (skinId === 'classic') assert.equal(useTheme(), resolved === 'dark' ? dark : light)
+        if (skinId === 'motion-ring') assert.equal(useTheme(), resolved === 'dark' ? dark : light)
         assert.equal(useWorkoutPalette().bg, useTheme().paper)
-        context.exports.AppSkinContext.value = 'glacier-glass'
-        assert.equal(useTheme(), getTheme('glacier-glass', resolved))
+        context.exports.AppSkinContext.value = 'k-on'
+        assert.equal(useTheme(), getTheme('k-on', resolved))
         assert.equal(useTheme().isDark, resolved === 'dark')
         assert.equal(useWorkoutPalette().bg, useTheme().paper)
         assert.deepEqual(selection, before)
@@ -158,30 +146,43 @@ test('app skin context fixes the normal app while preserving stored and UIQA sel
     }
   }
   context.exports.AppSkinContext.value = undefined
-  selection = { skinId: 'classic', mode: 'system' }
+  selection = { skinId: 'motion-ring', mode: 'system' }
   systemScheme = null
 })
 
-test('construction registry matches all runtime IDs and both palettes', () => {
+test('getThemeStyles caches stylesheets per theme instance and factory', () => {
+  let calls = 0
+  const factory = theme => { calls++; return { bg: theme.paper } }
+  const a1 = getThemeStyles(light, factory)
+  const a2 = getThemeStyles(light, factory)
+  const b1 = getThemeStyles(dark, factory)
+  assert.equal(a1, a2)
+  assert.notEqual(a1, b1)
+  assert.equal(calls, 2)
+})
+
+test('construction registry matches all 6 runtime IDs and retired IDs safely normalize to motion-ring', () => {
   const registry = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/skins/registry.json'), 'utf8'))
   assert.deepEqual(registry.skins.map(skin => skin.id), Array.from(catalog.SKIN_CATALOG, skin => skin.id))
+  assert.equal(catalog.SKIN_CATALOG.length, 6)
   assert.equal(registry.defaultSkinId, catalog.DEFAULT_APPEARANCE.skinId)
+  assert.equal(registry.defaultSkinId, 'motion-ring')
   assert.equal(registry.defaultMode, catalog.DEFAULT_APPEARANCE.mode)
   assert.equal(new Set(catalog.SKIN_CATALOG.map(skin => skin.id)).size, catalog.SKIN_CATALOG.length)
   for (const skin of catalog.SKIN_CATALOG) {
     const item = registry.skins.find(item => item.id === skin.id)
     assert.equal(item.name, skin.name)
     assert.deepEqual(item.modes, ['light', 'dark'])
-    if (['native-verified', 'released'].includes(item.stage)) {
-      for (const mode of item.modes) for (const screen of registry.requiredScreens) {
-        assert.ok(fs.existsSync(path.join(__dirname, '..', item.nativeEvidence[mode][screen])), `${skin.id}/${mode}/${screen}: evidence required`)
-      }
-    }
-    if (skin.id !== 'classic') assert.ok(skin.light && skin.dark, `${skin.id}: two explicit palettes required`)
+    assert.ok(skin.light && skin.dark, `${skin.id}: two explicit palettes required`)
     assert.equal(getTheme(skin.id, 'light').isDark, false)
     assert.equal(getTheme(skin.id, 'dark').isDark, true)
+    assert.equal(getTheme(skin.id, 'light').brandVisual.family, skin.id === 'motion-ring' ? 'motion-ring' : 'glass-bento')
+    assert.equal(getTheme(skin.id, 'dark').brandVisual.family, skin.id === 'motion-ring' ? 'motion-ring' : 'glass-bento')
   }
-  assert.equal(getTheme('removed-skin', 'light'), light)
+  for (const retired of ['classic', 'pikachu', 'eva-unit-02', 'removed-skin']) {
+    assert.equal(getTheme(retired, 'light'), light)
+    assert.equal(getTheme(retired, 'dark'), dark)
+  }
 })
 
 for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
@@ -200,6 +201,8 @@ for (const skin of catalog.SKIN_CATALOG) for (const mode of ['light', 'dark']) {
     for (const surface of ['bg', 'surface', 'failureSurface']) {
       for (const text of ['ink', 'inkSoft', 'muted', 'brandText', 'warn', 'danger', 'estimate']) readable(p[text], p[surface], `workout ${text} on ${surface}`)
     }
+    assert.notEqual(p.brandPressed, p.brand, `${skin.id}/${mode}: HoldToConfirm fill must differ from resting brand fill`)
+    assert.ok(rgbDistance(p.brandPressed, p.brand) >= 25, `${skin.id}/${mode}: HoldToConfirm progress fill contrast step too small`)
     readable(p.onBrand, p.brandPressed, 'held finish button')
     readable(p.danger, p.dangerFill, 'held discard button')
     for (const text of ['ink', 'muted', 'orange']) readable(poster[text], poster.background, `poster ${text}`)

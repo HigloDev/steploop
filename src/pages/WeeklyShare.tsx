@@ -16,21 +16,33 @@ import { WeeklyAchievement, buildWeeklyAchievement, weeklyDateRange, weeklyShare
 import type { RootStackScreen } from '../navigation/types'
 import { listWorkouts } from '../services/workout-storage'
 import { triggerHaptic } from '../services/preferences'
-import { isGlacier, useTheme, getPosterPalette, getThemeKey } from '../theme'
+import { typography, useTheme, getPosterPalette, getThemeKey, isMotionRing } from '../theme'
 import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
+import { MotionBrandBadge, MotionPosterBackdrop } from '../components/motion-ring-graphics'
 
 type Template = 'weekly' | 'height'
 
 export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; width: number; template: Template; onReady: () => void; onError?: () => void }>(
   ({ week, width, template, onReady, onError }, ref) => {
-    const u = width / 320, P = getPosterPalette(useTheme())
+    const theme = useTheme()
+    const motionRing = isMotionRing(theme)
+    const u = width / 320, P = getPosterPalette(theme)
+    const posterHeight = Math.round(width * 1.25)
     const next = ascentReference(week.ascentM)
     const maximum = Math.max(1, ...week.days.map(day => day.floors))
     const text = { color: P.ink, fontSize: 12 * u }
     return <View ref={ref} collapsable={false} accessible accessibilityRole="image" accessibilityLabel={`本周成果海报，${week.floors} 层，${Math.round(week.ascentM)} 米，${week.workouts} 次训练`}
-      style={{ width, height: width * 1.25, backgroundColor: P.background, borderRadius: 20 * u, overflow: 'hidden', padding: 22 * u, justifyContent: 'space-between' }}>
+      style={{ width, height: posterHeight, backgroundColor: P.background, borderRadius: 20 * u, overflow: 'hidden', padding: 22 * u, justifyContent: 'space-between' }}>
+      {motionRing ? <MotionPosterBackdrop width={width} height={posterHeight} variant="weekly" /> : null}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 * u }}><BrandMark size={25 * u} color={P.orange} onLoad={onReady} onError={onError} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 * u }}>
+          {motionRing ? (
+            <MotionBrandBadge size={Math.round(28 * u)}>
+              <BrandMark size={16 * u} color="#FFFFFF" onLoad={onReady} onError={onError} />
+            </MotionBrandBadge>
+          ) : (
+            <BrandMark size={25 * u} color={P.orange} onLoad={onReady} onError={onError} />
+          )}
           <Text allowFontScaling={false} style={{ ...text, fontSize: 23 * u, fontWeight: '900' }}>循阶</Text></View>
         <Text allowFontScaling={false} style={{ ...text, fontSize: 9 * u, color: P.muted, fontWeight: '700', letterSpacing: 1.5 * u }}>WEEKLY / UP</Text>
       </View>
@@ -38,15 +50,15 @@ export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; wi
         <Text allowFontScaling={false} style={{ ...text, fontSize: 10 * u, color: P.muted, marginTop: 5 * u }}>{weeklyDateRange(week)}</Text></View>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'baseline' }}><Text allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit
-          style={{ color: P.orange, fontSize: 82 * u, lineHeight: 86 * u, fontWeight: '900', fontVariant: ['tabular-nums'], flexShrink: 1, includeFontPadding: false }}>{week.floors}</Text>
-          <Text allowFontScaling={false} style={{ ...text, fontSize: 22 * u, color: P.orange, fontWeight: '900' }}>层</Text></View>
+          style={{ ...typography.digits, color: P.orange, fontSize: 82 * u, lineHeight: 86 * u, flexShrink: 1, includeFontPadding: false }}>{week.floors}</Text>
+          <Text allowFontScaling={false} style={{ ...text, fontSize: 22 * u, color: P.orange, fontWeight: '900', marginLeft: 4 * u }}>层</Text></View>
           <Text allowFontScaling={false} style={{ ...text, fontWeight: '800', fontSize: 14 * u, marginTop: 4 * u }}>累计向上 {Math.round(week.ascentM)} 米</Text>
         </View>
         <AchievementBuilding floors={week.floors} width={100 * u} colors={{ ink: P.ink, card: P.background, line: P.line, brand: P.orange, brandSoft: P.tint }} />
       </View>
       {template === 'weekly' ? <View style={{ flexDirection: 'row', gap: 8 * u, alignItems: 'flex-end', height: 53 * u }}>
         {week.days.map(day => <View key={day.at} style={{ flex: 1, alignItems: 'center' }}>
-          <View style={{ width: 18 * u, height: Math.max(3, day.floors / maximum * 34) * u, borderRadius: 3 * u, backgroundColor: day.floors ? P.orange : P.line }} />
+          <View style={{ width: (motionRing ? 14 : 18) * u, height: Math.max(3, day.floors / maximum * 34) * u, borderRadius: (motionRing ? 99 : 3) * u, backgroundColor: day.floors ? P.orange : P.line }} />
           <Text allowFontScaling={false} style={{ ...text, color: P.muted, fontSize: 9 * u, marginTop: 5 * u }}>{day.label}</Text>
         </View>)}
       </View> : <View style={{ borderLeftWidth: 3 * u, borderLeftColor: P.orange, paddingLeft: 12 * u, gap: 5 * u }}>
@@ -57,7 +69,10 @@ export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; wi
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           {[`${week.workouts} 次训练`, `${week.steps} 步`, `约 ${Math.round(week.calories)} 千卡`].map(value => <Text key={value} allowFontScaling={false} style={{ ...text, fontSize: 11 * u, fontWeight: '700' }}>{value}</Text>)}
         </View>
-        <Text allowFontScaling={false} style={{ ...text, fontSize: 10 * u, color: P.muted, marginTop: 10 * u }}>一步一步，向上生活。                         STEPLOOP</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 * u }}>
+          <Text allowFontScaling={false} style={{ ...text, fontSize: 10 * u, color: P.muted }}>一步一步，向上生活。</Text>
+          <Text allowFontScaling={false} style={{ ...text, fontSize: 10 * u, color: P.muted, fontWeight: '700', letterSpacing: 1 * u }}>STEPLOOP</Text>
+        </View>
       </View>
     </View>
   },
@@ -65,7 +80,7 @@ export const WeeklyPoster = React.forwardRef<View, { week: WeeklyAchievement; wi
 WeeklyPoster.displayName = 'WeeklyPoster'
 
 export default function WeeklyShareScreen({ navigation }: RootStackScreen<'WeeklyShare'>) {
-  const theme = useTheme(), glass = isGlacier(theme), insets = useSafeAreaInsets(), { width } = useWindowDimensions()
+  const theme = useTheme(), insets = useSafeAreaInsets(), { width } = useWindowDimensions()
   const [week, setWeek] = useState<WeeklyAchievement>()
   const [template, setTemplate] = useState<Template>('weekly')
   const [attempt, setAttempt] = useState(0)
@@ -105,11 +120,11 @@ export default function WeeklyShareScreen({ navigation }: RootStackScreen<'Weekl
     finally { busyRef.current = false; setBusy(null) }
   }
   return <View style={{ flex: 1, backgroundColor: theme.paper }}>
-    {glass ? <GlassBackdrop /> : null}
+    <GlassBackdrop />
     <Header title="本周成果分享" back />
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
       {error ? <><Text selectable style={{ color: theme.redInk }}>{error}</Text><Button title="重新读取" onPress={() => setAttempt(value => value + 1)} /></>
-        : !week ? <ActivityIndicator color={theme.brandText} style={{ marginTop: 100 }} /> : !week.workouts ? <View style={[{ alignItems: 'center', gap: 20, marginTop: 40, padding: 24, borderRadius: 24 }, glass ? getGlassSurfaceStyle(theme, 'card') : { backgroundColor: theme.card }]}>
+        : !week ? <ActivityIndicator color={theme.brandText} style={{ marginTop: 100 }} /> : !week.workouts ? <View style={[{ alignItems: 'center', gap: 20, marginTop: 40, padding: 24, borderRadius: 24 }, getGlassSurfaceStyle(theme, 'card')]}>
           <AchievementBuilding floors={0} width={150} />
           <Text accessibilityRole="header" style={{ color: theme.ink, fontSize: 23, fontWeight: '900', textAlign: 'center' }}>本周还没有训练</Text>
           <Text style={{ color: theme.inkSoft, fontSize: 15, lineHeight: 24, textAlign: 'center' }}>从今天的第一层开始。完成训练后，就能把一周的成果做成海报。</Text>

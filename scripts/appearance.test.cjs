@@ -24,10 +24,18 @@ const deferred = () => { let resolve; const promise = new Promise(done => { reso
 const plain = value => JSON.parse(JSON.stringify(value))
 const flush = () => new Promise(resolve => setImmediate(resolve))
 
-test('unknown, removed or malformed appearance choices recover to the original defaults', () => {
-  for (const input of [null, [], 42, 'pikachu', { skinId: 'unknown', mode: 'other' }]) {
-    assert.deepEqual(plain(catalog.normalizeAppearance(input)), { skinId: 'classic', mode: 'system' })
+test('unknown, retired or malformed appearance choices recover cleanly to motion-ring defaults while valid choices stay preserved', () => {
+  for (const input of [
+    null, [], 42, 'pikachu',
+    { skinId: 'unknown', mode: 'other' },
+    { skinId: 'classic', mode: 'system' },
+    { skinId: 'pikachu', mode: 'system' },
+    { skinId: 'eva-unit-02', mode: 'system' },
+  ]) {
+    assert.deepEqual(plain(catalog.normalizeAppearance(input)), { skinId: 'motion-ring', mode: 'system' })
   }
+  assert.deepEqual(plain(catalog.normalizeAppearance({ skinId: 'glacier-glass', mode: 'light' })), { skinId: 'glacier-glass', mode: 'light' })
+  assert.deepEqual(plain(catalog.normalizeAppearance({ skinId: 'motion-ring', mode: 'dark' })), { skinId: 'motion-ring', mode: 'dark' })
   assert.deepEqual(plain(catalog.normalizeAppearance({ skinId: 'eva-unit-01', mode: 'dark', unexpected: true })), { skinId: 'eva-unit-01', mode: 'dark' })
 })
 
@@ -52,7 +60,7 @@ test('rapid skin and mode changes are written in order; the latest selection sur
   }
   const api = store(storage)
   await api.hydrateAppearance()
-  const a = api.saveAppearance({ skinId: 'pikachu' })
+  const a = api.saveAppearance({ skinId: 'woodland' })
   await started.promise
   const b = api.saveAppearance({ mode: 'dark' })
   const c = api.saveAppearance({ skinId: 'k-on' })
@@ -64,7 +72,7 @@ test('rapid skin and mode changes are written in order; the latest selection sur
   firstWrite.resolve()
   assert.deepEqual(await Promise.all([a, b, c]), [true, true, true])
   assert.deepEqual(writes.map(([, value]) => value), [
-    { skinId: 'pikachu', mode: 'system' }, { skinId: 'pikachu', mode: 'dark' }, { skinId: 'k-on', mode: 'dark' },
+    { skinId: 'woodland', mode: 'system' }, { skinId: 'woodland', mode: 'dark' }, { skinId: 'k-on', mode: 'dark' },
   ])
   const restarted = store(storage)
   await restarted.hydrateAppearance()
@@ -93,10 +101,10 @@ test('a failed older write cannot replace the latest choice or its saving state'
   } })
   const first = api.saveAppearance({ skinId: 'eva-unit-01' })
   await started.promise
-  const second = api.saveAppearance({ skinId: 'eva-unit-02', mode: 'dark' })
+  const second = api.saveAppearance({ skinId: 'k-on', mode: 'dark' })
   await flush(); gate.resolve()
   assert.deepEqual(await Promise.all([first, second]), [false, true])
-  assert.equal(api.getAppearanceSnapshot().skinId, 'eva-unit-02')
+  assert.equal(api.getAppearanceSnapshot().skinId, 'k-on')
   assert.equal(api.getAppearanceSnapshot().error, null)
 })
 
@@ -105,16 +113,40 @@ test('read failures and corrupt JSON do not block startup; retry can restore the
     let fail = true
     const api = store({ getItem: async () => {
       if (fail) { if (corrupt) return '{broken'; throw Error('Storage unavailable') }
-      return '{"skinId":"eva-unit-02","mode":"light"}'
+      return '{"skinId":"eva-unit-01","mode":"light"}'
     } })
     await api.hydrateAppearance()
     assert.equal(api.getAppearanceSnapshot().hydrated, true)
-    assert.equal(api.getAppearanceSnapshot().error, 'read')
+    assert.equal(api.getAppearanceSnapshot().error, corrupt ? 'invalid' : 'read')
     fail = false
     await api.hydrateAppearance(true)
-    assert.equal(api.getAppearanceSnapshot().skinId, 'eva-unit-02')
+    assert.equal(api.getAppearanceSnapshot().skinId, 'eva-unit-01')
     assert.equal(api.getAppearanceSnapshot().error, null)
   }
+})
+
+test('editing cannot overwrite an unreadable selection and works once the old selection has been read', async () => {
+  let fail = true
+  let saved = '{"skinId":"woodland","mode":"dark"}'
+  const api = store({
+    getItem: async () => { if (fail) throw Error('Storage unavailable'); return saved },
+    setItem: async (_, value) => { saved = value },
+  })
+  assert.equal(await api.saveAppearance({ mode: 'light' }), false)
+  assert.deepEqual(JSON.parse(saved), { skinId: 'woodland', mode: 'dark' })
+  fail = false
+  await api.hydrateAppearance(true)
+  assert.equal(await api.saveAppearance({ mode: 'light' }), true)
+  assert.deepEqual(JSON.parse(saved), { skinId: 'woodland', mode: 'light' })
+})
+
+test('a new choice replaces corrupt appearance JSON after startup', async () => {
+  let saved = '{broken'
+  const api = store({ getItem: async () => saved, setItem: async (_, value) => { saved = value } })
+  await api.hydrateAppearance()
+  assert.equal(api.getAppearanceSnapshot().error, 'invalid')
+  assert.equal(await api.saveAppearance({ skinId: 'night-run' }), true)
+  assert.deepEqual(JSON.parse(saved), { skinId: 'night-run', mode: 'system' })
 })
 
 test('subscribers observe changes and unsubscribe without leaking; reads keep a stable snapshot', async () => {

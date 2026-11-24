@@ -17,8 +17,7 @@ import { UIIcon, resolveUIIconName } from '../components/ui-icon'
 import { FlowSheet } from '../components/flow-sheet'
 import { formatDuration } from '../core/math'
 import { Header } from '../components/Header'
-import { Disclosure } from '../components/disclosure'
-import { Button, Card, Pill } from '../components/ui'
+import { Button, Card } from '../components/ui'
 import {
   DiagnosticActivity,
   DiagnosticAnnotation,
@@ -44,7 +43,7 @@ import {
   sensorStartErrorMessage,
 } from '../services/sensor'
 import { listRoutes } from '../services/storage'
-import { isGlacier, Theme, useTheme } from '../theme'
+import { Theme, typography, useTheme, useThemeStyles } from '../theme'
 import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 
 const ACTIVITY_OPTIONS: Array<{
@@ -65,9 +64,8 @@ export default function DiagnosticCaptureScreen({
   navigation,
 }: RootStackScreen<'DiagnosticCapture'>) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const recorderRef = useRef<SensorRecorder | undefined>(undefined)
   const annotationsRef = useRef<DiagnosticAnnotation[]>([])
   const gapsRef = useRef<DiagnosticGap[]>([])
@@ -339,7 +337,7 @@ export default function DiagnosticCaptureScreen({
 
   return (
     <View style={styles.page}>
-      {glass ? <GlassBackdrop /> : null}
+      <GlassBackdrop />
       <Header title="传感器诊断" align="left" back onBackPress={requestLeave} rightLabel="关闭" onRightPress={requestLeave} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
@@ -356,7 +354,7 @@ export default function DiagnosticCaptureScreen({
           <Text style={styles.eyebrow}>本机诊断</Text>
           <Text style={styles.title}>记录一段真实动作</Text>
         </View>
-        <Card style={[{ padding: 16 }, glass && getGlassSurfaceStyle(theme, 'card')]}>
+        <Card style={[{ padding: 16 }, getGlassSurfaceStyle(theme, 'card')]}>
           <Text style={styles.annotationTitle}>本次采集设置</Text>
           {[
             ['run', '真实动作', ACTIVITY_OPTIONS.find(item => item.key === activity)?.label ?? '向上爬楼'],
@@ -506,12 +504,12 @@ export default function DiagnosticCaptureScreen({
         />
 
         </FlowSheet>
-        <Card raised style={[styles.liveCard, glass && getGlassSurfaceStyle(theme, 'feature')]}>
+        <Card raised style={[styles.liveCard, getGlassSurfaceStyle(theme, 'feature')]}>
           <View style={styles.liveHead}>
             <Text style={styles.annotationTitle}>采集状态</Text>
             <Text style={{ color: recording ? theme.brandText : theme.mutedStrong, fontSize: 17, fontWeight: '800' }}>{recording ? '● 采集中' : exporting ? '正在导出' : '待机'}</Text>
           </View>
-          <Text style={{ ...theme.numeric, color: theme.ink, fontSize: 62, lineHeight: 74, textAlign: 'center', marginVertical: 8 }}>{formatDuration(elapsedMs)}</Text>
+          <Text style={{ ...typography.digits, color: theme.ink, fontSize: 62, lineHeight: 74, textAlign: 'center', marginVertical: 8 }}>{formatDuration(elapsedMs)}</Text>
           <View style={[styles.metrics, { borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 10, marginTop: 0 }]}>
             {[
               ['样本', String(sampleCount)], ['气压计', barometerAvailable ? '有' : '无'],
@@ -521,7 +519,7 @@ export default function DiagnosticCaptureScreen({
             </View>)}
           </View>
         </Card>
-        {recording && !isNegative ? <Card style={[{ padding: 16 }, glass && getGlassSurfaceStyle(theme, 'card')]}>
+        {recording && !isNegative ? <Card style={[{ padding: 16 }, getGlassSurfaceStyle(theme, 'card')]}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
             <Text style={styles.annotationTitle}>人工真值标注</Text>
             <Text style={[styles.annotationHint, { marginTop: 0 }]}>{markedFloor} 楼 · {turnCount} 次转弯</Text>
@@ -673,11 +671,10 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.cardSoft,
     },
     metricValue: {
+      ...typography.digits,
       color: theme.ink,
       fontSize: 32,
       lineHeight: 42,
-      fontWeight: '900',
-      fontVariant: ['tabular-nums'],
     },
     metricLabel: { marginTop: 4, color: theme.mutedStrong, fontSize: theme.fontSmall, lineHeight: 18 },
     annotationBlock: {

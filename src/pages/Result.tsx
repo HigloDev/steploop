@@ -9,8 +9,9 @@ import { UIIcon, resolveUIIconName } from '../components/ui-icon'
 import { Disclosure } from '../components/disclosure'
 import { Header } from '../components/Header'
 import { Button, Field, Metric, Pill } from '../components/ui'
-import { isGlacier, useTheme, Theme } from '../theme'
+import { isMotionRing, typography, useTheme, useThemeStyles, Theme } from '../theme'
 import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
+import { MotionHeroSurfaceArt } from '../components/motion-ring-graphics'
 import { RootStackScreen } from '../navigation/types'
 import { deleteSession, getRoute, getSession } from '../services/storage'
 import { getWorkout, saveWorkout } from '../services/workout-storage'
@@ -88,9 +89,8 @@ function correctionTargetFor(
 
 export default function ResultScreen({ navigation, route }: RootStackScreen<'Result'>) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const id = route.params.id
   const [session, setSession] = useState<ClimbSession | null>(null)
   const [correctionTarget, setCorrectionTarget] = useState<ClimbWorkout | null>(null)
@@ -304,7 +304,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session && !loadError) {
     return (
       <View style={styles.page}>
-        {glass ? <GlassBackdrop /> : null}
+        <GlassBackdrop />
         <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>加载中…</Text>
@@ -316,7 +316,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
   if (!session) {
     return (
       <View style={styles.page}>
-        {glass ? <GlassBackdrop /> : null}
+        <GlassBackdrop />
         <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>{loadError || '记录不存在'}</Text>
@@ -330,7 +330,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
 
   return (
     <View style={styles.page}>
-      {glass ? <GlassBackdrop /> : null}
+      <GlassBackdrop />
       <Header title="成绩" back align="left" rightContent={<View style={{ backgroundColor: theme.brandSoft, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 }}><Text style={{ color: theme.brandText, fontSize: 13, fontWeight: '800' }}>旧版单轮记录</Text></View>} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
@@ -338,7 +338,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[styles.content, { paddingBottom: 24 }]}
       >
-        <View style={[styles.hero, glass && getGlassSurfaceStyle(theme, 'card')]}>
+        <View style={[styles.hero, getGlassSurfaceStyle(theme, 'card')]}>
           <UIIcon name="building" size={36} color={theme.brandText} />
           <View style={{ flex: 1 }}><Text style={styles.routeName}>{routeName}</Text>
             <Text style={styles.dateText}>{new Date(session.endedAt).getFullYear()} 年 {new Date(session.endedAt).getMonth() + 1} 月 {new Date(session.endedAt).getDate()} 日</Text></View>
@@ -348,16 +348,17 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
           </View>
         </View>
 
-        <View style={styles.achievement}>
-          <Text style={styles.achievementLabel}>本次完成</Text>
+        <View style={[styles.achievement, isMotionRing(theme) && { backgroundColor: theme.heroSurface, overflow: 'hidden', borderWidth: 1, borderColor: theme.brandVisual.frostStroke }]}>
+          {isMotionRing(theme) ? <MotionHeroSurfaceArt variant="summary" /> : null}
+          <Text style={[styles.achievementLabel, isMotionRing(theme) && { color: theme.heroMuted }]}>本次完成</Text>
           <View style={styles.achievementLine}>
-            <Text selectable style={styles.achievementValue}>{sessionFloorCount(session)}</Text>
-            <Text style={styles.achievementUnit}>层</Text>
+            <Text selectable style={[styles.achievementValue, isMotionRing(theme) && { color: theme.heroAccent }]}>{sessionFloorCount(session)}</Text>
+            <Text style={[styles.achievementUnit, isMotionRing(theme) && { color: theme.heroInk }]}>层</Text>
           </View>
-          <Text selectable style={styles.achievementDuration}>用时 {formatDuration(session.durationMs ?? 0)}</Text>
+          <Text selectable style={[styles.achievementDuration, isMotionRing(theme) && { color: theme.heroInk }]}>用时 {formatDuration(session.durationMs ?? 0)}</Text>
         </View>
-        <View style={[{ borderRadius: 20, paddingHorizontal: 16 }, glass ? getGlassSurfaceStyle(theme, 'card') : { backgroundColor: theme.card }]}>
-        <Disclosure marginTop={0} title="详细成绩" initiallyOpen compact>
+        <View style={[{ borderRadius: 20, paddingHorizontal: 16 }, getGlassSurfaceStyle(theme, 'card')]}>
+        <Disclosure icon="chart" marginTop={0} title="详细成绩" initiallyOpen compact>
           {[
             ['arrow-up', '上升高度', `${session.ascentM} 米`],
             ['shoe-print', '步数', `${session.steps} 步`],
@@ -368,7 +369,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
             <Text style={[styles.detailLabel, { flex: 1 }]}>{label}</Text><Text style={styles.detailValue}>{value}</Text>
           </View>)}
         </Disclosure></View>
-        <Disclosure marginTop={0} title="修正最终楼层" summary={correctionCount || manualCount ? '已人工修正' : undefined}>
+        <Disclosure icon="stairs" marginTop={0} title="修正最终楼层" summary={correctionCount || manualCount ? '已人工修正' : undefined}>
         <View style={styles.correctionCard}>
           <Text style={styles.correctionTitle}>修正本轮最终楼层</Text>
           <Text style={styles.correctionHint}>
@@ -403,7 +404,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         </View>
 
         </Disclosure>
-        <Disclosure marginTop={0} title="单层用时">
+        <Disclosure icon="clock" marginTop={0} title="单层用时">
         {floorSplits.length > 0 ? (
           <View style={styles.splitCard}>
             <Text style={styles.splitTitle}>单层用时</Text>
@@ -426,7 +427,7 @@ export default function ResultScreen({ navigation, route }: RootStackScreen<'Res
         ) : <Text style={styles.correctionHint}>这条旧版记录没有单层用时明细。</Text>}
 
         </Disclosure>
-        <Disclosure marginTop={0} title="更多训练信息">
+        <Disclosure icon="info" marginTop={0} title="更多训练信息">
           <Text style={styles.statusText}>{statusText}</Text>
           <Text style={styles.dateText}>{dateText(session.endedAt)}</Text>
         <View style={styles.detailCard}>
@@ -544,11 +545,10 @@ const makeStyles = (theme: Theme) =>
       lineHeight: 24,
     },
     detailValue: {
+      ...typography.digits,
       color: theme.ink,
       fontSize: 18,
       lineHeight: 24,
-      fontWeight: '800',
-      fontVariant: ['tabular-nums'],
     },
     correctionCard: {
       paddingTop: 8,
@@ -619,8 +619,8 @@ const makeStyles = (theme: Theme) =>
     achievement: { paddingVertical: 12, gap: 6, backgroundColor: theme.brand, borderRadius: theme.radiusXl, padding: 24, alignItems: 'center', marginTop: 0,},
     achievementLabel: { color: theme.onBrand, fontSize: 18, lineHeight: 18, fontWeight: '900',},
     achievementLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 8 },
-    achievementValue: { color: theme.onBrand, fontSize: 110, lineHeight: 118, includeFontPadding: false, fontWeight: '900', fontVariant: ['tabular-nums'] },
+    achievementValue: { ...typography.digits, color: theme.onBrand, fontSize: 110, lineHeight: 118, includeFontPadding: false },
     achievementUnit: { color: theme.onBrand, fontSize: 28, lineHeight: 28, fontWeight: '800',},
-    achievementDuration: { color: theme.onBrand, fontSize: 22, lineHeight: 30, fontVariant: ['tabular-nums'], fontWeight: '800',},
+    achievementDuration: { ...typography.digits, color: theme.onBrand, fontSize: 22, lineHeight: 30 },
     footer: { backgroundColor: theme.paper, borderTopWidth: 0, borderTopColor: theme.line, paddingHorizontal: theme.pagePaddingH, paddingTop: 8 },
   })

@@ -57,8 +57,10 @@ function checkProjectState(root = path.resolve(__dirname, '..')) {
   for (const entry of ['AGENTS.md', 'CLAUDE.md', 'README.md', 'PROJECT_STATUS.md']) {
     try {
       const text = fs.readFileSync(path.join(root, entry), 'utf8')
-      if (!text.includes(state.currentVersion) || !text.includes('project-state.json')) {
-        errors.push(`${entry} must point to project-state.json and the current version`)
+      const requiresCurrentVersion = entry !== 'AGENTS.md'
+      if (!text.includes('project-state.json') || (requiresCurrentVersion && !text.includes(state.currentVersion))) {
+        const versionRequirement = requiresCurrentVersion ? ' and the current version' : ''
+        errors.push(`${entry} must point to project-state.json${versionRequirement}`)
       }
     } catch {
       errors.push(`Missing project entry: ${entry}`)

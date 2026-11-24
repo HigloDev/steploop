@@ -2,7 +2,7 @@ import React from 'react'
 import { Text, View } from 'react-native'
 import { NativeChoice } from './native-choice'
 import type { VoiceModeChoice } from '../services/workout-voice-settings'
-import { getThemeSkinId, sport, useTheme } from '../theme'
+import { sport, typography, useTheme } from '../theme'
 
 export const VOICE_MODES: Array<{ value: VoiceModeChoice; label: string; description: string }> = [
   { value: 'concise', label: '精简', description: '只播本轮完成、回到起点和训练结束。' },
@@ -15,9 +15,13 @@ export function VoiceModeSelector({ value, onChange, compact = false, disabled =
   value: VoiceModeChoice; onChange: (value: VoiceModeChoice) => void; compact?: boolean; disabled?: boolean
 }) {
   const theme = useTheme()
+  const active = VOICE_MODES.find(mode => mode.value === value)
   return <View style={{ gap: sport.space.sm }}>
-    <Text style={{ color: theme.ink, fontWeight: getThemeSkinId(theme) === 'classic' ? '500' : '600', fontSize: getThemeSkinId(theme) === 'classic' ? sport.type.body : 18, lineHeight: getThemeSkinId(theme) === 'classic' ? 22 : 24 }}>运动播报</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sport.space.sm }}>
+      <Text style={{ ...typography.label, color: theme.ink, fontWeight: '600' }}>运动播报</Text>
+      {!compact && active ? <Text style={{ ...typography.caption, color: theme.mutedStrong }}>{active.label}模式</Text> : null}
+    </View>
     <NativeChoice testID="voice-detail-mode" options={VOICE_MODES} value={value} onChange={onChange} disabled={disabled} />
-    {!compact && <Text style={{ color: theme.mutedStrong, fontSize: sport.type.secondary, lineHeight: 20 }}>{VOICE_MODES.find(mode => mode.value === value)?.description}</Text>}
+    {!compact && active ? <Text style={{ color: theme.mutedStrong, ...typography.caption }}>{active.description}</Text> : null}
   </View>
 }

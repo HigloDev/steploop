@@ -9,13 +9,21 @@ let nextInstance = 0
 const monotonicEpoch = Date.now() - performance.now()
 if (__DEV__) console.info('[art-image]', JSON.stringify({ session, status: 'session-start' }))
 
-/** Native load proof is development-only; no visible/accessibility QA markers. */
+/** Native load proof is development-only; production builds pass straight through with zero overhead. */
 function useImageEvents(identity: string, props: Pick<ImageProps, 'onLoadStart' | 'onLoad' | 'onError'>) {
   const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0
   const navigation = useContext(NavigationContext)
   const route = useContext(NavigationRouteContext)
-  const [record] = useState(() => ({ instanceId: `${session}/${++nextInstance}`, active: false, status: 'pending',
-    node: null as Image | null, timer: undefined as ReturnType<typeof setInterval> | undefined, bottomTabBarHeight, navigation, route }))
+  const [record] = useState(() => ({
+    instanceId: `${session}/${++nextInstance}`,
+    active: false,
+    status: 'pending',
+    node: null as Image | null,
+    timer: undefined as ReturnType<typeof setInterval> | undefined,
+    bottomTabBarHeight,
+    navigation,
+    route,
+  }))
   record.bottomTabBarHeight = bottomTabBarHeight
   record.navigation = navigation
   record.route = route
@@ -23,19 +31,29 @@ function useImageEvents(identity: string, props: Pick<ImageProps, 'onLoadStart' 
     if (__DEV__) console.info('[art-image]', JSON.stringify({ session, instanceId: record.instanceId, identity, status, loadStatus: record.status, detail, ...geometry }))
   }
   const mount = () => {
-    if (!record.active) { record.active = true; emit('mount') }
+    if (!record.active) {
+      record.active = true
+      emit('mount')
+    }
   }
-  const stopMeasuring = () => { if (record.timer !== undefined) clearInterval(record.timer); record.timer = undefined }
+  const stopMeasuring = () => {
+    if (record.timer !== undefined) clearInterval(record.timer)
+    record.timer = undefined
+  }
   const measure = () => {
     if (!record.active || record.status === 'loaded' || record.status === 'failed') return
     record.node?.measureInWindow((x, y, width, height) => {
       if (!record.active || record.status === 'loaded' || record.status === 'failed') return
       const window = Dimensions.get('window')
-      emit('visibility', undefined, { rect: { x, y, width, height },
+      emit('visibility', undefined, {
+        rect: { x, y, width, height },
         viewport: { width: window.width, height: window.height - record.bottomTabBarHeight },
-        window: { width: window.width, height: window.height }, bottomTabBarHeight: record.bottomTabBarHeight,
-        navigationFocused: record.navigation?.isFocused() ?? null, routeKey: record.route?.key ?? null,
-        measuredAt: monotonicEpoch + performance.now() })
+        window: { width: window.width, height: window.height },
+        bottomTabBarHeight: record.bottomTabBarHeight,
+        navigationFocused: record.navigation?.isFocused() ?? null,
+        routeKey: record.route?.key ?? null,
+        measuredAt: monotonicEpoch + performance.now(),
+      })
     })
   }
   const startMeasuring = () => {
@@ -47,7 +65,11 @@ function useImageEvents(identity: string, props: Pick<ImageProps, 'onLoadStart' 
   useLayoutEffect(() => {
     mount()
     startMeasuring()
-    return () => { stopMeasuring(); record.active = false; emit('unmount') }
+    return () => {
+      stopMeasuring()
+      record.active = false
+      emit('unmount')
+    }
   }, [])
   return {
     ref: (node: Image | null) => { record.node = node },
@@ -62,9 +84,10 @@ function ImageInstance({ identity, ...props }: ImageProps & { identity: string }
   return <Image {...props} {...events} />
 }
 
-export function TrackedImage(props: ImageProps & { identity: string }) {
+export function TrackedImage({ identity, ...props }: ImageProps & { identity: string }) {
+  if (!__DEV__) return <Image {...props} />
   // A changed source must acquire new native load proof, even at the same role.
-  return <ImageInstance key={`${props.identity}/${JSON.stringify(props.source)}`} {...props} />
+  return <ImageInstance key={`${identity}/${JSON.stringify(props.source)}`} identity={identity} {...props} />
 }
 
 function BackgroundInstance({ identity, ...props }: ImageBackgroundProps & { identity: string }) {
@@ -72,6 +95,7 @@ function BackgroundInstance({ identity, ...props }: ImageBackgroundProps & { ide
   return <ImageBackground {...props} {...events} imageRef={node => { ref(node); props.imageRef?.(node) }} />
 }
 
-export function TrackedImageBackground(props: ImageBackgroundProps & { identity: string }) {
-  return <BackgroundInstance key={`${props.identity}/${JSON.stringify(props.source)}`} {...props} />
+export function TrackedImageBackground({ identity, ...props }: ImageBackgroundProps & { identity: string }) {
+  if (!__DEV__) return <ImageBackground {...props} />
+  return <BackgroundInstance key={`${identity}/${JSON.stringify(props.source)}`} identity={identity} {...props} />
 }

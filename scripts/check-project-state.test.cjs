@@ -52,7 +52,7 @@ for (const [label, file, edit, expected] of [
   })
 }
 
-test('a newer development version can retain the previous public release', t => {
+test('a newer development version can retain the published release and reuse AGENTS.md', t => {
   const root = fixture(t)
   const state = JSON.parse(fs.readFileSync(path.join(root, 'project-state.json'), 'utf8'))
   const parts = state.currentVersion.split('.').map(Number)
@@ -63,7 +63,7 @@ test('a newer development version can retain the previous public release', t => 
   change(root, 'package.json', json => { json.version = nextVersion })
   change(root, 'package-lock.json', json => { json.version = nextVersion; json.packages[''].version = nextVersion })
   change(root, 'app.json', json => { json.expo.version = nextVersion; json.expo.android.versionCode = nextCode })
-  for (const file of ['AGENTS.md', 'CLAUDE.md', 'README.md', 'PROJECT_STATUS.md']) {
+  for (const file of ['CLAUDE.md', 'README.md', 'PROJECT_STATUS.md']) {
     const target = path.join(root, file)
     fs.writeFileSync(target, fs.readFileSync(target, 'utf8').replaceAll(state.currentVersion, nextVersion))
   }

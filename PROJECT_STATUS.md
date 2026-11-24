@@ -1,5 +1,9 @@
 # 当前项目状态
 
+2026-11-24 的开发版为 **1.1.9 / Android code 21**。这一版采用方案 A 图标和「疾阶运动」默认主题，更新了训练、教练、记录、设置及分享界面，并补上了楼栋地图预览。已在小米 14 验证同签名覆盖安装、应用启动和新主题入口。公开下载见 [1.1.7 试用版](docs/RELEASE_1.1.7.md)，版本索引见 [project-state.json](project-state.json)。
+
+## 1.1.9 前次安装记录
+
 2026-11-19 本地签名交付版为 **1.1.9 / Android code 21**，已从手机原安装的 **1.1.8 / code 20** 原地升级并验证。审计、真机流程和签名回执见 [1.1.9 Impeccable 审计](docs/uiux-119-impeccable-audit.md)。公开试用标签仍为 `v1.1.7-preview.1`，机器入口见 [project-state.json](project-state.json)。
 
 ## 1.1.7 历史基线

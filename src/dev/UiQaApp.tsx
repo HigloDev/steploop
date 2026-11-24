@@ -18,7 +18,6 @@ import DiagnosticCapture from '../pages/DiagnosticCapture'
 import Workout, { WorkoutContent } from '../pages/Workout'
 import WeeklyShare from '../pages/WeeklyShare'
 import { useTheme } from '../theme'
-import AppearanceScreen from '../pages/Appearance'
 import LocationPicker from '../pages/LocationPicker'
 import CoachCourse from '../pages/coach-course'
 import CoachGoal from '../pages/coach-goal'
@@ -222,7 +221,7 @@ export default function UiQaApp() {
     : state === 'onboarding' ? 'Onboarding' : state.startsWith('privacy') ? 'Privacy' : state === 'legacy' ? 'Result'
     : state === 'coach-course' ? 'CoachCourse' : state === 'coach-goal' ? 'CoachGoal' : state === 'coach-session' ? 'CoachSession'
     : state === 'coach-records' ? 'CoachRecords' : state === 'coach-review' ? 'CoachReview'
-    : state === 'appearance' ? 'Appearance' : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
+    : state.startsWith('weekly') ? 'WeeklyShare' : state === 'diagnostic' ? 'DiagnosticCapture' : WORKOUT_STATES.includes(state) ? 'ClimbWorkout' : 'Main'
   const targetParams = target === 'WorkoutResult' ? { id: state === 'template' ? 'uiqa-template' : 'uiqa-summary', fresh: state !== 'summary-history' }
     : target === 'ShareStudio' ? { id: 'uiqa-summary' } : target === 'Result' ? { id: 'uiqa-legacy' }
     : target === 'CoachCourse' || target === 'CoachGoal' ? { courseId: 'weight' }
@@ -230,7 +229,7 @@ export default function UiQaApp() {
     : target === 'CoachReview' ? { enrollmentId: 'uiqa-skins-coach' }
     : target === 'CoachRecords' ? { tab: 'weight' }
     : target === 'Onboarding' ? { from: 'settings' } : undefined
-  const mainScreen = state.startsWith('history') ? 'History' : state === 'settings' ? 'Profile' : state.startsWith('coach') ? 'Coach' : 'Train'
+  const mainScreen = state.startsWith('history') ? 'History' : state === 'settings' || state === 'appearance' ? 'Profile' : state.startsWith('coach') ? 'Coach' : 'Train'
   const mainTabs = ['Train', 'Coach', 'History', 'Profile']
   const mainRoute = { name: 'Main',
     state: { index: mainTabs.indexOf(mainScreen), routes: mainTabs.map(name => ({ name })) } }
@@ -248,7 +247,6 @@ export default function UiQaApp() {
       <Stack.Screen name="WorkoutResult" component={Summary} initialParams={{ id: state === 'template' ? 'uiqa-template' : 'uiqa-summary' }} />
       <Stack.Screen name="ShareStudio" component={ShareStudio} initialParams={{ id: 'uiqa-summary' }} />
       <Stack.Screen name="WeeklyShare" component={WeeklyShare} />
-      <Stack.Screen name="Appearance" component={AppearanceScreen} />
       <Stack.Screen name="LocationPicker" component={LocationPicker} />
       <Stack.Screen name="CoachCourse" component={CoachCourse} />
       <Stack.Screen name="CoachGoal" component={CoachGoal} />

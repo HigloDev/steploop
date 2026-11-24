@@ -5,7 +5,7 @@ const Jimp = require('jimp-compact')
 const root = path.resolve(__dirname, '..')
 const brand = 'assets/brand/steploop'
 const ui = 'assets/icons/ui'
-const source = 'assets/icons/sources'
+const source = 'docs/archive/icon-sources'
 const website = 'docs/assets/site-icons'
 const config = require('../app.json').expo
 
@@ -170,16 +170,30 @@ async function buildBrand() {
     const { data } = silhouette.bitmap
     data[index] = data[index + 1] = data[index + 2] = 255
   })
+  const fullIconPath = path.join(root, brand, 'master-icon.png')
   const background = Number.parseInt(config.android.adaptiveIcon.backgroundColor.slice(1) + 'ff', 16)
-  await Promise.all([
-    save(tile(mark, 1024, 0.72, background), brand + '/icon.png'),
-    save(tile(mark, 1024, 0.52), brand + '/adaptive-foreground.png'),
-    save(tile(silhouette, 1024, 0.52), brand + '/adaptive-monochrome.png'),
-    save(tile(mark, 512, 0.52), brand + '/splash.png'),
-    save(tile(mark, 64, 0.78, background), brand + '/favicon.png'),
+  const tasks = [
+    save(tile(silhouette, 1024, 0.54), brand + '/adaptive-monochrome.png'),
     save(tile(silhouette, 512, 0.89), brand + '/mark.png'),
-    save(tile(mark, 192, 0.72, background), website + '/steploop.png'),
-  ])
+  ]
+  if (fs.existsSync(fullIconPath)) {
+    const fullIcon = await Jimp.read(fullIconPath)
+    tasks.push(
+      save(fullIcon.clone().resize(1024, 1024, Jimp.RESIZE_BICUBIC), brand + '/icon.png'),
+      save(fullIcon.clone().resize(1024, 1024, Jimp.RESIZE_BICUBIC), 'assets/icon.png'),
+      save(fullIcon.clone().resize(64, 64, Jimp.RESIZE_BICUBIC), brand + '/favicon.png'),
+      save(fullIcon.clone().resize(192, 192, Jimp.RESIZE_BICUBIC), website + '/steploop.png'),
+    )
+  } else {
+    tasks.push(
+      save(tile(mark, 1024, 0.72, background), brand + '/icon.png'),
+      save(tile(mark, 1024, 0.52), brand + '/adaptive-foreground.png'),
+      save(tile(mark, 512, 0.52), brand + '/splash.png'),
+      save(tile(mark, 64, 0.78, background), brand + '/favicon.png'),
+      save(tile(mark, 192, 0.72, background), website + '/steploop.png'),
+    )
+  }
+  await Promise.all(tasks)
   const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 }
   await Promise.all(Object.entries(densities).map(([density, scale]) =>
     save(tile(silhouette, 24 * scale, 0.9), 'native/android-training/res/drawable-' + density + '/ic_stat_steploop.png')))

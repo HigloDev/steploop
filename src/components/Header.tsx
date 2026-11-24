@@ -1,14 +1,12 @@
-// 顶部导航栏：对应原 miniprogram/components/app-header。
-// RN 版用 useSafeAreaInsets 处理状态栏高度，用 Pressable 调 navigation.goBack()。
+// 顶部导航栏：全宽平直贴顶玻璃样式（无四角圆角盒边），统一状态栏安全区与返回触区。
 
 import React from 'react'
-import { UIIcon } from './ui-icon'
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
-import { getThemeSkinId, isGlacier, typography, useTheme, Theme } from '../theme'
-import { getGlassSurfaceStyle } from './glass-material'
-import { SkinArt } from './skin-art'
+import { UIIcon } from './ui-icon'
+import { typography, useTheme, useThemeStyles, Theme } from '../theme'
+import { getGlassHeaderStyle } from './glass-material'
 import { RootStackNavigation } from '../navigation/types'
 
 interface HeaderProps {
@@ -27,15 +25,27 @@ interface HeaderProps {
   style?: ViewStyle
 }
 
-export function Header({ title, back = true, large = false, rightLabel, onRightPress, rightContent, align = 'center', onBackPress, style }: HeaderProps) {
+export function Header({
+  title,
+  back = true,
+  large = false,
+  rightLabel,
+  onRightPress,
+  rightContent,
+  align = 'center',
+  onBackPress,
+  style,
+}: HeaderProps) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const navigation = useNavigation<RootStackNavigation>()
-  const glass = isGlacier(theme)
 
   const handleBack = () => {
-    if (onBackPress) { onBackPress(); return }
+    if (onBackPress) {
+      onBackPress()
+      return
+    }
     if (navigation.canGoBack()) {
       navigation.goBack()
     } else {
@@ -44,26 +54,42 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }, glass && { backgroundColor: 'transparent' }, glass && getGlassSurfaceStyle(theme, 'overlay'), style]}>
+    <View style={[styles.container, { paddingTop: insets.top }, !large && getGlassHeaderStyle(theme), style]}>
       <View style={[styles.bar, large && styles.largeBar]}>
         {back ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="返回" style={({ pressed }) => [styles.backAction, pressed && { backgroundColor: theme.surfaceSoft }]} onPress={handleBack} hitSlop={4}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="返回"
+            style={({ pressed }) => [styles.backAction, pressed && { backgroundColor: theme.surfaceSoft }]}
+            onPress={handleBack}
+            hitSlop={4}
+          >
             <UIIcon name="chevron-left" size={26} color={theme.ink} />
           </Pressable>
-        ) : (
-          large ? null : <View style={styles.backPlaceholder} />
+        ) : large ? null : (
+          <View style={styles.backPlaceholder} />
         )}
-        {large && getThemeSkinId(theme) !== 'classic' ? <SkinArt kind="mark" width={28} height={28} style={{ marginRight: 10 }} /> : null}
-        <Text accessibilityRole="header" style={[styles.title, large && styles.largeTitle, align === 'left' && { textAlign: 'left' }]}>
+        <Text
+          accessibilityRole="header"
+          style={[styles.title, large && styles.largeTitle, align === 'left' && { textAlign: 'left' }]}
+        >
           {title}
         </Text>
-        {rightContent ?? (rightLabel && onRightPress ? (
-          <Pressable accessibilityRole="button" accessibilityLabel={rightLabel} style={({ pressed }) => [styles.rightAction, pressed && { backgroundColor: theme.surfaceSoft }]} onPress={onRightPress} hitSlop={4}>
-            <Text style={styles.rightText}>{rightLabel}</Text>
-          </Pressable>
-        ) : (
-          large ? null : <View style={styles.rightPlaceholder}><SkinArt kind="mark" width={28} height={28} /></View>
-        ))}
+        {rightContent ?? (
+          rightLabel && onRightPress ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={rightLabel}
+              style={({ pressed }) => [styles.rightAction, pressed && { backgroundColor: theme.surfaceSoft }]}
+              onPress={onRightPress}
+              hitSlop={4}
+            >
+              <Text style={styles.rightText}>{rightLabel}</Text>
+            </Pressable>
+          ) : large ? null : (
+            <View style={styles.rightPlaceholder} />
+          )
+        )}
       </View>
     </View>
   )
@@ -72,10 +98,9 @@ export function Header({ title, back = true, large = false, rightLabel, onRightP
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
-      backgroundColor: theme.paper,
+      backgroundColor: 'transparent',
       zIndex: 20,
     },
-    // 高度 88rpx ≈ 44pt
     bar: {
       minHeight: 56,
       flexDirection: 'row',
@@ -83,8 +108,17 @@ const makeStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       paddingHorizontal: 12,
     },
-    largeBar: { minHeight: 72, paddingHorizontal: theme.pagePaddingH, paddingTop: 12, paddingBottom: 12 },
-    largeTitle: { ...typography.title, textAlign: 'left', marginHorizontal: 0 },
+    largeBar: {
+      minHeight: 68,
+      paddingHorizontal: theme.pagePaddingH,
+      paddingTop: 10,
+      paddingBottom: 10,
+    },
+    largeTitle: {
+      ...typography.title,
+      textAlign: 'left',
+      marginHorizontal: 0,
+    },
     backAction: {
       minWidth: 48,
       minHeight: 48,
@@ -92,10 +126,6 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 12,
-    },
-    backText: {
-      color: theme.ink,
-      fontSize: 14,
     },
     backPlaceholder: {
       minWidth: 48,
@@ -121,6 +151,5 @@ const makeStyles = (theme: Theme) =>
     },
     rightPlaceholder: {
       minWidth: 48,
-      alignItems: 'center',
     },
   })

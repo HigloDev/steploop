@@ -22,7 +22,11 @@ function runtime() {
       return [slots[index].value, next => { slots[index].value = typeof next === 'function' ? next(slots[index].value) : next }]
     },
     useRef(initial) { return slots[cursor++] ??= { current: initial } },
-    useMemo: factory => factory(),
+    useMemo(factory, deps) {
+      const index = cursor++
+      if (!same(slots[index]?.deps, deps)) slots[index] = { deps, value: factory() }
+      return slots[index].value
+    },
     useCallback: callback => callback,
     useEffect(callback, deps) {
       const index = cursor++
@@ -52,9 +56,31 @@ const visualMocks = {
     useGlassDockInset: () => 0,
     getGlassSurfaceStyle: () => ({}),
   },
+  '../components/motion-ring-graphics': {
+    MotionRingLogoOrb: 'MotionRingLogoOrb',
+    MotionBrandBadge: 'MotionBrandBadge',
+    MotionHeroSurfaceArt: 'MotionHeroSurfaceArt',
+    MotionRingArc: 'MotionRingArc',
+    MotionCardAccent: 'MotionCardAccent',
+    MotionCompletionHalo: 'MotionCompletionHalo',
+    MotionPosterBackdrop: 'MotionPosterBackdrop',
+  },
   '../components/tracked-image': { TrackedImage: 'TrackedImage' },
   '../components/ui-icon': { UIIcon: 'UIIcon', resolveUIIconName: name => name },
-  '../../assets/skins/glacier-glass/stairwell.webp': 1,
+  '../skin-assets': { getThemeBackdrop: () => 1, getThemeStairwell: () => 1 },
+  'react-native-svg': {
+    default: 'Svg',
+    Circle: 'Circle',
+    ClipPath: 'ClipPath',
+    Defs: 'Defs',
+    G: 'G',
+    Path: 'Path',
+    Rect: 'Rect',
+    Line: 'Line',
+    LinearGradient: 'LinearGradient',
+    RadialGradient: 'RadialGradient',
+    Stop: 'Stop',
+  },
 }
 
 function load(file, mocks) {
@@ -85,7 +111,7 @@ const themeTokens = load('src/theme.ts', {
     useContext: context => context.value,
   },
   './skin-catalog': skinCatalog,
-  './appearance': { useAppearance: () => ({ skinId: 'classic', mode: 'system' }) },
+  './appearance': { useAppearance: () => ({ skinId: 'glacier-glass', mode: 'system' }) },
 })
 
 test('choice controls fit measured labels at larger font sizes and reflow when the actual space runs out', () => {
@@ -143,9 +169,6 @@ for (const failed of [false, true]) test(failed
     } },
     '../components/brand-mark': { BrandMark: 'BrandMark' },
     '../components/brand-wordmark': { BrandWordmark: 'BrandWordmark' },
-    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
-    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
-    '../components/skin-detail-art': { SkinBuildingThumbnail: 'SkinBuildingThumbnail', SkinWeekMotif: 'SkinWeekMotif' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' },
     '../components/ascent-references': { AscentReferences: 'AscentReferences' },
     '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
@@ -184,8 +207,10 @@ for (const failed of [false, true]) test(failed
     start(blocked).props.onPress()
     assert.deepEqual(navigations, [])
     assert.ok(find(blocked, node => node.props.children?.includes('上次训练尚未保存成功')))
+    const retryBtn = find(blocked, node => node.props.accessibilityRole === 'button' && node.props.accessibilityLabel === '重新读取')
+    assert.ok(retryBtn, 'loadError state must render a visible retry button')
     writeFailed = false
-    focus()
+    retryBtn.props.onPress()
     await new Promise(resolve => setImmediate(resolve))
   }
   const screen = render()
@@ -213,7 +238,15 @@ function holdHarness({ immediate = false, holdMs = 1200 } = {}) {
   const visuals = []
   const { HoldToConfirm } = load('src/components/workout-ui.tsx', {
     react: hooks.react, 'react-native': native,
-    'react-native-svg': { default: 'Svg', Circle: 'Circle', Line: 'Line' },
+    'react-native-svg': {
+      default: 'Svg',
+      Circle: 'Circle',
+      Defs: 'Defs',
+      Line: 'Line',
+      LinearGradient: 'LinearGradient',
+      RadialGradient: 'RadialGradient',
+      Stop: 'Stop',
+    },
     '../core/floors': {},
     'react-native-reanimated': {
       default: { View: 'Animated.View', Text: 'Animated.Text' }, Easing: { linear: value => value },
@@ -269,8 +302,8 @@ function onboardingHarness(fromSettings = false) {
     react: hooks.react, 'react-native': native,
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '@react-navigation/native': { useNavigation: () => ({ goBack: () => navigations.push('back'), replace: route => navigations.push(route) }) },
-    '@expo/vector-icons': icons, '../components/ui': { Button: 'Button' },
-    '../components/brand-mark': { BrandMark: 'BrandMark' }, '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('classic', 'light') },
+    '@expo/vector-icons': icons, '../components/ui': { Button: 'Button', useReduceMotion: () => false },
+    '../components/brand-mark': { BrandMark: 'BrandMark' }, '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('motion-ring', 'light') },
     '../services/onboarding': { markOnboardingSeen: async () => { marks++; await saved } },
   })
   const render = () => hooks.render(() => Screen({ route: { params: fromSettings ? { from: 'settings' } : {} } }))
@@ -319,7 +352,7 @@ test('reviewing privacy from settings offers a return action instead of a mislea
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '@react-navigation/native': { useNavigation: () => ({ canGoBack: () => true, goBack: () => backs++ }) },
     '../components/Header': { Header: 'Header' }, '../components/ui': { Button: 'Button' },
-    '../components/flow-sheet': { FlowSheet: 'FlowSheet' }, '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('classic', 'light') },
+    '../components/flow-sheet': { FlowSheet: 'FlowSheet' }, '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('glacier-glass', 'light') },
     '../services/privacy': {}, '../services/onboarding': {},
     '../services/history-repository': { HISTORY_SESSION_LIMIT: 100, HISTORY_WORKOUT_LIMIT: 100 },
   })
@@ -357,9 +390,6 @@ test('editing an old workout preserves its training date and chronological posit
     } },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../components/disclosure': { Disclosure: 'Disclosure' }, '../components/Header': { Header: 'Header' },
-    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
-    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
-    '../components/skin-detail-art': { SkinBuildingThumbnail: 'SkinBuildingThumbnail' },
     '../components/BuildingThumb': { BuildingThumb: 'BuildingThumb' }, '../components/flow-sheet': { FlowSheet: 'FlowSheet' },
     '../components/sport-ui': { StatPair: 'StatPair' },
     '../components/training-visuals': { TrendChart: 'TrendChart' },
@@ -382,8 +412,11 @@ test('editing an old workout preserves its training date and chronological posit
   const list = find(render(), node => node.type === 'FlatList')
   assert.deepEqual(list.props.data.map(card => card.id), ['recent', 'old-corrected'])
   assert.equal(list.props.data[1].sortAt, oldAt)
-  const card = list.props.renderItem({ item: list.props.data[1], index: 1 })
+  const rowEl = list.props.renderItem({ item: list.props.data[1], index: 1 })
+  const card = typeof rowEl.type === 'function' ? rowEl.type(rowEl.props) : rowEl
   assert.ok(find(card, node => node.props.accessibilityLabel?.includes('2026.10.01')))
+  assert.ok(find(card, node => node.props.accessibilityRole === 'header' && String(node.props.children?.join?.('') ?? node.props.children).includes('10月1日')), 'History row must display visible date group header')
+  assert.ok(find(card, node => node.type === 'Text' && String(node.props.children?.join?.('') ?? node.props.children).includes('09:00')), 'History card must display workout clock time')
 
   focusHistory()
   const duringRefresh = find(render(), node => node.type === 'FlatList')
@@ -394,7 +427,7 @@ test('editing an old workout preserves its training date and chronological posit
 
 async function weeklyHarness() {
   const hooks = runtime()
-  let dark = false, skin = 'classic', resolvePermission, mountedKey, captures = 0, saves = 0
+  let dark = false, skin = 'glacier-glass', resolvePermission, mountedKey, captures = 0, saves = 0
   const permission = new Promise(resolve => { resolvePermission = resolve })
   const week = { workouts: 1, weekStart: 1, floors: 12, ascentM: 36, steps: 240, calories: 20, days: [] }
   const { default: Screen, WeeklyPoster } = load('src/pages/WeeklyShare.tsx', {
@@ -479,11 +512,172 @@ test('changing skins within the same mode invalidates a pending poster export', 
   const h = await weeklyHarness()
   const before = find(h.render(), node => node.type === h.WeeklyPoster)
   find(h.render(), node => node.props.title === '保存海报').props.onPress()
-  h.switchSkin('pikachu')
+  h.switchSkin('woodland')
   const after = find(h.render(), node => node.type === h.WeeklyPoster)
   assert.notEqual(before.props.key, after.props.key)
   h.resolvePermission({ granted: true })
   await new Promise(resolve => setImmediate(resolve))
   assert.equal(h.captures, 0)
   assert.equal(h.saves, 0)
+})
+
+async function shareStudioHarness() {
+  const hooks = runtime()
+  const workout = { id: 'lab', startedAt: 1, endedAt: 2, rounds: [] }
+  let mode = 'light', mountedKey, resolvePermission, captures = 0, saves = 0
+  const alerts = []
+  const permission = new Promise(resolve => { resolvePermission = resolve })
+  const { default: Screen, SharePoster } = load('src/pages/ShareStudio.tsx', {
+    react: hooks.react, 'react-native': { ...native, Alert: { alert: (...args) => alerts.push(args) } },
+    'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
+    'react-native-view-shot': { captureRef: async () => { captures++; return 'file://poster.png' } },
+    'expo-clipboard': {}, 'expo-sharing': {},
+    'expo-media-library/legacy': { requestPermissionsAsync: () => permission, saveToLibraryAsync: async () => { saves++ } },
+    '../components/disclosure': { Disclosure: 'Disclosure' }, '../components/Header': { Header: 'Header' },
+    '../components/brand-mark': { BrandMark: 'BrandMark' }, '../components/ui': { Button: 'Button' },
+    '../core/segmented-calories': {}, '../core/math': {}, '../core/fusion-workout': { workoutCalories: () => 0 },
+    '../core/share-payload': { buildSharePayload: () => ({ redacted: [] }), isShareableResult: value => value === 'success' },
+    '../core/workout-summary': { calculateWorkoutSummary: () => ({}) },
+    '../core/training-progress': { deriveTrainingProgress: () => ({}) },
+    '../services/workout-storage': { getWorkout: async () => workout, listWorkouts: async () => [], saveWorkout: async () => {} },
+    '../theme': { ...themeTokens, useTheme: () => themeTokens.getTheme('night-run', mode) },
+    '../../assets/share/staircase-editorial-light.webp': 1,
+    '../../assets/share/staircase-editorial-dark.webp': 2,
+  })
+  const render = () => {
+    const screen = hooks.render(() => Screen({ navigation: {}, route: { params: { id: workout.id } } }))
+    const poster = find(screen, node => node.type === SharePoster)
+    if (poster && mountedKey !== poster.props.key) {
+      mountedKey = poster.props.key
+      poster.props.ref.current = { key: mountedKey }
+    }
+    return screen
+  }
+  render()
+  await new Promise(resolve => setImmediate(resolve))
+  return { render, SharePoster, alerts, resolvePermission, switchMode: () => { mode = 'dark' },
+    get captures() { return captures }, get saves() { return saves } }
+}
+
+test('editorial export waits for both images and retries failed assets on a fresh preview', async () => {
+  const h = await shareStudioHarness()
+  const screen = h.render()
+  const getPoster = () => find(h.render(), node => node.type === h.SharePoster)
+  const exportButton = () => find(h.render(), node => node.props.title === '保存图片')
+  find(screen, node => node.props.template === 'editorial' && node.props.onPress).props.onPress()
+  const first = getPoster()
+  first.props.onImageStatus('mark', true)
+  assert.equal(exportButton().props.disabled, true)
+  first.props.onImageStatus('background', false)
+  assert.equal(exportButton().props.disabled, true)
+  find(h.render(), node => node.props.title === '重新加载海报').props.onPress()
+  const retried = getPoster()
+  assert.notEqual(retried.props.key, first.props.key)
+  first.props.onImageStatus('background', true)
+  retried.props.onImageStatus('mark', true)
+  assert.equal(exportButton().props.disabled, true)
+  retried.props.onImageStatus('background', true)
+  assert.equal(exportButton().props.disabled, false)
+})
+
+test('a save pending permission locks ratio edits and rejects a preview replaced by system appearance', async () => {
+  const h = await shareStudioHarness()
+  const initial = h.render()
+  find(initial, node => node.type === h.SharePoster).props.onImageStatus('mark', true)
+  find(h.render(), node => node.props.accessibilityRole === 'tab' && node.props.children[0]?.props.children[0] === '尺寸').props.onPress()
+  const ready = h.render()
+  const ratio = find(ready, node => node.props.accessibilityLabel === '1:1 方形图片')
+  const save = find(ready, node => node.props.title === '保存图片').props.onPress()
+  ratio.props.onPress()
+  assert.equal(find(h.render(), node => node.type === h.SharePoster).props.ratio, '4:5')
+  h.switchMode()
+  h.render()
+  h.resolvePermission({ status: 'granted' })
+  await save
+  assert.equal(h.captures, 0)
+  assert.equal(h.saves, 0)
+  assert.match(h.alerts[0][1], /海报样式已变化/)
+})
+
+function locationPickerHarness(t, { configured = false, initialLocation } = {}) {
+  const hooks = runtime()
+  const navigations = []
+  const maps = load('src/services/building-map-html.ts', {})
+  const { default: Screen } = load('src/pages/LocationPicker.tsx', {
+    react: hooks.react,
+    'react-native': {
+      ...native,
+      Keyboard: { dismiss() {}, addListener: () => ({ remove() {} }) },
+      KeyboardAvoidingView: 'KeyboardAvoidingView',
+      NativeModules: {},
+      TextInput: 'TextInput',
+    },
+    'react-native-safe-area-context': { useSafeAreaInsets: () => ({ bottom: 0 }) },
+    'expo-location': {
+      Accuracy: { Balanced: 3 },
+      requestForegroundPermissionsAsync: async () => ({ granted: true }),
+      getCurrentPositionAsync: async () => ({ coords: { latitude: 27.75, longitude: 118.02, accuracy: 12 } }),
+    },
+    'react-native-webview': { WebView: 'WebView' },
+    '../components/Header': { Header: 'Header' },
+    '../components/sport-ui': { SportButton: 'SportButton' },
+    '../services/building-map-html': { ...maps, hasBuildingMap: configured },
+    '../theme': themeTokens,
+  })
+  const render = () => hooks.render(() => Screen({
+    navigation: { popTo: (...args) => navigations.push(args) },
+    route: { params: { initialLocation } },
+  }))
+  const ui = predicate => find(render(), predicate)
+  t.after(hooks.unmount)
+  return { maps, navigations, ui, webView: () => ui(node => node.type === 'WebView'),
+    button: title => ui(node => node.type === 'SportButton' && node.props.title === title) }
+}
+
+test('without a map key the picker opens the official preview and only a valid location enables confirmation', async t => {
+  const picker = locationPickerHarness(t)
+  const view = picker.webView()
+  assert.equal(new URL(view.props.source.uri).pathname, '/ssr/embed/view')
+  assert.equal(view.props.onMessage, undefined)
+  assert.equal(picker.button('使用此地点').props.disabled, true)
+
+  const keyword = '北京 天安门&key=ignored'
+  picker.ui(node => node.type === 'TextInput').props.onChangeText(keyword)
+  picker.button('搜索').props.onPress()
+  const previewUrl = new URL(picker.webView().props.source.uri)
+  assert.equal(previewUrl.pathname, '/ssr/embed/search')
+  assert.equal(previewUrl.searchParams.get('keyword'), keyword)
+  assert.equal(previewUrl.searchParams.has('key'), false)
+  assert.equal(picker.button('使用此地点').props.disabled, true)
+
+  picker.ui(node => node.props.accessibilityLabel === '选择当前位置').props.onPress()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(picker.button('使用此地点').props.disabled, false)
+  picker.button('使用此地点').props.onPress()
+  const [name, { params }] = picker.navigations[0]
+  assert.equal(name, 'Main')
+  assert.deepEqual({ ...params.pickedBuildingLocation, confirmedAt: 0 }, {
+    name: '当前位置', address: '', latitude: 27.75, longitude: 118.02,
+    source: 'gps', accuracy: 12, confirmedAt: 0,
+  })
+})
+
+test('primary map failure preserves the existing point and ignores messages from the failed WebView', t => {
+  const initialLocation = {
+    name: '旧楼栋', address: '已保存地点', latitude: 28, longitude: 118,
+    source: 'map', accuracy: 4, confirmedAt: 12,
+  }
+  const picker = locationPickerHarness(t, { configured: true, initialLocation })
+  const old = picker.webView()
+  assert.ok(old.props.source.html)
+  old.props.onError()
+  const preview = picker.webView()
+  assert.ok(picker.maps.isBuildingMapPreviewUrl(preview.props.source.uri))
+  assert.equal(preview.props.onShouldStartLoadWithRequest({ url: 'https://www.amap.com.invalid/ssr/embed/view' }), false)
+  old.props.onMessage({ nativeEvent: { data: JSON.stringify({ type: 'point', latitude: 1, longitude: 1 }) } })
+  picker.button('使用此地点').props.onPress()
+  const result = picker.navigations[0][1].params.pickedBuildingLocation
+  assert.deepEqual({ ...result, confirmedAt: 12 }, initialLocation)
+  picker.button('重试地图选点').props.onPress()
+  assert.ok(picker.webView().props.source.html)
 })

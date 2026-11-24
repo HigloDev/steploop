@@ -43,7 +43,7 @@ function harness(options = {}) {
   let focus
   const native = { StyleSheet: { create: value => value, hairlineWidth: 1 }, useColorScheme: () => 'light', Alert: { alert: (...args) => alerts.push(args) } }
   const catalog = load('src/skin-catalog.ts', {})
-  const appearance = { useAppearance: () => ({ skinId: 'classic', mode: 'system', hydrated: true }) }
+  const appearance = { useAppearance: () => ({ skinId: 'glacier-glass', mode: 'system', hydrated: true }) }
   const theme = load('src/theme.ts', {
     'react-native': native,
     react: {
@@ -82,8 +82,6 @@ function harness(options = {}) {
   const mocks = {
     '../components/glass-material': { GlassBackdrop: 'GlassBackdrop', useGlassDockInset: () => 0, getGlassSurfaceStyle: () => ({}) },
     '../components/ui-icon': { UIIcon: 'UIIcon', resolveUIIconName: name => name },
-    '../components/skin-art': { SkinLead: 'SkinLead', SkinArt: 'SkinArt' },
-    '../components/skin-page-header': { SkinPageHeader: 'SkinPageHeader' },
     react: hooks.react, '../../app.json': require('../app.json'), 'react-native': native,
     '@expo/vector-icons': {}, '@expo/ui': {}, 'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../services/backup': backups, '../services/export-csv': { exportWorkoutCsv: async () => ({ message: 'csv' }) },
@@ -93,7 +91,7 @@ function harness(options = {}) {
     '../services/preferences': { getPreferences: async () => ({}), savePreferences: async patch => patch, didPreferencesWriteFail: () => false, triggerHaptic: async () => {}, triggerHapticPattern: async () => {} },
     '../theme': theme, '../appearance': appearance, '../skin-catalog': catalog,
   }
-  for (const name of ['theme-switch', 'disclosure', 'voice-mode-selector', 'voice-speaker-selector', 'native-choice', 'stair-pace-selector', 'background-training-readiness', 'Header', 'ui', 'completion-celebration']) mocks['../components/' + name] = {}
+  for (const name of ['theme-switch', 'disclosure', 'flow-sheet', 'voice-mode-selector', 'voice-speaker-selector', 'native-choice', 'background-training-readiness', 'Header', 'ui', 'completion-celebration']) mocks['../components/' + name] = {}
   mocks['../components/appearance-mode-control'] = { AppearanceModeControl: 'AppearanceModeControl' }
   const Screen = load('src/pages/Settings.tsx', mocks).default
   const navigation = { addListener: (_, cb) => { focus = cb; return () => {} }, navigate() {} }

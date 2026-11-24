@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AppState, Linking, Pressable, Text, View } from 'react-native'
+import { AppState, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 import { UIIcon, resolveUIIconName } from './ui-icon'
 import { Button } from './ui'
 import { sport, useTheme } from '../theme'
@@ -80,22 +80,33 @@ export function BackgroundTrainingReadiness({ compact = false, grouped = false, 
 
   if (grouped) return <View>
     {([
-      ['运动权限', 'run', status?.activityPermissionGranted, '检查运动权限'],
-      ['通知权限', 'bell', status?.notificationsAllowed, '检查通知权限'],
-      ['电池优化', 'battery-charging', status?.batteryOptimizationIgnored, '检查电池优化'],
-    ] as const).map(([label, icon, allowed, accessibilityLabel], index) => <Pressable key={label}
-      accessibilityRole="button" accessibilityLabel={accessibilityLabel} disabled={opening}
+      ['运动权限', 'run', status?.activityPermissionGranted, '检查运动权限', '步数与活动识别'],
+      ['通知权限', 'bell', status?.notificationsAllowed, '检查通知权限', '锁屏前台服务通知'],
+      ['电池优化', 'battery-charging', status?.batteryOptimizationIgnored, '检查电池优化', '减少息屏中断采样'],
+    ] as const).map(([label, icon, allowed, accessibilityLabel, hint], index) => <Pressable key={label}
+      accessibilityRole="button" accessibilityLabel={`${accessibilityLabel}，${allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}`} disabled={opening}
       onPress={() => { if (index === 2) void open(!status?.batteryOptimizationIgnored); else void Linking.openSettings().catch(() => setError('无法打开系统页面，请在手机设置中检查循阶的权限。')) }}
-      style={{ minHeight: 64, paddingVertical: sport.space.md, flexDirection: 'row', alignItems: 'center', gap: sport.space.md,
-        borderTopWidth: index ? 0.5 : 0, borderTopColor: theme.line }}>
-      <UIIcon name={resolveUIIconName(icon)} size={24} color={theme.ink} />
-      <View style={{ flex: 1, gap: sport.space.xs }}><Text style={{ color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' }}>{label}</Text>
-        <Text style={{ color: theme.mutedStrong, fontSize: sport.type.secondary, lineHeight: 20 }}>{allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}</Text></View>
-      <UIIcon name={resolveUIIconName(index === 2 ? 'chevron-right' : allowed ? 'check-circle' : 'alert-circle-outline')}
-        size={24} color={index === 2 ? theme.brandText : allowed ? theme.success : theme.amberInk} />
+      style={({ pressed }) => ({
+        minHeight: 60, paddingVertical: sport.space.sm, flexDirection: 'row', alignItems: 'center', gap: sport.space.md,
+        borderTopWidth: index ? StyleSheet.hairlineWidth : 0, borderTopColor: theme.lineSoft,
+        opacity: pressed ? sport.opacity.pressed : 1,
+      })}>
+      <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: theme.surfaceSoft, alignItems: 'center', justifyContent: 'center' }}>
+        <UIIcon name={resolveUIIconName(icon)} size={19} color={theme.brandText} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Text style={{ color: theme.ink, fontSize: sport.type.body, lineHeight: 22, fontWeight: '500' }}>{label}</Text>
+        <Text style={{ color: theme.mutedStrong, fontSize: sport.type.caption, lineHeight: 18 }}>{hint}</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: allowed ? theme.success : theme.amberInk }}>
+          {allowed ? '已允许' : index === 2 ? '待检查' : '未允许'}
+        </Text>
+        <UIIcon name="chevron-right" size={18} color={theme.mutedStrong} />
+      </View>
     </Pressable>)}
-    <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 8 }}>权限就绪不代表后台采样一定连续。</Text>
-    {error ? <Text accessibilityRole="alert" style={{ color: theme.amberInk, fontSize: 13, lineHeight: 20 }}>{error}</Text> : null}
+    <Text style={{ color: theme.mutedStrong, fontSize: 12, lineHeight: 18, marginTop: 8 }}>权限就绪不代表后台采样一定连续，系统省电策略仍可能影响息屏记录。</Text>
+    {error ? <Text accessibilityRole="alert" style={{ color: theme.amberInk, fontSize: 13, lineHeight: 20, marginTop: 4 }}>{error}</Text> : null}
   </View>
 
   return (

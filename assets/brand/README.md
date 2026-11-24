@@ -1,16 +1,17 @@
 # 循阶品牌图标
 
-1.1.9 界面候选使用浅冰蓝三阶带状标志。三段水平踏面、圆角转折和向下回折的蓝色内侧来自同一张 ImageGen 母版。[生成说明](../icons/SOURCES.md)
+1.1.9 开发版采用**方案 A · 疾阶运动环（Glacier Activity Ring）**与配套单色矢量标志**运动环冲阶**。开口冰青环、磨砂阶梯和钴蓝底色也用于「疾阶运动」默认主题。
 
 | 资源 | 使用位置 |
 | --- | --- |
-| `steploop/master.png` | ImageGen 透明母版 |
-| `steploop/icon.png` | 标准桌面图标与 README |
-| `steploop/adaptive-foreground.png`、`steploop/adaptive-monochrome.png` | Android 自适应图标和系统单色主题 |
-| `steploop/splash.png` | 浅色与深色启动画面 |
-| `steploop/mark.png` | 应用内、引导页和分享海报 |
+| `steploop/master-icon.png` | 方案 A 全彩 1024px 桌面图标母版 |
+| `steploop/master-mark.svg`、`steploop/master.png` | 配套 A 运动环冲阶单色矢量与透明母版 |
+| `steploop/icon.png`、`assets/icon.png` | 标准桌面图标与 README |
+| `steploop/adaptive-foreground.png`、`steploop/adaptive-monochrome.png` | Android 自适应图标（70% 安全比例无缝渐变出血）和系统单色主题 |
+| `steploop/splash.png` | 浅色（`#103287`）与深色（`#0D1E42`）透明发光启动画面 |
+| `steploop/mark.png` | 应用内、引导页和分享海报，按主题语义色着色 |
 | `steploop/favicon.png`、`docs/assets/site-icons/steploop.png` | Expo 网页图标与下载网站 |
-| `native/android-training/res/drawable-*/ic_stat_steploop.png` | Android 通知栏五档密度 |
+| `native/android-training/res/drawable-*/ic_stat_steploop.png` | Android 通知栏五档密度单色白底透明图标 |
 
 从仓库根目录运行 `node scripts/package-brand-assets.cjs`，再由 Expo 预构建复制 Android 资源。自适应图标前景最长边占 52% 以适配系统遮罩，普通图标占 72%。通知图标和可着色资源采用透明底单色轮廓。
 

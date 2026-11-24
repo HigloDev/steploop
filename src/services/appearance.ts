@@ -5,7 +5,7 @@ export const APPEARANCE_KEY = 'steploop.appearance.v1'
 export interface AppearanceSnapshot extends AppearanceSelection {
   hydrated: boolean
   saving: boolean
-  error: 'read' | 'write' | null
+  error: 'read' | 'invalid' | 'write' | null
 }
 let snapshot: AppearanceSnapshot = { ...DEFAULT_APPEARANCE, hydrated: false, saving: false, error: null }
 const listeners = new Set<() => void>()
@@ -27,12 +27,19 @@ export function hydrateAppearance(retry = false): Promise<void> {
   if (hydration && !retry) return hydration
   const startedAt = revision
   hydration = (async () => {
+    let raw: string | null
     try {
-      const raw = await AsyncStorage.getItem(APPEARANCE_KEY)
-      const selection = normalizeAppearance(raw ? JSON.parse(raw) : undefined)
-      if (revision === startedAt) publish({ ...selection, hydrated: true, saving: false, error: null })
+      raw = await AsyncStorage.getItem(APPEARANCE_KEY)
     } catch {
       if (revision === startedAt) publish({ ...snapshot, hydrated: true, saving: false, error: 'read' })
+      return
+    }
+    if (revision !== startedAt) return
+    try {
+      const selection = normalizeAppearance(raw ? JSON.parse(raw) : undefined)
+      publish({ ...selection, hydrated: true, saving: false, error: null })
+    } catch {
+      publish({ ...snapshot, hydrated: true, saving: false, error: 'invalid' })
     }
   })()
   return hydration
@@ -41,6 +48,7 @@ export function hydrateAppearance(retry = false): Promise<void> {
 /** Serialized writes retain the user's latest choice even when taps are rapid. */
 export async function saveAppearance(patch: Partial<AppearanceSelection> = {}): Promise<boolean> {
   await hydrateAppearance()
+  if (snapshot.error === 'read') return false
   const selection = normalizeAppearance({ skinId: snapshot.skinId, mode: snapshot.mode, ...patch })
   const currentRevision = ++revision
   publish({ ...selection, hydrated: true, saving: true, error: null })

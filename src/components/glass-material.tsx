@@ -1,36 +1,29 @@
-// 冰川透蓝的玻璃材质层：柔和冰蓝渐变背景、一致的玻璃表面与浮动 Dock 内边距。
-// 背景与表面都不接收触摸、不进入朗读顺序；真实虚化由 MainTabs 的 BlurView 承担，
-// 本文件提供共享的渐变底图、玻璃表面样式与布局内边距。
+// 玻璃材质层：按当前配色提供柔和渐变底图、玻璃表面样式、顶栏样式与浮动 Dock 内边距。
+// 背景与表面不接收触摸、不进入朗读顺序；真实虚化由 MainTabs 的 BlurView 承担。
 
 import React, { useContext } from 'react'
 import { StyleSheet, View, ViewStyle } from 'react-native'
 import { Image } from 'expo-image'
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs'
-import { isGlacier, Theme, useTheme } from '../theme'
+import { getThemeBackdrop } from '../skin-assets'
+import { getThemeSkinId, isMotionRing, Theme, useTheme } from '../theme'
 
 export type GlassRole = 'card' | 'feature' | 'overlay'
 
 /** 浮动 Dock 的内容高度、水平外边距与底边到系统安全区的间距。 */
 export const GLASS_DOCK_CONTENT_HEIGHT = 64
 export const GLASS_DOCK_H_MARGIN = 16
-export const GLASS_DOCK_MARGIN = 30
-
-const LIGHT_BACKDROP = require('../../assets/skins/glacier-glass/backdrop-light.webp')
-const DARK_BACKDROP = require('../../assets/skins/glacier-glass/backdrop-dark.webp')
+export const GLASS_DOCK_MARGIN = 12
 
 function withAlphaHex(hex: string, alpha: number): string {
   const [r, g, b] = hex.slice(1).match(/../g)!.map(channel => parseInt(channel, 16))
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-/**
- * The bundled images preserve the palette and 360:780 framing of the former
- * gradients. A full-screen SVG on Android rasterizes again on reattachment.
- * The image decoder can reuse this much smaller, opaque surface across tabs.
- */
 export function GlassBackdrop() {
   const theme = useTheme()
-  if (!isGlacier(theme)) return null
+  const skinId = getThemeSkinId(theme)
+  const source = getThemeBackdrop(skinId, theme.isDark ? 'dark' : 'light')
   return (
     <View
       pointerEvents="none"
@@ -39,8 +32,14 @@ export function GlassBackdrop() {
       importantForAccessibility="no-hide-descendants"
       style={[StyleSheet.absoluteFill, { backgroundColor: theme.paper }]}
     >
-      <Image source={theme.isDark ? DARK_BACKDROP : LIGHT_BACKDROP} style={StyleSheet.absoluteFill}
-        contentFit="cover" cachePolicy="memory" transition={0} accessible={false} />
+      <Image
+        source={source}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        cachePolicy="memory"
+        transition={0}
+        accessible={false}
+      />
     </View>
   )
 }
@@ -53,6 +52,7 @@ export function GlassBackdrop() {
  */
 export function getGlassSurfaceStyle(theme: Theme, role: GlassRole = 'card'): ViewStyle {
   const glass = theme.glass
+  const motionRing = isMotionRing(theme)
   const isOverlay = role === 'overlay'
   const opacity = role === 'feature' ? glass.featureOpacity : isOverlay ? glass.overlayOpacity : glass.cardOpacity
   const level = role === 'feature' ? theme.elevation.level2 : isOverlay ? theme.elevation.level3 : theme.elevation.level2
@@ -61,8 +61,8 @@ export function getGlassSurfaceStyle(theme: Theme, role: GlassRole = 'card'): Vi
     backgroundColor: withAlphaHex(glass.fill, opacity),
     borderRadius,
     borderWidth: level.borderWidth,
-    borderColor: isOverlay ? glass.stroke : level.borderColor,
-    borderTopColor: isOverlay ? glass.highlight : undefined,
+    borderColor: isOverlay || motionRing ? glass.stroke : level.borderColor,
+    borderTopColor: isOverlay || motionRing ? glass.highlight : undefined,
     shadowColor: level.shadow.shadowColor,
     shadowOffset: level.shadow.shadowOffset,
     shadowOpacity: level.shadow.shadowOpacity,
@@ -71,14 +71,22 @@ export function getGlassSurfaceStyle(theme: Theme, role: GlassRole = 'card'): Vi
   }
 }
 
+/** 全宽顶部导航栏玻璃样式：平直贴顶、无圆角盒边，仅在底边保留细分隔线。 */
+export function getGlassHeaderStyle(theme: Theme): ViewStyle {
+  const motionRing = isMotionRing(theme)
+  return {
+    backgroundColor: withAlphaHex(theme.glass.fill, theme.isDark ? (motionRing ? 0.78 : 0.72) : (motionRing ? 0.72 : 0.62)),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: motionRing ? theme.glass.stroke : theme.lineSoft,
+  }
+}
+
 /**
- * 非 Tab 页也可安全调用：不在底部 Tab 内（没有 BottomTabBarHeightContext）时返回 0。
- * 冰川透蓝的底栏是绝对定位的浮动 Dock，内容会滚到其下方。页面已各自加上 insets.bottom，
- * 这里返回 Dock 内容高度（随大字号增长）加底边间距，保证最后一项能完整滚出。
+ * 非 Tab 页也可安全调用：不在底部 Tab 内时返回 0。
+ * 返回浮动 Dock 内容高度 + 底部外边距，确保滚动列表最后一项可完整滚出。
  */
 export function useGlassDockInset(): number {
-  const theme = useTheme()
   const tabBarHeight = useContext(BottomTabBarHeightContext)
-  if (!isGlacier(theme) || tabBarHeight == null) return 0
+  if (tabBarHeight == null) return 0
   return tabBarHeight + GLASS_DOCK_MARGIN
 }

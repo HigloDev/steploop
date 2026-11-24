@@ -23,6 +23,17 @@ npx tsc --noEmit
 npx expo-doctor
 ```
 
+## Windows 本机构建目录
+
+从系统盘之外的真实工作目录运行 `scripts\android-windows.ps1`。先用 `-CheckOnly` 确认 Node 和 JDK 的实际临时目录。脚本优先复用已经位于非系统盘的 Gradle 用户缓存，将构建临时文件与 npm、Expo 和 Android 用户缓存放到工作区 `.expo\android-build-runtime`。这些变量只作用于本次运行。
+
+```powershell
+.\scripts\android-windows.ps1 -CheckOnly
+.\scripts\android-windows.ps1
+```
+
+直接执行脚本构建已生成的 Android Release。需要预构建或传入 Gradle 参数时使用下方发布签名示例。
+
 ## 调试
 
 ```sh
@@ -54,12 +65,20 @@ $env:EXPO_PUBLIC_AMAP_SECURITY_CODE = ''
 $env:EXPO_PUBLIC_DIAGNOSTIC_CAPTURE = '0'
 $env:NODE_ENV = 'production'
 Remove-Item Env:PALOU_INTERNAL_BUILD -ErrorAction SilentlyContinue
-npx expo prebuild --platform android --no-install
-Set-Location android
-.\gradlew.bat :app:assembleRelease '-PreactNativeArchitectures=arm64-v8a,x86_64' --max-workers=4 --console=plain
+.\scripts\android-windows.ps1 -Command {
+  npx.cmd expo prebuild --platform android --no-install
+  if ($LASTEXITCODE -ne 0) { throw 'Expo prebuild failed.' }
+  .\android\gradlew.bat -p android --no-daemon :app:assembleRelease '-PreactNativeArchitectures=arm64-v8a,x86_64' --max-workers=4 --console=plain
+}
 ```
 
 macOS/Linux 使用等价环境变量和 `./gradlew`。APK 位于 `android/app/build/outputs/apk/release/app-release.apk`，包含 JS，无须 Metro。
+
+### 楼栋地图
+
+个人手机验证包可在构建进程中读取本项目已有的高德 Web 端 JS API 配置 `EXPO_PUBLIC_AMAP_JS_KEY` 与 `EXPO_PUBLIC_AMAP_SECURITY_CODE`，用于搜索地址、拖图选点和定位。沿用上述 `EXPO_NO_DOTENV=1` 时，需在同一进程显式设置这两项。配置保存在本机，个人验证包也留在本机。
+
+公开候选可以继续将两项留空，楼栋页会使用高德官方免 Key 地图预览。`搜索` 会在预览中展示结果，点「选择当前位置」可以用手机定位保存位置。完整选点临时加载失败时也会进入预览，并提供重试入口。[高德嵌入地图](https://lbs.amap.com/api/uri-api/guide/embedded-map/summarize) · [高德个人开发者配额](https://lbs.amap.com/upgrade)
 
 ## 交付核对
 

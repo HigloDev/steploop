@@ -1,6 +1,6 @@
 // 应用入口：SafeAreaProvider + NavigationContainer + NativeStack。
 // 启动时检查隐私协议，未同意则初始路由为 Privacy；首次使用展示引导。
-// fusion-v1 流程：首页 → 全屏训练 → 结算；所有页面共用所选皮肤和明暗模式。
+// fusion-v1 流程：首页 → 全屏训练 → 结算；所有页面共用所选轻量玻璃主题和明暗模式。
 
 import React, { useEffect, useState } from 'react'
 import { useAppFontsReady } from './src/components/app-fonts'
@@ -16,11 +16,10 @@ import { RootStackParamList } from './src/navigation/types'
 import { isPrivacyAgreed } from './src/services/privacy'
 import { hasSeenOnboarding } from './src/services/onboarding'
 import MainTabs from './src/navigation/MainTabs'
-import { AppSkinContext, useTheme, useWorkoutPalette } from './src/theme'
+import { useTheme, useWorkoutPalette } from './src/theme'
 import { useReduceMotion } from './src/components/ui'
 import { useAppearance } from './src/appearance'
 import { hydrateAppearance } from './src/services/appearance'
-import AppearanceScreen from './src/pages/Appearance'
 import LocationPicker from './src/pages/LocationPicker'
 
 import ResultScreen from './src/pages/Result'
@@ -77,7 +76,7 @@ function AppContent() {
   if (!ready || !appearance.hydrated || !fontsReady) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={theme.brand} />
+        <ActivityIndicator color={theme.brandText} />
         <StatusBar style={theme.isDark ? 'light' : 'dark'} />
       </View>
     )
@@ -116,12 +115,15 @@ function AppContent() {
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
-          <Stack.Screen name="Appearance" component={AppearanceScreen} />
           <Stack.Screen name="LocationPicker" component={LocationPicker} />
           <Stack.Screen
             name="ClimbWorkout"
             component={WorkoutScreen}
-            options={{ gestureEnabled: false, animation: reduceMotion ? 'fade' : 'slide_from_bottom', contentStyle: { backgroundColor: workoutPalette.bg } }}
+            options={{
+              gestureEnabled: false,
+              animation: reduceMotion ? 'fade' : 'slide_from_bottom',
+              contentStyle: { backgroundColor: workoutPalette.bg },
+            }}
           />
           <Stack.Screen name="CoachCourse" component={CoachCourse} />
           <Stack.Screen name="CoachGoal" component={CoachGoal} />
@@ -142,9 +144,7 @@ function AppContent() {
 export default function App() {
   return (
     <AppErrorBoundary>
-      <AppSkinContext.Provider value="glacier-glass">
-        <AppContent />
-      </AppSkinContext.Provider>
+      <AppContent />
     </AppErrorBoundary>
   )
 }

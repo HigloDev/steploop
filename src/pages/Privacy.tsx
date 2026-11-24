@@ -8,7 +8,8 @@ import { useNavigation } from '@react-navigation/native'
 import { Header } from '../components/Header'
 import { Button } from '../components/ui'
 import { FlowSheet } from '../components/flow-sheet'
-import { isGlacier, useTheme, Theme } from '../theme'
+import { UIIcon } from '../components/ui-icon'
+import { typography, useTheme, useThemeStyles, Theme } from '../theme'
 import { GlassBackdrop, getGlassSurfaceStyle } from '../components/glass-material'
 import { RootStackScreen, RootStackNavigation } from '../navigation/types'
 import { agreePrivacy } from '../services/privacy'
@@ -21,9 +22,8 @@ const FEEDBACK_URL = 'https://github.com/HigloDev/steploop/issues'
 
 export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
   const insets = useSafeAreaInsets()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const navigation = useNavigation<RootStackNavigation>()
   const from = route.params?.from
   const fromSettings = from === 'settings'
@@ -56,7 +56,7 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 
   return (
     <View style={styles.page}>
-      {glass ? <GlassBackdrop /> : null}
+      <GlassBackdrop />
       <Header title="隐私协议" align="left" back={from === 'route-edit' || (navigation.canGoBack() as boolean)} />
       <ScrollView
         style={styles.flex}
@@ -156,15 +156,17 @@ export default function PrivacyScreen({ route }: RootStackScreen<'Privacy'>) {
 /** Summaries follow the approved layout; every original policy paragraph remains expandable. */
 function PrivacySection({ title, summary, children }: { title: string; summary: string; children: React.ReactNode }) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
   const [open, setOpen] = useState(false)
-  return <View style={[{ borderRadius: 20, marginBottom: 6, paddingHorizontal: 18 }, glass ? getGlassSurfaceStyle(theme, 'card') : { backgroundColor: theme.card }]}>
+  return <View style={[{ borderRadius: 20, marginBottom: 8, paddingHorizontal: 18 }, getGlassSurfaceStyle(theme, 'card')]}>
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}，查看完整协议`} accessibilityState={{ expanded: open }}
-      accessibilityHint="点开查看完整协议正文" onPress={() => setOpen(value => !value)} style={{ flexDirection: 'row', paddingVertical: 8, minHeight: 66, alignItems: 'flex-start' }}>
-      <View style={{ flex: 1 }}><Text style={{ color: theme.ink, fontSize: 19, lineHeight: 24, fontWeight: '900' }}>{title}</Text>
-        <Text style={{ color: theme.mutedStrong, fontSize: 15, lineHeight: 20, marginTop: 2 }}>{summary}</Text></View>
+      accessibilityHint="点开查看完整协议正文" onPress={() => setOpen(value => !value)} style={{ flexDirection: 'row', paddingVertical: 12, minHeight: 62, alignItems: 'center', gap: 10 }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: theme.ink, fontSize: 17, lineHeight: 23, fontWeight: '700' }}>{title}</Text>
+        <Text style={{ color: theme.mutedStrong, fontSize: 14, lineHeight: 20, marginTop: 2 }}>{summary}</Text>
+      </View>
+      <UIIcon name={open ? 'chevron-up' : 'chevron-down'} size={18} color={theme.mutedStrong} />
     </Pressable>
-    {open ? <View style={{ paddingTop: 12, paddingBottom: 12, borderTopWidth: 1, borderTopColor: theme.line }}>{children}</View> : null}
+    {open ? <View style={{ paddingTop: 12, paddingBottom: 14, borderTopWidth: 1, borderTopColor: theme.lineSoft }}>{children}</View> : null}
   </View>
 }
 
@@ -172,23 +174,20 @@ const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: theme.paper },
     flex: { flex: 1 },
-    content: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
-    hero: { marginBottom: 4, gap: 4 },
+    content: { paddingHorizontal: theme.pagePaddingH, paddingTop: 12, paddingBottom: 16 },
+    hero: { marginBottom: 14, gap: 4 },
     eyebrow: {
       color: theme.brandText,
       fontSize: theme.fontEyebrow,
       fontWeight: '700',
     },
     title: {
+      ...typography.title,
       color: theme.ink,
-      fontSize: 36,
-      fontWeight: '900',
-      lineHeight: 42,
     },
     subtitle: {
+      ...typography.secondary,
       color: theme.mutedStrong,
-      fontSize: 14,
-      lineHeight: 20,
     },
     card: {
       paddingVertical: 20,

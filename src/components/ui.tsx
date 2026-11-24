@@ -1,12 +1,10 @@
-// 通用 UI 组件：Button、Card、Field、Pill、Metric、EmptyState 等。
-// 把原 .button-primary/.card/.field/.pill/.metric 等 wxss 类映射为 RN 组件。
+// 通用 UI 组件：Button、Card、Field、Pill、Metric、EmptyState、Notice。
+// 所有样式通过 useThemeStyles 弱缓存，避免每次渲染重建 StyleSheet。
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { UIIcon, resolveUIIconName } from './ui-icon'
 import {
-  AccessibilityInfo,
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -16,39 +14,17 @@ import {
   StyleProp,
   PressableProps,
 } from 'react-native'
-import { getPrimaryActionPaint, isGlacier, typography, useTheme, Theme } from '../theme'
+import { useReducedMotion } from 'react-native-reanimated'
+import { getPrimaryActionPaint, typography, useTheme, useThemeStyles, Theme } from '../theme'
 import { getGlassSurfaceStyle } from './glass-material'
+import { MotionPressable } from './motion-pressable'
 import { triggerHaptic } from '../services/preferences'
 
 type Variant = 'primary' | 'secondary' | 'danger'
 
-/**
- * D10：系统「减少动画」开关。
- *
- * 关键交互（庆祝动效、传感器波形）在开启后必须降级：不做无意义的持续动画/重绘。
- * 组件库导出这一个 hook，避免各页面各写一份监听。
- */
+/** 统一系统「减少动态」钩子，直接代理 Reanimated 同步状态，避免首帧闪动。 */
 export function useReduceMotion(): boolean {
-  const [reduceMotion, setReduceMotion] = useState(false)
-
-  useEffect(() => {
-    let mounted = true
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((enabled) => {
-        if (mounted) setReduceMotion(enabled)
-      })
-      .catch(() => undefined)
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      (enabled) => setReduceMotion(enabled),
-    )
-    return () => {
-      mounted = false
-      subscription.remove()
-    }
-  }, [])
-
-  return reduceMotion
+  return useReducedMotion()
 }
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
@@ -57,7 +33,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
   loading?: boolean
   disabled?: boolean
   fullWidth?: boolean
-  style?: ViewStyle
+  style?: StyleProp<ViewStyle>
   labelStyle?: TextStyle
 }
 
@@ -69,43 +45,55 @@ export function Button({
   fullWidth = true,
   style,
   labelStyle,
+  onPress,
   ...rest
 }: ButtonProps) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
+  const action = getPrimaryActionPaint(theme)
   const variantStyle =
     variant === 'primary'
-      ? [styles.primary, { backgroundColor: getPrimaryActionPaint(theme).fill }, glass && theme.elevation.level2.shadow]
+      ? [styles.primary, { backgroundColor: action.fill }, theme.elevation.level2.shadow]
       : variant === 'secondary'
-        ? (glass ? getGlassSurfaceStyle(theme, 'card') : styles.secondary)
+        ? getGlassSurfaceStyle(theme, 'card')
         : styles.danger
+  const isDisabled = disabled || loading
+
   return (
-    <Pressable
-      // D10 预备：读屏需要明确的角色与状态；标题文本会作为可读名称。
+    <MotionPressable
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      // 可读名称来自可见文本（title）；loading 时文本被菊花替换，这里兜底，
-      // 调用方传入的 accessibilityLabel 仍可覆盖（见 {...rest}）。
       accessibilityLabel={title}
-      style={({ pressed }) => [
+      style={[
         styles.buttonBase,
         variantStyle,
         fullWidth && styles.fullWidth,
-        pressed && styles.pressed,
-        disabled && styles.disabled,
+        isDisabled && styles.disabled,
         style,
       ]}
-      disabled={disabled || loading}
+      contentStyle={styles.buttonContent}
+      disabled={isDisabled}
       {...rest}
-      onPress={event => { void triggerHaptic(variant === 'danger' ? 'medium' : 'light'); rest.onPress?.(event) }}
+      onPress={event => {
+        void triggerHaptic(variant === 'danger' ? 'medium' : 'light')
+        onPress?.(event)
+      }}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? getPrimaryActionPaint(theme).ink : theme.brandText} />
+        <ActivityIndicator color={variant === 'primary' ? action.ink : theme.brandText} />
       ) : (
-        <Text style={[styles.label, variant === 'primary' && styles.labelOnPrimary, variant === 'primary' && { color: getPrimaryActionPaint(theme).ink }, variant === 'danger' && { color: theme.redInk }, labelStyle]}>{title}</Text>
+        <Text
+          style={[
+            styles.label,
+            variant === 'primary' && { color: action.ink },
+            variant === 'danger' && { color: theme.redInk },
+            labelStyle,
+          ]}
+        >
+          {title}
+        </Text>
       )}
-    </Pressable>
+    </MotionPressable>
   )
 }
 
@@ -117,10 +105,11 @@ interface CardProps {
 
 export function Card({ children, raised = false, style }: CardProps) {
   const theme = useTheme()
-  const glass = isGlacier(theme)
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   return (
-    <View style={[styles.card, glass && getGlassSurfaceStyle(theme, raised ? 'feature' : 'card'), raised && styles.cardRaised, style]}>{children}</View>
+    <View style={[styles.card, getGlassSurfaceStyle(theme, raised ? 'feature' : 'card'), raised && styles.cardRaised, style]}>
+      {children}
+    </View>
   )
 }
 
@@ -132,8 +121,7 @@ interface RowProps {
 }
 
 export function Row({ label, value, children, style }: RowProps) {
-  const theme = useTheme()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   return (
     <View
       style={[styles.row, style]}
@@ -152,6 +140,8 @@ interface FieldProps {
   onChangeText: (text: string) => void
   placeholder?: string
   keyboardType?: 'default' | 'numeric' | 'number-pad' | 'decimal-pad'
+  multiline?: boolean
+  numberOfLines?: number
   style?: ViewStyle
 }
 
@@ -161,22 +151,26 @@ export function Field({
   onChangeText,
   placeholder,
   keyboardType = 'default',
+  multiline = false,
+  numberOfLines,
   style,
 }: FieldProps) {
   const theme = useTheme()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   return (
     <View style={[styles.field, style]}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
-        // D10：输入框有独立可读名称，读屏聚焦时才知道要填什么（标签是同级 Text，不会自动关联）。
         accessibilityLabel={label}
-        style={styles.input}
+        style={[styles.input, multiline && styles.inputMultiline]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={theme.muted}
         keyboardType={keyboardType}
+        multiline={multiline}
+        numberOfLines={multiline ? (numberOfLines ?? 3) : undefined}
+        textAlignVertical={multiline ? 'top' : 'center'}
       />
     </View>
   )
@@ -188,7 +182,6 @@ interface PillProps {
   children: React.ReactNode
   tone?: PillTone
   style?: ViewStyle
-  /** 缺省时用可见文本作为可读名称；不要传英文标识符。 */
   accessibilityLabel?: string
 }
 
@@ -198,8 +191,7 @@ export function Pill({
   style,
   accessibilityLabel,
 }: PillProps) {
-  const theme = useTheme()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   const toneContainer =
     tone === 'good'
       ? styles.pillGood
@@ -216,9 +208,7 @@ export function Pill({
         : tone === 'danger'
           ? styles.pillDangerText
           : styles.pillDefaultText
-  // D10：状态标签要让读屏读成一句完整的话，名称来自可见文本。
-  const label =
-    accessibilityLabel ?? (typeof children === 'string' ? children : undefined)
+  const label = accessibilityLabel ?? (typeof children === 'string' ? children : undefined)
   return (
     <View
       accessible
@@ -239,9 +229,7 @@ interface MetricProps {
 }
 
 export function Metric({ label, value, hint, style }: MetricProps) {
-  const theme = useTheme()
-  const styles = makeStyles(theme)
-  // D10：数值卡片合并成一个读屏节点，「累计爬升 126.0米」而不是两个孤立文本。
+  const styles = useThemeStyles(makeStyles)
   const spoken = hint ? `${label}，${value}，${hint}` : `${label}，${value}`
   return (
     <View accessible accessibilityLabel={spoken} style={[styles.metric, style]}>
@@ -259,8 +247,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, subtitle, style }: EmptyStateProps) {
-  const theme = useTheme()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   return (
     <View style={[styles.empty, style]}>
       <Text accessibilityRole="header" style={styles.emptyTitle}>
@@ -273,14 +260,19 @@ export function EmptyState({ title, subtitle, style }: EmptyStateProps) {
 
 export function Notice({ children, tone = 'warn' }: { children: React.ReactNode; tone?: 'warn' | 'danger' }) {
   const theme = useTheme()
-  const styles = makeStyles(theme)
+  const styles = useThemeStyles(makeStyles)
   return (
     <View
       style={[styles.notice, tone === 'danger' && styles.noticeDanger]}
       accessible
       accessibilityRole={tone === 'danger' ? 'alert' : 'text'}
     >
-      <UIIcon name={resolveUIIconName(tone === 'danger' ? 'alert-circle' : 'info')} size={18} color={tone === 'danger' ? theme.redInk : theme.amberInk} style={{ marginTop: 1 }} />
+      <UIIcon
+        name={resolveUIIconName(tone === 'danger' ? 'alert-circle' : 'info')}
+        size={18}
+        color={tone === 'danger' ? theme.redInk : theme.amberInk}
+        style={{ marginTop: 1 }}
+      />
       <Text style={styles.noticeText}>{children}</Text>
     </View>
   )
@@ -289,22 +281,20 @@ export function Notice({ children, tone = 'warn' }: { children: React.ReactNode;
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     buttonBase: {
-      minHeight: 56,
+      minHeight: 54,
+      borderRadius: theme.radius.md,
+    },
+    buttonContent: {
+      minHeight: 54,
       paddingHorizontal: 20,
       paddingVertical: 12,
-      borderRadius: theme.radiusLg,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 8,
     },
     fullWidth: { alignSelf: 'stretch' },
     primary: {
       backgroundColor: theme.brand,
-
     },
-    secondary: {
-      backgroundColor: 'transparent',
-     borderWidth: 1.5, borderColor: theme.brandText,},
     danger: {
       backgroundColor: theme.redChip,
     },
@@ -312,24 +302,17 @@ const makeStyles = (theme: Theme) =>
       ...typography.control,
       color: theme.brandText,
     },
-    labelOnPrimary: {
-      color: theme.onBrand,
-    },
-    pressed: {
-      transform: [{ scale: 0.985 }],
-      opacity: 0.9,
-    },
     disabled: {
-      opacity: 0.4,
+      opacity: 0.42,
     },
     card: {
       backgroundColor: theme.card,
       padding: 18,
-      borderRadius: theme.radiusLg,
+      borderRadius: theme.radius.md,
     },
     cardRaised: {
       padding: 16,
-      borderRadius: theme.radiusLg,
+      borderRadius: theme.radius.md,
       marginBottom: 8,
     },
     row: {
@@ -345,10 +328,9 @@ const makeStyles = (theme: Theme) =>
       flexShrink: 1,
     },
     value: {
+      ...typography.digits,
       color: theme.ink,
-      fontSize: 17,
-      fontWeight: '600',
-      fontVariant: ['tabular-nums'],
+      fontSize: 18,
       flexShrink: 1,
     },
     field: {
@@ -362,17 +344,21 @@ const makeStyles = (theme: Theme) =>
     input: {
       borderWidth: 1,
       borderColor: theme.line,
-      borderRadius: theme.radiusSm,
+      borderRadius: theme.radius.sm,
       backgroundColor: theme.card,
       paddingHorizontal: 14,
       paddingVertical: 12,
-      // D10 大字体：用 minHeight 而不是固定 height，系统字体放大到 1.5x 时文字不被裁切。
       minHeight: 52,
       color: theme.ink,
       fontSize: typography.body.fontSize,
     },
+    inputMultiline: {
+      minHeight: 96,
+      paddingTop: 12,
+      paddingBottom: 12,
+    },
     pill: {
-      paddingHorizontal: 8,
+      paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: 999,
       alignSelf: 'flex-start',
@@ -385,26 +371,24 @@ const makeStyles = (theme: Theme) =>
       fontSize: theme.fontPill,
       fontWeight: '600',
     },
-    pillDefaultText: { color: theme.muted },
+    pillDefaultText: { color: theme.mutedStrong },
     pillGoodText: { color: theme.success },
     pillWarnText: { color: theme.amberInk },
     pillDangerText: { color: theme.redInk },
     metric: {
       backgroundColor: theme.cardSoft,
-      borderRadius: theme.radiusMd,
+      borderRadius: theme.radius.md,
       padding: 16,
-
     },
     metricLabel: {
       ...typography.secondary,
       color: theme.muted,
     },
     metricValue: {
+      ...typography.digits,
       marginTop: 4,
       color: theme.ink,
       fontSize: theme.fontMetric,
-      fontWeight: '700',
-      fontVariant: ['tabular-nums'],
     },
     metricHint: {
       marginTop: 4,
@@ -434,7 +418,7 @@ const makeStyles = (theme: Theme) =>
       alignItems: 'flex-start',
       gap: 10,
       backgroundColor: theme.amberSoft,
-      borderRadius: theme.radiusMd,
+      borderRadius: theme.radius.md,
     },
     noticeDanger: {
       backgroundColor: theme.redSoft,

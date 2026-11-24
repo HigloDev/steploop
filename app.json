@@ -19,7 +19,7 @@
       "package": "com.zxn.palou",
       "versionCode": 21,
       "adaptiveIcon": {
-        "backgroundColor": "#1D419A",
+        "backgroundColor": "#103287",
         "foregroundImage": "./assets/brand/steploop/adaptive-foreground.png",
         "monochromeImage": "./assets/brand/steploop/adaptive-monochrome.png"
       },
@@ -50,10 +50,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#1D419A",
+          "backgroundColor": "#103287",
           "image": "./assets/brand/steploop/splash.png",
           "dark": {
-            "backgroundColor": "#15294E",
+            "backgroundColor": "#0D1E42",
             "image": "./assets/brand/steploop/splash.png"
           },
           "imageWidth": 256,
